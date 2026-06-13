@@ -153,15 +153,17 @@ function TripsPage() {
             <Plane className="size-10 text-gold-primary mx-auto mb-4" strokeWidth={1.2} />
             <h3 className="text-lg font-medium text-ivory mb-2">لا توجد رحلات بعد</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              ابدأ بإضافة أول رحلة عائلية لتظهر هنا.
+              {canManage ? "ابدأ بإضافة أول رحلة عائلية لتظهر هنا." : "لم يقم المشرفون بإضافة رحلات بعد."}
             </p>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
-            >
-              <Plus className="size-4" strokeWidth={2.5} />
-              إضافة رحلة
-            </button>
+            {canManage && (
+              <button
+                onClick={() => setShowAdd(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+              >
+                <Plus className="size-4" strokeWidth={2.5} />
+                إضافة رحلة
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
