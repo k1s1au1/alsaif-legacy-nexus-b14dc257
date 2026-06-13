@@ -344,6 +344,16 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
               placeholder="مخيم العلا، المملكة العربية السعودية"
             />
           </Field>
+          <Field label="رابط الموقع (خرائط جوجل أو أي رابط)">
+            <input
+              type="url"
+              value={form.location_url}
+              onChange={(e) => update("location_url", e.target.value)}
+              className="input-base"
+              placeholder="https://maps.google.com/..."
+              dir="ltr"
+            />
+          </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="تاريخ البدء">
               <input
