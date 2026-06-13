@@ -55,6 +55,7 @@ export function AppShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
+  const queryClient = useQueryClient();
 
   const loadUnreadNotifications = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
