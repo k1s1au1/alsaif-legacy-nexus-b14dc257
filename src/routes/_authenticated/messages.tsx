@@ -38,6 +38,7 @@ function MessagesPage() {
   const [me, setMe] = useState<{ id: string; role: string | null } | null>(null);
   const [shellUser, setShellUser] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص" });
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [rolesMap, setRolesMap] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
