@@ -802,6 +802,12 @@ function ConversationRoute() {
             <Send className="size-4" />
           </button>
         </div>
+      ) : !canSend ? (
+        <div className="border-t border-border px-4 py-4 bg-card/60 text-center text-xs text-muted-foreground">
+          {conv?.send_permission === "admins"
+            ? "🔒 المشرفون فقط يمكنهم إرسال الرسائل في هذه المجموعة"
+            : "🔒 ليس لديك صلاحية إرسال الرسائل في هذه المجموعة"}
+        </div>
       ) : (
         <form
           onSubmit={sendText}
