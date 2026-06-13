@@ -14,7 +14,9 @@ import {
   Shield,
   Bell,
   LogOut,
+  User,
 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 
 const navItems = [
