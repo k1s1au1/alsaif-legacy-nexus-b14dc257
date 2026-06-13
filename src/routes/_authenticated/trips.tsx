@@ -420,13 +420,37 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
               placeholder="اجتماع شمل العائلة..."
             />
           </Field>
-          <Field label="رابط الصورة (اختياري)">
-            <input
-              value={form.image_url}
-              onChange={(e) => update("image_url", e.target.value)}
-              className="input-base"
-              placeholder="https://..."
-            />
+          <Field label="صورة الرحلة (اختياري)">
+            {imagePreview ? (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img src={imagePreview} alt="معاينة" className="w-full h-48 object-cover" />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 left-2 size-8 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-black/80 transition"
+                  aria-label="إزالة الصورة"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-2 px-4 py-8 border border-dashed border-border rounded-lg cursor-pointer hover:border-gold-primary/40 hover:bg-secondary/20 transition">
+                <div className="size-10 rounded-full bg-gold-primary/10 grid place-items-center">
+                  <Upload className="size-5 text-gold-primary" strokeWidth={1.5} />
+                </div>
+                <div className="text-sm text-ivory">انقر لرفع صورة</div>
+                <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <ImageIcon className="size-3" />
+                  JPG, PNG, WebP — حتى 5 ميجابايت
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPickImage}
+                />
+              </label>
+            )}
           </Field>
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
