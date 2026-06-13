@@ -129,63 +129,69 @@ function TripDetail() {
         </Link>
 
         <article className="card-surface overflow-hidden">
-          <div className="relative h-72">
+          <div className="relative h-56 sm:h-64">
             <TripImage
               path={trip.image_url}
               alt={trip.title}
               className="absolute inset-0 size-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
-            <div className="absolute bottom-0 right-0 left-0 p-8">
+            <div className="absolute bottom-0 right-0 left-0 p-6">
               {trip.badge && (
-                <span className="inline-block mb-3 px-2.5 py-1 bg-gold-primary/15 text-gold-primary text-[10px] rounded uppercase tracking-wider ring-1 ring-gold-primary/30">
+                <span className="inline-block mb-2 px-2.5 py-1 bg-gold-primary/15 text-gold-primary text-[10px] rounded uppercase tracking-wider ring-1 ring-gold-primary/30">
                   {trip.badge}
                 </span>
               )}
-              <h2 className="text-3xl font-medium text-ivory mb-2">{trip.title}</h2>
-              {trip.location && (
-                <div className="flex items-center gap-3 flex-wrap text-sm text-ivory/80">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="size-4" strokeWidth={1.5} />
-                    {trip.location}
-                  </div>
-                  {trip.location_url && (
-                    <a
-                      href={trip.location_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gold-primary/15 text-gold-primary text-xs ring-1 ring-gold-primary/30 hover:bg-gold-primary/25 transition"
-                    >
-                      فتح في الخريطة
-                    </a>
-                  )}
-                </div>
-              )}
+              <h2 className="text-2xl sm:text-3xl font-medium text-ivory">{trip.title}</h2>
             </div>
           </div>
-          <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-border">
+
+          <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 border-b border-border">
             <Stat icon={Calendar} label="التاريخ" value={formatRange(trip.start_date, trip.end_date)} />
+            <Stat icon={MapPin} label="الموقع" value={trip.location || "—"} />
+            <Stat icon={CheckCircle2} label="الحالة" value={statusLabel(trip.status)} />
             <Stat icon={Users} label="المشاركون" value="عائلي" />
             <Stat icon={Tent} label="الإقامة" value="مخيم عائلي" />
+            {trip.badge && <Stat icon={CheckCircle2} label="الفئة" value={trip.badge} />}
           </div>
-          {trip.description && (
-            <div className="p-8 space-y-6">
-              <p className="text-sm text-ivory/80 leading-relaxed whitespace-pre-line">
-                {trip.description}
-              </p>
-              <button
-                onClick={() => setGoing((v) => !v)}
-                className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition ${
-                  going
-                    ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
-                    : "bg-gold-primary text-navy-base hover:brightness-110"
-                }`}
+
+          {trip.location_url && (
+            <div className="px-6 sm:px-8 py-5 border-b border-border flex items-center justify-between gap-4 flex-wrap">
+              <div className="flex items-center gap-2 text-sm text-ivory/80">
+                <MapPin className="size-4 text-gold-primary" strokeWidth={1.5} />
+                <span>رابط موقع الرحلة</span>
+              </div>
+              <a
+                href={trip.location_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gold-primary/15 text-gold-primary text-xs ring-1 ring-gold-primary/30 hover:bg-gold-primary/25 transition"
               >
-                <CheckCircle2 className="size-4" strokeWidth={2} />
-                {going ? "تم تأكيد حضورك" : "تأكيد الحضور"}
-              </button>
+                <MapPin className="size-3.5" strokeWidth={1.5} />
+                فتح في الخريطة
+              </a>
             </div>
           )}
+
+          <div className="p-6 sm:p-8 space-y-6">
+            <div>
+              <div className="eyebrow mb-2">وصف الرحلة</div>
+              <p className="text-sm text-ivory/80 leading-relaxed whitespace-pre-line">
+                {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
+              </p>
+            </div>
+            <button
+              onClick={() => setGoing((v) => !v)}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition ${
+                going
+                  ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
+                  : "bg-gold-primary text-navy-base hover:brightness-110"
+              }`}
+            >
+              <CheckCircle2 className="size-4" strokeWidth={2} />
+              {going ? "تم تأكيد حضورك" : "تأكيد الحضور"}
+            </button>
+          </div>
         </article>
       </div>
     </AppShell>
