@@ -167,12 +167,12 @@ function TripsPage() {
                   className="card-surface overflow-hidden flex flex-col animate-fade-up"
                 >
                   <div className="relative h-56">
-                    <img
-                      src={trip.image_url || tripImage}
+                    <TripImage
+                      path={trip.image_url}
                       alt={trip.title}
-                      loading="lazy"
                       className="absolute inset-0 size-full object-cover"
                     />
+
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
                     <span
                       className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] rounded uppercase tracking-wider ring-1 ${chip.className}`}
