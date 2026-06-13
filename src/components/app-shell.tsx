@@ -16,7 +16,7 @@ import {
   LogOut,
   User,
 } from "lucide-react";
-
+import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { toast } from "sonner";
 
 const navItems = [
