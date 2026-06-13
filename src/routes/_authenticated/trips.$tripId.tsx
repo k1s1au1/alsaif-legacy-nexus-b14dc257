@@ -85,7 +85,7 @@ function TripDetail() {
 
       const { data: t } = await supabase
         .from("trips")
-        .select("id,title,badge,location,start_date,end_date,description,image_url,status")
+        .select("id,title,badge,location,location_url,start_date,end_date,description,image_url,status")
         .eq("id", tripId)
         .maybeSingle();
       setTrip((t as Trip | null) ?? null);
