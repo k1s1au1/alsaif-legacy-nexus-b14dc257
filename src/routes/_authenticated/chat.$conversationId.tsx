@@ -1531,13 +1531,17 @@ function InfoDrawer({
                   >
                     <div className="relative shrink-0">
                       <div
-                        className={`size-9 rounded-full grid place-items-center text-xs font-medium ${
+                        className={`size-9 rounded-full grid place-items-center text-xs font-medium overflow-hidden ${
                           isOwner || isMemAdmin
                             ? "bg-gold-primary text-navy-base"
                             : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
                         }`}
                       >
-                        {initialOf(name)}
+                        <UserAvatar
+                          path={profiles[p.user_id]?.avatar_url ?? null}
+                          name={name}
+                          className="size-full"
+                        />
                       </div>
                       {pres?.status === "online" && (
                         <span className="absolute bottom-0 left-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />
