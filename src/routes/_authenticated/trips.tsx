@@ -63,6 +63,8 @@ function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const canManage = userRole === "admin" || userRole === "manager";
 
   async function loadTrips() {
     const { data, error } = await supabase
