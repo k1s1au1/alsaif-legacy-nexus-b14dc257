@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { toast } from "sonner";
 import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar } from "lucide-react";
+import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,
