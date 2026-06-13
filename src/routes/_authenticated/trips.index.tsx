@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import tripImage from "@/assets/trip-alula.jpg";
 import { TripImage } from "@/components/trip-image";
 
-export const Route = createFileRoute("/_authenticated/trips")({
+export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
   head: () => ({
     meta: [
