@@ -292,6 +292,16 @@ function ConversationRoute() {
           setParticipants((parts ?? []) as unknown as Participant[]);
         },
       )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations",
+          filter: `id=eq.${conversationId}`,
+        },
+        (payload) => setConv(payload.new as unknown as Conversation),
+      )
       .subscribe();
 
     return () => {
