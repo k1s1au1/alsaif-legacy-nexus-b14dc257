@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AuthenticatedTripsRouteImport } from './routes/_authenticated/trips'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
+import { Route as AuthenticatedTripsIndexRouteImport } from './routes/_authenticated/trips.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
 import { Route as AuthenticatedChatConversationIdRouteImport } from './routes/_authenticated/chat.$conversationId'
@@ -34,11 +34,6 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedTripsRoute = AuthenticatedTripsRouteImport.update({
-  id: '/trips',
-  path: '/trips',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
 const AuthenticatedProfileRoute = AuthenticatedProfileRouteImport.update({
   id: '/profile',
   path: '/profile',
@@ -54,6 +49,11 @@ const AuthenticatedChatRoute = AuthenticatedChatRouteImport.update({
   path: '/chat',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedTripsIndexRoute = AuthenticatedTripsIndexRouteImport.update({
+  id: '/trips/',
+  path: '/trips/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,9 +61,9 @@ const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
 } as any)
 const AuthenticatedTripsTripIdRoute =
   AuthenticatedTripsTripIdRouteImport.update({
-    id: '/$tripId',
-    path: '/$tripId',
-    getParentRoute: () => AuthenticatedTripsRoute,
+    id: '/trips/$tripId',
+    path: '/trips/$tripId',
+    getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChatConversationIdRoute =
   AuthenticatedChatConversationIdRouteImport.update({
@@ -78,20 +78,20 @@ export interface FileRoutesByFullPath {
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/trips': typeof AuthenticatedTripsRouteWithChildren
   '/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
+  '/trips/': typeof AuthenticatedTripsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/profile': typeof AuthenticatedProfileRoute
-  '/trips': typeof AuthenticatedTripsRouteWithChildren
   '/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
+  '/trips': typeof AuthenticatedTripsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -101,10 +101,10 @@ export interface FileRoutesById {
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
-  '/_authenticated/trips': typeof AuthenticatedTripsRouteWithChildren
   '/_authenticated/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
+  '/_authenticated/trips/': typeof AuthenticatedTripsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -114,20 +114,20 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/profile'
-    | '/trips'
     | '/chat/$conversationId'
     | '/trips/$tripId'
     | '/chat/'
+    | '/trips/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/auth'
     | '/dashboard'
     | '/profile'
-    | '/trips'
     | '/chat/$conversationId'
     | '/trips/$tripId'
     | '/chat'
+    | '/trips'
   id:
     | '__root__'
     | '/'
@@ -136,10 +136,10 @@ export interface FileRouteTypes {
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
     | '/_authenticated/profile'
-    | '/_authenticated/trips'
     | '/_authenticated/chat/$conversationId'
     | '/_authenticated/trips/$tripId'
     | '/_authenticated/chat/'
+    | '/_authenticated/trips/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -171,13 +171,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/trips': {
-      id: '/_authenticated/trips'
-      path: '/trips'
-      fullPath: '/trips'
-      preLoaderRoute: typeof AuthenticatedTripsRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
     '/_authenticated/profile': {
       id: '/_authenticated/profile'
       path: '/profile'
@@ -199,6 +192,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedChatRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/trips/': {
+      id: '/_authenticated/trips/'
+      path: '/trips'
+      fullPath: '/trips/'
+      preLoaderRoute: typeof AuthenticatedTripsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
       path: '/'
@@ -208,10 +208,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/trips/$tripId': {
       id: '/_authenticated/trips/$tripId'
-      path: '/$tripId'
+      path: '/trips/$tripId'
       fullPath: '/trips/$tripId'
       preLoaderRoute: typeof AuthenticatedTripsTripIdRouteImport
-      parentRoute: typeof AuthenticatedTripsRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chat/$conversationId': {
       id: '/_authenticated/chat/$conversationId'
@@ -236,29 +236,20 @@ const AuthenticatedChatRouteChildren: AuthenticatedChatRouteChildren = {
 const AuthenticatedChatRouteWithChildren =
   AuthenticatedChatRoute._addFileChildren(AuthenticatedChatRouteChildren)
 
-interface AuthenticatedTripsRouteChildren {
-  AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
-}
-
-const AuthenticatedTripsRouteChildren: AuthenticatedTripsRouteChildren = {
-  AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
-}
-
-const AuthenticatedTripsRouteWithChildren =
-  AuthenticatedTripsRoute._addFileChildren(AuthenticatedTripsRouteChildren)
-
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
-  AuthenticatedTripsRoute: typeof AuthenticatedTripsRouteWithChildren
+  AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
+  AuthenticatedTripsIndexRoute: typeof AuthenticatedTripsIndexRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
-  AuthenticatedTripsRoute: AuthenticatedTripsRouteWithChildren,
+  AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
+  AuthenticatedTripsIndexRoute: AuthenticatedTripsIndexRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
@@ -272,3 +263,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
