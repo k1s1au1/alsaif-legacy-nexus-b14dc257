@@ -410,7 +410,7 @@ function TripDialog({
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-border">
-          <h3 className="text-lg font-medium text-ivory">إضافة رحلة جديدة</h3>
+          <h3 className="text-lg font-medium text-ivory">{isEdit ? "تعديل الرحلة" : "إضافة رحلة جديدة"}</h3>
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-ivory transition"
