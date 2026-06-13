@@ -255,16 +255,51 @@ function TripDetail() {
               </p>
             </div>
             <button
-              onClick={() => setGoing((v) => !v)}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition ${
+              onClick={toggleAttendance}
+              disabled={saving || !userId}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-60 ${
                 going
                   ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
                   : "bg-gold-primary text-navy-base hover:brightness-110"
               }`}
             >
               <CheckCircle2 className="size-4" strokeWidth={2} />
-              {going ? "تم تأكيد حضورك" : "تأكيد الحضور"}
+              {going ? "تم تأكيد حضورك — إلغاء" : "تأكيد الحضور"}
             </button>
+          </div>
+
+          <div className="p-6 sm:p-8 border-t border-border space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Users className="size-4 text-gold-primary" strokeWidth={1.5} />
+                <h3 className="text-sm font-medium text-ivory">المؤكدون للحضور</h3>
+              </div>
+              <span className="text-xs text-muted-foreground">{attendees.length}</span>
+            </div>
+
+            {attendees.length === 0 ? (
+              <p className="text-sm text-muted-foreground">لم يقم أحد بتأكيد الحضور بعد.</p>
+            ) : (
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {attendees.map((a) => (
+                  <li
+                    key={a.user_id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-card/40 ring-1 ring-border"
+                  >
+                    <div className="size-9 rounded-full bg-gold-primary/15 ring-1 ring-gold-primary/30 grid place-items-center overflow-hidden text-gold-primary text-xs font-semibold">
+                      <UserAvatar
+                        path={a.avatarPath}
+                        name={a.name}
+                        initial={a.initial}
+                        className="size-full"
+                        fallbackClassName="text-xs"
+                      />
+                    </div>
+                    <span className="text-sm text-ivory truncate">{a.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </article>
       </div>
