@@ -340,6 +340,7 @@ function ConversationRow({
     <Link
       to="/chat/$conversationId"
       params={{ conversationId: item.conversation.id }}
+      onClick={() => onOpen?.()}
       className={`flex items-center gap-3 px-4 py-3 border-b border-border/40 hover:bg-secondary/30 transition ${
         active ? "bg-secondary/40" : ""
       }`}
