@@ -144,9 +144,21 @@ function TripDetail() {
               )}
               <h2 className="text-3xl font-medium text-ivory mb-2">{trip.title}</h2>
               {trip.location && (
-                <div className="flex items-center gap-1.5 text-sm text-ivory/80">
-                  <MapPin className="size-4" strokeWidth={1.5} />
-                  {trip.location}
+                <div className="flex items-center gap-3 flex-wrap text-sm text-ivory/80">
+                  <div className="flex items-center gap-1.5">
+                    <MapPin className="size-4" strokeWidth={1.5} />
+                    {trip.location}
+                  </div>
+                  {trip.location_url && (
+                    <a
+                      href={trip.location_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-gold-primary/15 text-gold-primary text-xs ring-1 ring-gold-primary/30 hover:bg-gold-primary/25 transition"
+                    >
+                      فتح في الخريطة
+                    </a>
+                  )}
                 </div>
               )}
             </div>
