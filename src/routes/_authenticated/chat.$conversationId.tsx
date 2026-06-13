@@ -1076,8 +1076,12 @@ function MessageBubble({
   return (
     <div className={`group flex items-end gap-2 my-1 ${mine ? "flex-row-reverse" : ""}`}>
       {!mine && (
-        <div className="size-7 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-[10px] font-medium shrink-0">
-          {initial}
+        <div className="size-7 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-[10px] font-medium shrink-0 overflow-hidden">
+          <UserAvatar
+            path={profiles[m.sender_id]?.avatar_url ?? null}
+            initial={initial}
+            className="size-full"
+          />
         </div>
       )}
       <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col relative`}>
