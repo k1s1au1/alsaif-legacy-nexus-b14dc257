@@ -266,7 +266,10 @@ export type Database = {
           arabic_name: string | null
           avatar_url: string | null
           created_at: string
+          father_name: string | null
+          first_name: string | null
           full_name: string | null
+          grandfather_name: string | null
           id: string
           is_active: boolean
           phone: string | null
@@ -276,7 +279,10 @@ export type Database = {
           arabic_name?: string | null
           avatar_url?: string | null
           created_at?: string
+          father_name?: string | null
+          first_name?: string | null
           full_name?: string | null
+          grandfather_name?: string | null
           id: string
           is_active?: boolean
           phone?: string | null
@@ -286,7 +292,10 @@ export type Database = {
           arabic_name?: string | null
           avatar_url?: string | null
           created_at?: string
+          father_name?: string | null
+          first_name?: string | null
           full_name?: string | null
+          grandfather_name?: string | null
           id?: string
           is_active?: boolean
           phone?: string | null
