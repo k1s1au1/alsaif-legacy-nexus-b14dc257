@@ -1435,6 +1435,49 @@ function InfoDrawer({
             </button>
           </div>
 
+          {/* Send permissions (group + admin only) */}
+          {conversation.kind === "group" && isAdmin && (
+            <div>
+              <h5 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                صلاحيات الإرسال
+              </h5>
+              <div className="space-y-1.5">
+                {(
+                  [
+                    { v: "all", label: "كل الأعضاء", desc: "يستطيع جميع الأعضاء إرسال الرسائل" },
+                    { v: "admins", label: "المشرفون فقط", desc: "المالك والمشرفون فقط يمكنهم الإرسال" },
+                    { v: "selected", label: "أعضاء محددون والمشرفون", desc: "اختر يدويًا من يستطيع الإرسال" },
+                  ] as const
+                ).map((opt) => {
+                  const active = (conversation.send_permission ?? "all") === opt.v;
+                  return (
+                    <button
+                      key={opt.v}
+                      onClick={() => setPermission(opt.v)}
+                      className={`w-full text-right px-3 py-2.5 rounded-xl border transition ${
+                        active
+                          ? "border-gold-primary/60 bg-gold-primary/10"
+                          : "border-border bg-secondary/30 hover:bg-secondary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-sm text-ivory">{opt.label}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</div>
+                        </div>
+                        <span
+                          className={`size-4 rounded-full border ${
+                            active ? "border-gold-primary bg-gold-primary" : "border-border"
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Members */}
           <div>
             <div className="flex items-center justify-between mb-2">
