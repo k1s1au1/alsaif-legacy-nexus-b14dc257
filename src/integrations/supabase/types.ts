@@ -41,26 +41,99 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_room_members: {
+        Row: {
+          id: string
+          joined_at: string
+          room_id: string
+          room_role: Database["public"]["Enums"]["room_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          joined_at?: string
+          room_id: string
+          room_role?: Database["public"]["Enums"]["room_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          joined_at?: string
+          room_id?: string
+          room_role?: Database["public"]["Enums"]["room_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "chat_room_members_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      chat_rooms: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_private: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_private?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
           created_at: string
           id: string
+          room_id: string
           sender_id: string
         }
         Insert: {
           body: string
           created_at?: string
           id?: string
+          room_id: string
           sender_id: string
         }
         Update: {
           body?: string
           created_at?: string
           id?: string
+          room_id?: string
           sender_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "messages_room_id_fkey"
+            columns: ["room_id"]
+            isOneToOne: false
+            referencedRelation: "chat_rooms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -128,9 +201,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_room_admin: {
+        Args: { _room: string; _user: string }
+        Returns: boolean
+      }
+      is_room_member: {
+        Args: { _room: string; _user: string }
+        Returns: boolean
+      }
+      is_room_public: { Args: { _room: string }; Returns: boolean }
     }
     Enums: {
       app_role: "admin" | "manager" | "member"
+      room_role: "owner" | "admin" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -259,6 +342,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "member"],
+      room_role: ["owner", "admin", "member"],
     },
   },
 } as const

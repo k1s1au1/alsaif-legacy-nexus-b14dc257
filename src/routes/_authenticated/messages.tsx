@@ -1,8 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Send, Trash2, Users, ShieldCheck } from "lucide-react";
+import { Hash, Lock, Plus, Users, X } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/messages")({
@@ -10,291 +10,270 @@ export const Route = createFileRoute("/_authenticated/messages")({
   head: () => ({
     meta: [
       { title: "الرسائل — الصيف" },
-      { name: "description", content: "محادثة العائلة المباشرة لجميع الأعضاء." },
+      { name: "description", content: "غرف المحادثة العامة والخاصة لأفراد العائلة." },
     ],
   }),
-  component: MessagesPage,
+  component: MessagesIndex,
 });
 
-type Profile = { id: string; arabic_name: string | null; full_name: string | null };
-type Message = { id: string; sender_id: string; body: string; created_at: string };
+type Room = {
+  id: string;
+  name: string;
+  description: string | null;
+  is_private: boolean;
+  created_at: string;
+};
 
-function roleLabel(r: string | null) {
-  if (r === "admin") return "مسؤول النظام";
-  if (r === "manager") return "مدير";
-  return "عضو";
-}
-
-function displayName(p?: Profile) {
-  return p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
-}
-
-function timeLabel(iso: string) {
-  const d = new Date(iso);
-  return d.toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit" });
-}
-
-function MessagesPage() {
-  const [me, setMe] = useState<{ id: string; role: string | null } | null>(null);
-  const [shellUser, setShellUser] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص" });
-  const [profiles, setProfiles] = useState<Record<string, Profile>>({});
-  const [rolesMap, setRolesMap] = useState<Record<string, string>>({});
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [draft, setDraft] = useState("");
-  const [sending, setSending] = useState(false);
+function MessagesIndex() {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [isAdmin, setIsAdmin] = useState(false);
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [shellUser, setShellUser] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص" });
+  const [showCreate, setShowCreate] = useState(false);
+  const [meId, setMeId] = useState<string | null>(null);
 
-  // Initial load: user, profile, role, profiles map, messages
+  async function load() {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    setMeId(u.user.id);
+
+    const [{ data: rs }, { data: roles }, { data: prof }, { data: counts }] = await Promise.all([
+      supabase.from("chat_rooms").select("*").order("created_at", { ascending: true }),
+      supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+      supabase.from("profiles").select("arabic_name, full_name").eq("id", u.user.id).maybeSingle(),
+      supabase.from("chat_room_members").select("room_id"),
+    ]);
+
+    const admin = (roles ?? []).some((r) => r.role === "admin");
+    setIsAdmin(admin);
+    setRooms((rs ?? []) as Room[]);
+
+    const cmap: Record<string, number> = {};
+    (counts ?? []).forEach((c: { room_id: string }) => {
+      cmap[c.room_id] = (cmap[c.room_id] ?? 0) + 1;
+    });
+    setCounts(cmap);
+
+    const name =
+      prof?.arabic_name?.trim() || prof?.full_name?.trim() || u.user.email?.split("@")[0] || "عضو";
+    setShellUser({
+      name,
+      role: admin ? "مسؤول النظام" : "عضو",
+      initial: (name[0] ?? "ص").toUpperCase(),
+    });
+  }
+
   useEffect(() => {
-    (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-
-      const [{ data: profs }, { data: roles }, { data: msgs }] = await Promise.all([
-        supabase.from("profiles").select("id, arabic_name, full_name"),
-        supabase.from("user_roles").select("user_id, role"),
-        supabase.from("messages").select("*").order("created_at", { ascending: true }).limit(200),
-      ]);
-
-      const pmap: Record<string, Profile> = {};
-      (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
-      setProfiles(pmap);
-
-      const rmap: Record<string, string> = {};
-      (roles ?? []).forEach((r: { user_id: string; role: string }) => {
-        // admin wins over any other role
-        if (rmap[r.user_id] === "admin") return;
-        rmap[r.user_id] = r.role;
-      });
-      setRolesMap(rmap);
-
-      const myRoles = (roles ?? []).filter((r) => r.user_id === u.user!.id).map((r) => r.role);
-      const admin = myRoles.includes("admin");
-      setIsAdmin(admin);
-      setMe({ id: u.user.id, role: admin ? "admin" : myRoles[0] ?? null });
-
-      const myName = displayName(pmap[u.user.id]);
-      setShellUser({
-        name: myName,
-        role: roleLabel(admin ? "admin" : myRoles[0] ?? null),
-        initial: (myName[0] ?? "ص").toUpperCase(),
-      });
-
-      setMessages((msgs ?? []) as Message[]);
-    })();
-  }, []);
-
-  // Realtime subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel("messages-room")
+    load();
+    const ch = supabase
+      .channel("rooms-index")
       .on(
         "postgres_changes",
-        { event: "INSERT", schema: "public", table: "messages" },
-        (payload) => {
-          setMessages((prev) =>
-            prev.some((m) => m.id === (payload.new as Message).id)
-              ? prev
-              : [...prev, payload.new as Message],
-          );
-        },
+        { event: "*", schema: "public", table: "chat_rooms" },
+        () => load(),
       )
       .on(
         "postgres_changes",
-        { event: "DELETE", schema: "public", table: "messages" },
-        (payload) => {
-          setMessages((prev) => prev.filter((m) => m.id !== (payload.old as Message).id));
-        },
+        { event: "*", schema: "public", table: "chat_room_members" },
+        () => load(),
       )
       .subscribe();
-
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(ch);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // Auto-scroll on new messages
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [messages]);
-
-  async function send(e: React.FormEvent) {
-    e.preventDefault();
-    const body = draft.trim();
-    if (!body || !me || sending) return;
-    setSending(true);
-    const { error } = await supabase.from("messages").insert({ sender_id: me.id, body });
-    setSending(false);
-    if (error) {
-      toast.error("تعذّر إرسال الرسالة");
-      return;
-    }
-    setDraft("");
-  }
-
-  async function remove(id: string) {
-    const { error } = await supabase.from("messages").delete().eq("id", id);
-    if (error) toast.error("تعذّر حذف الرسالة");
-  }
-
-  const memberList = useMemo(() => {
-    return Object.values(profiles)
-      .map((p) => ({ ...p, role: rolesMap[p.id] ?? "member" }))
-      .sort((a, b) => {
-        if (a.role === "admin" && b.role !== "admin") return -1;
-        if (b.role === "admin" && a.role !== "admin") return 1;
-        return displayName(a).localeCompare(displayName(b), "ar");
-      });
-  }, [profiles, rolesMap]);
 
   return (
     <AppShell title="الرسائل" user={shellUser}>
-      <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-9rem)]">
-        <div className="flex flex-col flex-1 card-surface overflow-hidden min-h-0">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-border flex items-center justify-between">
+      <div className="space-y-6">
+        <div className="flex items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">القناة العامة</p>
-            <h2 className="text-lg font-medium text-ivory mt-1">مجلس العائلة</h2>
+            <p className="eyebrow">قاعات المجلس</p>
+            <h2 className="text-2xl font-medium text-ivory mt-2">غرف المحادثة</h2>
+            <p className="text-sm text-muted-foreground mt-2">
+              اختر غرفة عامة للجميع أو غرفة خاصة تم دعوتك إليها.
+            </p>
           </div>
-          <span className="text-[11px] text-muted-foreground">
-            {messages.length} رسالة
-          </span>
+          {isAdmin && (
+            <button
+              onClick={() => setShowCreate(true)}
+              className="inline-flex items-center gap-2 px-4 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-xl hover:brightness-110 transition"
+            >
+              <Plus className="size-4" strokeWidth={2} />
+              غرفة جديدة
+            </button>
+          )}
         </div>
 
-        {/* Messages */}
-        <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 lg:px-8 py-6 space-y-4">
-          {messages.length === 0 && (
-            <div className="h-full grid place-items-center text-center text-muted-foreground text-sm">
-              لا توجد رسائل بعد — كن أول من يبدأ المحادثة.
-            </div>
-          )}
-          {messages.map((m) => {
-            const mine = m.sender_id === me?.id;
-            const author = profiles[m.sender_id];
-            const name = displayName(author);
-            const initial = (name[0] ?? "ص").toUpperCase();
-            return (
-              <div
-                key={m.id}
-                className={`group flex items-end gap-3 ${mine ? "flex-row-reverse" : ""}`}
-              >
+        {rooms.length === 0 && (
+          <div className="card-surface p-10 text-center text-sm text-muted-foreground">
+            لا توجد غرف متاحة لك بعد.
+          </div>
+        )}
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {rooms.map((r) => (
+            <Link
+              key={r.id}
+              to="/messages/$roomId"
+              params={{ roomId: r.id }}
+              className="card-surface p-5 hover:ring-1 hover:ring-gold-primary/40 transition group"
+            >
+              <div className="flex items-start justify-between mb-3">
                 <div
-                  className={`size-9 rounded-full grid place-items-center text-xs font-medium shrink-0 ${
-                    mine
-                      ? "bg-gold-primary text-navy-base"
+                  className={`size-10 rounded-xl grid place-items-center ${
+                    r.is_private
+                      ? "bg-secondary/60 text-ivory ring-1 ring-border"
                       : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
                   }`}
                 >
-                  {initial}
+                  {r.is_private ? (
+                    <Lock className="size-4" strokeWidth={1.5} />
+                  ) : (
+                    <Hash className="size-4" strokeWidth={1.5} />
+                  )}
                 </div>
-                <div className={`max-w-[75%] ${mine ? "items-end" : "items-start"} flex flex-col`}>
-                  <div className="flex items-center gap-2 mb-1 text-[11px] text-muted-foreground">
-                    <span className="font-medium text-ivory/70">{mine ? "أنت" : name}</span>
-                    <span>{timeLabel(m.created_at)}</span>
-                  </div>
-                  <div
-                    className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-                      mine
-                        ? "bg-gold-primary text-navy-base rounded-br-sm"
-                        : "bg-secondary/60 text-ivory ring-1 ring-border rounded-bl-sm"
-                    }`}
-                  >
-                    {m.body}
-                  </div>
-                </div>
-                {isAdmin && (
-                  <button
-                    onClick={() => remove(m.id)}
-                    className="opacity-0 group-hover:opacity-100 transition text-muted-foreground hover:text-red-400 p-1"
-                    aria-label="حذف الرسالة"
-                  >
-                    <Trash2 className="size-3.5" strokeWidth={1.5} />
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
-
-        {/* Composer */}
-        <form
-          onSubmit={send}
-          className="border-t border-border px-4 lg:px-6 py-4 flex items-center gap-3 bg-card/60"
-        >
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="اكتب رسالتك..."
-            maxLength={4000}
-            disabled={!me || sending}
-            className="flex-1 bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-          />
-          <button
-            type="submit"
-            disabled={!draft.trim() || !me || sending}
-            className="inline-flex items-center gap-2 px-5 py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-xl hover:brightness-110 transition disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            <Send className="size-4" strokeWidth={2} />
-            <span className="hidden sm:inline">إرسال</span>
-          </button>
-        </form>
-        </div>
-
-        {/* Members sidebar */}
-        <aside className="card-surface w-full lg:w-72 shrink-0 flex flex-col overflow-hidden">
-          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
-            <div>
-              <p className="eyebrow">الأعضاء</p>
-              <h3 className="text-sm font-medium text-ivory mt-1">المجلس</h3>
-            </div>
-            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
-              <Users className="size-3.5" strokeWidth={1.5} />
-              {memberList.length}
-            </span>
-          </div>
-          <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
-            {memberList.map((m) => {
-              const name = displayName(m);
-              const initial = (name[0] ?? "ص").toUpperCase();
-              const admin = m.role === "admin";
-              const isMe = m.id === me?.id;
-              return (
-                <div
-                  key={m.id}
-                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/40 transition"
+                <span
+                  className={`text-[10px] uppercase tracking-wider px-2 py-1 rounded-full ${
+                    r.is_private
+                      ? "bg-secondary/60 text-muted-foreground"
+                      : "bg-gold-primary/10 text-gold-primary"
+                  }`}
                 >
-                  <div
-                    className={`size-8 rounded-full grid place-items-center text-xs font-medium shrink-0 ${
-                      admin
-                        ? "bg-gold-primary text-navy-base"
-                        : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    }`}
-                  >
-                    {initial}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-ivory truncate flex items-center gap-1.5">
-                      {name}
-                      {isMe && <span className="text-[10px] text-muted-foreground">(أنت)</span>}
-                    </div>
-                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                      {admin && <ShieldCheck className="size-3" strokeWidth={1.5} />}
-                      {roleLabel(m.role)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-            {memberList.length === 0 && (
-              <p className="text-center text-xs text-muted-foreground py-6">
-                لا يوجد أعضاء بعد.
-              </p>
-            )}
-          </div>
-        </aside>
+                  {r.is_private ? "خاصة" : "عامة"}
+                </span>
+              </div>
+              <h3 className="text-base font-medium text-ivory group-hover:text-gold-primary transition">
+                {r.name}
+              </h3>
+              {r.description && (
+                <p className="text-xs text-muted-foreground mt-1.5 line-clamp-2">
+                  {r.description}
+                </p>
+              )}
+              <div className="mt-4 pt-3 border-t border-border flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                <Users className="size-3.5" strokeWidth={1.5} />
+                {counts[r.id] ?? 0} {(counts[r.id] ?? 0) === 1 ? "عضو" : "أعضاء"}
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
+
+      {showCreate && meId && (
+        <CreateRoomDialog
+          meId={meId}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            load();
+          }}
+        />
+      )}
     </AppShell>
+  );
+}
+
+function CreateRoomDialog({
+  meId,
+  onClose,
+  onCreated,
+}: {
+  meId: string;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [name, setName] = useState("");
+  const [description, setDescription] = useState("");
+  const [isPrivate, setIsPrivate] = useState(false);
+  const [busy, setBusy] = useState(false);
+
+  async function create(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim() || busy) return;
+    setBusy(true);
+    const { error } = await supabase.from("chat_rooms").insert({
+      name: name.trim(),
+      description: description.trim() || null,
+      is_private: isPrivate,
+      created_by: meId,
+    });
+    setBusy(false);
+    if (error) {
+      toast.error("تعذّر إنشاء الغرفة");
+      return;
+    }
+    toast.success("تم إنشاء الغرفة");
+    onCreated();
+  }
+
+  return (
+    <div
+      className="fixed inset-0 bg-navy-base/80 backdrop-blur-sm grid place-items-center z-[100] p-4"
+      onClick={onClose}
+    >
+      <form
+        onClick={(e) => e.stopPropagation()}
+        onSubmit={create}
+        className="card-surface w-full max-w-md p-6 space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-ivory">غرفة جديدة</h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-ivory"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs text-muted-foreground">اسم الغرفة</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={80}
+            required
+            className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
+            placeholder="مثل: لجنة الفعاليات"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-xs text-muted-foreground">وصف مختصر (اختياري)</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            maxLength={300}
+            rows={2}
+            className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40 resize-none"
+          />
+        </div>
+        <label className="flex items-center gap-3 p-3 rounded-xl bg-secondary/30 border border-border cursor-pointer">
+          <input
+            type="checkbox"
+            checked={isPrivate}
+            onChange={(e) => setIsPrivate(e.target.checked)}
+            className="size-4 accent-gold-primary"
+          />
+          <div className="flex-1">
+            <div className="text-sm text-ivory flex items-center gap-2">
+              <Lock className="size-3.5" strokeWidth={1.5} />
+              غرفة خاصة
+            </div>
+            <p className="text-[11px] text-muted-foreground mt-0.5">
+              مرئية فقط للأعضاء الذين تتم إضافتهم.
+            </p>
+          </div>
+        </label>
+        <button
+          type="submit"
+          disabled={!name.trim() || busy}
+          className="w-full px-4 py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-xl hover:brightness-110 transition disabled:opacity-40"
+        >
+          {busy ? "جاري الإنشاء..." : "إنشاء الغرفة"}
+        </button>
+      </form>
+    </div>
   );
 }
