@@ -272,9 +272,8 @@ function ChatLayout() {
                 active={path === `/chat/${it.conversation.id}`}
                 onOpen={() => {
                   // Optimistically clear the unread badge the moment the
-                  // recipient opens the conversation. The detail view will
-                  // also update last_read_at on the server, and a realtime
-                  // refresh will reconcile any drift.
+                  // recipient opens the conversation, then mark the whole
+                  // conversation read on the backend so every session syncs.
                   setItems((prev) =>
                     prev.map((x) =>
                       x.conversation.id === it.conversation.id
@@ -283,11 +282,9 @@ function ChatLayout() {
                     ),
                   );
                   if (meId) {
-                    supabase
-                      .from("conversation_participants")
-                      .update({ last_read_at: new Date().toISOString() })
-                      .eq("conversation_id", it.conversation.id)
-                      .eq("user_id", meId);
+                    supabase.rpc("mark_conversation_read", {
+                      _conversation_id: it.conversation.id,
+                    });
                   }
                 }}
               />
