@@ -507,6 +507,23 @@ function TripDialog({
                   <X className="size-4" />
                 </button>
               </div>
+            ) : isEdit && trip?.image_url && !removeExistingImage ? (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <TripImage path={trip.image_url} alt="الصورة الحالية" className="w-full h-48 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setRemoveExistingImage(true)}
+                  className="absolute top-2 left-2 size-8 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-black/80 transition"
+                  aria-label="إزالة الصورة"
+                >
+                  <X className="size-4" />
+                </button>
+                <label className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/60 text-ivory text-xs cursor-pointer hover:bg-black/80 transition">
+                  <Upload className="size-3.5" />
+                  استبدال
+                  <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
+                </label>
+              </div>
             ) : (
               <label className="flex flex-col items-center justify-center gap-2 px-4 py-8 border border-dashed border-border rounded-lg cursor-pointer hover:border-gold-primary/40 hover:bg-secondary/20 transition">
                 <div className="size-10 rounded-full bg-gold-primary/10 grid place-items-center">
