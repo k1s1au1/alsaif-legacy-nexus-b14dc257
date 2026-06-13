@@ -154,6 +154,8 @@ export function AppShell({
   }, [loadUnreadNotifications, user.avatarPath]);
 
   async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
     toast.success("تم تسجيل الخروج");
     navigate({ to: "/auth", replace: true });
