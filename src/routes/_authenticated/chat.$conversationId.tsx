@@ -108,6 +108,14 @@ function ConversationRoute() {
   );
   const isAdmin =
     myParticipant?.role === "owner" || myParticipant?.role === "admin";
+  const canSend = useMemo(() => {
+    if (!conv || !myParticipant) return false;
+    if (conv.kind === "direct") return true;
+    const perm = conv.send_permission ?? "all";
+    if (perm === "all") return true;
+    if (perm === "admins") return isAdmin;
+    return isAdmin || myParticipant.can_send;
+  }, [conv, myParticipant, isAdmin]);
 
   // --- Initial load -------------------------------------------------------
   useEffect(() => {
