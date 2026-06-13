@@ -33,6 +33,7 @@ type ProfileRow = {
   id: string;
   arabic_name: string | null;
   full_name: string | null;
+  phone: string | null;
   avatar_url: string | null;
   created_at: string;
 };
