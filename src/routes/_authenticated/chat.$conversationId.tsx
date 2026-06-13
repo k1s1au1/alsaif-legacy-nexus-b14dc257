@@ -136,7 +136,7 @@ function ConversationRoute() {
         setNotFound(true);
         return;
       }
-      setConv(c as Conversation);
+      setConv(c as unknown as Conversation);
 
       const [{ data: parts }, { data: profs }, { data: msgs }] = await Promise.all([
         supabase
