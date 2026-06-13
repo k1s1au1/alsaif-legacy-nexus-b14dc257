@@ -54,6 +54,11 @@ function TripDetail() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [going, setGoing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [attendees, setAttendees] = useState<
+    { user_id: string; name: string; initial: string; avatarPath: string | null }[]
+  >([]);
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
@@ -61,10 +66,41 @@ function TripDetail() {
     avatarPath?: string | null;
   }>({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null });
 
+  async function loadAttendees(tid: string) {
+    const { data: rows } = await supabase
+      .from("trip_attendees")
+      .select("user_id, created_at")
+      .eq("trip_id", tid)
+      .order("created_at", { ascending: true });
+    const ids = (rows ?? []).map((r) => r.user_id);
+    if (ids.length === 0) {
+      setAttendees([]);
+      return;
+    }
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, arabic_name, full_name, avatar_url")
+      .in("id", ids);
+    const map = new Map((profs ?? []).map((p) => [p.id, p]));
+    setAttendees(
+      ids.map((id) => {
+        const p = map.get(id);
+        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
+        return {
+          user_id: id,
+          name,
+          initial: (name[0] ?? "ص").toUpperCase(),
+          avatarPath: p?.avatar_url ?? null,
+        };
+      }),
+    );
+  }
+
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (u.user) {
+        setUserId(u.user.id);
         const [{ data: p }, { data: r }] = await Promise.all([
           supabase
             .from("profiles")
@@ -90,6 +126,14 @@ function TripDetail() {
           initial: (name[0] ?? "ص").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
+
+        const { data: mine } = await supabase
+          .from("trip_attendees")
+          .select("id")
+          .eq("trip_id", tripId)
+          .eq("user_id", u.user.id)
+          .maybeSingle();
+        setGoing(!!mine);
       }
 
       const { data: t } = await supabase
@@ -98,9 +142,30 @@ function TripDetail() {
         .eq("id", tripId)
         .maybeSingle();
       setTrip((t as Trip | null) ?? null);
+      await loadAttendees(tripId);
       setLoading(false);
     })();
   }, [tripId]);
+
+  async function toggleAttendance() {
+    if (!userId || saving) return;
+    setSaving(true);
+    if (going) {
+      const { error } = await supabase
+        .from("trip_attendees")
+        .delete()
+        .eq("trip_id", tripId)
+        .eq("user_id", userId);
+      if (!error) setGoing(false);
+    } else {
+      const { error } = await supabase
+        .from("trip_attendees")
+        .insert({ trip_id: tripId, user_id: userId });
+      if (!error) setGoing(true);
+    }
+    await loadAttendees(tripId);
+    setSaving(false);
+  }
 
   if (loading) {
     return (
