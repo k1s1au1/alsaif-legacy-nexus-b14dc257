@@ -30,6 +30,7 @@ export type Participant = {
   last_read_at: string;
   archived_at: string | null;
   muted: boolean;
+  can_send: boolean;
 };
 
 export type Message = {
