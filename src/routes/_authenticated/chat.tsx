@@ -270,6 +270,26 @@ function ChatLayout() {
                 meId={meId}
                 profiles={profiles}
                 active={path === `/chat/${it.conversation.id}`}
+                onOpen={() => {
+                  // Optimistically clear the unread badge the moment the
+                  // recipient opens the conversation. The detail view will
+                  // also update last_read_at on the server, and a realtime
+                  // refresh will reconcile any drift.
+                  setItems((prev) =>
+                    prev.map((x) =>
+                      x.conversation.id === it.conversation.id
+                        ? { ...x, unread: 0 }
+                        : x,
+                    ),
+                  );
+                  if (meId) {
+                    supabase
+                      .from("conversation_participants")
+                      .update({ last_read_at: new Date().toISOString() })
+                      .eq("conversation_id", it.conversation.id)
+                      .eq("user_id", meId);
+                  }
+                }}
               />
             ))}
           </div>
@@ -298,11 +318,13 @@ function ConversationRow({
   meId,
   profiles,
   active,
+  onOpen,
 }: {
   item: ConversationListItem;
   meId: string | null;
   profiles: Record<string, Profile>;
   active: boolean;
+  onOpen?: () => void;
 }) {
   const title = conversationTitle(item.conversation, item.participants, profiles, meId);
   const initial = conversationAvatarInitial(
@@ -318,6 +340,7 @@ function ConversationRow({
     <Link
       to="/chat/$conversationId"
       params={{ conversationId: item.conversation.id }}
+      onClick={() => onOpen?.()}
       className={`flex items-center gap-3 px-4 py-3 border-b border-border/40 hover:bg-secondary/30 transition ${
         active ? "bg-secondary/40" : ""
       }`}
