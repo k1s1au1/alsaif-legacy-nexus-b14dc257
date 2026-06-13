@@ -10,7 +10,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
       { title: "إكمال الملف الشخصي — السيف" },
-      { name: "description", content: "أكمل اسمك الثلاثي قبل المتابعة." },
+      { name: "description", content: "أكمل اسمك الثلاثي ورقم جوالك قبل المتابعة." },
     ],
   }),
   component: OnboardingPage,
@@ -22,6 +22,13 @@ const nameSchema = z
   .min(2, { message: "يجب أن يكون حرفين على الأقل" })
   .max(40, { message: "طويل جداً" });
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(8, { message: "رقم الجوال قصير جداً" })
+  .max(20, { message: "رقم الجوال طويل جداً" })
+  .regex(/^[\d\s+\-()]+$/, { message: "أرقام فقط" });
+
 function OnboardingPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -30,6 +37,7 @@ function OnboardingPage() {
   const [first, setFirst] = useState("");
   const [father, setFather] = useState("");
   const [grand, setGrand] = useState("");
+  const [phone, setPhone] = useState("");
 
   useEffect(() => {
     (async () => {
@@ -41,9 +49,9 @@ function OnboardingPage() {
       setUserId(u.user.id);
       const { data: p } = await supabase
         .from("profiles")
-        .select("first_name, father_name, grandfather_name")
+        .select("first_name, father_name, grandfather_name, phone")
         .eq("id", u.user.id)
-        .maybeSingle<{ first_name: string | null; father_name: string | null; grandfather_name: string | null }>();
+        .maybeSingle<{ first_name: string | null; father_name: string | null; grandfather_name: string | null; phone: string | null }>();
       if (p?.first_name && p?.father_name && p?.grandfather_name) {
         navigate({ to: "/dashboard", replace: true });
         return;
@@ -51,6 +59,7 @@ function OnboardingPage() {
       setFirst(p?.first_name ?? "");
       setFather(p?.father_name ?? "");
       setGrand(p?.grandfather_name ?? "");
+      setPhone(p?.phone ?? "");
       setLoading(false);
     })();
   }, [navigate]);
@@ -68,6 +77,11 @@ function OnboardingPage() {
         return;
       }
     }
+    const phoneParsed = phoneSchema.safeParse(phone);
+    if (!phoneParsed.success) {
+      toast.error(`رقم الجوال: ${phoneParsed.error.issues[0].message}`);
+      return;
+    }
     setSaving(true);
     const f = first.trim();
     const fa = father.trim();
@@ -80,6 +94,7 @@ function OnboardingPage() {
         father_name: fa,
         grandfather_name: g,
         arabic_name,
+        phone: phone.trim() || null,
       })
       .eq("id", userId);
     setSaving(false);
@@ -111,11 +126,11 @@ function OnboardingPage() {
       <div className="relative w-full max-w-md card-surface p-10 animate-fade-up">
         <div className="text-center mb-8">
           <div className="size-14 mx-auto rounded-xl bg-gold-primary/10 ring-1 ring-gold-primary/30 grid place-items-center mb-5">
-            <span className="text-gold-primary text-2xl font-semibold">ص</span>
+            <span className="text-gold-primary text-2xl font-semibold">س</span>
           </div>
           <h1 className="text-2xl font-medium text-ivory tracking-tight">أكمل بياناتك</h1>
           <p className="text-sm text-muted-foreground mt-3 leading-relaxed">
-            رجاءً سجّل اسمك الثلاثي قبل المتابعة لاستخدام المنصة.
+            رجاءً سجّل اسمك الثلاثي ورقم جوالك قبل المتابعة لاستخدام المنصة.
           </p>
         </div>
 
@@ -123,6 +138,7 @@ function OnboardingPage() {
           <Field label="الاسم الأول" value={first} onChange={setFirst} placeholder="مثال: فيصل" />
           <Field label="اسم الأب" value={father} onChange={setFather} placeholder="مثال: عبدالله" />
           <Field label="اسم الجد" value={grand} onChange={setGrand} placeholder="مثال: السيف" />
+          <Field label="رقم الجوال" value={phone} onChange={setPhone} placeholder="مثال: 055 123 4567" />
           <button
             type="submit"
             disabled={saving}
