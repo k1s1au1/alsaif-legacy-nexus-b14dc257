@@ -1308,8 +1308,23 @@ function InfoDrawer({
     setRenaming(false);
     toast.success("تم تحديث الاسم");
   }
-  async function setRole(p: Participant, role: "admin" | "member") {
-    await supabase.from("conversation_participants").update({ role }).eq("id", p.id);
+  async function setPermission(perm: "all" | "admins" | "selected") {
+    const { error } = await supabase
+      .from("conversations")
+      .update({ send_permission: perm } as never)
+      .eq("id", conversation.id);
+    if (error) {
+      toast.error("تعذّر تحديث الصلاحيات");
+      return;
+    }
+    toast.success("تم تحديث صلاحيات الإرسال");
+  }
+  async function toggleCanSend(p: Participant, value: boolean) {
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ can_send: value } as never)
+      .eq("id", p.id);
+    if (error) toast.error("تعذّر التحديث");
   }
   async function removeMember(p: Participant) {
     if (p.user_id === conversation.created_by) {
