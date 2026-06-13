@@ -289,7 +289,7 @@ function ConversationRoute() {
             .from("conversation_participants")
             .select("*")
             .eq("conversation_id", conversationId);
-          setParticipants((parts ?? []) as Participant[]);
+          setParticipants((parts ?? []) as unknown as Participant[]);
         },
       )
       .subscribe();
