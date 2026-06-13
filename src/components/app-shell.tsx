@@ -14,7 +14,9 @@ import {
   Shield,
   Bell,
   LogOut,
+  User,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 const navItems = [
@@ -28,6 +30,7 @@ const navItems = [
   { to: "/majlis", label: "المجلس", icon: Megaphone },
   { to: "/archive", label: "الأرشيف", icon: Archive },
   { to: "/admin", label: "الإدارة", icon: Shield },
+  { to: "/profile", label: "ملفي الشخصي", icon: User },
 ] as const;
 
 export function AppShell({
@@ -101,7 +104,11 @@ export function AppShell({
               <Bell className="size-5" strokeWidth={1.5} />
               <span className="absolute top-2 right-2 size-1.5 bg-gold-primary rounded-full" />
             </button>
-            <div className="flex items-center gap-3 pr-6 border-r border-border">
+            <Link
+              to="/profile"
+              className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition"
+              aria-label="الملف الشخصي"
+            >
               <div className="text-left hidden sm:block">
                 <p className="text-sm font-medium text-ivory">{user.name}</p>
                 <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
@@ -111,7 +118,7 @@ export function AppShell({
               <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
                 {user.initial}
               </div>
-            </div>
+            </Link>
           </div>
         </header>
 
