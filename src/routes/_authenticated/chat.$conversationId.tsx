@@ -204,18 +204,10 @@ function ConversationRoute() {
           if (m.sender_id !== meId && document.visibilityState !== "visible") {
             maybeNotify(m, profiles);
           }
-          // Mark delivered (and read if visible)
-          markDelivered(m.id);
           if (document.visibilityState === "visible" && m.sender_id !== meId) {
-            markRead(m.id);
-            // Keep conversation_participants.last_read_at in sync so the
-            // list view does not re-introduce an unread badge for a chat
-            // the user is actively viewing.
-            supabase
-              .from("conversation_participants")
-              .update({ last_read_at: new Date().toISOString() })
-              .eq("conversation_id", conversationId)
-              .eq("user_id", meId);
+            markConversationRead();
+          } else {
+            markDelivered(m.id);
           }
         },
       )
@@ -395,32 +387,34 @@ function ConversationRoute() {
     }
   }
 
+  const markConversationRead = useCallback(async () => {
+    if (!meId) return;
+    const now = new Date().toISOString();
+    setParticipants((prev) =>
+      prev.map((p) =>
+        p.conversation_id === conversationId && p.user_id === meId
+          ? { ...p, last_read_at: now }
+          : p,
+      ),
+    );
+    setDeliveries((prev) =>
+      prev.map((d) =>
+        d.conversation_id === conversationId && d.user_id === meId && !d.read_at
+          ? { ...d, delivered_at: d.delivered_at ?? now, read_at: now }
+          : d,
+      ),
+    );
+    await supabase.rpc("mark_conversation_read", { _conversation_id: conversationId });
+  }, [conversationId, meId]);
+
   // --- Auto-scroll + mark read on view ----------------------------------
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length]);
 
   useEffect(() => {
-    if (!meId || messages.length === 0) return;
-    // Mark last_read_at + mark unread incoming as read
-    const now = new Date().toISOString();
-    supabase
-      .from("conversation_participants")
-      .update({ last_read_at: now })
-      .eq("conversation_id", conversationId)
-      .eq("user_id", meId);
-    const unreadIds = deliveries
-      .filter((d) => d.user_id === meId && !d.read_at)
-      .map((d) => d.message_id);
-    if (unreadIds.length) {
-      supabase
-        .from("message_deliveries")
-        .update({ read_at: now, delivered_at: now })
-        .in("message_id", unreadIds)
-        .eq("user_id", meId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages.length, meId]);
+    markConversationRead();
+  }, [markConversationRead, messages.length]);
 
   async function markDelivered(messageId: string) {
     if (!meId) return;
@@ -431,16 +425,6 @@ function ConversationRoute() {
       .eq("user_id", meId)
       .is("delivered_at", null);
   }
-  async function markRead(messageId: string) {
-    if (!meId) return;
-    const now = new Date().toISOString();
-    await supabase
-      .from("message_deliveries")
-      .update({ delivered_at: now, read_at: now })
-      .eq("message_id", messageId)
-      .eq("user_id", meId);
-  }
-
   // --- Typing emit on keystroke -----------------------------------------
   function onDraftKey() {
     if (!meId || !typingChannelRef.current) return;
