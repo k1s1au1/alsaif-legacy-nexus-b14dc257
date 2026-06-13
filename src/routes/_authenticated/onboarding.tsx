@@ -22,6 +22,13 @@ const nameSchema = z
   .min(2, { message: "يجب أن يكون حرفين على الأقل" })
   .max(40, { message: "طويل جداً" });
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(8, { message: "رقم الجوال قصير جداً" })
+  .max(20, { message: "رقم الجوال طويل جداً" })
+  .regex(/^[\d\s+\-()]+$/, { message: "أرقام فقط" });
+
 function OnboardingPage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
