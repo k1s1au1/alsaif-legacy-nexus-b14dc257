@@ -133,13 +133,15 @@ function TripsPage() {
               استكشف الرحلات القادمة، سجّل حضورك، وتابع التفاصيل اللوجستية.
             </p>
           </div>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
-          >
-            <Plus className="size-4" strokeWidth={2.5} />
-            إضافة رحلة
-          </button>
+          {canManage && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+            >
+              <Plus className="size-4" strokeWidth={2.5} />
+              إضافة رحلة
+            </button>
+          )}
         </div>
 
         {loading ? (
