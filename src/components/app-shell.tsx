@@ -1,4 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -15,9 +16,18 @@ import {
   Bell,
   LogOut,
   User,
+  ChevronDown,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const navItems = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
@@ -46,6 +56,7 @@ export function AppShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
+  const queryClient = useQueryClient();
 
   const loadUnreadNotifications = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -144,6 +155,8 @@ export function AppShell({
   }, [loadUnreadNotifications, user.avatarPath]);
 
   async function signOut() {
+    await queryClient.cancelQueries();
+    queryClient.clear();
     await supabase.auth.signOut();
     toast.success("تم تسجيل الخروج");
     navigate({ to: "/auth", replace: true });
@@ -206,27 +219,54 @@ export function AppShell({
                 </span>
               )}
             </button>
-            <Link
-              to="/profile"
-              className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition"
-              aria-label="الملف الشخصي"
-            >
-              <div className="text-left hidden sm:block">
-                <p className="text-sm font-medium text-ivory">{user.name}</p>
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
-                  {user.role}
-                </p>
-              </div>
-              <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold overflow-hidden">
-                <UserAvatar
-                  path={myAvatarPath}
-                  name={user.name}
-                  initial={user.initial}
-                  className="size-full"
-                  fallbackClassName=""
-                />
-              </div>
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition outline-none"
+                  aria-label="الملف الشخصي"
+                >
+                  <div className="text-left hidden sm:block">
+                    <p className="text-sm font-medium text-ivory">{user.name}</p>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                      {user.role}
+                    </p>
+                  </div>
+                  <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold overflow-hidden">
+                    <UserAvatar
+                      path={myAvatarPath}
+                      name={user.name}
+                      initial={user.initial}
+                      className="size-full"
+                      fallbackClassName=""
+                    />
+                  </div>
+                  <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem]">
+                <DropdownMenuLabel className="font-normal px-3 py-2">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-foreground">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.role}</span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <Link to="/profile" className="w-full">
+                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2">
+                    <User className="size-4" strokeWidth={1.5} />
+                    <span>ملفي الشخصي</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={signOut}
+                  className="cursor-pointer gap-2 px-3 py-2 text-destructive focus:text-destructive"
+                >
+                  <LogOut className="size-4" strokeWidth={1.5} />
+                  <span>تسجيل الخروج</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
 
