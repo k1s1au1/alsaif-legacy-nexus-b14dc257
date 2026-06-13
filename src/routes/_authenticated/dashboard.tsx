@@ -205,8 +205,7 @@ function Dashboard() {
                   </div>
                 </div>
                 <Link
-                  to="/trips/$tripId"
-                  params={{ tripId: "alula-winter" }}
+                  to="/trips"
                   className="inline-flex items-center gap-2 px-5 py-2 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
                 >
                   عرض التفاصيل
