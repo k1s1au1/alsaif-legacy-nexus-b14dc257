@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X } from "lucide-react";
+import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import tripImage from "@/assets/trip-alula.jpg";
+import { TripImage } from "@/components/trip-image";
 
 export const Route = createFileRoute("/_authenticated/trips")({
   ssr: false,
@@ -167,12 +168,12 @@ function TripsPage() {
                   className="card-surface overflow-hidden flex flex-col animate-fade-up"
                 >
                   <div className="relative h-56">
-                    <img
-                      src={trip.image_url || tripImage}
+                    <TripImage
+                      path={trip.image_url}
                       alt={trip.title}
-                      loading="lazy"
                       className="absolute inset-0 size-full object-cover"
                     />
+
                     <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
                     <span
                       className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] rounded uppercase tracking-wider ring-1 ${chip.className}`}
@@ -235,6 +236,8 @@ function TripsPage() {
 
 function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     badge: "",
@@ -243,12 +246,32 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
     start_date: "",
     end_date: "",
     description: "",
-    image_url: "",
     status: "upcoming",
   });
 
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("الرجاء اختيار ملف صورة");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  function clearImage() {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
   }
 
   async function submit(e: FormEvent) {
@@ -264,6 +287,22 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       setSaving(false);
       return;
     }
+
+    let imagePath: string | null = null;
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("trip-images")
+        .upload(path, imageFile, { contentType: imageFile.type, upsert: false });
+      if (upErr) {
+        toast.error("تعذر رفع الصورة");
+        setSaving(false);
+        return;
+      }
+      imagePath = path;
+    }
+
     const { error } = await supabase.from("trips").insert({
       title: form.title.trim(),
       badge: form.badge.trim() || null,
@@ -272,7 +311,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       start_date: form.start_date || null,
       end_date: form.end_date || null,
       description: form.description.trim() || null,
-      image_url: form.image_url.trim() || null,
+      image_url: imagePath,
       status: form.status,
       created_by: u.user.id,
     });
@@ -285,6 +324,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
     onCreated();
     onClose();
   }
+
 
   return (
     <div
@@ -380,13 +420,37 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
               placeholder="اجتماع شمل العائلة..."
             />
           </Field>
-          <Field label="رابط الصورة (اختياري)">
-            <input
-              value={form.image_url}
-              onChange={(e) => update("image_url", e.target.value)}
-              className="input-base"
-              placeholder="https://..."
-            />
+          <Field label="صورة الرحلة (اختياري)">
+            {imagePreview ? (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img src={imagePreview} alt="معاينة" className="w-full h-48 object-cover" />
+                <button
+                  type="button"
+                  onClick={clearImage}
+                  className="absolute top-2 left-2 size-8 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-black/80 transition"
+                  aria-label="إزالة الصورة"
+                >
+                  <X className="size-4" />
+                </button>
+              </div>
+            ) : (
+              <label className="flex flex-col items-center justify-center gap-2 px-4 py-8 border border-dashed border-border rounded-lg cursor-pointer hover:border-gold-primary/40 hover:bg-secondary/20 transition">
+                <div className="size-10 rounded-full bg-gold-primary/10 grid place-items-center">
+                  <Upload className="size-5 text-gold-primary" strokeWidth={1.5} />
+                </div>
+                <div className="text-sm text-ivory">انقر لرفع صورة</div>
+                <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                  <ImageIcon className="size-3" />
+                  JPG, PNG, WebP — حتى 5 ميجابايت
+                </div>
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={onPickImage}
+                />
+              </label>
+            )}
           </Field>
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
