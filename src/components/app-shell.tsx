@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
@@ -44,6 +44,70 @@ export function AppShell({
 }) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  const loadUnreadNotifications = useCallback(async () => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) {
+      setUnreadNotifications(0);
+      return;
+    }
+
+    const { data: parts } = await supabase
+      .from("conversation_participants")
+      .select("conversation_id,last_read_at")
+      .eq("user_id", u.user.id);
+
+    if (!parts?.length) {
+      setUnreadNotifications(0);
+      return;
+    }
+
+    const readByConversation = new Map(
+      parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]),
+    );
+
+    const { data: messages } = await supabase
+      .from("messages")
+      .select("conversation_id,created_at,sender_id")
+      .in("conversation_id", [...readByConversation.keys()])
+      .neq("sender_id", u.user.id)
+      .order("created_at", { ascending: false })
+      .limit(1000);
+
+    const unread = (messages ?? []).filter((message) => {
+      const lastReadAt = readByConversation.get(message.conversation_id) ?? 0;
+      return new Date(message.created_at).getTime() > lastReadAt;
+    }).length;
+
+    setUnreadNotifications(unread);
+  }, []);
+
+  useEffect(() => {
+    loadUnreadNotifications();
+
+    const channel = supabase
+      .channel("app-shell-notifications")
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () =>
+        loadUnreadNotifications(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "conversation_participants" },
+        () => loadUnreadNotifications(),
+      )
+      .subscribe();
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "visible") loadUnreadNotifications();
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      supabase.removeChannel(channel);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [loadUnreadNotifications]);
 
   async function signOut() {
     await supabase.auth.signOut();
@@ -102,7 +166,11 @@ export function AppShell({
           <div className="flex items-center gap-6">
             <button className="relative p-2 text-muted-foreground hover:text-gold-primary transition">
               <Bell className="size-5" strokeWidth={1.5} />
-              <span className="absolute top-2 right-2 size-1.5 bg-gold-primary rounded-full" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-gold-primary text-navy-base text-[9px] font-bold grid place-items-center leading-none">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              )}
             </button>
             <Link
               to="/profile"
