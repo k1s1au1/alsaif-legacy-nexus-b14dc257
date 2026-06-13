@@ -351,7 +351,6 @@ export type Database = {
         Args: { _conv: string; _user: string }
         Returns: boolean
       }
-      whoami: { Args: never; Returns: string }
     }
     Enums: {
       app_role: "admin" | "manager" | "member"
