@@ -189,25 +189,34 @@ function TripsPage() {
                       {chip.label}
                     </span>
                     {canManage && (
-                      <button
-                        onClick={async () => {
-                          if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
-                          if (trip.image_url) {
-                            await supabase.storage.from("trip-images").remove([trip.image_url]);
-                          }
-                          const { error } = await supabase.from("trips").delete().eq("id", trip.id);
-                          if (error) {
-                            toast.error("تعذر حذف الرحلة");
-                          } else {
-                            toast.success("تم حذف الرحلة");
-                            loadTrips();
-                          }
-                        }}
-                        className="absolute top-4 left-4 size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-red-500/80 transition ring-1 ring-white/10"
-                        aria-label="حذف الرحلة"
-                      >
-                        <Trash2 className="size-4" strokeWidth={1.8} />
-                      </button>
+                      <div className="absolute top-4 left-4 flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingTrip(trip)}
+                          className="size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-gold-primary/80 hover:text-navy-base transition ring-1 ring-white/10"
+                          aria-label="تعديل الرحلة"
+                        >
+                          <Pencil className="size-4" strokeWidth={1.8} />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
+                            if (trip.image_url) {
+                              await supabase.storage.from("trip-images").remove([trip.image_url]);
+                            }
+                            const { error } = await supabase.from("trips").delete().eq("id", trip.id);
+                            if (error) {
+                              toast.error("تعذر حذف الرحلة");
+                            } else {
+                              toast.success("تم حذف الرحلة");
+                              loadTrips();
+                            }
+                          }}
+                          className="size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-red-500/80 transition ring-1 ring-white/10"
+                          aria-label="حذف الرحلة"
+                        >
+                          <Trash2 className="size-4" strokeWidth={1.8} />
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
