@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { ArrowRight, Calendar, MapPin, Users, CheckCircle2, Tent } from "lucide-react";
 import { TripImage } from "@/components/trip-image";
+import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
