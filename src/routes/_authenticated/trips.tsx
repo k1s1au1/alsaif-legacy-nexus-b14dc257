@@ -28,6 +28,7 @@ type Trip = {
   title: string;
   badge: string | null;
   location: string | null;
+  location_url: string | null;
   start_date: string | null;
   end_date: string | null;
   description: string | null;
@@ -65,7 +66,7 @@ function TripsPage() {
   async function loadTrips() {
     const { data, error } = await supabase
       .from("trips")
-      .select("id,title,badge,location,start_date,end_date,description,image_url,status")
+      .select("id,title,badge,location,location_url,start_date,end_date,description,image_url,status")
       .order("start_date", { ascending: true, nullsFirst: false });
     if (error) {
       toast.error("تعذر تحميل الرحلات");
@@ -238,6 +239,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
     title: "",
     badge: "",
     location: "",
+    location_url: "",
     start_date: "",
     end_date: "",
     description: "",
@@ -266,6 +268,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       title: form.title.trim(),
       badge: form.badge.trim() || null,
       location: form.location.trim() || null,
+      location_url: form.location_url.trim() || null,
       start_date: form.start_date || null,
       end_date: form.end_date || null,
       description: form.description.trim() || null,
@@ -339,6 +342,16 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
               onChange={(e) => update("location", e.target.value)}
               className="input-base"
               placeholder="مخيم العلا، المملكة العربية السعودية"
+            />
+          </Field>
+          <Field label="رابط الموقع (خرائط جوجل أو أي رابط)">
+            <input
+              type="url"
+              value={form.location_url}
+              onChange={(e) => update("location_url", e.target.value)}
+              className="input-base"
+              placeholder="https://maps.google.com/..."
+              dir="ltr"
             />
           </Field>
           <div className="grid grid-cols-2 gap-4">
