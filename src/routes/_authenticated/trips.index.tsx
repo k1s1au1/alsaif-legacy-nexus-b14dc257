@@ -327,6 +327,7 @@ function TripDialog({
     setImageFile(null);
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
+    if (isEdit && trip?.image_url) setRemoveExistingImage(true);
   }
 
   async function submit(e: FormEvent) {
@@ -343,7 +344,7 @@ function TripDialog({
       return;
     }
 
-    let imagePath: string | null = null;
+    let imagePath: string | null | undefined = undefined;
     if (imageFile) {
       const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;
@@ -356,9 +357,17 @@ function TripDialog({
         return;
       }
       imagePath = path;
+      if (isEdit && trip?.image_url) {
+        await supabase.storage.from("trip-images").remove([trip.image_url]);
+      }
+    } else if (isEdit && removeExistingImage) {
+      if (trip?.image_url) {
+        await supabase.storage.from("trip-images").remove([trip.image_url]);
+      }
+      imagePath = null;
     }
 
-    const { error } = await supabase.from("trips").insert({
+    const payload = {
       title: form.title.trim(),
       badge: form.badge.trim() || null,
       location: form.location.trim() || null,
@@ -366,17 +375,28 @@ function TripDialog({
       start_date: form.start_date || null,
       end_date: form.end_date || null,
       description: form.description.trim() || null,
-      image_url: imagePath,
       status: form.status,
-      created_by: u.user.id,
-    });
+    };
+
+    let error;
+    if (isEdit && trip) {
+      const updateData: Record<string, unknown> = { ...payload };
+      if (imagePath !== undefined) updateData.image_url = imagePath;
+      ({ error } = await supabase.from("trips").update(updateData).eq("id", trip.id));
+    } else {
+      ({ error } = await supabase.from("trips").insert({
+        ...payload,
+        image_url: imagePath ?? null,
+        created_by: u.user.id,
+      }));
+    }
     setSaving(false);
     if (error) {
-      toast.error("تعذر إضافة الرحلة");
+      toast.error(isEdit ? "تعذر حفظ التعديلات" : "تعذر إضافة الرحلة");
       return;
     }
-    toast.success("تمت إضافة الرحلة");
-    onCreated();
+    toast.success(isEdit ? "تم حفظ التعديلات" : "تمت إضافة الرحلة");
+    onSaved();
     onClose();
   }
 
