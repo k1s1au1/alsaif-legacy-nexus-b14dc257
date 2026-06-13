@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { ArrowRight, Calendar, MapPin, Users, CheckCircle2, Tent } from "lucide-react";
 import { TripImage } from "@/components/trip-image";
+import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -53,6 +54,11 @@ function TripDetail() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [going, setGoing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [attendees, setAttendees] = useState<
+    { user_id: string; name: string; initial: string; avatarPath: string | null }[]
+  >([]);
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
@@ -60,10 +66,41 @@ function TripDetail() {
     avatarPath?: string | null;
   }>({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null });
 
+  async function loadAttendees(tid: string) {
+    const { data: rows } = await supabase
+      .from("trip_attendees")
+      .select("user_id, created_at")
+      .eq("trip_id", tid)
+      .order("created_at", { ascending: true });
+    const ids = (rows ?? []).map((r) => r.user_id);
+    if (ids.length === 0) {
+      setAttendees([]);
+      return;
+    }
+    const { data: profs } = await supabase
+      .from("profiles")
+      .select("id, arabic_name, full_name, avatar_url")
+      .in("id", ids);
+    const map = new Map((profs ?? []).map((p) => [p.id, p]));
+    setAttendees(
+      ids.map((id) => {
+        const p = map.get(id);
+        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
+        return {
+          user_id: id,
+          name,
+          initial: (name[0] ?? "ص").toUpperCase(),
+          avatarPath: p?.avatar_url ?? null,
+        };
+      }),
+    );
+  }
+
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (u.user) {
+        setUserId(u.user.id);
         const [{ data: p }, { data: r }] = await Promise.all([
           supabase
             .from("profiles")
@@ -89,6 +126,14 @@ function TripDetail() {
           initial: (name[0] ?? "ص").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
+
+        const { data: mine } = await supabase
+          .from("trip_attendees")
+          .select("id")
+          .eq("trip_id", tripId)
+          .eq("user_id", u.user.id)
+          .maybeSingle();
+        setGoing(!!mine);
       }
 
       const { data: t } = await supabase
@@ -97,9 +142,30 @@ function TripDetail() {
         .eq("id", tripId)
         .maybeSingle();
       setTrip((t as Trip | null) ?? null);
+      await loadAttendees(tripId);
       setLoading(false);
     })();
   }, [tripId]);
+
+  async function toggleAttendance() {
+    if (!userId || saving) return;
+    setSaving(true);
+    if (going) {
+      const { error } = await supabase
+        .from("trip_attendees")
+        .delete()
+        .eq("trip_id", tripId)
+        .eq("user_id", userId);
+      if (!error) setGoing(false);
+    } else {
+      const { error } = await supabase
+        .from("trip_attendees")
+        .insert({ trip_id: tripId, user_id: userId });
+      if (!error) setGoing(true);
+    }
+    await loadAttendees(tripId);
+    setSaving(false);
+  }
 
   if (loading) {
     return (
@@ -158,7 +224,7 @@ function TripDetail() {
             <Stat icon={Calendar} label="التاريخ" value={formatRange(trip.start_date, trip.end_date)} />
             <Stat icon={MapPin} label="الموقع" value={trip.location || "—"} />
             <Stat icon={CheckCircle2} label="الحالة" value={statusLabel(trip.status)} />
-            <Stat icon={Users} label="المشاركون" value="عائلي" />
+            <Stat icon={Users} label="المشاركون" value={`${attendees.length} مؤكدون`} />
             <Stat icon={Tent} label="الإقامة" value="مخيم عائلي" />
             {trip.badge && <Stat icon={CheckCircle2} label="الفئة" value={trip.badge} />}
           </div>
@@ -189,16 +255,51 @@ function TripDetail() {
               </p>
             </div>
             <button
-              onClick={() => setGoing((v) => !v)}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition ${
+              onClick={toggleAttendance}
+              disabled={saving || !userId}
+              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-60 ${
                 going
                   ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
                   : "bg-gold-primary text-navy-base hover:brightness-110"
               }`}
             >
               <CheckCircle2 className="size-4" strokeWidth={2} />
-              {going ? "تم تأكيد حضورك" : "تأكيد الحضور"}
+              {going ? "تم تأكيد حضورك — إلغاء" : "تأكيد الحضور"}
             </button>
+          </div>
+
+          <div className="p-6 sm:p-8 border-t border-border space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <Users className="size-4 text-gold-primary" strokeWidth={1.5} />
+                <h3 className="text-sm font-medium text-ivory">المؤكدون للحضور</h3>
+              </div>
+              <span className="text-xs text-muted-foreground">{attendees.length}</span>
+            </div>
+
+            {attendees.length === 0 ? (
+              <p className="text-sm text-muted-foreground">لم يقم أحد بتأكيد الحضور بعد.</p>
+            ) : (
+              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {attendees.map((a) => (
+                  <li
+                    key={a.user_id}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-card/40 ring-1 ring-border"
+                  >
+                    <div className="size-9 rounded-full bg-gold-primary/15 ring-1 ring-gold-primary/30 grid place-items-center overflow-hidden text-gold-primary text-xs font-semibold">
+                      <UserAvatar
+                        path={a.avatarPath}
+                        name={a.name}
+                        initial={a.initial}
+                        className="size-full"
+                        fallbackClassName="text-xs"
+                      />
+                    </div>
+                    <span className="text-sm text-ivory truncate">{a.name}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </article>
       </div>
