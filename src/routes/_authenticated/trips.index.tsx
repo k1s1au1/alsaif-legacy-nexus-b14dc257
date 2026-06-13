@@ -279,19 +279,29 @@ function TripsPage() {
   );
 }
 
-function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function TripDialog({
+  trip,
+  onClose,
+  onSaved,
+}: {
+  trip?: Trip;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!trip;
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
   const [form, setForm] = useState({
-    title: "",
-    badge: "",
-    location: "",
-    location_url: "",
-    start_date: "",
-    end_date: "",
-    description: "",
-    status: "upcoming",
+    title: trip?.title ?? "",
+    badge: trip?.badge ?? "",
+    location: trip?.location ?? "",
+    location_url: trip?.location_url ?? "",
+    start_date: trip?.start_date ?? "",
+    end_date: trip?.end_date ?? "",
+    description: trip?.description ?? "",
+    status: trip?.status ?? "upcoming",
   });
 
   function update<K extends keyof typeof form>(key: K, value: string) {
