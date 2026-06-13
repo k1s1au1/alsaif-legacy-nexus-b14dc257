@@ -87,6 +87,20 @@ export function AppShell({
   useEffect(() => {
     loadUnreadNotifications();
 
+    // Load my own avatar path (if not provided) and subscribe to profile changes
+    (async () => {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+      if (user.avatarPath === undefined) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("avatar_url")
+          .eq("id", u.user.id)
+          .maybeSingle();
+        setMyAvatarPath(p?.avatar_url ?? null);
+      }
+    })();
+
     const channel = supabase
       .channel("app-shell-notifications")
       .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () =>
@@ -96,6 +110,25 @@ export function AppShell({
         "postgres_changes",
         { event: "*", schema: "public", table: "conversation_participants" },
         () => loadUnreadNotifications(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        async (payload) => {
+          const oldRow = payload.old as { avatar_url?: string | null } | null;
+          const newRow = payload.new as { id?: string; avatar_url?: string | null } | null;
+          // Invalidate any cached signed URL for both old and new paths so all
+          // visible <UserAvatar> instances refetch with the latest image.
+          if (oldRow?.avatar_url && oldRow.avatar_url !== newRow?.avatar_url) {
+            invalidateAvatar(oldRow.avatar_url);
+          }
+          if (newRow?.avatar_url) invalidateAvatar(newRow.avatar_url);
+          // Update own avatar in the header
+          const { data: u } = await supabase.auth.getUser();
+          if (u.user && newRow?.id === u.user.id) {
+            setMyAvatarPath(newRow.avatar_url ?? null);
+          }
+        },
       )
       .subscribe();
 
@@ -108,7 +141,7 @@ export function AppShell({
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [loadUnreadNotifications]);
+  }, [loadUnreadNotifications, user.avatarPath]);
 
   async function signOut() {
     await supabase.auth.signOut();
