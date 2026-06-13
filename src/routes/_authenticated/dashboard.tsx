@@ -45,7 +45,7 @@ function Dashboard() {
       setProfile({
         name,
         role: roleLabel(r?.role ?? null),
-        initial: (name[0] ?? "ص").toUpperCase(),
+        initial: (name[0] ?? "س").toUpperCase(),
       });
     })();
   }, []);

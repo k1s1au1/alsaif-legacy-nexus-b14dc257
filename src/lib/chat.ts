@@ -78,7 +78,7 @@ export function displayName(p?: Profile | null) {
 }
 
 export function initialOf(name: string) {
-  return (name?.trim()?.[0] ?? "ص").toUpperCase();
+  return (name?.trim()?.[0] ?? "س").toUpperCase();
 }
 
 export function timeLabel(iso: string) {

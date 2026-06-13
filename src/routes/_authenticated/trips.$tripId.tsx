@@ -89,7 +89,7 @@ function TripDetail() {
         return {
           user_id: id,
           name,
-          initial: (name[0] ?? "ص").toUpperCase(),
+          initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         };
       }),
@@ -123,7 +123,7 @@ function TripDetail() {
         setProfile({
           name,
           role: roleLabel(r?.role ?? null),
-          initial: (name[0] ?? "ص").toUpperCase(),
+          initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
 

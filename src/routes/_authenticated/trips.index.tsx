@@ -106,7 +106,7 @@ function TripsPage() {
         setProfile({
           name,
           role: roleLabel(r?.role ?? null),
-          initial: (name[0] ?? "ص").toUpperCase(),
+          initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
         setUserRole(r?.role ?? null);
