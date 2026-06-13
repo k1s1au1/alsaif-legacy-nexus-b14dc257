@@ -240,6 +240,60 @@ function MessagesPage() {
             <span className="hidden sm:inline">إرسال</span>
           </button>
         </form>
+        </div>
+
+        {/* Members sidebar */}
+        <aside className="card-surface w-full lg:w-72 shrink-0 flex flex-col overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+            <div>
+              <p className="eyebrow">الأعضاء</p>
+              <h3 className="text-sm font-medium text-ivory mt-1">المجلس</h3>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Users className="size-3.5" strokeWidth={1.5} />
+              {memberList.length}
+            </span>
+          </div>
+          <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+            {memberList.map((m) => {
+              const name = displayName(m);
+              const initial = (name[0] ?? "ص").toUpperCase();
+              const admin = m.role === "admin";
+              const isMe = m.id === me?.id;
+              return (
+                <div
+                  key={m.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/40 transition"
+                >
+                  <div
+                    className={`size-8 rounded-full grid place-items-center text-xs font-medium shrink-0 ${
+                      admin
+                        ? "bg-gold-primary text-navy-base"
+                        : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                    }`}
+                  >
+                    {initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-ivory truncate flex items-center gap-1.5">
+                      {name}
+                      {isMe && <span className="text-[10px] text-muted-foreground">(أنت)</span>}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      {admin && <ShieldCheck className="size-3" strokeWidth={1.5} />}
+                      {roleLabel(m.role)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {memberList.length === 0 && (
+              <p className="text-center text-xs text-muted-foreground py-6">
+                لا يوجد أعضاء بعد.
+              </p>
+            )}
+          </div>
+        </aside>
       </div>
     </AppShell>
   );
