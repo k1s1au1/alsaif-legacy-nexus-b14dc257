@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Send, Trash2 } from "lucide-react";
+import { Send, Trash2, Users, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/messages")({
@@ -38,6 +38,7 @@ function MessagesPage() {
   const [me, setMe] = useState<{ id: string; role: string | null } | null>(null);
   const [shellUser, setShellUser] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص" });
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [rolesMap, setRolesMap] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<Message[]>([]);
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
@@ -59,6 +60,14 @@ function MessagesPage() {
       const pmap: Record<string, Profile> = {};
       (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
       setProfiles(pmap);
+
+      const rmap: Record<string, string> = {};
+      (roles ?? []).forEach((r: { user_id: string; role: string }) => {
+        // admin wins over any other role
+        if (rmap[r.user_id] === "admin") return;
+        rmap[r.user_id] = r.role;
+      });
+      setRolesMap(rmap);
 
       const myRoles = (roles ?? []).filter((r) => r.user_id === u.user!.id).map((r) => r.role);
       const admin = myRoles.includes("admin");
@@ -129,9 +138,20 @@ function MessagesPage() {
     if (error) toast.error("تعذّر حذف الرسالة");
   }
 
+  const memberList = useMemo(() => {
+    return Object.values(profiles)
+      .map((p) => ({ ...p, role: rolesMap[p.id] ?? "member" }))
+      .sort((a, b) => {
+        if (a.role === "admin" && b.role !== "admin") return -1;
+        if (b.role === "admin" && a.role !== "admin") return 1;
+        return displayName(a).localeCompare(displayName(b), "ar");
+      });
+  }, [profiles, rolesMap]);
+
   return (
     <AppShell title="الرسائل" user={shellUser}>
-      <div className="flex flex-col h-[calc(100vh-9rem)] card-surface overflow-hidden">
+      <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-9rem)]">
+        <div className="flex flex-col flex-1 card-surface overflow-hidden min-h-0">
         {/* Header */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
@@ -220,6 +240,60 @@ function MessagesPage() {
             <span className="hidden sm:inline">إرسال</span>
           </button>
         </form>
+        </div>
+
+        {/* Members sidebar */}
+        <aside className="card-surface w-full lg:w-72 shrink-0 flex flex-col overflow-hidden">
+          <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+            <div>
+              <p className="eyebrow">الأعضاء</p>
+              <h3 className="text-sm font-medium text-ivory mt-1">المجلس</h3>
+            </div>
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Users className="size-3.5" strokeWidth={1.5} />
+              {memberList.length}
+            </span>
+          </div>
+          <div className="flex-1 overflow-y-auto px-2 py-2 space-y-1">
+            {memberList.map((m) => {
+              const name = displayName(m);
+              const initial = (name[0] ?? "ص").toUpperCase();
+              const admin = m.role === "admin";
+              const isMe = m.id === me?.id;
+              return (
+                <div
+                  key={m.id}
+                  className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/40 transition"
+                >
+                  <div
+                    className={`size-8 rounded-full grid place-items-center text-xs font-medium shrink-0 ${
+                      admin
+                        ? "bg-gold-primary text-navy-base"
+                        : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                    }`}
+                  >
+                    {initial}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm text-ivory truncate flex items-center gap-1.5">
+                      {name}
+                      {isMe && <span className="text-[10px] text-muted-foreground">(أنت)</span>}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground flex items-center gap-1">
+                      {admin && <ShieldCheck className="size-3" strokeWidth={1.5} />}
+                      {roleLabel(m.role)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            {memberList.length === 0 && (
+              <p className="text-center text-xs text-muted-foreground py-6">
+                لا يوجد أعضاء بعد.
+              </p>
+            )}
+          </div>
+        </aside>
       </div>
     </AppShell>
   );
