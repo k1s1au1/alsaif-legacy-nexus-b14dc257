@@ -44,6 +44,7 @@ export type Database = {
       conversation_participants: {
         Row: {
           archived_at: string | null
+          can_send: boolean
           conversation_id: string
           id: string
           joined_at: string
@@ -54,6 +55,7 @@ export type Database = {
         }
         Insert: {
           archived_at?: string | null
+          can_send?: boolean
           conversation_id: string
           id?: string
           joined_at?: string
@@ -64,6 +66,7 @@ export type Database = {
         }
         Update: {
           archived_at?: string | null
+          can_send?: boolean
           conversation_id?: string
           id?: string
           joined_at?: string
@@ -90,6 +93,7 @@ export type Database = {
           id: string
           kind: Database["public"]["Enums"]["conversation_kind"]
           last_message_at: string
+          send_permission: Database["public"]["Enums"]["group_send_permission"]
           title: string | null
           updated_at: string
         }
@@ -100,6 +104,7 @@ export type Database = {
           id?: string
           kind: Database["public"]["Enums"]["conversation_kind"]
           last_message_at?: string
+          send_permission?: Database["public"]["Enums"]["group_send_permission"]
           title?: string | null
           updated_at?: string
         }
@@ -110,6 +115,7 @@ export type Database = {
           id?: string
           kind?: Database["public"]["Enums"]["conversation_kind"]
           last_message_at?: string
+          send_permission?: Database["public"]["Enums"]["group_send_permission"]
           title?: string | null
           updated_at?: string
         }
@@ -335,6 +341,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_user_send: {
+        Args: { _conv: string; _user: string }
+        Returns: boolean
+      }
       find_or_create_direct: { Args: { _other: string }; Returns: string }
       has_role: {
         Args: {
@@ -356,6 +366,7 @@ export type Database = {
       app_role: "admin" | "manager" | "member"
       conv_role: "owner" | "admin" | "member"
       conversation_kind: "direct" | "group"
+      group_send_permission: "all" | "admins" | "selected"
       message_kind: "text" | "image" | "video" | "audio" | "file"
       presence_status: "online" | "offline"
     }
@@ -488,6 +499,7 @@ export const Constants = {
       app_role: ["admin", "manager", "member"],
       conv_role: ["owner", "admin", "member"],
       conversation_kind: ["direct", "group"],
+      group_send_permission: ["all", "admins", "selected"],
       message_kind: ["text", "image", "video", "audio", "file"],
       presence_status: ["online", "offline"],
     },

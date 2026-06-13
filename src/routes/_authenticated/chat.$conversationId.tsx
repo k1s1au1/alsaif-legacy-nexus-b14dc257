@@ -108,6 +108,14 @@ function ConversationRoute() {
   );
   const isAdmin =
     myParticipant?.role === "owner" || myParticipant?.role === "admin";
+  const canSend = useMemo(() => {
+    if (!conv || !myParticipant) return false;
+    if (conv.kind === "direct") return true;
+    const perm = conv.send_permission ?? "all";
+    if (perm === "all") return true;
+    if (perm === "admins") return isAdmin;
+    return isAdmin || myParticipant.can_send;
+  }, [conv, myParticipant, isAdmin]);
 
   // --- Initial load -------------------------------------------------------
   useEffect(() => {
@@ -128,7 +136,7 @@ function ConversationRoute() {
         setNotFound(true);
         return;
       }
-      setConv(c as Conversation);
+      setConv(c as unknown as Conversation);
 
       const [{ data: parts }, { data: profs }, { data: msgs }] = await Promise.all([
         supabase
@@ -144,7 +152,7 @@ function ConversationRoute() {
           .limit(300),
       ]);
 
-      setParticipants((parts ?? []) as Participant[]);
+      setParticipants((parts ?? []) as unknown as Participant[]);
       const pmap: Record<string, Profile> = {};
       (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
       setProfiles(pmap);
@@ -281,8 +289,18 @@ function ConversationRoute() {
             .from("conversation_participants")
             .select("*")
             .eq("conversation_id", conversationId);
-          setParticipants((parts ?? []) as Participant[]);
+          setParticipants((parts ?? []) as unknown as Participant[]);
         },
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations",
+          filter: `id=eq.${conversationId}`,
+        },
+        (payload) => setConv(payload.new as unknown as Conversation),
       )
       .subscribe();
 
@@ -794,6 +812,12 @@ function ConversationRoute() {
             <Send className="size-4" />
           </button>
         </div>
+      ) : !canSend ? (
+        <div className="border-t border-border px-4 py-4 bg-card/60 text-center text-xs text-muted-foreground">
+          {conv?.send_permission === "admins"
+            ? "🔒 المشرفون فقط يمكنهم إرسال الرسائل في هذه المجموعة"
+            : "🔒 ليس لديك صلاحية إرسال الرسائل في هذه المجموعة"}
+        </div>
       ) : (
         <form
           onSubmit={sendText}
@@ -1297,6 +1321,24 @@ function InfoDrawer({
   async function setRole(p: Participant, role: "admin" | "member") {
     await supabase.from("conversation_participants").update({ role }).eq("id", p.id);
   }
+  async function setPermission(perm: "all" | "admins" | "selected") {
+    const { error } = await supabase
+      .from("conversations")
+      .update({ send_permission: perm } as never)
+      .eq("id", conversation.id);
+    if (error) {
+      toast.error("تعذّر تحديث الصلاحيات");
+      return;
+    }
+    toast.success("تم تحديث صلاحيات الإرسال");
+  }
+  async function toggleCanSend(p: Participant, value: boolean) {
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ can_send: value } as never)
+      .eq("id", p.id);
+    if (error) toast.error("تعذّر التحديث");
+  }
   async function removeMember(p: Participant) {
     if (p.user_id === conversation.created_by) {
       toast.error("لا يمكن إزالة مالك المجموعة");
@@ -1403,6 +1445,49 @@ function InfoDrawer({
             </button>
           </div>
 
+          {/* Send permissions (group + admin only) */}
+          {conversation.kind === "group" && isAdmin && (
+            <div>
+              <h5 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
+                صلاحيات الإرسال
+              </h5>
+              <div className="space-y-1.5">
+                {(
+                  [
+                    { v: "all", label: "كل الأعضاء", desc: "يستطيع جميع الأعضاء إرسال الرسائل" },
+                    { v: "admins", label: "المشرفون فقط", desc: "المالك والمشرفون فقط يمكنهم الإرسال" },
+                    { v: "selected", label: "أعضاء محددون والمشرفون", desc: "اختر يدويًا من يستطيع الإرسال" },
+                  ] as const
+                ).map((opt) => {
+                  const active = (conversation.send_permission ?? "all") === opt.v;
+                  return (
+                    <button
+                      key={opt.v}
+                      onClick={() => setPermission(opt.v)}
+                      className={`w-full text-right px-3 py-2.5 rounded-xl border transition ${
+                        active
+                          ? "border-gold-primary/60 bg-gold-primary/10"
+                          : "border-border bg-secondary/30 hover:bg-secondary/50"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <div className="text-sm text-ivory">{opt.label}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</div>
+                        </div>
+                        <span
+                          className={`size-4 rounded-full border ${
+                            active ? "border-gold-primary bg-gold-primary" : "border-border"
+                          }`}
+                        />
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Members */}
           <div>
             <div className="flex items-center justify-between mb-2">
@@ -1460,6 +1545,24 @@ function InfoDrawer({
                           : lastSeenLabel(pres?.last_seen_at ?? null)}
                       </div>
                     </div>
+                    {conversation.kind === "group" &&
+                      isAdmin &&
+                      conversation.send_permission === "selected" &&
+                      !isOwner &&
+                      !isMemAdmin && (
+                        <label
+                          className="text-[11px] text-muted-foreground flex items-center gap-1.5 cursor-pointer select-none"
+                          title="السماح بالإرسال"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={p.can_send}
+                            onChange={(e) => toggleCanSend(p, e.target.checked)}
+                            className="accent-gold-primary"
+                          />
+                          إرسال
+                        </label>
+                      )}
                     {conversation.kind === "group" && isAdmin && !isMe && !isOwner && (
                       <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition">
                         {isMemAdmin ? (
