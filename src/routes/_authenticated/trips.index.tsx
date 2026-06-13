@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2 } from "lucide-react";
+import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2, Pencil, Save } from "lucide-react";
 import { toast } from "sonner";
 import tripImage from "@/assets/trip-alula.jpg";
 import { TripImage } from "@/components/trip-image";
@@ -63,6 +63,7 @@ function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const canManage = userRole === "admin" || userRole === "manager";
 
@@ -188,25 +189,34 @@ function TripsPage() {
                       {chip.label}
                     </span>
                     {canManage && (
-                      <button
-                        onClick={async () => {
-                          if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
-                          if (trip.image_url) {
-                            await supabase.storage.from("trip-images").remove([trip.image_url]);
-                          }
-                          const { error } = await supabase.from("trips").delete().eq("id", trip.id);
-                          if (error) {
-                            toast.error("تعذر حذف الرحلة");
-                          } else {
-                            toast.success("تم حذف الرحلة");
-                            loadTrips();
-                          }
-                        }}
-                        className="absolute top-4 left-4 size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-red-500/80 transition ring-1 ring-white/10"
-                        aria-label="حذف الرحلة"
-                      >
-                        <Trash2 className="size-4" strokeWidth={1.8} />
-                      </button>
+                      <div className="absolute top-4 left-4 flex items-center gap-2">
+                        <button
+                          onClick={() => setEditingTrip(trip)}
+                          className="size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-gold-primary/80 hover:text-navy-base transition ring-1 ring-white/10"
+                          aria-label="تعديل الرحلة"
+                        >
+                          <Pencil className="size-4" strokeWidth={1.8} />
+                        </button>
+                        <button
+                          onClick={async () => {
+                            if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
+                            if (trip.image_url) {
+                              await supabase.storage.from("trip-images").remove([trip.image_url]);
+                            }
+                            const { error } = await supabase.from("trips").delete().eq("id", trip.id);
+                            if (error) {
+                              toast.error("تعذر حذف الرحلة");
+                            } else {
+                              toast.success("تم حذف الرحلة");
+                              loadTrips();
+                            }
+                          }}
+                          className="size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-red-500/80 transition ring-1 ring-white/10"
+                          aria-label="حذف الرحلة"
+                        >
+                          <Trash2 className="size-4" strokeWidth={1.8} />
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
@@ -257,24 +267,41 @@ function TripsPage() {
         )}
       </div>
 
-      {showAdd && <AddTripDialog onClose={() => setShowAdd(false)} onCreated={loadTrips} />}
+      {showAdd && <TripDialog onClose={() => setShowAdd(false)} onSaved={loadTrips} />}
+      {editingTrip && (
+        <TripDialog
+          trip={editingTrip}
+          onClose={() => setEditingTrip(null)}
+          onSaved={loadTrips}
+        />
+      )}
     </AppShell>
   );
 }
 
-function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+function TripDialog({
+  trip,
+  onClose,
+  onSaved,
+}: {
+  trip?: Trip;
+  onClose: () => void;
+  onSaved: () => void;
+}) {
+  const isEdit = !!trip;
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [removeExistingImage, setRemoveExistingImage] = useState(false);
   const [form, setForm] = useState({
-    title: "",
-    badge: "",
-    location: "",
-    location_url: "",
-    start_date: "",
-    end_date: "",
-    description: "",
-    status: "upcoming",
+    title: trip?.title ?? "",
+    badge: trip?.badge ?? "",
+    location: trip?.location ?? "",
+    location_url: trip?.location_url ?? "",
+    start_date: trip?.start_date ?? "",
+    end_date: trip?.end_date ?? "",
+    description: trip?.description ?? "",
+    status: trip?.status ?? "upcoming",
   });
 
   function update<K extends keyof typeof form>(key: K, value: string) {
@@ -300,6 +327,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
     setImageFile(null);
     if (imagePreview) URL.revokeObjectURL(imagePreview);
     setImagePreview(null);
+    if (isEdit && trip?.image_url) setRemoveExistingImage(true);
   }
 
   async function submit(e: FormEvent) {
@@ -316,7 +344,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       return;
     }
 
-    let imagePath: string | null = null;
+    let imagePath: string | null | undefined = undefined;
     if (imageFile) {
       const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
       const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;
@@ -329,9 +357,17 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
         return;
       }
       imagePath = path;
+      if (isEdit && trip?.image_url) {
+        await supabase.storage.from("trip-images").remove([trip.image_url]);
+      }
+    } else if (isEdit && removeExistingImage) {
+      if (trip?.image_url) {
+        await supabase.storage.from("trip-images").remove([trip.image_url]);
+      }
+      imagePath = null;
     }
 
-    const { error } = await supabase.from("trips").insert({
+    const payload = {
       title: form.title.trim(),
       badge: form.badge.trim() || null,
       location: form.location.trim() || null,
@@ -339,17 +375,27 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       start_date: form.start_date || null,
       end_date: form.end_date || null,
       description: form.description.trim() || null,
-      image_url: imagePath,
       status: form.status,
-      created_by: u.user.id,
-    });
+    };
+
+    let error;
+    if (isEdit && trip) {
+      const updateData = imagePath !== undefined ? { ...payload, image_url: imagePath } : payload;
+      ({ error } = await supabase.from("trips").update(updateData).eq("id", trip.id));
+    } else {
+      ({ error } = await supabase.from("trips").insert({
+        ...payload,
+        image_url: imagePath ?? null,
+        created_by: u.user.id,
+      }));
+    }
     setSaving(false);
     if (error) {
-      toast.error("تعذر إضافة الرحلة");
+      toast.error(isEdit ? "تعذر حفظ التعديلات" : "تعذر إضافة الرحلة");
       return;
     }
-    toast.success("تمت إضافة الرحلة");
-    onCreated();
+    toast.success(isEdit ? "تم حفظ التعديلات" : "تمت إضافة الرحلة");
+    onSaved();
     onClose();
   }
 
@@ -364,7 +410,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-center justify-between p-6 border-b border-border">
-          <h3 className="text-lg font-medium text-ivory">إضافة رحلة جديدة</h3>
+          <h3 className="text-lg font-medium text-ivory">{isEdit ? "تعديل الرحلة" : "إضافة رحلة جديدة"}</h3>
           <button
             onClick={onClose}
             className="text-muted-foreground hover:text-ivory transition"
@@ -461,6 +507,23 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
                   <X className="size-4" />
                 </button>
               </div>
+            ) : isEdit && trip?.image_url && !removeExistingImage ? (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <TripImage path={trip.image_url} alt="الصورة الحالية" className="w-full h-48 object-cover" />
+                <button
+                  type="button"
+                  onClick={() => setRemoveExistingImage(true)}
+                  className="absolute top-2 left-2 size-8 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-black/80 transition"
+                  aria-label="إزالة الصورة"
+                >
+                  <X className="size-4" />
+                </button>
+                <label className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/60 text-ivory text-xs cursor-pointer hover:bg-black/80 transition">
+                  <Upload className="size-3.5" />
+                  استبدال
+                  <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
+                </label>
+              </div>
             ) : (
               <label className="flex flex-col items-center justify-center gap-2 px-4 py-8 border border-dashed border-border rounded-lg cursor-pointer hover:border-gold-primary/40 hover:bg-secondary/20 transition">
                 <div className="size-10 rounded-full bg-gold-primary/10 grid place-items-center">
@@ -493,8 +556,8 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
               disabled={saving}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-60"
             >
-              <Plus className="size-4" strokeWidth={2.5} />
-              {saving ? "جاري الحفظ..." : "إضافة الرحلة"}
+              {isEdit ? <Save className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2.5} />}
+              {saving ? "جاري الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة الرحلة"}
             </button>
           </div>
         </form>
