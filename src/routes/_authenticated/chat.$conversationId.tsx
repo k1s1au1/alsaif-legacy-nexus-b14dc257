@@ -152,7 +152,7 @@ function ConversationRoute() {
           .limit(300),
       ]);
 
-      setParticipants((parts ?? []) as Participant[]);
+      setParticipants((parts ?? []) as unknown as Participant[]);
       const pmap: Record<string, Profile> = {};
       (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
       setProfiles(pmap);
