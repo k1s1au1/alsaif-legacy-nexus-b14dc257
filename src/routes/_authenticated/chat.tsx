@@ -338,6 +338,10 @@ function ConversationRow({
     profiles,
     meId,
   );
+  const other = item.conversation.kind === "direct"
+    ? item.participants.find((p) => p.user_id !== meId)
+    : undefined;
+  const otherAvatarPath = other ? profiles[other.user_id]?.avatar_url ?? null : null;
   const lastMine = item.lastMessage?.sender_id === meId;
   const lastDelivered = item.lastMessage; // simplified — full delivery state in detail view
 
@@ -351,7 +355,7 @@ function ConversationRow({
       }`}
     >
       <div
-        className={`size-12 rounded-full grid place-items-center text-sm font-medium shrink-0 ${
+        className={`size-12 rounded-full grid place-items-center text-sm font-medium shrink-0 overflow-hidden ${
           item.conversation.kind === "group"
             ? "bg-secondary/60 text-ivory ring-1 ring-border"
             : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
@@ -360,7 +364,7 @@ function ConversationRow({
         {item.conversation.kind === "group" ? (
           <Users className="size-5" strokeWidth={1.5} />
         ) : (
-          initial
+          <UserAvatar path={otherAvatarPath} initial={initial} className="size-full" />
         )}
       </div>
       <div className="flex-1 min-w-0">
