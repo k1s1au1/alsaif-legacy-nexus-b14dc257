@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -204,10 +204,14 @@ function Dashboard() {
                     <div className="text-sm text-ivory">24 عضواً</div>
                   </div>
                 </div>
-                <button className="inline-flex items-center gap-2 px-5 py-2 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition">
+                <Link
+                  to="/trips/$tripId"
+                  params={{ tripId: "alula-winter" }}
+                  className="inline-flex items-center gap-2 px-5 py-2 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+                >
                   عرض التفاصيل
                   <ChevronLeft className="size-4" />
-                </button>
+                </Link>
               </div>
             </div>
           </article>
