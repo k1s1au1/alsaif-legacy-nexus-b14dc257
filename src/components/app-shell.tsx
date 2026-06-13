@@ -30,6 +30,7 @@ const navItems = [
   { to: "/majlis", label: "المجلس", icon: Megaphone },
   { to: "/archive", label: "الأرشيف", icon: Archive },
   { to: "/admin", label: "الإدارة", icon: Shield },
+  { to: "/profile", label: "ملفي الشخصي", icon: User },
 ] as const;
 
 export function AppShell({
