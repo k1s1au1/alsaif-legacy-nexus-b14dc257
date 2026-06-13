@@ -318,11 +318,13 @@ function ConversationRow({
   meId,
   profiles,
   active,
+  onOpen,
 }: {
   item: ConversationListItem;
   meId: string | null;
   profiles: Record<string, Profile>;
   active: boolean;
+  onOpen?: () => void;
 }) {
   const title = conversationTitle(item.conversation, item.participants, profiles, meId);
   const initial = conversationAvatarInitial(
