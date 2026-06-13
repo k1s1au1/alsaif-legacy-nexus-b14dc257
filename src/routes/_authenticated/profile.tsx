@@ -53,6 +53,7 @@ function ProfilePage() {
 
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [phone, setPhone] = useState("");
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
