@@ -8,6 +8,8 @@ export type Profile = {
   avatar_url: string | null;
 };
 
+export type GroupSendPermission = "all" | "admins" | "selected";
+
 export type Conversation = {
   id: string;
   kind: "direct" | "group";
@@ -16,6 +18,7 @@ export type Conversation = {
   created_by: string | null;
   last_message_at: string;
   created_at: string;
+  send_permission: GroupSendPermission;
 };
 
 export type Participant = {
