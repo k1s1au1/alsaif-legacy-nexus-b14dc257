@@ -380,8 +380,7 @@ function TripDialog({
 
     let error;
     if (isEdit && trip) {
-      const updateData: Record<string, unknown> = { ...payload };
-      if (imagePath !== undefined) updateData.image_url = imagePath;
+      const updateData = imagePath !== undefined ? { ...payload, image_url: imagePath } : payload;
       ({ error } = await supabase.from("trips").update(updateData).eq("id", trip.id));
     } else {
       ({ error } = await supabase.from("trips").insert({
