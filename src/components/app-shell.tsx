@@ -16,6 +16,7 @@ import {
   Bell,
   LogOut,
   User,
+  Users,
   ChevronDown,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
