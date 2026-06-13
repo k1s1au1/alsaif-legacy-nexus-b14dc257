@@ -4,7 +4,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { toast } from "sonner";
-import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar } from "lucide-react";
+import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar, Phone } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/profile")({
@@ -29,6 +29,13 @@ const passwordSchema = z
   .min(8, { message: "كلمة المرور يجب أن تكون 8 أحرف على الأقل" })
   .max(72, { message: "كلمة المرور طويلة جداً" });
 
+const phoneSchema = z
+  .string()
+  .trim()
+  .min(8, { message: "رقم الجوال قصير جداً" })
+  .max(20, { message: "رقم الجوال طويل جداً" })
+  .regex(/^[\d\s+\-()]+$/, { message: "أرقام فقط" });
+
 type ProfileRow = {
   id: string;
   arabic_name: string | null;
@@ -49,12 +56,12 @@ function ProfilePage() {
   const [createdAt, setCreatedAt] = useState<string>("");
   const [arabicName, setArabicName] = useState<string>("");
   const [fullName, setFullName] = useState<string>("");
+  const [phone, setPhone] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [avatarSrc, setAvatarSrc] = useState<string | null>(null);
 
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
-  const [phone, setPhone] = useState("");
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -67,12 +74,13 @@ function ProfilePage() {
       setCreatedAt(u.user.created_at);
       const { data: p } = await supabase
         .from("profiles")
-        .select("id, arabic_name, full_name, avatar_url, created_at")
+        .select("id, arabic_name, full_name, phone, avatar_url, created_at")
         .eq("id", u.user.id)
         .maybeSingle<ProfileRow>();
       if (p) {
         setArabicName(p.arabic_name ?? "");
         setFullName(p.full_name ?? "");
+        setPhone(p.phone ?? "");
         setAvatarUrl(p.avatar_url);
         if (p.avatar_url) {
           const { data: signed } = await supabase.storage
@@ -96,12 +104,18 @@ function ProfilePage() {
       toast.error(parsed.error.issues[0].message);
       return;
     }
+    const phoneParsed = phoneSchema.safeParse(phone);
+    if (!phoneParsed.success) {
+      toast.error(phoneParsed.error.issues[0].message);
+      return;
+    }
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
       .update({
         arabic_name: arabicName.trim() || null,
         full_name: fullName.trim() || null,
+        phone: phone.trim() || null,
       })
       .eq("id", userId);
     setSaving(false);
@@ -233,6 +247,12 @@ function ProfilePage() {
           <div className="text-center sm:text-right">
             <h2 className="text-2xl font-medium text-ivory">{displayName}</h2>
             <p className="text-sm text-muted-foreground mt-1">{email}</p>
+            {phone && (
+              <p className="text-sm text-muted-foreground mt-1 flex items-center justify-center sm:justify-start gap-1">
+                <Phone className="size-3.5 text-gold-primary/70" />
+                {phone}
+              </p>
+            )}
           </div>
         </section>
 
@@ -264,6 +284,7 @@ function ProfilePage() {
           </div>
           <Field label="الاسم بالعربية" value={arabicName} onChange={setArabicName} placeholder="مثال: فيصل السيف" />
           <Field label="الاسم الكامل (لاتيني)" value={fullName} onChange={setFullName} placeholder="Faisal Alsaif" />
+          <Field label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
           <div className="flex justify-end">
             <button
               type="submit"
