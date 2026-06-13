@@ -194,7 +194,7 @@ function ProfilePage() {
   return (
     <AppShell
       title="الملف الشخصي"
-      user={{ name: displayName, role: "عضو", initial }}
+      user={{ name: displayName, role: "عضو", initial, avatarPath: avatarUrl }}
     >
       <div className="max-w-3xl space-y-8">
         {/* Header card */}
