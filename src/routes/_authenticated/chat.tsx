@@ -160,6 +160,14 @@ function ChatLayout() {
         { event: "*", schema: "public", table: "conversation_participants" },
         () => load(),
       )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        (payload) => {
+          const p = payload.new as Profile;
+          setProfiles((prev) => ({ ...prev, [p.id]: { ...prev[p.id], ...p } }));
+        },
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
