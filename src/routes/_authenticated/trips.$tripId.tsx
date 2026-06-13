@@ -224,7 +224,7 @@ function TripDetail() {
             <Stat icon={Calendar} label="التاريخ" value={formatRange(trip.start_date, trip.end_date)} />
             <Stat icon={MapPin} label="الموقع" value={trip.location || "—"} />
             <Stat icon={CheckCircle2} label="الحالة" value={statusLabel(trip.status)} />
-            <Stat icon={Users} label="المشاركون" value="عائلي" />
+            <Stat icon={Users} label="المشاركون" value={`${attendees.length} مؤكدون`} />
             <Stat icon={Tent} label="الإقامة" value="مخيم عائلي" />
             {trip.badge && <Stat icon={CheckCircle2} label="الفئة" value={trip.badge} />}
           </div>
