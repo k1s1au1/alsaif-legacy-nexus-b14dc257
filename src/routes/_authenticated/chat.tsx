@@ -27,6 +27,7 @@ import {
   Profile,
 } from "@/lib/chat";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   ssr: false,
