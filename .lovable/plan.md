@@ -1,63 +1,88 @@
-## Goal
+## Scope & approach
 
-Turn the single "مجلس العائلة" channel into a multi-room chat system supporting **public rooms** (open to every signed-in member) and **private rooms** (invite-only), each with its own member list showing participants and administrators.
+The existing chat (`chat_rooms`, `chat_room_members`, `messages`, `/messages` routes) will be **dropped and replaced** with a new WhatsApp-style messenger. Given the size of the request, I'll deliver every item you listed, but be upfront about the realistic tradeoffs for two of them:
 
-## Data model (new migration)
+- **Push notifications**: I'll wire **in-app realtime notifications** (sound + badge + browser `Notification` API when the tab is granted permission). True mobile push (APNs/FCM) requires a native shell or a paid web-push provider and isn't possible from a Lovable web app alone — I'll flag where to plug that in later.
+- **Voice messages**: recorded via the browser `MediaRecorder` API (webm/opus). Plays back inline. No transcription.
 
-New tables in `public`:
+Everything else ships in this rebuild.
 
-- `chat_rooms` — `id`, `name`, `description`, `is_private` (bool), `created_by`, timestamps.
-- `chat_room_members` — `room_id`, `user_id`, `room_role` (`owner` | `admin` | `member`), `joined_at`. Unique `(room_id, user_id)`.
+## New data model (single migration; old tables dropped)
 
-Alter `messages`:
-- Add `room_id uuid not null references chat_rooms(id) on delete cascade`.
-- Backfill existing rows into a seeded default public room "مجلس العائلة" before applying NOT NULL.
+- `conversations` — `id`, `kind` (`direct` | `group`), `title` (group only), `avatar_url` (group only), `created_by`, `last_message_at` (for sorting), timestamps.
+- `conversation_participants` — `conversation_id`, `user_id`, `role` (`owner` | `admin` | `member`), `joined_at`, `archived_at` (per-user archive), `muted` (bool), `last_read_at`. Unique `(conversation_id, user_id)`.
+- `messages` — `id`, `conversation_id`, `sender_id`, `kind` (`text` | `image` | `video` | `audio` | `file`), `body` (text), `attachment_url`, `attachment_name`, `attachment_size`, `attachment_mime`, `attachment_duration_ms` (voice/video), `reply_to_id` (FK), `deleted_at` (soft delete), `edited_at`, `created_at`.
+- `message_reactions` — `message_id`, `user_id`, `emoji`. Unique `(message_id, user_id, emoji)`.
+- `message_deliveries` — `message_id`, `user_id`, `delivered_at`, `read_at`. Drives ✓ / ✓✓ / ✓✓ (blue) indicators.
+- `user_presence` — `user_id` (PK), `status` (`online` | `offline`), `last_seen_at`.
 
-Helpers (SECURITY DEFINER, search_path = public) to keep RLS non-recursive:
-- `is_room_member(_user, _room) returns boolean`
-- `is_room_admin(_user, _room) returns boolean` (owner or admin of that room, or global app admin)
+Helpers (SECURITY DEFINER): `is_conversation_member(_user, _conv)`, `is_conversation_admin(_user, _conv)`, `find_or_create_direct(_other_user)` (atomic — finds the existing 1:1 conversation between caller and `_other_user`, or creates it and seeds both participants).
 
-RLS:
-- `chat_rooms`: SELECT allowed when `is_private = false` OR `is_room_member(auth.uid(), id)` OR global admin. INSERT/UPDATE/DELETE: global admin or room owner.
-- `chat_room_members`: SELECT allowed to members of the same room or global admin. INSERT/DELETE: room admin or global admin.
-- `messages`: SELECT/INSERT gated by `is_room_member(auth.uid(), room_id)` for private rooms; public rooms allow all authenticated reads, INSERT still requires `sender_id = auth.uid()` and (for public) auto-membership. DELETE: global admin or room admin.
+RLS: members see their conversation, its participants, messages, reactions, and delivery rows; only senders edit/delete their own messages; group admins/owners manage participants and group metadata; users update only their own presence, reads, and reactions.
 
-Realtime: add `chat_rooms` and `chat_room_members` to `supabase_realtime` (messages already enabled).
+Realtime publication: `conversations`, `conversation_participants`, `messages`, `message_reactions`, `message_deliveries`, `user_presence`.
 
-Seed: one default public room "مجلس العائلة"; reassign existing messages to it; add every existing user as a member (member role; admins → admin).
+Typing indicators and "user is online right now" use Supabase Realtime **broadcast + presence channels** (no DB writes per keystroke).
 
-GRANTs on every new table for `authenticated` + `service_role` as required.
+GRANTs on every new table for `authenticated` + `service_role`.
 
-## Routes
+## Storage
 
-- `/messages` (existing) → becomes a room list landing: shows public rooms + private rooms the user belongs to, plus a "New room" button for global admins.
-- `/messages/$roomId` (new) → the actual chat surface for one room.
+- New private bucket `chat-attachments` with RLS scoped to conversation members. Path layout `{conversation_id}/{message_id}/{filename}`. Signed URLs for downloads.
 
-Layout: 3-column desktop layout
-1. **Rooms sidebar** (left): public + private rooms the user can see, with unread-ish accents and an admin "+ New room" affordance.
-2. **Conversation** (center): existing message stream + composer, scoped to `roomId`. Realtime channel filtered by `room_id`.
-3. **Members panel** (right): all participants of the current room, badged with **Owner / Admin / Member**. For admins of a private room: "Add member" picker (searches `profiles`) and remove (×) per member.
+## Routes (replace existing `/messages*`)
 
-Mobile: rooms list and members panel collapse into drawers.
+```
+src/routes/_authenticated/chat.tsx                 # layout: conv list (left) + outlet
+src/routes/_authenticated/chat.index.tsx           # empty-state ("اختر محادثة")
+src/routes/_authenticated/chat.$conversationId.tsx # conversation view
+```
 
-## Permissions surfaced in UI
+The old `messages.tsx` and `messages.$roomId.tsx` files are deleted and `AppShell` nav swaps from "الرسائل" → "المحادثات" pointing at `/chat`.
 
-- Anyone can read/write public rooms.
-- Private rooms only render in the sidebar if the user is a member.
-- Only global admins or the room's owner/admin can:
-  - Create a new room (and choose public/private).
-  - Add/remove members in a private room.
-  - Delete messages and delete a room.
+## UI (WhatsApp-style)
 
-## Implementation order
+**Layout** — two-pane desktop, single-pane mobile:
+- **Left pane (conversation list)**: search box, "new chat" + "new group" buttons, list sorted by `last_message_at`, each row shows avatar, name, last message preview, time, unread badge, mute icon, ✓/✓✓/✓✓-blue mini-indicator on your last sent message. Long-press / kebab → archive / delete / mute.
+- **Right pane (conversation view)**:
+  - Header: avatar, name, presence ("online" / "last seen ...") for direct chats, or "N members" for groups; clicking opens an info drawer (members, admin controls for groups: add/remove, promote/demote, rename, change avatar).
+  - Message list: bubbles right-aligned for you (gold), left for others (secondary), grouped by day with date separators, reply-quote shown above message, reactions chip under bubble, ✓ / ✓✓ / ✓✓-blue ticks on your bubbles. Long-press (or hover toolbar) → react, reply, copy, delete. Tap a reaction chip to toggle. Search bar inside the chat header filters/highlights matches.
+  - Attachment rendering: image/video inline with lightbox, voice message with waveform progress + play button + duration, file with icon + name + size + download.
+  - Composer: emoji picker, paperclip (image/video/file from device), camera (image capture), mic (hold-to-record voice; release to send, slide to cancel), text field, send button. Reply context strip and edit context strip render above the input.
+  - Typing dots appear under header when someone in the room is typing (debounced via Realtime broadcast).
+- Mobile: list and conversation are separate screens; back arrow returns to list. Sidebar `AppShell` rail stays.
 
-1. Migration: new tables, alter `messages`, helpers, RLS, GRANTs, realtime publication, seed default room + members.
-2. `src/routes/_authenticated/messages.tsx` → rooms list (public + private the user is in) with create-room dialog for admins.
-3. `src/routes/_authenticated/messages.$roomId.tsx` → room view with messages + members panel + (for room/global admins) add/remove member controls.
-4. Reuse `AppShell`; keep RTL Arabic strings consistent with existing design tokens (`gold-primary`, `ivory`, `navy-base`).
+**Search**: top of the conversation list searches across conversation titles, participants, and last message previews. Inside a chat, ⌘F / search icon filters messages.
 
-## Technical notes
+**Archive view**: filter toggle at top of list ("نشطة" / "أرشيف"). Archived conversations are hidden from the main list and surface in the archive view.
 
-- All DB access stays via the browser Supabase client; RLS enforces visibility, so no server functions needed.
-- Realtime: subscribe per-room with `filter: room_id=eq.<id>` for `messages`, and a separate channel for `chat_room_members` to keep the members panel live.
-- Backwards compatible: existing messages survive (moved to the default public room).
+**Notifications**:
+- Sound + visible toast for incoming messages when window is hidden or the chat isn't focused.
+- Browser `Notification` permission requested on first chat open; falls back silently if denied.
+- Per-conversation mute respected.
+
+## Implementation order (single response, multiple steps)
+
+1. **Migration** — drop old tables/policies; create new schema, helpers, RLS, GRANTs, realtime, storage bucket policies.
+2. **Storage** — create `chat-attachments` bucket (private) + RLS on `storage.objects`.
+3. **Frontend primitives** — `src/lib/chat/` with hooks: `useConversations`, `useConversation`, `useMessages`, `usePresence`, `useTyping`, `useUploads`, `useNotifications`.
+4. **Routes** — `chat.tsx` (layout), `chat.index.tsx`, `chat.$conversationId.tsx`, plus dialog components: `NewChatDialog`, `NewGroupDialog`, `ConversationInfoDrawer`, `EmojiPicker`, `VoiceRecorder`, `AttachmentMenu`, `MessageBubble`, `MessageList`, `Composer`.
+5. **Nav swap** — update `AppShell` nav from `/messages` to `/chat`.
+6. **Cleanup** — delete old `messages*.tsx`, leave migration history intact.
+
+## Performance / scalability notes
+
+- Messages query is paginated with infinite scroll (`limit 50` reverse chronological).
+- Conversation list reads `last_message_at` + unread count derived from `last_read_at` vs `messages.created_at`.
+- Realtime channels are per-conversation (`messages:conv-{id}`), torn down on unmount.
+- Presence uses one global presence channel; typing uses per-conversation broadcast.
+- Indexes: `messages(conversation_id, created_at desc)`, `conversation_participants(user_id)`, `message_deliveries(user_id, message_id)`.
+
+## Out of scope (called out, not built)
+
+- True mobile push notifications (APNs/FCM) — needs a native wrapper or paid web-push.
+- End-to-end encryption.
+- Calls (voice/video calling).
+- Voice message transcription.
+
+I'll execute the full plan after you approve.

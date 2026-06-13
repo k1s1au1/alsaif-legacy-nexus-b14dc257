@@ -19,7 +19,7 @@ import { toast } from "sonner";
 
 const navItems = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/messages", label: "الرسائل", icon: MessageCircle },
+  { to: "/chat", label: "المحادثات", icon: MessageCircle },
   { to: "/meetings", label: "الاجتماعات", icon: CalendarDays },
   { to: "/trips", label: "الرحلات", icon: Plane },
   { to: "/finance", label: "الصندوق المالي", icon: Wallet },
