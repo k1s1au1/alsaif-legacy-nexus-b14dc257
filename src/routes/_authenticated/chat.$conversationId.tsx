@@ -206,7 +206,17 @@ function ConversationRoute() {
           }
           // Mark delivered (and read if visible)
           markDelivered(m.id);
-          if (document.visibilityState === "visible") markRead(m.id);
+          if (document.visibilityState === "visible" && m.sender_id !== meId) {
+            markRead(m.id);
+            // Keep conversation_participants.last_read_at in sync so the
+            // list view does not re-introduce an unread badge for a chat
+            // the user is actively viewing.
+            supabase
+              .from("conversation_participants")
+              .update({ last_read_at: new Date().toISOString() })
+              .eq("conversation_id", conversationId)
+              .eq("user_id", meId);
+          }
         },
       )
       .on(
