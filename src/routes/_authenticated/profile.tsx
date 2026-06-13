@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "الملف الشخصي — الصيف" },
+      { title: "الملف الشخصي — السيف" },
       { name: "description", content: "إدارة بيانات حسابك الشخصية وكلمة المرور وصورة الملف." },
     ],
   }),

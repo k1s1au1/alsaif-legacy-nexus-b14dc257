@@ -79,14 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "الصيف — Alsaif" },
+      { title: "السيف — Alsaif" },
       {
         name: "description",
         content:
-          "الصيف — منصة العائلة الخاصة للتواصل والتنظيم وحفظ الإرث. Private family & community headquarters.",
+          "السيف — منصة العائلة الخاصة للتواصل والتنظيم وحفظ الإرث. Private family & community headquarters.",
       },
       { name: "theme-color", content: "#050a18" },
-      { property: "og:title", content: "الصيف — Alsaif" },
+      { property: "og:title", content: "السيف — Alsaif" },
       {
         property: "og:description",
         content: "نصل العائلة، نحفظ الإرث، نبني المجتمع.",

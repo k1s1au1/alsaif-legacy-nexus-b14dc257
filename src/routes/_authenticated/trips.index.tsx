@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "الرحلات — الصيف" },
+      { title: "الرحلات — السيف" },
       { name: "description", content: "رحلات العائلة القادمة والسابقة، تفاصيل الوجهة والمشاركين." },
     ],
   }),

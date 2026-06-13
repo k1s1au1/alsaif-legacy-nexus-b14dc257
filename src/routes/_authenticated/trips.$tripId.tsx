@@ -9,7 +9,7 @@ import { UserAvatar } from "@/components/user-avatar";
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
   head: () => ({
-    meta: [{ title: "تفاصيل الرحلة — الصيف" }],
+    meta: [{ title: "تفاصيل الرحلة — السيف" }],
   }),
   component: TripDetail,
 });
