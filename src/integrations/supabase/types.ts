@@ -41,6 +41,68 @@ export type Database = {
         }
         Relationships: []
       }
+      bank_transfers: {
+        Row: {
+          amount: number
+          created_at: string
+          fund_transaction_id: string | null
+          id: string
+          note: string | null
+          receipt_url: string | null
+          reference_number: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          sender_name: string
+          status: Database["public"]["Enums"]["bank_transfer_status"]
+          submitted_by: string
+          transferred_at: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          fund_transaction_id?: string | null
+          id?: string
+          note?: string | null
+          receipt_url?: string | null
+          reference_number?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_name: string
+          status?: Database["public"]["Enums"]["bank_transfer_status"]
+          submitted_by: string
+          transferred_at?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          fund_transaction_id?: string | null
+          id?: string
+          note?: string | null
+          receipt_url?: string | null
+          reference_number?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          sender_name?: string
+          status?: Database["public"]["Enums"]["bank_transfer_status"]
+          submitted_by?: string
+          transferred_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bank_transfers_fund_transaction_id_fkey"
+            columns: ["fund_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "fund_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           archived_at: string | null
@@ -487,6 +549,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "member"
+      bank_transfer_status: "pending" | "approved" | "rejected"
       conv_role: "owner" | "admin" | "member"
       conversation_kind: "direct" | "group"
       fund_tx_type: "contribution" | "expense"
@@ -621,6 +684,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "member"],
+      bank_transfer_status: ["pending", "approved", "rejected"],
       conv_role: ["owner", "admin", "member"],
       conversation_kind: ["direct", "group"],
       fund_tx_type: ["contribution", "expense"],
