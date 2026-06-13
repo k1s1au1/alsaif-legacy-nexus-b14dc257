@@ -108,6 +108,7 @@ function TripsPage() {
           initial: (name[0] ?? "ص").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
+        setUserRole(r?.role ?? null);
       }
       await loadTrips();
     })();
