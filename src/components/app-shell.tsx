@@ -217,8 +217,14 @@ export function AppShell({
                   {user.role}
                 </p>
               </div>
-              <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
-                {user.initial}
+              <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold overflow-hidden">
+                <UserAvatar
+                  path={myAvatarPath}
+                  name={user.name}
+                  initial={user.initial}
+                  className="size-full"
+                  fallbackClassName=""
+                />
               </div>
             </Link>
           </div>
