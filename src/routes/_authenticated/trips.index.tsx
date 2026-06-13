@@ -267,7 +267,14 @@ function TripsPage() {
         )}
       </div>
 
-      {showAdd && <AddTripDialog onClose={() => setShowAdd(false)} onCreated={loadTrips} />}
+      {showAdd && <TripDialog onClose={() => setShowAdd(false)} onSaved={loadTrips} />}
+      {editingTrip && (
+        <TripDialog
+          trip={editingTrip}
+          onClose={() => setEditingTrip(null)}
+          onSaved={loadTrips}
+        />
+      )}
     </AppShell>
   );
 }
