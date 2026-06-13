@@ -1308,6 +1308,9 @@ function InfoDrawer({
     setRenaming(false);
     toast.success("تم تحديث الاسم");
   }
+  async function setRole(p: Participant, role: "admin" | "member") {
+    await supabase.from("conversation_participants").update({ role }).eq("id", p.id);
+  }
   async function setPermission(perm: "all" | "admins" | "selected") {
     const { error } = await supabase
       .from("conversations")
