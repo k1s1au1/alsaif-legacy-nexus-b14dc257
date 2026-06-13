@@ -236,6 +236,8 @@ function TripsPage() {
 
 function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
   const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [form, setForm] = useState({
     title: "",
     badge: "",
@@ -244,12 +246,32 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
     start_date: "",
     end_date: "",
     description: "",
-    image_url: "",
     status: "upcoming",
   });
 
   function update<K extends keyof typeof form>(key: K, value: string) {
     setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      toast.error("الرجاء اختيار ملف صورة");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
+      return;
+    }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  }
+
+  function clearImage() {
+    setImageFile(null);
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setImagePreview(null);
   }
 
   async function submit(e: FormEvent) {
@@ -265,6 +287,22 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       setSaving(false);
       return;
     }
+
+    let imagePath: string | null = null;
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("trip-images")
+        .upload(path, imageFile, { contentType: imageFile.type, upsert: false });
+      if (upErr) {
+        toast.error("تعذر رفع الصورة");
+        setSaving(false);
+        return;
+      }
+      imagePath = path;
+    }
+
     const { error } = await supabase.from("trips").insert({
       title: form.title.trim(),
       badge: form.badge.trim() || null,
@@ -273,7 +311,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
       start_date: form.start_date || null,
       end_date: form.end_date || null,
       description: form.description.trim() || null,
-      image_url: form.image_url.trim() || null,
+      image_url: imagePath,
       status: form.status,
       created_by: u.user.id,
     });
@@ -286,6 +324,7 @@ function AddTripDialog({ onClose, onCreated }: { onClose: () => void; onCreated:
     onCreated();
     onClose();
   }
+
 
   return (
     <div
