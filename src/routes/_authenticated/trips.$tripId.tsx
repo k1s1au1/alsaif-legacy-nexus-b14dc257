@@ -24,6 +24,7 @@ type Trip = {
   title: string;
   badge: string | null;
   location: string | null;
+  location_url: string | null;
   start_date: string | null;
   end_date: string | null;
   description: string | null;
