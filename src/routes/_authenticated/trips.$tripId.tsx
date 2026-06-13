@@ -2,7 +2,7 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { ArrowRight, Calendar, MapPin, Users, CheckCircle2, Tent, Mountain, Sparkles } from "lucide-react";
+import { ArrowRight, Calendar, MapPin, Users, CheckCircle2, Tent } from "lucide-react";
 import tripImage from "@/assets/trip-alula.jpg";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
@@ -19,48 +19,30 @@ function roleLabel(role: string | null) {
   return "عضو";
 }
 
-const TRIP_DETAILS: Record<
-  string,
-  {
-    title: string;
-    location: string;
-    dates: string;
-    participants: number;
-    description: string;
-    itinerary: { day: string; title: string; details: string }[];
-  }
-> = {
-  "alula-winter": {
-    title: "رحلة الشتاء السنوية",
-    location: "مخيم العلا، المملكة العربية السعودية",
-    dates: "12 - 15 فبراير",
-    participants: 24,
-    description:
-      "أربعة أيام في قلب العلا، نجمع بين الجولات التاريخية، الأمسيات العائلية، وأنشطة الأطفال.",
-    itinerary: [
-      { day: "اليوم الأول", title: "الوصول والاستقبال", details: "تجمع المخيم، عشاء ترحيبي حول النار." },
-      { day: "اليوم الثاني", title: "زيارة الحجر", details: "جولة مرشدة في موقع مدائن صالح." },
-      { day: "اليوم الثالث", title: "وادي العذيب", details: "نزهة عائلية مع برنامج خاص للأطفال." },
-      { day: "اليوم الرابع", title: "العودة", details: "إفطار جماعي ثم انطلاق القافلة." },
-    ],
-  },
-  "taif-spring": {
-    title: "نزهة الربيع في الطائف",
-    location: "الطائف، المملكة العربية السعودية",
-    dates: "20 - 22 أبريل",
-    participants: 12,
-    description: "عطلة قصيرة بين بساتين الورد ومرتفعات الهدا.",
-    itinerary: [
-      { day: "اليوم الأول", title: "الوصول", details: "استقرار في الشاليه، عشاء عائلي." },
-      { day: "اليوم الثاني", title: "بساتين الورد", details: "زيارة معامل الورد الطائفي." },
-      { day: "اليوم الثالث", title: "العودة", details: "صباح هادئ في الهدا ثم العودة." },
-    ],
-  },
+type Trip = {
+  id: string;
+  title: string;
+  badge: string | null;
+  location: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  description: string | null;
+  image_url: string | null;
+  status: string;
 };
+
+function formatRange(start: string | null, end: string | null) {
+  if (!start) return "—";
+  const fmt = (iso: string) =>
+    new Date(iso).toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" });
+  if (!end || end === start) return fmt(start);
+  return `${fmt(start)} - ${fmt(end)}`;
+}
 
 function TripDetail() {
   const { tripId } = useParams({ from: "/_authenticated/trips/$tripId" });
-  const trip = TRIP_DETAILS[tripId];
+  const [trip, setTrip] = useState<Trip | null>(null);
+  const [loading, setLoading] = useState(true);
   const [going, setGoing] = useState(false);
   const [profile, setProfile] = useState<{
     name: string;
@@ -72,44 +54,60 @@ function TripDetail() {
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const [{ data: p }, { data: r }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("arabic_name, full_name, avatar_url")
-          .eq("id", u.user.id)
-          .maybeSingle(),
-        supabase
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", u.user.id)
-          .order("role")
-          .limit(1)
-          .maybeSingle(),
-      ]);
-      const name =
-        p?.arabic_name?.trim() ||
-        p?.full_name?.trim() ||
-        u.user.email?.split("@")[0] ||
-        "عضو العائلة";
-      setProfile({
-        name,
-        role: roleLabel(r?.role ?? null),
-        initial: (name[0] ?? "ص").toUpperCase(),
-        avatarPath: p?.avatar_url ?? null,
-      });
+      if (u.user) {
+        const [{ data: p }, { data: r }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("arabic_name, full_name, avatar_url")
+            .eq("id", u.user.id)
+            .maybeSingle(),
+          supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", u.user.id)
+            .order("role")
+            .limit(1)
+            .maybeSingle(),
+        ]);
+        const name =
+          p?.arabic_name?.trim() ||
+          p?.full_name?.trim() ||
+          u.user.email?.split("@")[0] ||
+          "عضو العائلة";
+        setProfile({
+          name,
+          role: roleLabel(r?.role ?? null),
+          initial: (name[0] ?? "ص").toUpperCase(),
+          avatarPath: p?.avatar_url ?? null,
+        });
+      }
+
+      const { data: t } = await supabase
+        .from("trips")
+        .select("id,title,badge,location,start_date,end_date,description,image_url,status")
+        .eq("id", tripId)
+        .maybeSingle();
+      setTrip((t as Trip | null) ?? null);
+      setLoading(false);
     })();
-  }, []);
+  }, [tripId]);
+
+  if (loading) {
+    return (
+      <AppShell title="الرحلات" user={profile}>
+        <div className="card-surface p-10 text-center text-muted-foreground text-sm">
+          جاري التحميل...
+        </div>
+      </AppShell>
+    );
+  }
 
   if (!trip) {
     return (
       <AppShell title="الرحلات" user={profile}>
         <div className="card-surface p-10 text-center">
           <p className="text-muted-foreground">لم يتم العثور على هذه الرحلة.</p>
-          <Link
-            to="/trips"
-            className="mt-4 inline-flex items-center gap-2 text-gold-primary text-sm"
-          >
+          <Link to="/trips" className="mt-4 inline-flex items-center gap-2 text-gold-primary text-sm">
             <ArrowRight className="size-4" />
             العودة إلى قائمة الرحلات
           </Link>
@@ -132,71 +130,49 @@ function TripDetail() {
         <article className="card-surface overflow-hidden">
           <div className="relative h-72">
             <img
-              src={tripImage}
+              src={trip.image_url || tripImage}
               alt={trip.title}
               className="absolute inset-0 size-full object-cover"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
             <div className="absolute bottom-0 right-0 left-0 p-8">
+              {trip.badge && (
+                <span className="inline-block mb-3 px-2.5 py-1 bg-gold-primary/15 text-gold-primary text-[10px] rounded uppercase tracking-wider ring-1 ring-gold-primary/30">
+                  {trip.badge}
+                </span>
+              )}
               <h2 className="text-3xl font-medium text-ivory mb-2">{trip.title}</h2>
-              <div className="flex items-center gap-1.5 text-sm text-ivory/80">
-                <MapPin className="size-4" strokeWidth={1.5} />
-                {trip.location}
-              </div>
+              {trip.location && (
+                <div className="flex items-center gap-1.5 text-sm text-ivory/80">
+                  <MapPin className="size-4" strokeWidth={1.5} />
+                  {trip.location}
+                </div>
+              )}
             </div>
           </div>
           <div className="p-8 grid grid-cols-1 md:grid-cols-3 gap-6 border-b border-border">
-            <Stat icon={Calendar} label="التاريخ" value={trip.dates} />
-            <Stat icon={Users} label="المشاركون" value={`${trip.participants} عضواً`} />
+            <Stat icon={Calendar} label="التاريخ" value={formatRange(trip.start_date, trip.end_date)} />
+            <Stat icon={Users} label="المشاركون" value="عائلي" />
             <Stat icon={Tent} label="الإقامة" value="مخيم عائلي" />
           </div>
-          <div className="p-8 space-y-6">
-            <p className="text-sm text-ivory/80 leading-relaxed">{trip.description}</p>
-            <button
-              onClick={() => setGoing((v) => !v)}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition ${
-                going
-                  ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
-                  : "bg-gold-primary text-navy-base hover:brightness-110"
-              }`}
-            >
-              <CheckCircle2 className="size-4" strokeWidth={2} />
-              {going ? "تم تأكيد حضورك" : "تأكيد الحضور"}
-            </button>
-          </div>
-        </article>
-
-        <article className="card-surface p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <Mountain className="size-4 text-gold-primary" strokeWidth={1.5} />
-            <h3 className="eyebrow">برنامج الرحلة</h3>
-          </div>
-          <ol className="space-y-5">
-            {trip.itinerary.map((item, idx) => (
-              <li key={idx} className="flex gap-4 pb-5 border-b border-border last:border-0 last:pb-0">
-                <div className="size-9 shrink-0 rounded-lg bg-gold-primary/10 ring-1 ring-gold-primary/20 grid place-items-center text-gold-primary text-sm font-semibold">
-                  {idx + 1}
-                </div>
-                <div className="flex-1">
-                  <div className="eyebrow mb-1">{item.day}</div>
-                  <div className="text-sm font-medium text-ivory">{item.title}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{item.details}</p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </article>
-
-        <article className="card-surface p-8">
-          <div className="flex items-center gap-3 mb-4">
-            <Sparkles className="size-4 text-gold-primary" strokeWidth={1.5} />
-            <h3 className="eyebrow">ملاحظات مهمة</h3>
-          </div>
-          <ul className="space-y-2 text-sm text-muted-foreground">
-            <li>• يرجى إحضار ملابس دافئة لأمسيات الصحراء.</li>
-            <li>• الانطلاق من مجلس المضيافة الساعة 8:00 صباحاً.</li>
-            <li>• تنسيق المشتريات يتم عبر صفحة المهام.</li>
-          </ul>
+          {trip.description && (
+            <div className="p-8 space-y-6">
+              <p className="text-sm text-ivory/80 leading-relaxed whitespace-pre-line">
+                {trip.description}
+              </p>
+              <button
+                onClick={() => setGoing((v) => !v)}
+                className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition ${
+                  going
+                    ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
+                    : "bg-gold-primary text-navy-base hover:brightness-110"
+                }`}
+              >
+                <CheckCircle2 className="size-4" strokeWidth={2} />
+                {going ? "تم تأكيد حضورك" : "تأكيد الحضور"}
+              </button>
+            </div>
+          )}
         </article>
       </div>
     </AppShell>
