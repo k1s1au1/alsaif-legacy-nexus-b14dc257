@@ -705,13 +705,21 @@ function ConversationRoute() {
           className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition text-right"
         >
           <div
-            className={`size-10 rounded-full grid place-items-center text-sm font-medium shrink-0 ${
+            className={`size-10 rounded-full grid place-items-center text-sm font-medium shrink-0 overflow-hidden ${
               conv.kind === "group"
                 ? "bg-secondary/60 text-ivory ring-1 ring-border"
                 : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
             }`}
           >
-            {conv.kind === "group" ? <Users className="size-5" strokeWidth={1.5} /> : initial}
+            {conv.kind === "group" ? (
+              <Users className="size-5" strokeWidth={1.5} />
+            ) : (
+              <UserAvatar
+                path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null}
+                initial={initial}
+                className="size-full"
+              />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-medium text-ivory truncate">{title}</h2>
