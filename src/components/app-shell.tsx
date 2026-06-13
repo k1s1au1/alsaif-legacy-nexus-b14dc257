@@ -40,11 +40,12 @@ export function AppShell({
 }: {
   children: ReactNode;
   title: string;
-  user: { name: string; role: string; initial: string };
+  user: { name: string; role: string; initial: string; avatarPath?: string | null };
 }) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
 
   const loadUnreadNotifications = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
