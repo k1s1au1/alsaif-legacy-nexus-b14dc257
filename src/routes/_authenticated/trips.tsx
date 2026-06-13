@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon } from "lucide-react";
+import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import tripImage from "@/assets/trip-alula.jpg";
 import { TripImage } from "@/components/trip-image";
@@ -63,6 +63,8 @@ function TripsPage() {
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const canManage = userRole === "admin" || userRole === "manager";
 
   async function loadTrips() {
     const { data, error } = await supabase
@@ -106,6 +108,7 @@ function TripsPage() {
           initial: (name[0] ?? "ص").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
+        setUserRole(r?.role ?? null);
       }
       await loadTrips();
     })();
@@ -130,13 +133,15 @@ function TripsPage() {
               استكشف الرحلات القادمة، سجّل حضورك، وتابع التفاصيل اللوجستية.
             </p>
           </div>
-          <button
-            onClick={() => setShowAdd(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
-          >
-            <Plus className="size-4" strokeWidth={2.5} />
-            إضافة رحلة
-          </button>
+          {canManage && (
+            <button
+              onClick={() => setShowAdd(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+            >
+              <Plus className="size-4" strokeWidth={2.5} />
+              إضافة رحلة
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -148,15 +153,17 @@ function TripsPage() {
             <Plane className="size-10 text-gold-primary mx-auto mb-4" strokeWidth={1.2} />
             <h3 className="text-lg font-medium text-ivory mb-2">لا توجد رحلات بعد</h3>
             <p className="text-sm text-muted-foreground mb-6">
-              ابدأ بإضافة أول رحلة عائلية لتظهر هنا.
+              {canManage ? "ابدأ بإضافة أول رحلة عائلية لتظهر هنا." : "لم يقم المشرفون بإضافة رحلات بعد."}
             </p>
-            <button
-              onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
-            >
-              <Plus className="size-4" strokeWidth={2.5} />
-              إضافة رحلة
-            </button>
+            {canManage && (
+              <button
+                onClick={() => setShowAdd(true)}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+              >
+                <Plus className="size-4" strokeWidth={2.5} />
+                إضافة رحلة
+              </button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -180,6 +187,27 @@ function TripsPage() {
                     >
                       {chip.label}
                     </span>
+                    {canManage && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
+                          if (trip.image_url) {
+                            await supabase.storage.from("trip-images").remove([trip.image_url]);
+                          }
+                          const { error } = await supabase.from("trips").delete().eq("id", trip.id);
+                          if (error) {
+                            toast.error("تعذر حذف الرحلة");
+                          } else {
+                            toast.success("تم حذف الرحلة");
+                            loadTrips();
+                          }
+                        }}
+                        className="absolute top-4 left-4 size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-red-500/80 transition ring-1 ring-white/10"
+                        aria-label="حذف الرحلة"
+                      >
+                        <Trash2 className="size-4" strokeWidth={1.8} />
+                      </button>
+                    )}
                   </div>
                   <div className="p-6 flex-1 flex flex-col">
                     {trip.badge && (
