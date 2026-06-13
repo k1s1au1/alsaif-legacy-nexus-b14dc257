@@ -138,9 +138,20 @@ function MessagesPage() {
     if (error) toast.error("تعذّر حذف الرسالة");
   }
 
+  const memberList = useMemo(() => {
+    return Object.values(profiles)
+      .map((p) => ({ ...p, role: rolesMap[p.id] ?? "member" }))
+      .sort((a, b) => {
+        if (a.role === "admin" && b.role !== "admin") return -1;
+        if (b.role === "admin" && a.role !== "admin") return 1;
+        return displayName(a).localeCompare(displayName(b), "ar");
+      });
+  }, [profiles, rolesMap]);
+
   return (
     <AppShell title="الرسائل" user={shellUser}>
-      <div className="flex flex-col h-[calc(100vh-9rem)] card-surface overflow-hidden">
+      <div className="flex flex-col lg:flex-row gap-4 h-[calc(100vh-9rem)]">
+        <div className="flex flex-col flex-1 card-surface overflow-hidden min-h-0">
         {/* Header */}
         <div className="px-6 py-4 border-b border-border flex items-center justify-between">
           <div>
