@@ -556,8 +556,8 @@ function TripDialog({
               disabled={saving}
               className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-60"
             >
-              <Plus className="size-4" strokeWidth={2.5} />
-              {saving ? "جاري الحفظ..." : "إضافة الرحلة"}
+              {isEdit ? <Save className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2.5} />}
+              {saving ? "جاري الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة الرحلة"}
             </button>
           </div>
         </form>
