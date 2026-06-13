@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { ArrowRight, Calendar, MapPin, Users, CheckCircle2, Tent } from "lucide-react";
-import tripImage from "@/assets/trip-alula.jpg";
+import { TripImage } from "@/components/trip-image";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -130,8 +130,8 @@ function TripDetail() {
 
         <article className="card-surface overflow-hidden">
           <div className="relative h-72">
-            <img
-              src={trip.image_url || tripImage}
+            <TripImage
+              path={trip.image_url}
               alt={trip.title}
               className="absolute inset-0 size-full object-cover"
             />
