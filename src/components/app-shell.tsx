@@ -171,7 +171,7 @@ export function AppShell({
             <span className="text-gold-primary text-xl font-semibold select-none">ص</span>
           </div>
           <span className="hidden lg:block mr-4 text-xl font-medium tracking-wide text-gold-primary">
-            الصيف
+            السيف
           </span>
         </div>
 

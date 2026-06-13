@@ -7,8 +7,8 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "تسجيل الدخول — الصيف" },
-      { name: "description", content: "بوابة الدخول الخاصة بأعضاء عائلة الصيف." },
+      { title: "تسجيل الدخول — السيف" },
+      { name: "description", content: "بوابة الدخول الخاصة بأعضاء عائلة السيف." },
     ],
   }),
   component: AuthPage,
@@ -35,7 +35,7 @@ function AuthPage() {
       toast.error("تعذّر الدخول", { description: "تأكد من البريد وكلمة المرور المعتمدين من الإدارة." });
       return;
     }
-    toast.success("أهلاً بك في الصيف");
+    toast.success("أهلاً بك في السيف");
     navigate({ to: "/dashboard", replace: true });
   }
 
@@ -55,7 +55,7 @@ function AuthPage() {
           <div className="size-14 rounded-xl bg-gold-primary/10 ring-1 ring-gold-primary/30 grid place-items-center mb-5">
             <span className="text-gold-primary text-2xl font-semibold">ص</span>
           </div>
-          <h1 className="text-2xl font-medium text-ivory tracking-tight">الصيف</h1>
+          <h1 className="text-2xl font-medium text-ivory tracking-tight">السيف</h1>
           <p className="eyebrow mt-2">ALSAIF · PRIVATE ACCESS</p>
           <p className="text-sm text-muted-foreground mt-4 max-w-[28ch] leading-relaxed">
             هذه المنصة خاصة بأعضاء العائلة. الوصول بدعوة فقط — لا يوجد تسجيل عام.

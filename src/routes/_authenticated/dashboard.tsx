@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "لوحة التحكم — الصيف" },
+      { title: "لوحة التحكم — السيف" },
       { name: "description", content: "ملخص نشاط العائلة: الإعلانات، الاجتماعات، الرحلات والمهام." },
     ],
   }),
@@ -45,7 +45,7 @@ function Dashboard() {
       setProfile({
         name,
         role: roleLabel(r?.role ?? null),
-        initial: (name[0] ?? "ص").toUpperCase(),
+        initial: (name[0] ?? "س").toUpperCase(),
       });
     })();
   }, []);
@@ -144,7 +144,7 @@ function Dashboard() {
             <h3 className="eyebrow">أحدث الرسائل</h3>
             <ul className="space-y-4">
               {[
-                { i: "ف", name: "فيصل بن أحمد", t: "الآن", msg: "تم تحديث ملفات الأرشفة الخاصة بصور الصيف..." },
+                { i: "ف", name: "فيصل بن أحمد", t: "الآن", msg: "تم تحديث ملفات الأرشفة الخاصة بصور السيف..." },
                 { i: "ن", name: "نورة السيف", t: "١٠:١٥ ص", msg: "هل تم اعتماد ميزانية الرحلة القادمة؟" },
                 { i: "م", name: "مجلس العائلة (قروب)", t: "أمس", msg: "أحمد: السلام عليكم، بخصوص الاجتماع..." },
               ].map((m, idx, arr) => (

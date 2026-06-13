@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "الرحلات — الصيف" },
+      { title: "الرحلات — السيف" },
       { name: "description", content: "رحلات العائلة القادمة والسابقة، تفاصيل الوجهة والمشاركين." },
     ],
   }),
@@ -106,7 +106,7 @@ function TripsPage() {
         setProfile({
           name,
           role: roleLabel(r?.role ?? null),
-          initial: (name[0] ?? "ص").toUpperCase(),
+          initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
         setUserRole(r?.role ?? null);

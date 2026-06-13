@@ -9,7 +9,7 @@ export const Route = createFileRoute("/_authenticated/onboarding")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "إكمال الملف الشخصي — الصيف" },
+      { title: "إكمال الملف الشخصي — السيف" },
       { name: "description", content: "أكمل اسمك الثلاثي قبل المتابعة." },
     ],
   }),
@@ -87,7 +87,7 @@ function OnboardingPage() {
       toast.error("تعذر الحفظ، حاول مرة أخرى");
       return;
     }
-    toast.success("أهلاً بك في الصيف");
+    toast.success("أهلاً بك في السيف");
     navigate({ to: "/dashboard", replace: true });
   }
 

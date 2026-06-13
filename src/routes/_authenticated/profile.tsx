@@ -11,7 +11,7 @@ export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "الملف الشخصي — الصيف" },
+      { title: "الملف الشخصي — السيف" },
       { name: "description", content: "إدارة بيانات حسابك الشخصية وكلمة المرور وصورة الملف." },
     ],
   }),
@@ -85,7 +85,7 @@ function ProfilePage() {
 
   const displayName =
     (arabicName || fullName || email.split("@")[0] || "عضو").trim();
-  const initial = (displayName[0] ?? "ص").toUpperCase();
+  const initial = (displayName[0] ?? "س").toUpperCase();
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
