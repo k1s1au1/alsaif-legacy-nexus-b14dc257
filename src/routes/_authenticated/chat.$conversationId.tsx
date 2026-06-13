@@ -1535,6 +1535,24 @@ function InfoDrawer({
                           : lastSeenLabel(pres?.last_seen_at ?? null)}
                       </div>
                     </div>
+                    {conversation.kind === "group" &&
+                      isAdmin &&
+                      conversation.send_permission === "selected" &&
+                      !isOwner &&
+                      !isMemAdmin && (
+                        <label
+                          className="text-[11px] text-muted-foreground flex items-center gap-1.5 cursor-pointer select-none"
+                          title="السماح بالإرسال"
+                        >
+                          <input
+                            type="checkbox"
+                            checked={p.can_send}
+                            onChange={(e) => toggleCanSend(p, e.target.checked)}
+                            className="accent-gold-primary"
+                          />
+                          إرسال
+                        </label>
+                      )}
                     {conversation.kind === "group" && isAdmin && !isMe && !isOwner && (
                       <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition">
                         {isMemAdmin ? (
