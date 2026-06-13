@@ -121,6 +121,39 @@ export type Database = {
         }
         Relationships: []
       }
+      fund_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          created_by: string
+          description: string
+          id: string
+          occurred_at: string
+          type: Database["public"]["Enums"]["fund_tx_type"]
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          created_by: string
+          description: string
+          id?: string
+          occurred_at?: string
+          type: Database["public"]["Enums"]["fund_tx_type"]
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          created_by?: string
+          description?: string
+          id?: string
+          occurred_at?: string
+          type?: Database["public"]["Enums"]["fund_tx_type"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_deliveries: {
         Row: {
           conversation_id: string
@@ -456,6 +489,7 @@ export type Database = {
       app_role: "admin" | "manager" | "member"
       conv_role: "owner" | "admin" | "member"
       conversation_kind: "direct" | "group"
+      fund_tx_type: "contribution" | "expense"
       group_send_permission: "all" | "admins" | "selected"
       message_kind: "text" | "image" | "video" | "audio" | "file"
       presence_status: "online" | "offline"
@@ -589,6 +623,7 @@ export const Constants = {
       app_role: ["admin", "manager", "member"],
       conv_role: ["owner", "admin", "member"],
       conversation_kind: ["direct", "group"],
+      fund_tx_type: ["contribution", "expense"],
       group_send_permission: ["all", "admins", "selected"],
       message_kind: ["text", "image", "video", "audio", "file"],
       presence_status: ["online", "offline"],
