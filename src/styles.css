@@ -148,12 +148,11 @@
   color: var(--color-foreground);
   font-size: 0.875rem;
   transition: border-color 0.15s, box-shadow 0.15s;
-}
-@utility input-base {
   &:focus {
     outline: none;
     border-color: color-mix(in oklab, var(--gold-primary) 50%, transparent);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-primary) 12%, transparent);
   }
 }
+
 
