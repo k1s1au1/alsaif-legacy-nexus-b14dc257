@@ -75,6 +75,36 @@ function FinancePage() {
 
   useEffect(() => {
     load();
+    const channel = supabase
+      .channel("fund-transactions-rt")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "fund_transactions" },
+        (payload) => {
+          setRows((prev) => {
+            if (payload.eventType === "INSERT") {
+              const row = payload.new as Tx;
+              if (prev.some((r) => r.id === row.id)) return prev;
+              return [row, ...prev].sort(
+                (a, b) => new Date(b.occurred_at).getTime() - new Date(a.occurred_at).getTime(),
+              );
+            }
+            if (payload.eventType === "UPDATE") {
+              const row = payload.new as Tx;
+              return prev.map((r) => (r.id === row.id ? row : r));
+            }
+            if (payload.eventType === "DELETE") {
+              const row = payload.old as { id: string };
+              return prev.filter((r) => r.id !== row.id);
+            }
+            return prev;
+          });
+        },
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   async function submit(e: React.FormEvent) {
