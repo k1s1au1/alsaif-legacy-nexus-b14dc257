@@ -19,6 +19,14 @@ function roleLabel(role: string | null) {
   return "عضو";
 }
 
+function statusLabel(status: string) {
+  if (status === "upcoming") return "قادمة";
+  if (status === "ongoing") return "جارية";
+  if (status === "completed") return "منتهية";
+  if (status === "cancelled") return "ملغاة";
+  return status;
+}
+
 type Trip = {
   id: string;
   title: string;
