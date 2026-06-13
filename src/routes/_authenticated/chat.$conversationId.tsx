@@ -39,6 +39,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/user-avatar";
 import {
   chatTimeLabel,
   conversationAvatarInitial,
@@ -303,6 +304,14 @@ function ConversationRoute() {
           filter: `id=eq.${conversationId}`,
         },
         (payload) => setConv(payload.new as unknown as Conversation),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        (payload) => {
+          const p = payload.new as Profile;
+          setProfiles((prev) => ({ ...prev, [p.id]: { ...prev[p.id], ...p } }));
+        },
       )
       .subscribe();
 
@@ -696,13 +705,21 @@ function ConversationRoute() {
           className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition text-right"
         >
           <div
-            className={`size-10 rounded-full grid place-items-center text-sm font-medium shrink-0 ${
+            className={`size-10 rounded-full grid place-items-center text-sm font-medium shrink-0 overflow-hidden ${
               conv.kind === "group"
                 ? "bg-secondary/60 text-ivory ring-1 ring-border"
                 : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
             }`}
           >
-            {conv.kind === "group" ? <Users className="size-5" strokeWidth={1.5} /> : initial}
+            {conv.kind === "group" ? (
+              <Users className="size-5" strokeWidth={1.5} />
+            ) : (
+              <UserAvatar
+                path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null}
+                initial={initial}
+                className="size-full"
+              />
+            )}
           </div>
           <div className="min-w-0 flex-1">
             <h2 className="text-sm font-medium text-ivory truncate">{title}</h2>
@@ -1059,8 +1076,12 @@ function MessageBubble({
   return (
     <div className={`group flex items-end gap-2 my-1 ${mine ? "flex-row-reverse" : ""}`}>
       {!mine && (
-        <div className="size-7 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-[10px] font-medium shrink-0">
-          {initial}
+        <div className="size-7 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-[10px] font-medium shrink-0 overflow-hidden">
+          <UserAvatar
+            path={profiles[m.sender_id]?.avatar_url ?? null}
+            initial={initial}
+            className="size-full"
+          />
         </div>
       )}
       <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col relative`}>
@@ -1510,13 +1531,17 @@ function InfoDrawer({
                   >
                     <div className="relative shrink-0">
                       <div
-                        className={`size-9 rounded-full grid place-items-center text-xs font-medium ${
+                        className={`size-9 rounded-full grid place-items-center text-xs font-medium overflow-hidden ${
                           isOwner || isMemAdmin
                             ? "bg-gold-primary text-navy-base"
                             : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
                         }`}
                       >
-                        {initialOf(name)}
+                        <UserAvatar
+                          path={profiles[p.user_id]?.avatar_url ?? null}
+                          name={name}
+                          className="size-full"
+                        />
                       </div>
                       {pres?.status === "online" && (
                         <span className="absolute bottom-0 left-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />

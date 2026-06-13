@@ -27,6 +27,7 @@ import {
   Profile,
 } from "@/lib/chat";
 import { toast } from "sonner";
+import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   ssr: false,
@@ -52,7 +53,7 @@ function ChatLayout() {
   const isConvOpen = /^\/chat\/[^/]+/.test(path);
 
   const [meId, setMeId] = useState<string | null>(null);
-  const [shellUser, setShellUser] = useState({ name: "عضو", role: "عضو", initial: "ص" });
+  const [shellUser, setShellUser] = useState<{ name: string; role: string; initial: string; avatarPath: string | null }>({ name: "عضو", role: "عضو", initial: "ص", avatarPath: null });
   const [items, setItems] = useState<ConversationListItem[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [search, setSearch] = useState("");
@@ -73,7 +74,7 @@ function ChatLayout() {
       supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
       supabase
         .from("profiles")
-        .select("arabic_name, full_name")
+        .select("arabic_name, full_name, avatar_url")
         .eq("id", u.user.id)
         .maybeSingle(),
     ]);
@@ -88,7 +89,7 @@ function ChatLayout() {
       full_name: myProf?.full_name ?? null,
       avatar_url: null,
     });
-    setShellUser({ name: meName, role: "عضو العائلة", initial: initialOf(meName) });
+    setShellUser({ name: meName, role: "عضو العائلة", initial: initialOf(meName), avatarPath: myProf?.avatar_url ?? null });
 
     const convIds = (myParts ?? []).map((p) => p.conversation_id);
     if (convIds.length === 0) {
@@ -159,6 +160,14 @@ function ChatLayout() {
         "postgres_changes",
         { event: "*", schema: "public", table: "conversation_participants" },
         () => load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "profiles" },
+        (payload) => {
+          const p = payload.new as Profile;
+          setProfiles((prev) => ({ ...prev, [p.id]: { ...prev[p.id], ...p } }));
+        },
       )
       .subscribe();
     return () => {
@@ -330,6 +339,10 @@ function ConversationRow({
     profiles,
     meId,
   );
+  const other = item.conversation.kind === "direct"
+    ? item.participants.find((p) => p.user_id !== meId)
+    : undefined;
+  const otherAvatarPath = other ? profiles[other.user_id]?.avatar_url ?? null : null;
   const lastMine = item.lastMessage?.sender_id === meId;
   const lastDelivered = item.lastMessage; // simplified — full delivery state in detail view
 
@@ -343,7 +356,7 @@ function ConversationRow({
       }`}
     >
       <div
-        className={`size-12 rounded-full grid place-items-center text-sm font-medium shrink-0 ${
+        className={`size-12 rounded-full grid place-items-center text-sm font-medium shrink-0 overflow-hidden ${
           item.conversation.kind === "group"
             ? "bg-secondary/60 text-ivory ring-1 ring-border"
             : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
@@ -352,7 +365,7 @@ function ConversationRow({
         {item.conversation.kind === "group" ? (
           <Users className="size-5" strokeWidth={1.5} />
         ) : (
-          initial
+          <UserAvatar path={otherAvatarPath} initial={initial} className="size-full" />
         )}
       </div>
       <div className="flex-1 min-w-0">

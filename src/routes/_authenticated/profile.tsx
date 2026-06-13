@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { toast } from "sonner";
 import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar } from "lucide-react";
+import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,
@@ -153,8 +154,9 @@ function ProfilePage() {
       return;
     }
     // Remove old avatar
-    if (avatarUrl && avatarUrl !== path) {
-      await supabase.storage.from("avatars").remove([avatarUrl]);
+    const previous = avatarUrl;
+    if (previous && previous !== path) {
+      await supabase.storage.from("avatars").remove([previous]);
     }
     const { error: updErr } = await supabase
       .from("profiles")
@@ -170,6 +172,11 @@ function ProfilePage() {
       .from("avatars")
       .createSignedUrl(path, 60 * 60);
     setAvatarSrc(signed?.signedUrl ?? null);
+    // Invalidate caches so every visible avatar for this user refreshes instantly,
+    // both locally and on other devices (other devices receive the profiles
+    // realtime UPDATE event and call invalidateAvatar there).
+    invalidateAvatar(previous);
+    invalidateAvatar(path);
     setUploading(false);
     toast.success("تم تحديث صورة الملف الشخصي");
   }
@@ -187,7 +194,7 @@ function ProfilePage() {
   return (
     <AppShell
       title="الملف الشخصي"
-      user={{ name: displayName, role: "عضو", initial }}
+      user={{ name: displayName, role: "عضو", initial, avatarPath: avatarUrl }}
     >
       <div className="max-w-3xl space-y-8">
         {/* Header card */}
