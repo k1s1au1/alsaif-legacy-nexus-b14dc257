@@ -52,7 +52,7 @@ function ChatLayout() {
   const isConvOpen = /^\/chat\/[^/]+/.test(path);
 
   const [meId, setMeId] = useState<string | null>(null);
-  const [shellUser, setShellUser] = useState({ name: "عضو", role: "عضو", initial: "ص" });
+  const [shellUser, setShellUser] = useState<{ name: string; role: string; initial: string; avatarPath: string | null }>({ name: "عضو", role: "عضو", initial: "ص", avatarPath: null });
   const [items, setItems] = useState<ConversationListItem[]>([]);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
   const [search, setSearch] = useState("");
