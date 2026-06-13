@@ -17,8 +17,10 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
 import { Route as AuthenticatedTripsIndexRouteImport } from './routes/_authenticated/trips.index'
+import { Route as AuthenticatedMembersIndexRouteImport } from './routes/_authenticated/members.index'
 import { Route as AuthenticatedChatIndexRouteImport } from './routes/_authenticated/chat.index'
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId'
+import { Route as AuthenticatedMembersUserIdRouteImport } from './routes/_authenticated/members.$userId'
 import { Route as AuthenticatedChatConversationIdRouteImport } from './routes/_authenticated/chat.$conversationId'
 
 const AuthRoute = AuthRouteImport.update({
@@ -60,6 +62,12 @@ const AuthenticatedTripsIndexRoute = AuthenticatedTripsIndexRouteImport.update({
   path: '/trips/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedMembersIndexRoute =
+  AuthenticatedMembersIndexRouteImport.update({
+    id: '/members/',
+    path: '/members/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedChatIndexRoute = AuthenticatedChatIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -69,6 +77,12 @@ const AuthenticatedTripsTripIdRoute =
   AuthenticatedTripsTripIdRouteImport.update({
     id: '/trips/$tripId',
     path: '/trips/$tripId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMembersUserIdRoute =
+  AuthenticatedMembersUserIdRouteImport.update({
+    id: '/members/$userId',
+    path: '/members/$userId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedChatConversationIdRoute =
@@ -86,8 +100,10 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
+  '/members/$userId': typeof AuthenticatedMembersUserIdRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/chat/': typeof AuthenticatedChatIndexRoute
+  '/members/': typeof AuthenticatedMembersIndexRoute
   '/trips/': typeof AuthenticatedTripsIndexRoute
 }
 export interface FileRoutesByTo {
@@ -97,8 +113,10 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/profile': typeof AuthenticatedProfileRoute
   '/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
+  '/members/$userId': typeof AuthenticatedMembersUserIdRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/chat': typeof AuthenticatedChatIndexRoute
+  '/members': typeof AuthenticatedMembersIndexRoute
   '/trips': typeof AuthenticatedTripsIndexRoute
 }
 export interface FileRoutesById {
@@ -111,8 +129,10 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
+  '/_authenticated/members/$userId': typeof AuthenticatedMembersUserIdRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
   '/_authenticated/chat/': typeof AuthenticatedChatIndexRoute
+  '/_authenticated/members/': typeof AuthenticatedMembersIndexRoute
   '/_authenticated/trips/': typeof AuthenticatedTripsIndexRoute
 }
 export interface FileRouteTypes {
@@ -125,8 +145,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/chat/$conversationId'
+    | '/members/$userId'
     | '/trips/$tripId'
     | '/chat/'
+    | '/members/'
     | '/trips/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -136,8 +158,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/profile'
     | '/chat/$conversationId'
+    | '/members/$userId'
     | '/trips/$tripId'
     | '/chat'
+    | '/members'
     | '/trips'
   id:
     | '__root__'
@@ -149,8 +173,10 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/_authenticated/profile'
     | '/_authenticated/chat/$conversationId'
+    | '/_authenticated/members/$userId'
     | '/_authenticated/trips/$tripId'
     | '/_authenticated/chat/'
+    | '/_authenticated/members/'
     | '/_authenticated/trips/'
   fileRoutesById: FileRoutesById
 }
@@ -218,6 +244,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTripsIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/members/': {
+      id: '/_authenticated/members/'
+      path: '/members'
+      fullPath: '/members/'
+      preLoaderRoute: typeof AuthenticatedMembersIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/chat/': {
       id: '/_authenticated/chat/'
       path: '/'
@@ -230,6 +263,13 @@ declare module '@tanstack/react-router' {
       path: '/trips/$tripId'
       fullPath: '/trips/$tripId'
       preLoaderRoute: typeof AuthenticatedTripsTripIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/members/$userId': {
+      id: '/_authenticated/members/$userId'
+      path: '/members/$userId'
+      fullPath: '/members/$userId'
+      preLoaderRoute: typeof AuthenticatedMembersUserIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/chat/$conversationId': {
@@ -260,7 +300,9 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
+  AuthenticatedMembersUserIdRoute: typeof AuthenticatedMembersUserIdRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
+  AuthenticatedMembersIndexRoute: typeof AuthenticatedMembersIndexRoute
   AuthenticatedTripsIndexRoute: typeof AuthenticatedTripsIndexRoute
 }
 
@@ -269,7 +311,9 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
+  AuthenticatedMembersUserIdRoute: AuthenticatedMembersUserIdRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
+  AuthenticatedMembersIndexRoute: AuthenticatedMembersIndexRoute,
   AuthenticatedTripsIndexRoute: AuthenticatedTripsIndexRoute,
 }
 
@@ -284,3 +328,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
