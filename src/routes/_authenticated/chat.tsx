@@ -73,7 +73,7 @@ function ChatLayout() {
       supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
       supabase
         .from("profiles")
-        .select("arabic_name, full_name")
+        .select("arabic_name, full_name, avatar_url")
         .eq("id", u.user.id)
         .maybeSingle(),
     ]);
@@ -88,7 +88,7 @@ function ChatLayout() {
       full_name: myProf?.full_name ?? null,
       avatar_url: null,
     });
-    setShellUser({ name: meName, role: "عضو العائلة", initial: initialOf(meName) });
+    setShellUser({ name: meName, role: "عضو العائلة", initial: initialOf(meName), avatarPath: myProf?.avatar_url ?? null });
 
     const convIds = (myParts ?? []).map((p) => p.conversation_id);
     if (convIds.length === 0) {
