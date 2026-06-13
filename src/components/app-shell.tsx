@@ -41,6 +41,7 @@ const navItems = [
   { to: "/majlis", label: "المجلس", icon: Megaphone },
   { to: "/archive", label: "الأرشيف", icon: Archive },
   { to: "/admin", label: "الإدارة", icon: Shield },
+  { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ] as const;
 
