@@ -425,11 +425,6 @@ function ConversationRoute() {
       .eq("user_id", meId)
       .is("delivered_at", null);
   }
-  async function markRead(messageId: string) {
-    if (!meId) return;
-    await markConversationRead();
-  }
-
   // --- Typing emit on keystroke -----------------------------------------
   function onDraftKey() {
     if (!meId || !typingChannelRef.current) return;
