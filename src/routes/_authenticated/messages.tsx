@@ -61,6 +61,14 @@ function MessagesPage() {
       (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
       setProfiles(pmap);
 
+      const rmap: Record<string, string> = {};
+      (roles ?? []).forEach((r: { user_id: string; role: string }) => {
+        // admin wins over any other role
+        if (rmap[r.user_id] === "admin") return;
+        rmap[r.user_id] = r.role;
+      });
+      setRolesMap(rmap);
+
       const myRoles = (roles ?? []).filter((r) => r.user_id === u.user!.id).map((r) => r.role);
       const admin = myRoles.includes("admin");
       setIsAdmin(admin);
