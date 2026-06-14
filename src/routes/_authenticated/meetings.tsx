@@ -327,6 +327,8 @@ function MeetingsPage() {
                       key={m.id}
                       meeting={m}
                       counts={countsFor(m.id)}
+                      attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
+                      profiles={profiles}
                       myRsvp={myRsvp(m.id)}
                       onRsvp={setRsvp}
                       canManage={canManage}
@@ -348,6 +350,8 @@ function MeetingsPage() {
                       key={m.id}
                       meeting={m}
                       counts={countsFor(m.id)}
+                      attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
+                      profiles={profiles}
                       myRsvp={myRsvp(m.id)}
                       onRsvp={setRsvp}
                       canManage={canManage}
