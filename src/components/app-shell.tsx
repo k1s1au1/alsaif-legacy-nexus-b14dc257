@@ -30,12 +30,79 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navItems = [
+type BadgeFn = (ctx: { userId: string; isAdmin: boolean; isManager: boolean }) => Promise<number>;
+
+const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/chat", label: "المحادثات", icon: MessageCircle },
-  { to: "/meetings", label: "الاجتماعات", icon: CalendarDays },
-  { to: "/trips", label: "الرحلات", icon: Plane },
-  { to: "/finance", label: "الصندوق المالي", icon: Wallet },
+  {
+    to: "/chat",
+    label: "المحادثات",
+    icon: MessageCircle,
+    badge: async ({ userId }) => {
+      const { data: parts } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id,last_read_at")
+        .eq("user_id", userId);
+      if (!parts?.length) return 0;
+      const readMap = new Map(parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]));
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("conversation_id,created_at,sender_id")
+        .in("conversation_id", [...readMap.keys()])
+        .neq("sender_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      return (msgs ?? []).filter((m) => new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0)).length;
+    },
+  },
+  {
+    to: "/meetings",
+    label: "الاجتماعات",
+    icon: CalendarDays,
+    badge: async ({ userId }) => {
+      const now = new Date().toISOString();
+      const { data: meetings } = await supabase
+        .from("meetings")
+        .select("id")
+        .gte("scheduled_at", now)
+        .eq("status", "scheduled");
+      if (!meetings?.length) return 0;
+      const ids = meetings.map((m) => m.id);
+      const { data: attended } = await supabase
+        .from("meeting_attendees")
+        .select("meeting_id")
+        .eq("user_id", userId)
+        .in("meeting_id", ids);
+      const attendedSet = new Set((attended ?? []).map((a) => a.meeting_id));
+      return ids.filter((id) => !attendedSet.has(id)).length;
+    },
+  },
+  {
+    to: "/trips",
+    label: "الرحلات",
+    icon: Plane,
+    badge: async () => {
+      const now = new Date().toISOString();
+      const { count } = await supabase
+        .from("trips")
+        .select("*", { count: "exact", head: true })
+        .or(`start_date.gte.${now},and(start_date.is.null,status.eq.upcoming)`);
+      return count ?? 0;
+    },
+  },
+  {
+    to: "/finance",
+    label: "الصندوق المالي",
+    icon: Wallet,
+    badge: async ({ isAdmin, isManager }) => {
+      if (!isAdmin && !isManager) return 0;
+      const { count } = await supabase
+        .from("bank_transfers")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count ?? 0;
+    },
+  },
   { to: "/tasks", label: "المهام", icon: ListChecks },
   { to: "/events", label: "المناسبات", icon: Sparkles },
   { to: "/majlis", label: "المجلس", icon: Megaphone },
@@ -43,7 +110,7 @@ const navItems = [
   { to: "/admin", label: "الإدارة", icon: Shield },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
-] as const;
+];
 
 export function AppShell({
   children,
