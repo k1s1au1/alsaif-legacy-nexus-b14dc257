@@ -195,7 +195,7 @@ function AuthPage() {
               onClick={() => {
                 setMode("login");
                 setSubmitted(false);
-                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setNote("");
+                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
               }}
               className="inline-flex items-center gap-2 text-sm text-gold-primary hover:underline"
             >
