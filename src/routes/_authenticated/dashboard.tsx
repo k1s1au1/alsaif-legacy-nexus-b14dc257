@@ -85,6 +85,13 @@ type TripLite = {
   end_date: string | null;
 };
 
+type PinnedAnnouncement = {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+};
+
 function Dashboard() {
   const [profile, setProfile] = useState<{ name: string; role: string; initial: string }>({
     name: "عضو العائلة",
@@ -99,6 +106,8 @@ function Dashboard() {
   const [recentMsgs, setRecentMsgs] = useState<RecentMsg[]>([]);
   const [featuredTrip, setFeaturedTrip] = useState<TripLite | null>(null);
   const [tripParticipants, setTripParticipants] = useState(0);
+  const [pinned, setPinned] = useState<PinnedAnnouncement[]>([]);
+  const [pinnedIdx, setPinnedIdx] = useState(0);
 
   const loadProfile = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
