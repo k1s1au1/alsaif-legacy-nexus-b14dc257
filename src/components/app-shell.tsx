@@ -166,8 +166,33 @@ export function AppShell({
     setUnreadNotifications(unread);
   }, []);
 
+  const loadBadges = useCallback(async () => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
+    const r = (roles ?? []).map((x) => x.role);
+    const isAdmin = r.includes("admin");
+    const isManager = r.includes("manager");
+    setIsAdminManager({ isAdmin, isManager, userId: u.user.id });
+
+    const next: Record<string, number> = {};
+    await Promise.all(
+      navItems.map(async (item) => {
+        if (!item.badge) return;
+        try {
+          const count = await item.badge({ userId: u.user.id, isAdmin, isManager });
+          if (count > 0) next[item.to] = count;
+        } catch {
+          // ignore badge errors
+        }
+      }),
+    );
+    setNavBadges(next);
+  }, []);
+
   useEffect(() => {
     loadUnreadNotifications();
+    loadBadges();
 
     // Load my own avatar path (if not provided) and subscribe to profile changes
     (async () => {
@@ -185,13 +210,17 @@ export function AppShell({
 
     const channel = supabase
       .channel("app-shell-notifications")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () =>
-        loadUnreadNotifications(),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        loadUnreadNotifications();
+        loadBadges();
+      })
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversation_participants" },
-        () => loadUnreadNotifications(),
+        () => {
+          loadUnreadNotifications();
+          loadBadges();
+        },
       )
       .on(
         "postgres_changes",
@@ -215,7 +244,10 @@ export function AppShell({
       .subscribe();
 
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") loadUnreadNotifications();
+      if (document.visibilityState === "visible") {
+        loadUnreadNotifications();
+        loadBadges();
+      }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -223,7 +255,7 @@ export function AppShell({
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [loadUnreadNotifications, user.avatarPath]);
+  }, [loadUnreadNotifications, loadBadges, user.avatarPath]);
 
   async function signOut() {
     await queryClient.cancelQueries();
