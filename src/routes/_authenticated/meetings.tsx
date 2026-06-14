@@ -130,7 +130,7 @@ function MeetingsPage() {
   }
 
   async function loadAll() {
-    const [{ data: m, error: me }, { data: a }] = await Promise.all([
+    const [{ data: m, error: me }, { data: a }, { data: pr }] = await Promise.all([
       supabase
         .from("meetings")
         .select(
@@ -138,10 +138,14 @@ function MeetingsPage() {
         )
         .order("scheduled_at", { ascending: true }),
       supabase.from("meeting_attendees").select("meeting_id,user_id,rsvp"),
+      supabase.from("profiles").select("id, arabic_name, full_name"),
     ]);
     if (me) toast.error("تعذر تحميل الاجتماعات");
     setMeetings((m ?? []) as Meeting[]);
     setAttendees((a ?? []) as Attendee[]);
+    const map: Record<string, ProfileLite> = {};
+    (pr ?? []).forEach((p: any) => { map[p.id] = p; });
+    setProfiles(map);
     setLoading(false);
   }
 
