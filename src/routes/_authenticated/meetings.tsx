@@ -475,6 +475,8 @@ function MeetingsPage() {
 function MeetingCard({
   meeting,
   counts,
+  attendeesList,
+  profiles,
   myRsvp,
   onRsvp,
   canManage,
@@ -484,6 +486,8 @@ function MeetingCard({
 }: {
   meeting: Meeting;
   counts: { going: number; not_going: number; maybe: number };
+  attendeesList: Attendee[];
+  profiles: Record<string, ProfileLite>;
   myRsvp: Rsvp | null;
   onRsvp: (id: string, r: Rsvp) => void;
   canManage: boolean;
@@ -492,54 +496,25 @@ function MeetingCard({
   isPast?: boolean;
 }) {
   const chip = statusChip(meeting.status, meeting.scheduled_at);
+  const nameOf = (uid: string) => {
+    const p = profiles[uid];
+    return p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
+  };
+  const going = attendeesList.filter((a) => a.rsvp === "going").map((a) => nameOf(a.user_id));
+  const maybe = attendeesList.filter((a) => a.rsvp === "maybe").map((a) => nameOf(a.user_id));
+  const notGoing = attendeesList
+    .filter((a) => a.rsvp === "not_going")
+    .map((a) => nameOf(a.user_id));
+
   return (
-    <div className="rounded-2xl border border-border bg-card/60 p-5 hover:bg-card/80 transition">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-lg font-semibold">{meeting.title}</h4>
-            <span className={`text-[10px] px-2 py-0.5 rounded-full ring-1 ${chip.className}`}>
-              {chip.label}
-            </span>
-          </div>
-          {meeting.description && (
-            <p className="text-sm text-muted-foreground mt-2 leading-relaxed">
-              {meeting.description}
-            </p>
-          )}
-          <div className="flex flex-wrap gap-x-5 gap-y-2 mt-3 text-xs text-muted-foreground">
-            <span className="inline-flex items-center gap-1.5">
-              <CalendarDays className="size-3.5" strokeWidth={1.5} />
-              {formatDate(meeting.scheduled_at)}
-            </span>
-            {meeting.duration_minutes && (
-              <span className="inline-flex items-center gap-1.5">
-                <Clock className="size-3.5" strokeWidth={1.5} />
-                {meeting.duration_minutes} دقيقة
-              </span>
-            )}
-            {meeting.location && (
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="size-3.5" strokeWidth={1.5} />
-                {meeting.location_url ? (
-                  <a
-                    href={meeting.location_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="hover:text-gold-primary"
-                  >
-                    {meeting.location}
-                  </a>
-                ) : (
-                  meeting.location
-                )}
-              </span>
-            )}
-            <span className="inline-flex items-center gap-1.5">
-              <Users className="size-3.5" strokeWidth={1.5} />
-              {counts.going} حاضر · {counts.maybe} ربما · {counts.not_going} معتذر
-            </span>
-          </div>
+    <div className="rounded-2xl border border-border bg-card/60 overflow-hidden hover:bg-card/80 transition">
+      {/* Header strip */}
+      <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-border/60 bg-secondary/20">
+        <div className="flex items-center gap-3 flex-wrap min-w-0">
+          <h4 className="text-lg font-semibold truncate">{meeting.title}</h4>
+          <span className={`text-[10px] px-2 py-0.5 rounded-full ring-1 ${chip.className}`}>
+            {chip.label}
+          </span>
         </div>
         {canManage && (
           <div className="flex items-center gap-1 shrink-0">
@@ -561,8 +536,73 @@ function MeetingCard({
         )}
       </div>
 
+      {/* Body */}
+      <div className="p-5 space-y-4">
+        {meeting.description && (
+          <p className="text-sm text-muted-foreground leading-relaxed">{meeting.description}</p>
+        )}
+
+        {/* Stacked info rows */}
+        <dl className="grid sm:grid-cols-2 gap-3 text-sm">
+          <InfoRow icon={<CalendarDays className="size-4" strokeWidth={1.5} />} label="الموعد">
+            {formatDate(meeting.scheduled_at)}
+          </InfoRow>
+          {meeting.duration_minutes && (
+            <InfoRow icon={<Clock className="size-4" strokeWidth={1.5} />} label="المدة">
+              {meeting.duration_minutes} دقيقة
+            </InfoRow>
+          )}
+          {meeting.location && (
+            <InfoRow icon={<MapPin className="size-4" strokeWidth={1.5} />} label="المكان">
+              {meeting.location_url ? (
+                <a
+                  href={meeting.location_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="hover:text-gold-primary"
+                >
+                  {meeting.location}
+                </a>
+              ) : (
+                meeting.location
+              )}
+            </InfoRow>
+          )}
+          <InfoRow icon={<Users className="size-4" strokeWidth={1.5} />} label="الحضور">
+            {counts.going} حاضر · {counts.maybe} ربما · {counts.not_going} معتذر
+          </InfoRow>
+        </dl>
+
+        {/* Attendees by status */}
+        {(going.length > 0 || maybe.length > 0 || notGoing.length > 0) && (
+          <div className="grid sm:grid-cols-3 gap-3 pt-3 border-t border-border/60">
+            <AttendeeList
+              title="حاضرون"
+              count={going.length}
+              names={going}
+              dotClass="bg-emerald-400"
+              chipClass="bg-emerald-500/10 text-emerald-300 ring-emerald-500/20"
+            />
+            <AttendeeList
+              title="ربما"
+              count={maybe.length}
+              names={maybe}
+              dotClass="bg-amber-400"
+              chipClass="bg-amber-500/10 text-amber-300 ring-amber-500/20"
+            />
+            <AttendeeList
+              title="معتذرون"
+              count={notGoing.length}
+              names={notGoing}
+              dotClass="bg-rose-400"
+              chipClass="bg-rose-500/10 text-rose-300 ring-rose-500/20"
+            />
+          </div>
+        )}
+      </div>
+
       {!isPast && (
-        <div className="flex gap-2 mt-4 pt-4 border-t border-border/60">
+        <div className="flex gap-2 px-5 pb-5">
           <RsvpButton
             active={myRsvp === "going"}
             onClick={() => onRsvp(meeting.id, "going")}
@@ -585,6 +625,64 @@ function MeetingCard({
             activeClass="bg-rose-500/15 text-rose-400 ring-rose-500/30"
           />
         </div>
+      )}
+    </div>
+  );
+}
+
+function InfoRow({
+  icon,
+  label,
+  children,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start gap-3 rounded-lg bg-secondary/20 px-3 py-2.5 ring-1 ring-border/60">
+      <span className="mt-0.5 text-gold-primary shrink-0">{icon}</span>
+      <div className="min-w-0">
+        <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</dt>
+        <dd className="text-sm text-foreground mt-0.5 break-words">{children}</dd>
+      </div>
+    </div>
+  );
+}
+
+function AttendeeList({
+  title,
+  count,
+  names,
+  dotClass,
+  chipClass,
+}: {
+  title: string;
+  count: number;
+  names: string[];
+  dotClass: string;
+  chipClass: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2">
+        <span className={`size-1.5 rounded-full ${dotClass}`} />
+        <span className="text-xs font-medium text-foreground">{title}</span>
+        <span className="text-[10px] text-muted-foreground">({count})</span>
+      </div>
+      {names.length === 0 ? (
+        <p className="text-[11px] text-muted-foreground/70">—</p>
+      ) : (
+        <ul className="flex flex-wrap gap-1.5">
+          {names.map((n, i) => (
+            <li
+              key={i}
+              className={`text-[11px] px-2 py-0.5 rounded-full ring-1 ${chipClass}`}
+            >
+              {n}
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
