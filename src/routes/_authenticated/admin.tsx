@@ -471,6 +471,16 @@ function AdminPage() {
                               label="عضو"
                               tone="neutral"
                             />
+                            {!isMe && role !== "admin" && (
+                              <button
+                                onClick={() => deleteMember(m.id, memberFullName(m))}
+                                title="حذف الحساب نهائياً"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-destructive/15 hover:bg-destructive/25 text-destructive border border-destructive/30 transition"
+                              >
+                                <Trash2 className="size-3.5" strokeWidth={1.8} />
+                                حذف
+                              </button>
+                            )}
                           </div>
                         </li>
                       );
