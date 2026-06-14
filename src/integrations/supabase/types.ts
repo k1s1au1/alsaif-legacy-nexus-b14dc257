@@ -45,10 +45,11 @@ export type Database = {
         Row: {
           caption: string | null
           created_at: string
-          expires_at: string
+          expires_at: string | null
           id: string
           media_type: Database["public"]["Enums"]["archive_media_type"]
           pinned: boolean
+          section: Database["public"]["Enums"]["archive_section"]
           storage_path: string
           updated_at: string
           uploader_id: string
@@ -56,10 +57,11 @@ export type Database = {
         Insert: {
           caption?: string | null
           created_at?: string
-          expires_at?: string
+          expires_at?: string | null
           id?: string
           media_type: Database["public"]["Enums"]["archive_media_type"]
           pinned?: boolean
+          section?: Database["public"]["Enums"]["archive_section"]
           storage_path: string
           updated_at?: string
           uploader_id: string
@@ -67,10 +69,11 @@ export type Database = {
         Update: {
           caption?: string | null
           created_at?: string
-          expires_at?: string
+          expires_at?: string | null
           id?: string
           media_type?: Database["public"]["Enums"]["archive_media_type"]
           pinned?: boolean
+          section?: Database["public"]["Enums"]["archive_section"]
           storage_path?: string
           updated_at?: string
           uploader_id?: string
@@ -664,6 +667,7 @@ export type Database = {
     Enums: {
       app_role: "admin" | "manager" | "member"
       archive_media_type: "image" | "video"
+      archive_section: "family" | "meetings" | "events" | "trips"
       bank_transfer_status: "pending" | "approved" | "rejected"
       conv_role: "owner" | "admin" | "member"
       conversation_kind: "direct" | "group"
@@ -802,6 +806,7 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "manager", "member"],
       archive_media_type: ["image", "video"],
+      archive_section: ["family", "meetings", "events", "trips"],
       bank_transfer_status: ["pending", "approved", "rejected"],
       conv_role: ["owner", "admin", "member"],
       conversation_kind: ["direct", "group"],

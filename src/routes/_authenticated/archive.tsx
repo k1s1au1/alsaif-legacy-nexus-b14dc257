@@ -1,8 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Archive, Upload, Pin, PinOff, Trash2, Image as ImageIcon, Video as VideoIcon, Clock } from "lucide-react";
+import {
+  Archive,
+  Upload,
+  Pin,
+  PinOff,
+  Trash2,
+  Image as ImageIcon,
+  Video as VideoIcon,
+  Clock,
+  Users,
+  CalendarDays,
+  Sparkles,
+  Plane,
+  Lock,
+} from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/archive")({
@@ -16,6 +30,8 @@ export const Route = createFileRoute("/_authenticated/archive")({
   component: ArchivePage,
 });
 
+type SectionKey = "family" | "meetings" | "events" | "trips";
+
 type ArchiveItem = {
   id: string;
   uploader_id: string;
@@ -23,11 +39,25 @@ type ArchiveItem = {
   storage_path: string;
   caption: string | null;
   pinned: boolean;
-  expires_at: string;
+  expires_at: string | null;
   created_at: string;
+  section: SectionKey;
 };
 
 type ItemWithUrl = ArchiveItem & { url: string; uploaderName: string };
+
+const SECTIONS: {
+  key: SectionKey;
+  label: string;
+  icon: typeof Users;
+  hint: string;
+  privOnly: boolean;
+}[] = [
+  { key: "family", label: "العائلة", icon: Users, hint: "متاح لجميع الأعضاء — تُحذف الوسائط تلقائياً خلال 3 أيام كحد أقصى.", privOnly: false },
+  { key: "meetings", label: "الاجتماعات", icon: CalendarDays, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
+  { key: "events", label: "المناسبات", icon: Sparkles, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
+  { key: "trips", label: "الرحلات", icon: Plane, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
+];
 
 function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول النظام";
@@ -35,12 +65,13 @@ function roleLabel(role: string | null) {
   return "عضو";
 }
 
-function daysLeft(expiresAt: string) {
+function daysLeft(expiresAt: string | null) {
+  if (!expiresAt) return null;
   const ms = new Date(expiresAt).getTime() - Date.now();
   return Math.max(0, Math.ceil(ms / 86400000));
 }
 
-const MAX_BYTES = 50 * 1024 * 1024; // 50 MB cap per file
+const MAX_BYTES = 50 * 1024 * 1024;
 
 function ArchivePage() {
   const [profile, setProfile] = useState({
@@ -53,12 +84,10 @@ function ArchivePage() {
   const [items, setItems] = useState<ItemWithUrl[]>([]);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
+  const [activeSection, setActiveSection] = useState<SectionKey>("family");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const load = useCallback(async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-
     const { data: rows, error } = await supabase
       .from("archive_items")
       .select("*")
@@ -121,8 +150,21 @@ function ArchivePage() {
     };
   }, [load]);
 
+  const currentSection = SECTIONS.find((s) => s.key === activeSection)!;
+  const canUpload = !!me && (!currentSection.privOnly || me.isPriv);
+  const filtered = useMemo(() => items.filter((i) => i.section === activeSection), [items, activeSection]);
+  const counts = useMemo(() => {
+    const c: Record<SectionKey, number> = { family: 0, meetings: 0, events: 0, trips: 0 };
+    for (const it of items) c[it.section] = (c[it.section] ?? 0) + 1;
+    return c;
+  }, [items]);
+
   async function onPickFiles(files: FileList | null) {
     if (!files || !files.length || !me) return;
+    if (!canUpload) {
+      toast.error("لا تملك صلاحية الرفع في هذا القسم");
+      return;
+    }
     setUploading(true);
     try {
       for (const file of Array.from(files)) {
@@ -150,6 +192,7 @@ function ArchivePage() {
           media_type: isImage ? "image" : "video",
           storage_path: path,
           caption: null,
+          section: activeSection,
         });
         if (insErr) {
           await supabase.storage.from("archive-media").remove([path]);
@@ -183,7 +226,11 @@ function ArchivePage() {
     toast.success("تم الحذف");
   }
 
-  const canManage = (item: ItemWithUrl) => !!me && (me.isPriv || item.uploader_id === me.id);
+  const canManage = (item: ItemWithUrl) => {
+    if (!me) return false;
+    if (item.section === "family") return me.isPriv || item.uploader_id === me.id;
+    return me.isPriv;
+  };
 
   return (
     <AppShell title="الأرشيف" user={profile}>
@@ -195,9 +242,7 @@ function ArchivePage() {
             </div>
             <div>
               <h2 className="text-lg font-medium text-ivory">أرشيف العائلة</h2>
-              <p className="text-xs text-muted-foreground">
-                تُحذف الصور والفيديوهات تلقائياً بعد 60 يوماً إلا إذا تم تثبيتها.
-              </p>
+              <p className="text-xs text-muted-foreground">{currentSection.hint}</p>
             </div>
           </div>
           <div>
@@ -211,25 +256,49 @@ function ArchivePage() {
             />
             <button
               onClick={() => fileRef.current?.click()}
-              disabled={uploading}
+              disabled={uploading || !canUpload}
+              title={!canUpload ? "غير متاح في هذا القسم" : undefined}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 disabled:opacity-50"
             >
-              <Upload className="size-4" strokeWidth={1.8} />
+              {canUpload ? <Upload className="size-4" strokeWidth={1.8} /> : <Lock className="size-4" strokeWidth={1.8} />}
               {uploading ? "جارٍ الرفع…" : "رفع وسائط"}
             </button>
           </div>
         </div>
 
+        {/* Section tabs */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {SECTIONS.map((s) => {
+            const Icon = s.icon;
+            const active = s.key === activeSection;
+            return (
+              <button
+                key={s.key}
+                onClick={() => setActiveSection(s.key)}
+                className={`flex items-center gap-2 px-3 py-2.5 rounded-xl border text-sm transition ${
+                  active
+                    ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
+                    : "bg-card/40 border-border text-muted-foreground hover:text-ivory"
+                }`}
+              >
+                <Icon className="size-4" strokeWidth={1.6} />
+                <span className="font-medium">{s.label}</span>
+                <span className="ms-auto text-xs opacity-70">{counts[s.key]}</span>
+              </button>
+            );
+          })}
+        </div>
+
         {loading ? (
           <div className="text-center text-muted-foreground py-16">جارٍ التحميل…</div>
-        ) : items.length === 0 ? (
+        ) : filtered.length === 0 ? (
           <div className="text-center py-20 rounded-2xl border border-dashed border-border">
             <Archive className="size-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.2} />
-            <p className="text-sm text-muted-foreground">لا توجد عناصر في الأرشيف بعد.</p>
+            <p className="text-sm text-muted-foreground">لا توجد عناصر في هذا القسم بعد.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {items.map((item) => {
+            {filtered.map((item) => {
               const left = daysLeft(item.expires_at);
               return (
                 <article
@@ -258,34 +327,38 @@ function ArchivePage() {
                           <Pin className="size-3.5" strokeWidth={1.8} />
                           مثبت
                         </span>
-                      ) : (
+                      ) : left !== null ? (
                         <span className="inline-flex items-center gap-1 text-muted-foreground">
                           <Clock className="size-3.5" strokeWidth={1.5} />
                           متبقي {left} يوم
                         </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-muted-foreground">دائم</span>
                       )}
                     </div>
                     {canManage(item) && (
                       <div className="flex items-center gap-2 pt-1">
-                        <button
-                          onClick={() => togglePin(item)}
-                          className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs bg-secondary/60 hover:bg-secondary text-ivory"
-                        >
-                          {item.pinned ? (
-                            <>
-                              <PinOff className="size-3.5" strokeWidth={1.5} />
-                              إلغاء التثبيت
-                            </>
-                          ) : (
-                            <>
-                              <Pin className="size-3.5" strokeWidth={1.5} />
-                              تثبيت
-                            </>
-                          )}
-                        </button>
+                        {item.section === "family" && (
+                          <button
+                            onClick={() => togglePin(item)}
+                            className="flex-1 inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs bg-secondary/60 hover:bg-secondary text-ivory"
+                          >
+                            {item.pinned ? (
+                              <>
+                                <PinOff className="size-3.5" strokeWidth={1.5} />
+                                إلغاء التثبيت
+                              </>
+                            ) : (
+                              <>
+                                <Pin className="size-3.5" strokeWidth={1.5} />
+                                تثبيت
+                              </>
+                            )}
+                          </button>
+                        )}
                         <button
                           onClick={() => removeItem(item)}
-                          className="inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs bg-destructive/15 hover:bg-destructive/25 text-destructive"
+                          className={`${item.section === "family" ? "" : "flex-1"} inline-flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-md text-xs bg-destructive/15 hover:bg-destructive/25 text-destructive`}
                         >
                           <Trash2 className="size-3.5" strokeWidth={1.5} />
                           حذف
