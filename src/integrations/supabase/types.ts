@@ -41,6 +41,42 @@ export type Database = {
         }
         Relationships: []
       }
+      archive_items: {
+        Row: {
+          caption: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          media_type: Database["public"]["Enums"]["archive_media_type"]
+          pinned: boolean
+          storage_path: string
+          updated_at: string
+          uploader_id: string
+        }
+        Insert: {
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_type: Database["public"]["Enums"]["archive_media_type"]
+          pinned?: boolean
+          storage_path: string
+          updated_at?: string
+          uploader_id: string
+        }
+        Update: {
+          caption?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          media_type?: Database["public"]["Enums"]["archive_media_type"]
+          pinned?: boolean
+          storage_path?: string
+          updated_at?: string
+          uploader_id?: string
+        }
+        Relationships: []
+      }
       bank_transfers: {
         Row: {
           amount: number
@@ -599,6 +635,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      archive_cleanup_expired: { Args: never; Returns: undefined }
       can_user_send: {
         Args: { _conv: string; _user: string }
         Returns: boolean
@@ -626,6 +663,7 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager" | "member"
+      archive_media_type: "image" | "video"
       bank_transfer_status: "pending" | "approved" | "rejected"
       conv_role: "owner" | "admin" | "member"
       conversation_kind: "direct" | "group"
@@ -763,6 +801,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager", "member"],
+      archive_media_type: ["image", "video"],
       bank_transfer_status: ["pending", "approved", "rejected"],
       conv_role: ["owner", "admin", "member"],
       conversation_kind: ["direct", "group"],
