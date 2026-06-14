@@ -216,6 +216,83 @@ export type Database = {
         }
         Relationships: []
       }
+      meeting_attendees: {
+        Row: {
+          created_at: string
+          id: string
+          meeting_id: string
+          rsvp: Database["public"]["Enums"]["meeting_rsvp"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          meeting_id: string
+          rsvp?: Database["public"]["Enums"]["meeting_rsvp"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          meeting_id?: string
+          rsvp?: Database["public"]["Enums"]["meeting_rsvp"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_attendees_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          duration_minutes: number | null
+          id: string
+          location: string | null
+          location_url: string | null
+          scheduled_at: string
+          status: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location?: string | null
+          location_url?: string | null
+          scheduled_at: string
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          duration_minutes?: number | null
+          id?: string
+          location?: string | null
+          location_url?: string | null
+          scheduled_at?: string
+          status?: Database["public"]["Enums"]["meeting_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_deliveries: {
         Row: {
           conversation_id: string
@@ -554,6 +631,8 @@ export type Database = {
       conversation_kind: "direct" | "group"
       fund_tx_type: "contribution" | "expense"
       group_send_permission: "all" | "admins" | "selected"
+      meeting_rsvp: "going" | "not_going" | "maybe"
+      meeting_status: "scheduled" | "cancelled" | "completed"
       message_kind: "text" | "image" | "video" | "audio" | "file"
       presence_status: "online" | "offline"
     }
@@ -689,6 +768,8 @@ export const Constants = {
       conversation_kind: ["direct", "group"],
       fund_tx_type: ["contribution", "expense"],
       group_send_permission: ["all", "admins", "selected"],
+      meeting_rsvp: ["going", "not_going", "maybe"],
+      meeting_status: ["scheduled", "cancelled", "completed"],
       message_kind: ["text", "image", "video", "audio", "file"],
       presence_status: ["online", "offline"],
     },
