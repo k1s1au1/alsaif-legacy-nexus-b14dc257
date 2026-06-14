@@ -266,6 +266,7 @@ function Dashboard() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => loadMessages())
       .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadTrip())
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees" }, () => loadTrip())
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadPinned())
       .subscribe();
 
     const onVis = () => {
@@ -274,6 +275,7 @@ function Dashboard() {
         loadMeeting();
         loadMessages();
         loadTrip();
+        loadPinned();
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -282,7 +284,7 @@ function Dashboard() {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip]);
+  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip, loadPinned]);
 
   const meetingDate = nextMeeting ? new Date(nextMeeting.scheduled_at) : null;
 
