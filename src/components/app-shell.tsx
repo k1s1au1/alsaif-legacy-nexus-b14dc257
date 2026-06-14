@@ -32,7 +32,7 @@ import {
 
 type BadgeFn = (ctx: { userId: string; isAdmin: boolean; isManager: boolean }) => Promise<number>;
 
-const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn }[] = [
+const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   {
     to: "/chat",
@@ -107,7 +107,7 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge
   { to: "/events", label: "المناسبات", icon: Sparkles },
   { to: "/majlis", label: "المجلس", icon: Megaphone },
   { to: "/archive", label: "الأرشيف", icon: Archive },
-  { to: "/admin", label: "الإدارة", icon: Shield },
+  { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
@@ -279,7 +279,7 @@ export function AppShell({
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map(({ to, label, icon: Icon }) => {
+          {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             const badgeCount = navBadges[to] ?? 0;
             return (
