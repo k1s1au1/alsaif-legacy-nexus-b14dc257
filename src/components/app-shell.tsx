@@ -107,7 +107,7 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge
   { to: "/events", label: "المناسبات", icon: Sparkles },
   { to: "/majlis", label: "المجلس", icon: Megaphone },
   { to: "/archive", label: "الأرشيف", icon: Archive },
-  { to: "/admin", label: "الإدارة", icon: Shield },
+  { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
