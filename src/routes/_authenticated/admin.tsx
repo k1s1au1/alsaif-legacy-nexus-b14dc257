@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { approveAccountRequest } from "@/lib/api/account-requests.functions";
+import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -88,6 +89,7 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string>("");
   const approveFn = useServerFn(approveAccountRequest);
+  const deleteAccountFn = useServerFn(deleteMemberAccount);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
@@ -205,6 +207,21 @@ function AdminPage() {
     }
     toast.success("تم تحديث الصلاحيات");
     loadMembers();
+  }
+
+  async function deleteMember(userId: string, name: string) {
+    if (userId === meId) {
+      toast.error("لا يمكنك حذف حسابك الخاص");
+      return;
+    }
+    if (!confirm(`هل أنت متأكد من حذف حساب "${name}" نهائياً؟ لا يمكن التراجع.`)) return;
+    try {
+      await deleteAccountFn({ data: { userId } });
+      toast.success("تم حذف الحساب");
+      loadMembers();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر حذف الحساب");
+    }
   }
 
   const filteredReqs = rows.filter((r) => r.status === reqTab);
@@ -454,6 +471,16 @@ function AdminPage() {
                               label="عضو"
                               tone="neutral"
                             />
+                            {!isMe && role !== "admin" && (
+                              <button
+                                onClick={() => deleteMember(m.id, memberFullName(m))}
+                                title="حذف الحساب نهائياً"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-destructive/15 hover:bg-destructive/25 text-destructive border border-destructive/30 transition"
+                              >
+                                <Trash2 className="size-3.5" strokeWidth={1.8} />
+                                حذف
+                              </button>
+                            )}
                           </div>
                         </li>
                       );
