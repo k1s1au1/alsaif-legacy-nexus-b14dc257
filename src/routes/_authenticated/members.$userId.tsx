@@ -42,6 +42,11 @@ function MemberProfilePage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [credential, setCredential] = useState<{ email: string | null; password: string | null } | null>(null);
+  const [credLoading, setCredLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
+  const fetchCredential = useServerFn(getMemberCredential);
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
     initial: "س",
