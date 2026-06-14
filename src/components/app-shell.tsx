@@ -30,12 +30,79 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const navItems = [
+type BadgeFn = (ctx: { userId: string; isAdmin: boolean; isManager: boolean }) => Promise<number>;
+
+const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/chat", label: "المحادثات", icon: MessageCircle },
-  { to: "/meetings", label: "الاجتماعات", icon: CalendarDays },
-  { to: "/trips", label: "الرحلات", icon: Plane },
-  { to: "/finance", label: "الصندوق المالي", icon: Wallet },
+  {
+    to: "/chat",
+    label: "المحادثات",
+    icon: MessageCircle,
+    badge: async ({ userId }) => {
+      const { data: parts } = await supabase
+        .from("conversation_participants")
+        .select("conversation_id,last_read_at")
+        .eq("user_id", userId);
+      if (!parts?.length) return 0;
+      const readMap = new Map(parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]));
+      const { data: msgs } = await supabase
+        .from("messages")
+        .select("conversation_id,created_at,sender_id")
+        .in("conversation_id", [...readMap.keys()])
+        .neq("sender_id", userId)
+        .order("created_at", { ascending: false })
+        .limit(500);
+      return (msgs ?? []).filter((m) => new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0)).length;
+    },
+  },
+  {
+    to: "/meetings",
+    label: "الاجتماعات",
+    icon: CalendarDays,
+    badge: async ({ userId }) => {
+      const now = new Date().toISOString();
+      const { data: meetings } = await supabase
+        .from("meetings")
+        .select("id")
+        .gte("scheduled_at", now)
+        .eq("status", "scheduled");
+      if (!meetings?.length) return 0;
+      const ids = meetings.map((m) => m.id);
+      const { data: attended } = await supabase
+        .from("meeting_attendees")
+        .select("meeting_id")
+        .eq("user_id", userId)
+        .in("meeting_id", ids);
+      const attendedSet = new Set((attended ?? []).map((a) => a.meeting_id));
+      return ids.filter((id) => !attendedSet.has(id)).length;
+    },
+  },
+  {
+    to: "/trips",
+    label: "الرحلات",
+    icon: Plane,
+    badge: async () => {
+      const now = new Date().toISOString();
+      const { count } = await supabase
+        .from("trips")
+        .select("*", { count: "exact", head: true })
+        .or(`start_date.gte.${now},and(start_date.is.null,status.eq.upcoming)`);
+      return count ?? 0;
+    },
+  },
+  {
+    to: "/finance",
+    label: "الصندوق المالي",
+    icon: Wallet,
+    badge: async ({ isAdmin, isManager }) => {
+      if (!isAdmin && !isManager) return 0;
+      const { count } = await supabase
+        .from("bank_transfers")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count ?? 0;
+    },
+  },
   { to: "/tasks", label: "المهام", icon: ListChecks },
   { to: "/events", label: "المناسبات", icon: Sparkles },
   { to: "/majlis", label: "المجلس", icon: Megaphone },
@@ -43,7 +110,7 @@ const navItems = [
   { to: "/admin", label: "الإدارة", icon: Shield },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
-] as const;
+];
 
 export function AppShell({
   children,
@@ -57,6 +124,8 @@ export function AppShell({
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
+  const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const queryClient = useQueryClient();
 
@@ -97,8 +166,33 @@ export function AppShell({
     setUnreadNotifications(unread);
   }, []);
 
+  const loadBadges = useCallback(async () => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
+    const r = (roles ?? []).map((x) => x.role);
+    const isAdmin = r.includes("admin");
+    const isManager = r.includes("manager");
+    setIsAdminManager({ isAdmin, isManager, userId: u.user.id });
+
+    const next: Record<string, number> = {};
+    await Promise.all(
+      navItems.map(async (item) => {
+        if (!item.badge) return;
+        try {
+          const count = await item.badge({ userId: u.user.id, isAdmin, isManager });
+          if (count > 0) next[item.to] = count;
+        } catch {
+          // ignore badge errors
+        }
+      }),
+    );
+    setNavBadges(next);
+  }, []);
+
   useEffect(() => {
     loadUnreadNotifications();
+    loadBadges();
 
     // Load my own avatar path (if not provided) and subscribe to profile changes
     (async () => {
@@ -116,13 +210,17 @@ export function AppShell({
 
     const channel = supabase
       .channel("app-shell-notifications")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () =>
-        loadUnreadNotifications(),
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
+        loadUnreadNotifications();
+        loadBadges();
+      })
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "conversation_participants" },
-        () => loadUnreadNotifications(),
+        () => {
+          loadUnreadNotifications();
+          loadBadges();
+        },
       )
       .on(
         "postgres_changes",
@@ -146,7 +244,10 @@ export function AppShell({
       .subscribe();
 
     const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") loadUnreadNotifications();
+      if (document.visibilityState === "visible") {
+        loadUnreadNotifications();
+        loadBadges();
+      }
     };
     document.addEventListener("visibilitychange", onVisibilityChange);
 
@@ -154,7 +255,7 @@ export function AppShell({
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVisibilityChange);
     };
-  }, [loadUnreadNotifications, user.avatarPath]);
+  }, [loadUnreadNotifications, loadBadges, user.avatarPath]);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -180,18 +281,31 @@ export function AppShell({
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
+            const badgeCount = navBadges[to] ?? 0;
             return (
               <Link
                 key={to}
                 to={to}
-                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors ${
+                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
                   active
                     ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
                     : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
                 }`}
               >
-                <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+                <div className="relative">
+                  <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+                  {badgeCount > 0 && (
+                    <span className="absolute -top-1.5 -left-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-gold-primary text-navy-base text-[8px] font-bold grid place-items-center leading-none">
+                      {badgeCount > 99 ? "99+" : badgeCount}
+                    </span>
+                  )}
+                </div>
                 <span className="hidden lg:block mr-3 font-medium">{label}</span>
+                {badgeCount > 0 && (
+                  <span className="hidden lg:flex mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center">
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                  </span>
+                )}
               </Link>
             );
           })}
