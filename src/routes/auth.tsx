@@ -37,6 +37,8 @@ function AuthPage() {
   const [grand, setGrand] = useState("");
   const [phone, setPhone] = useState("");
   const [reqEmail, setReqEmail] = useState("");
+  const [reqPassword, setReqPassword] = useState("");
+  const [reqPassword2, setReqPassword2] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -78,8 +80,16 @@ function AuthPage() {
       toast.error(`رقم الجوال: ${ph.error.issues[0].message}`);
       return;
     }
-    if (reqEmail.trim() && !z.string().email().safeParse(reqEmail.trim()).success) {
-      toast.error("البريد غير صالح");
+    if (!z.string().email().safeParse(reqEmail.trim()).success) {
+      toast.error("البريد الإلكتروني غير صالح");
+      return;
+    }
+    if (reqPassword.length < 8) {
+      toast.error("كلمة المرور يجب ألا تقل عن 8 أحرف");
+      return;
+    }
+    if (reqPassword !== reqPassword2) {
+      toast.error("كلمتا المرور غير متطابقتين");
       return;
     }
     setSubmitting(true);
@@ -88,7 +98,8 @@ function AuthPage() {
       father_name: father.trim(),
       grandfather_name: grand.trim(),
       phone: phone.trim(),
-      email: reqEmail.trim() || null,
+      email: reqEmail.trim(),
+      desired_password: reqPassword,
       note: note.trim() || null,
     });
     setSubmitting(false);
@@ -184,7 +195,7 @@ function AuthPage() {
               onClick={() => {
                 setMode("login");
                 setSubmitted(false);
-                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setNote("");
+                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
               }}
               className="inline-flex items-center gap-2 text-sm text-gold-primary hover:underline"
             >
@@ -202,7 +213,9 @@ function AuthPage() {
               <ReqField label="اسم الأب" value={father} onChange={setFather} placeholder="عبدالله" />
               <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
               <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
-              <ReqField label="البريد (اختياري)" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+              <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+              <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
+              <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
               <label className="block space-y-1.5">
                 <span className="text-xs text-muted-foreground">ملاحظات (اختياري)</span>
                 <textarea
