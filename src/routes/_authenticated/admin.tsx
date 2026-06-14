@@ -209,6 +209,21 @@ function AdminPage() {
     loadMembers();
   }
 
+  async function deleteMember(userId: string, name: string) {
+    if (userId === meId) {
+      toast.error("لا يمكنك حذف حسابك الخاص");
+      return;
+    }
+    if (!confirm(`هل أنت متأكد من حذف حساب "${name}" نهائياً؟ لا يمكن التراجع.`)) return;
+    try {
+      await deleteAccountFn({ data: { userId } });
+      toast.success("تم حذف الحساب");
+      loadMembers();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "تعذر حذف الحساب");
+    }
+  }
+
   const filteredReqs = rows.filter((r) => r.status === reqTab);
   const reqCounts = {
     pending: rows.filter((r) => r.status === "pending").length,
