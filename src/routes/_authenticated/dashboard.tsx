@@ -85,6 +85,13 @@ type TripLite = {
   end_date: string | null;
 };
 
+type PinnedAnnouncement = {
+  id: string;
+  title: string;
+  body: string;
+  created_at: string;
+};
+
 function Dashboard() {
   const [profile, setProfile] = useState<{ name: string; role: string; initial: string }>({
     name: "عضو العائلة",
@@ -99,6 +106,8 @@ function Dashboard() {
   const [recentMsgs, setRecentMsgs] = useState<RecentMsg[]>([]);
   const [featuredTrip, setFeaturedTrip] = useState<TripLite | null>(null);
   const [tripParticipants, setTripParticipants] = useState(0);
+  const [pinned, setPinned] = useState<PinnedAnnouncement[]>([]);
+  const [pinnedIdx, setPinnedIdx] = useState(0);
 
   const loadProfile = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -227,12 +236,27 @@ function Dashboard() {
     }
   }, []);
 
+  const loadPinned = useCallback(async () => {
+    const { data } = await supabase
+      .from("majlis_posts")
+      .select("id, title, body, created_at, pinned, kind")
+      .eq("pinned", true)
+      .eq("kind", "announcement")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setPinned((data ?? []).map((p: any) => ({
+      id: p.id, title: p.title, body: p.body, created_at: p.created_at,
+    })));
+    setPinnedIdx(0);
+  }, []);
+
   useEffect(() => {
     loadProfile();
     loadFund();
     loadMeeting();
     loadMessages();
     loadTrip();
+    loadPinned();
 
     const channel = supabase
       .channel("dashboard-realtime")
@@ -242,6 +266,7 @@ function Dashboard() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, () => loadMessages())
       .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadTrip())
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees" }, () => loadTrip())
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadPinned())
       .subscribe();
 
     const onVis = () => {
@@ -250,6 +275,7 @@ function Dashboard() {
         loadMeeting();
         loadMessages();
         loadTrip();
+        loadPinned();
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -258,7 +284,7 @@ function Dashboard() {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip]);
+  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip, loadPinned]);
 
   const meetingDate = nextMeeting ? new Date(nextMeeting.scheduled_at) : null;
 
@@ -287,16 +313,57 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Megaphone className="size-4 text-gold-primary" strokeWidth={1.5} />
-                <h3 className="eyebrow">إعلان مثبت</h3>
+                <h3 className="eyebrow">
+                  {pinned.length > 1 ? `إعلانات مثبتة (${pinnedIdx + 1}/${pinned.length})` : "إعلان مثبت"}
+                </h3>
               </div>
-              <span className="text-[11px] text-muted-foreground">منذ ساعتين</span>
+              <div className="flex items-center gap-3">
+                {pinned[pinnedIdx] && (
+                  <span className="text-[11px] text-muted-foreground">
+                    {relativeAr(pinned[pinnedIdx].created_at)}
+                  </span>
+                )}
+                {pinned.length > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setPinnedIdx((i) => (i - 1 + pinned.length) % pinned.length)}
+                      className="size-6 grid place-items-center rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                      aria-label="السابق"
+                    >
+                      <ChevronLeft className="size-3 rotate-180" strokeWidth={1.5} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPinnedIdx((i) => (i + 1) % pinned.length)}
+                      className="size-6 grid place-items-center rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                      aria-label="التالي"
+                    >
+                      <ChevronLeft className="size-3" strokeWidth={1.5} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            <h4 className="text-xl font-medium text-ivory">موعد الغبقة الرمضانية السنوية</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
-              يسر مجلس العائلة دعوتكم لحضور الغبقة الرمضانية في منزل الوالد، وذلك في تمام الساعة
-              العاشرة مساءً. الحضور مرغوب للجميع.
-            </p>
+            {pinned[pinnedIdx] ? (
+              <Link to="/majlis" className="block group">
+                <h4 className="text-xl font-medium text-ivory group-hover:text-gold-primary transition">
+                  {pinned[pinnedIdx].title}
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch] mt-2 whitespace-pre-wrap line-clamp-4">
+                  {pinned[pinnedIdx].body}
+                </p>
+              </Link>
+            ) : (
+              <>
+                <h4 className="text-xl font-medium text-ivory">لا توجد إعلانات مثبتة حالياً</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
+                  ستظهر هنا الإعلانات الرسمية المثبتة من <Link to="/majlis" className="text-gold-primary hover:underline">المجلس</Link>.
+                </p>
+              </>
+            )}
           </article>
+
 
           {/* Fund */}
           <article className="lg:col-span-4 bg-card ring-1 ring-gold-primary/20 rounded-2xl p-6 flex flex-col justify-between animate-fade-up">
