@@ -18,6 +18,8 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -85,6 +87,7 @@ function AdminPage() {
   const [memberSearch, setMemberSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string>("");
+  const approveFn = useServerFn(approveAccountRequest);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
@@ -153,13 +156,24 @@ function AdminPage() {
   }, [load, loadMembers]);
 
   async function setReqStatus(id: string, status: "approved" | "rejected") {
+    if (status === "approved") {
+      try {
+        await approveFn({ data: { id } });
+        toast.success("تم قبول الطلب وإنشاء الحساب");
+        load();
+        loadMembers();
+      } catch (e) {
+        toast.error(e instanceof Error ? e.message : "تعذر إنشاء الحساب");
+      }
+      return;
+    }
     const { data: u } = await supabase.auth.getUser();
     const { error } = await supabase
       .from("account_requests")
       .update({ status, reviewed_by: u.user?.id ?? null, reviewed_at: new Date().toISOString() })
       .eq("id", id);
     if (error) toast.error("تعذر التحديث");
-    else toast.success(status === "approved" ? "تم القبول" : "تم الرفض");
+    else toast.success("تم الرفض");
   }
 
   async function removeReq(id: string) {
