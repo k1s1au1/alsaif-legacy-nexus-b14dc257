@@ -80,8 +80,16 @@ function AuthPage() {
       toast.error(`رقم الجوال: ${ph.error.issues[0].message}`);
       return;
     }
-    if (reqEmail.trim() && !z.string().email().safeParse(reqEmail.trim()).success) {
-      toast.error("البريد غير صالح");
+    if (!z.string().email().safeParse(reqEmail.trim()).success) {
+      toast.error("البريد الإلكتروني غير صالح");
+      return;
+    }
+    if (reqPassword.length < 8) {
+      toast.error("كلمة المرور يجب ألا تقل عن 8 أحرف");
+      return;
+    }
+    if (reqPassword !== reqPassword2) {
+      toast.error("كلمتا المرور غير متطابقتين");
       return;
     }
     setSubmitting(true);
@@ -90,7 +98,8 @@ function AuthPage() {
       father_name: father.trim(),
       grandfather_name: grand.trim(),
       phone: phone.trim(),
-      email: reqEmail.trim() || null,
+      email: reqEmail.trim(),
+      desired_password: reqPassword,
       note: note.trim() || null,
     });
     setSubmitting(false);
