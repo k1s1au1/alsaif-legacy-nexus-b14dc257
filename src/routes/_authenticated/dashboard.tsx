@@ -313,16 +313,57 @@ function Dashboard() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Megaphone className="size-4 text-gold-primary" strokeWidth={1.5} />
-                <h3 className="eyebrow">إعلان مثبت</h3>
+                <h3 className="eyebrow">
+                  {pinned.length > 1 ? `إعلانات مثبتة (${pinnedIdx + 1}/${pinned.length})` : "إعلان مثبت"}
+                </h3>
               </div>
-              <span className="text-[11px] text-muted-foreground">منذ ساعتين</span>
+              <div className="flex items-center gap-3">
+                {pinned[pinnedIdx] && (
+                  <span className="text-[11px] text-muted-foreground">
+                    {relativeAr(pinned[pinnedIdx].created_at)}
+                  </span>
+                )}
+                {pinned.length > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setPinnedIdx((i) => (i - 1 + pinned.length) % pinned.length)}
+                      className="size-6 grid place-items-center rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                      aria-label="السابق"
+                    >
+                      <ChevronLeft className="size-3 rotate-180" strokeWidth={1.5} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPinnedIdx((i) => (i + 1) % pinned.length)}
+                      className="size-6 grid place-items-center rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                      aria-label="التالي"
+                    >
+                      <ChevronLeft className="size-3" strokeWidth={1.5} />
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-            <h4 className="text-xl font-medium text-ivory">موعد الغبقة الرمضانية السنوية</h4>
-            <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
-              يسر مجلس العائلة دعوتكم لحضور الغبقة الرمضانية في منزل الوالد، وذلك في تمام الساعة
-              العاشرة مساءً. الحضور مرغوب للجميع.
-            </p>
+            {pinned[pinnedIdx] ? (
+              <Link to="/majlis" className="block group">
+                <h4 className="text-xl font-medium text-ivory group-hover:text-gold-primary transition">
+                  {pinned[pinnedIdx].title}
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch] mt-2 whitespace-pre-wrap line-clamp-4">
+                  {pinned[pinnedIdx].body}
+                </p>
+              </Link>
+            ) : (
+              <>
+                <h4 className="text-xl font-medium text-ivory">لا توجد إعلانات مثبتة حالياً</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
+                  ستظهر هنا الإعلانات الرسمية المثبتة من <Link to="/majlis" className="text-gold-primary hover:underline">المجلس</Link>.
+                </p>
+              </>
+            )}
           </article>
+
 
           {/* Fund */}
           <article className="lg:col-span-4 bg-card ring-1 ring-gold-primary/20 rounded-2xl p-6 flex flex-col justify-between animate-fade-up">
