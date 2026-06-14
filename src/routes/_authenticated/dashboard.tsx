@@ -236,12 +236,27 @@ function Dashboard() {
     }
   }, []);
 
+  const loadPinned = useCallback(async () => {
+    const { data } = await supabase
+      .from("majlis_posts")
+      .select("id, title, body, created_at, pinned, kind")
+      .eq("pinned", true)
+      .eq("kind", "announcement")
+      .order("created_at", { ascending: false })
+      .limit(5);
+    setPinned((data ?? []).map((p: any) => ({
+      id: p.id, title: p.title, body: p.body, created_at: p.created_at,
+    })));
+    setPinnedIdx(0);
+  }, []);
+
   useEffect(() => {
     loadProfile();
     loadFund();
     loadMeeting();
     loadMessages();
     loadTrip();
+    loadPinned();
 
     const channel = supabase
       .channel("dashboard-realtime")
