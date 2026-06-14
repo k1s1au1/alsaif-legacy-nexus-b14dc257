@@ -32,7 +32,7 @@ import {
 
 type BadgeFn = (ctx: { userId: string; isAdmin: boolean; isManager: boolean }) => Promise<number>;
 
-const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn }[] = [
+const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   {
     to: "/chat",
