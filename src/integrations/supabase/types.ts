@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_requests: {
+        Row: {
+          created_at: string
+          email: string | null
+          father_name: string
+          first_name: string
+          grandfather_name: string
+          id: string
+          note: string | null
+          phone: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["account_request_status"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          father_name: string
+          first_name: string
+          grandfather_name: string
+          id?: string
+          note?: string | null
+          phone: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["account_request_status"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          father_name?: string
+          first_name?: string
+          grandfather_name?: string
+          id?: string
+          note?: string | null
+          phone?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["account_request_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       admin_activity_log: {
         Row: {
           action: string
@@ -665,6 +710,7 @@ export type Database = {
       }
     }
     Enums: {
+      account_request_status: "pending" | "approved" | "rejected"
       app_role: "admin" | "manager" | "member"
       archive_media_type: "image" | "video"
       archive_section: "family" | "meetings" | "events" | "trips"
@@ -804,6 +850,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      account_request_status: ["pending", "approved", "rejected"],
       app_role: ["admin", "manager", "member"],
       archive_media_type: ["image", "video"],
       archive_section: ["family", "meetings", "events", "trips"],
