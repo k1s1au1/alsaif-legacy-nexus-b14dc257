@@ -213,7 +213,9 @@ function AuthPage() {
               <ReqField label="اسم الأب" value={father} onChange={setFather} placeholder="عبدالله" />
               <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
               <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
-              <ReqField label="البريد (اختياري)" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+              <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+              <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
+              <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
               <label className="block space-y-1.5">
                 <span className="text-xs text-muted-foreground">ملاحظات (اختياري)</span>
                 <textarea
