@@ -18,6 +18,8 @@ import {
   User as UserIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useServerFn } from "@tanstack/react-start";
+import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
