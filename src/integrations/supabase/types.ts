@@ -303,6 +303,74 @@ export type Database = {
         }
         Relationships: []
       }
+      majlis_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "majlis_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "majlis_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      majlis_posts: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["majlis_post_kind"]
+          pinned: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["majlis_post_kind"]
+          pinned?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["majlis_post_kind"]
+          pinned?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       meeting_attendees: {
         Row: {
           created_at: string
@@ -722,6 +790,7 @@ export type Database = {
       conversation_kind: "direct" | "group"
       fund_tx_type: "contribution" | "expense"
       group_send_permission: "all" | "admins" | "selected"
+      majlis_post_kind: "announcement" | "discussion"
       meeting_rsvp: "going" | "not_going" | "maybe"
       meeting_status: "scheduled" | "cancelled" | "completed"
       message_kind: "text" | "image" | "video" | "audio" | "file"
@@ -862,6 +931,7 @@ export const Constants = {
       conversation_kind: ["direct", "group"],
       fund_tx_type: ["contribution", "expense"],
       group_send_permission: ["all", "admins", "selected"],
+      majlis_post_kind: ["announcement", "discussion"],
       meeting_rsvp: ["going", "not_going", "maybe"],
       meeting_status: ["scheduled", "cancelled", "completed"],
       message_kind: ["text", "image", "video", "audio", "file"],
