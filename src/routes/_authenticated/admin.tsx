@@ -20,6 +20,7 @@ import {
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { approveAccountRequest } from "@/lib/api/account-requests.functions";
+import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -88,6 +89,7 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string>("");
   const approveFn = useServerFn(approveAccountRequest);
+  const deleteAccountFn = useServerFn(deleteMemberAccount);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
