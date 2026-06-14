@@ -1,9 +1,12 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { ArrowRight, Calendar, Loader2, Phone, User as UserIcon } from "lucide-react";
+import { ArrowRight, Calendar, Eye, EyeOff, KeyRound, Loader2, Mail, Phone, User as UserIcon } from "lucide-react";
+import { getMemberCredential } from "@/lib/api/member-credentials.functions";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/members/$userId")({
   ssr: false,
