@@ -179,6 +179,75 @@ function MemberProfilePage() {
                 />
               </dl>
             </section>
+
+            {isAdmin && (
+              <section className="card-surface p-6 space-y-4 animate-fade-up border-gold-primary/30">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="eyebrow flex items-center gap-2">
+                    <KeyRound className="size-4 text-gold-primary" />
+                    بيانات تسجيل الدخول
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">للمسؤول فقط</span>
+                </div>
+                {credential ? (
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <InfoItem
+                      icon={<Mail className="size-4" />}
+                      label="البريد الإلكتروني"
+                      value={credential.email ?? "غير متوفر"}
+                    />
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 border border-border">
+                      <div className="text-gold-primary mt-0.5"><KeyRound className="size-4" /></div>
+                      <div className="min-w-0 flex-1">
+                        <dt className="text-[11px] text-muted-foreground uppercase tracking-wider">كلمة المرور</dt>
+                        <dd className="text-sm text-ivory mt-0.5 flex items-center gap-2">
+                          {credential.password ? (
+                            <>
+                              <span className="font-mono truncate">
+                                {showPwd ? credential.password : "•".repeat(Math.min(credential.password.length, 12))}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setShowPwd((v) => !v)}
+                                className="text-gold-primary/80 hover:text-gold-primary transition shrink-0"
+                                aria-label={showPwd ? "إخفاء" : "إظهار"}
+                              >
+                                {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">غير محفوظة</span>
+                          )}
+                        </dd>
+                      </div>
+                    </div>
+                  </dl>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={credLoading}
+                    onClick={async () => {
+                      setCredLoading(true);
+                      try {
+                        const res = await fetchCredential({ data: { userId } });
+                        setCredential(res);
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "تعذر تحميل البيانات");
+                      } finally {
+                        setCredLoading(false);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-gold-primary/10 border border-gold-primary/30 text-gold-primary text-sm hover:bg-gold-primary/20 transition inline-flex items-center gap-2"
+                  >
+                    {credLoading && <Loader2 className="size-4 animate-spin" />}
+                    عرض بيانات الدخول
+                  </button>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  تُعرض كلمة المرور المحفوظة عند إنشاء الحساب فقط. إذا قام العضو بتغييرها لاحقاً فلن تظهر هنا.
+                </p>
+              </section>
+            )}
           </>
         )}
       </div>
