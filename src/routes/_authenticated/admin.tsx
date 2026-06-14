@@ -87,6 +87,7 @@ function AdminPage() {
   const [memberSearch, setMemberSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string>("");
+  const approveFn = useServerFn(approveAccountRequest);
 
   const load = useCallback(async () => {
     const { data, error } = await supabase
