@@ -49,6 +49,7 @@ type Meeting = {
 };
 
 type Attendee = { meeting_id: string; user_id: string; rsvp: Rsvp };
+type ProfileLite = { id: string; arabic_name: string | null; full_name: string | null };
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("ar-SA", {
