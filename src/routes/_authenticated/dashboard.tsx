@@ -150,7 +150,7 @@ function Dashboard() {
         .from("meeting_attendees")
         .select("*", { count: "exact", head: true })
         .eq("meeting_id", data.id)
-        .eq("status", "going");
+        .eq("rsvp", "going");
       setAttendeeCount(count ?? 0);
     } else {
       setAttendeeCount(0);
