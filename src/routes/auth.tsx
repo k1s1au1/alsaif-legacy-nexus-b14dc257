@@ -37,6 +37,8 @@ function AuthPage() {
   const [grand, setGrand] = useState("");
   const [phone, setPhone] = useState("");
   const [reqEmail, setReqEmail] = useState("");
+  const [reqPassword, setReqPassword] = useState("");
+  const [reqPassword2, setReqPassword2] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
