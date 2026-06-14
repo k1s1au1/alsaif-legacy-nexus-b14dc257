@@ -83,6 +83,7 @@ function MeetingsPage() {
 
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
+  const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [loading, setLoading] = useState(true);
 
   const [showForm, setShowForm] = useState(false);
