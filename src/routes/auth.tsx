@@ -99,6 +99,10 @@ function AuthPage() {
       toast.error("كلمتا المرور غير متطابقتين");
       return;
     }
+    if (!agreeTerms) {
+      toast.error("يجب الموافقة على الإقرار والشروط للمتابعة");
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("account_requests").insert({
       first_name: first.trim(),
