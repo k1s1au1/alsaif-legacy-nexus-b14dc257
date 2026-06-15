@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type NotifKind = "message" | "meeting" | "account_request";
+type NotifKind = "message" | "meeting" | "account_request" | "task";
 type Notif = {
   id: string;
   kind: NotifKind;
