@@ -113,6 +113,43 @@
   --ring: rgba(142, 119, 69, 0.5);
 }
 
+/* Dark mode — deep navy + soft gold */
+.dark {
+  --navy-base: #0a0e1a;
+  --navy-card: #12172a;
+  --navy-elev: #1a2035;
+  --gold-primary: #d4af37;
+  --gold-soft: #e8c96a;
+  --ivory: #f0e6d2;
+
+  /* Luxury gold — brighter for dark backgrounds */
+  --luxury-gold: #d4af37;
+  --luxury-gold-light: #f0d878;
+  --luxury-gold-dark: #b8972e;
+  --luxury-glow: rgba(212, 175, 55, 0.45);
+
+  /* Semantic — dark theme */
+  --background: #0a0e1a;
+  --foreground: #f0e6d2;
+  --card: #12172a;
+  --card-foreground: #f0e6d2;
+  --popover: #12172a;
+  --popover-foreground: #f0e6d2;
+  --primary: #d4af37;
+  --primary-foreground: #0a0e1a;
+  --secondary: #1a2035;
+  --secondary-foreground: #e8c96a;
+  --muted: #1a2035;
+  --muted-foreground: rgba(240, 230, 210, 0.55);
+  --accent: #1a2035;
+  --accent-foreground: #d4af37;
+  --destructive: #e23a4f;
+  --destructive-foreground: #f0e6d2;
+  --border: rgba(212, 175, 55, 0.12);
+  --input: rgba(240, 230, 210, 0.08);
+  --ring: rgba(212, 175, 55, 0.5);
+}
+
 @layer base {
   * { border-color: var(--color-border); }
   html, body {
