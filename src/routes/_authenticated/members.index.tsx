@@ -27,6 +27,8 @@ type MemberRow = {
 function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [presence, setPresence] = useState<Record<string, string>>({});
+  const [, setTick] = useState(0);
   const [q, setQ] = useState("");
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
