@@ -466,6 +466,7 @@ function MajlisPage() {
                                   name={cName}
                                   className="size-full"
                                   fallbackClassName="text-xs text-gold-primary"
+                                  userId={c.author_id}
                                 />
                               </div>
                               <div className="flex-1 min-w-0">
