@@ -366,6 +366,24 @@ function AuthPage() {
                   placeholder="صلة القرابة أو أي تفاصيل تساعد المشرفين"
                 />
               </label>
+              <div className="rounded-lg border border-gold-primary/30 bg-background/40 p-3 space-y-2">
+                <label className="flex items-start gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mt-1 size-4 accent-gold-primary flex-shrink-0"
+                  />
+                  <span className="text-xs text-ivory/90 leading-relaxed">{TERMS_SHORT}</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowTerms(true)}
+                  className="text-[11px] text-gold-primary hover:underline"
+                >
+                  عرض الإقرار الكامل
+                </button>
+              </div>
               <button
                 type="submit"
                 disabled={submitting}
