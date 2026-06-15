@@ -14,6 +14,7 @@ import {
   Archive,
   Shield,
   Bell,
+  Menu,
   LogOut,
   User,
   Users,
