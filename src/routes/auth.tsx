@@ -147,67 +147,45 @@ function AuthPage() {
 
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 auth-bg">
-      {/* Responsive background image via <img> for object-position control */}
-      <img
-        src={authBg.url}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover -z-10 auth-bg-img"
-      />
-      {/* Warm vignette to anchor the form */}
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10 bg-background">
+      {/* Soft palm-tree watermark backdrop */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        aria-hidden="true"
+        className="absolute inset-0 pointer-events-none opacity-[0.05]"
         style={{
-          background:
-            "radial-gradient(ellipse at center, rgba(40,24,8,0.25) 0%, rgba(20,12,4,0.55) 70%, rgba(10,6,2,0.80) 100%)",
+          backgroundImage:
+            "radial-gradient(circle at 20% 80%, #0F5A3A 0%, transparent 35%), radial-gradient(circle at 80% 20%, #0F5A3A 0%, transparent 30%)",
         }}
       />
 
       <div
-        className="relative w-full max-w-md p-10 animate-fade-up rounded-2xl backdrop-blur-xl"
+        className="relative w-full max-w-md bg-card rounded-3xl overflow-hidden animate-fade-up"
         style={{
-          background:
-            "linear-gradient(160deg, rgba(38,26,14,0.78) 0%, rgba(24,16,8,0.88) 100%)",
-          border: "1px solid rgba(212,175,90,0.35)",
           boxShadow:
-            "0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,175,90,0.10), inset 0 1px 0 rgba(245,222,179,0.18)",
+            "0 24px 60px -20px rgba(15,90,58,0.15), 0 8px 24px -12px rgba(0,0,0,0.08)",
+          border: "1px solid #EAEAEA",
         }}
       >
-        <div className="flex flex-col items-center text-center mb-8">
-          <div
-            className="size-16 rounded-2xl grid place-items-center mb-5"
-            style={{
-              background:
-                "linear-gradient(145deg, rgba(212,175,55,0.18), rgba(212,175,55,0.04))",
-              border: "1px solid rgba(212,175,55,0.45)",
-              boxShadow:
-                "0 8px 24px -8px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,220,140,0.2)",
-            }}
-          >
-            <span
-              className="text-2xl font-semibold"
-              style={{ color: "#d4af37" }}
+        <div className="px-8 pt-10 pb-6">
+          <div className="flex flex-col items-center text-center mb-8">
+            <div className="size-24 mb-4 grid place-items-center">
+              <img
+                src={logoAsset.url}
+                alt="شعار العلي"
+                className="size-24 object-contain"
+              />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
+              السيف
+            </h1>
+            <p
+              className="mt-2 text-[11px] font-semibold tracking-[0.25em]"
+              style={{ color: "#0F5A3A" }}
             >
-              ص
-            </span>
+              ALSAIF · PRIVATE ACCESS
+            </p>
           </div>
-          <h1
-            className="text-2xl font-medium tracking-tight"
-            style={{ color: "#f5f2eb" }}
-          >
-            السيف
-          </h1>
-          <p
-            className="mt-2 text-[11px] font-medium uppercase"
-            style={{
-              color: "rgba(212,175,55,0.75)",
-              letterSpacing: "0.25em",
-            }}
-          >
-            ALSAIF · PRIVATE ACCESS
-          </p>
-        </div>
+
 
         {mode === "login" ? (
           <>
