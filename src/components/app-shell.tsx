@@ -128,6 +128,7 @@ export function AppShell({
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   usePresenceHeartbeat();
