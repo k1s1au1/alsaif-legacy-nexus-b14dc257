@@ -377,11 +377,6 @@ function AuthPage() {
           </>
         )}
 
-        {mode === "login" && (
-          <p className="text-[11px] text-muted-foreground/70 text-center mt-8 leading-relaxed">
-            لإعادة تعيين كلمة المرور، تواصل مع مسؤول النظام في العائلة.
-          </p>
-        )}
       </div>
     </div>
   );
