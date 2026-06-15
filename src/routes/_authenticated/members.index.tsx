@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Loader2, Search, Users } from "lucide-react";
+import { PresenceDot, presenceFromLastSeen, type PresenceState } from "@/lib/presence";
 
 export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
