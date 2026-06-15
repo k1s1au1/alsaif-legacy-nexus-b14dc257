@@ -112,6 +112,7 @@ function AuthPage() {
       email: reqEmail.trim(),
       desired_password: reqPassword,
       note: note.trim() || null,
+      terms_accepted: true,
     });
     setSubmitting(false);
     if (error) {
