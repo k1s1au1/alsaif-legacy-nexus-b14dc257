@@ -18,6 +18,8 @@ import {
   User,
   Users,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
@@ -133,6 +135,7 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
   usePresenceHeartbeat();
 
@@ -276,12 +279,12 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Right Navigation Rail (RTL) */}
-      <aside className="fixed inset-y-0 right-0 w-20 lg:w-64 bg-card/60 border-l border-border backdrop-blur-xl z-50 flex flex-col">
-        <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-border">
+      <aside className={`fixed inset-y-0 right-0 ${sidebarCollapsed ? 'w-20' : 'w-64'} bg-card/60 border-l border-border backdrop-blur-xl z-50 flex flex-col transition-all duration-300`}>
+        <div className={`h-20 flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-start px-8'} border-b border-border`}>
           <div className="size-10 bg-gold-primary/10 ring-1 ring-gold-primary/30 rounded-lg grid place-items-center">
             <span className="text-gold-primary text-xl font-semibold select-none">ص</span>
           </div>
-          <span className="hidden lg:block mr-4 text-xl font-medium tracking-wide text-gold-primary">
+          <span className={`${sidebarCollapsed ? 'hidden' : 'block'} mr-4 text-xl font-medium tracking-wide text-gold-primary`}>
             السيف
           </span>
         </div>
@@ -294,7 +297,7 @@ export function AppShell({
               <Link
                 key={to}
                 to={to}
-                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
+                className={`flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-start px-4'} py-3 rounded-xl text-sm transition-colors relative ${
                   active
                     ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
                     : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
@@ -308,9 +311,9 @@ export function AppShell({
                     </span>
                   )}
                 </div>
-                <span className="hidden lg:block mr-3 font-medium">{label}</span>
+                <span className={`${sidebarCollapsed ? 'hidden' : 'block'} mr-3 font-medium`}>{label}</span>
                 {badgeCount > 0 && (
-                  <span className="hidden lg:flex mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center">
+                  <span className={`${sidebarCollapsed ? 'hidden' : 'flex'} mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center`}>
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
@@ -322,18 +325,32 @@ export function AppShell({
         <div className="p-4 border-t border-border">
           <button
             onClick={signOut}
-            className="w-full flex items-center justify-center lg:justify-start lg:px-3 py-2 text-xs text-muted-foreground hover:text-gold-primary transition-colors rounded-lg"
+            className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center' : 'justify-start px-3'} py-2 text-xs text-muted-foreground hover:text-gold-primary transition-colors rounded-lg`}
           >
             <LogOut className="size-4" strokeWidth={1.5} />
-            <span className="hidden lg:block mr-3">تسجيل الخروج</span>
+            <span className={`${sidebarCollapsed ? 'hidden' : 'block'} mr-3`}>تسجيل الخروج</span>
           </button>
         </div>
       </aside>
 
       {/* Main */}
-      <main className="mr-20 lg:mr-64 min-h-screen pb-16">
+      <main className={`${sidebarCollapsed ? 'mr-20' : 'mr-64'} min-h-screen pb-16 transition-all duration-300`}>
         <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between">
-          <h1 className="text-lg font-medium tracking-tight">{title}</h1>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarCollapsed((c) => !c)}
+              className="p-2 rounded-lg hover:bg-secondary/60 text-muted-foreground hover:text-gold-primary transition-colors"
+              aria-label={sidebarCollapsed ? "إظهار القائمة" : "إخفاء القائمة"}
+              title={sidebarCollapsed ? "إظهار القائمة" : "إخفاء القائمة"}
+            >
+              {sidebarCollapsed ? (
+                <ChevronLeft className="size-4" strokeWidth={1.5} />
+              ) : (
+                <ChevronRight className="size-4" strokeWidth={1.5} />
+              )}
+            </button>
+            <h1 className="text-lg font-medium tracking-tight">{title}</h1>
+          </div>
           <div className="flex items-center gap-6">
             <NotificationsBell />
 
