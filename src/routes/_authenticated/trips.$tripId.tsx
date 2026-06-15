@@ -293,6 +293,7 @@ function TripDetail() {
                         initial={a.initial}
                         className="size-full"
                         fallbackClassName="text-xs"
+                        userId={a.user_id}
                       />
                     </div>
                     <span className="text-sm text-ivory truncate">{a.name}</span>
