@@ -108,6 +108,7 @@ function Dashboard() {
   const [tripParticipants, setTripParticipants] = useState(0);
   const [pinned, setPinned] = useState<PinnedAnnouncement[]>([]);
   const [pinnedIdx, setPinnedIdx] = useState(0);
+  const [tasks, setTasks] = useState<{ id: string; title: string; pct: number }[]>([]);
 
   const loadProfile = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
