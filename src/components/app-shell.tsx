@@ -352,22 +352,15 @@ export function AppShell({
                       {user.role}
                     </p>
                   </div>
-                  <div className="relative size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
-                    <div className="size-full rounded-full overflow-hidden">
-                      <UserAvatar
-                        path={myAvatarPath}
-                        name={user.name}
-                        initial={user.initial}
-                        className="size-full"
-                        fallbackClassName="grid place-items-center size-full"
-                      />
-                    </div>
-                    {myUserId && (
-                      <PresenceDot
-                        state={usePresenceForState(myUserId)}
-                        className="absolute -bottom-0.5 -left-0.5"
-                      />
-                    )}
+                  <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
+                    <UserAvatar
+                      path={myAvatarPath}
+                      name={user.name}
+                      initial={user.initial}
+                      className="size-full rounded-full"
+                      fallbackClassName="grid place-items-center size-full"
+                      userId={myUserId}
+                    />
                   </div>
                   <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />
                 </button>
