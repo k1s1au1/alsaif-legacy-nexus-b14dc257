@@ -126,7 +126,7 @@ function AuthPage() {
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(20,12,4,0.15) 0%, rgba(20,12,4,0.55) 75%, rgba(10,6,2,0.78) 100%)",
+            "radial-gradient(ellipse at center, rgba(40,24,8,0.25) 0%, rgba(20,12,4,0.55) 70%, rgba(10,6,2,0.80) 100%)",
         }}
       />
 
