@@ -281,7 +281,9 @@ export function NotificationsBell() {
                         ? "bg-gold-primary/10 text-gold-primary"
                         : n.kind === "meeting"
                           ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-sky-500/10 text-sky-400"
+                          : n.kind === "task"
+                            ? "bg-violet-500/10 text-violet-400"
+                            : "bg-sky-500/10 text-sky-400"
                     }`}
                   >
                     <Icon className="size-4" strokeWidth={1.5} />
