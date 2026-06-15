@@ -50,34 +50,38 @@
 }
 
 :root {
-  /* Brand raw values */
-  --navy-base: #050a18;
-  --navy-card: #0d152b;
-  --navy-elev: #131e3d;
-  --gold-primary: #bfa15d;
-  --gold-soft: #8e7745;
-  --ivory: #f5f2eb;
+  /* Brand raw values — Saudi heritage: deep green + red on ivory paper */
+  --navy-base: #f7f3ea;
+  --navy-card: #ffffff;
+  --navy-elev: #f0ebdc;
+  --gold-primary: #16613a; /* heritage green (kept var name for compatibility) */
+  --gold-soft: #1f7a48;
+  --ivory: #1a1a1a;
 
-  /* Semantic — dark by default (Private Club Midnight is dark) */
-  --background: #050a18;
-  --foreground: #f5f2eb;
-  --card: #0d152b;
-  --card-foreground: #f5f2eb;
-  --popover: #0d152b;
-  --popover-foreground: #f5f2eb;
-  --primary: #bfa15d;
-  --primary-foreground: #050a18;
-  --secondary: #131e3d;
-  --secondary-foreground: #f5f2eb;
-  --muted: #0d152b;
-  --muted-foreground: rgba(245, 242, 235, 0.55);
-  --accent: #131e3d;
-  --accent-foreground: #bfa15d;
-  --destructive: #b8424a;
-  --destructive-foreground: #f5f2eb;
-  --border: rgba(191, 161, 93, 0.12);
-  --input: rgba(245, 242, 235, 0.08);
-  --ring: rgba(191, 161, 93, 0.5);
+  /* Saudi red accent */
+  --saudi-red: #c8102e;
+  --saudi-red-soft: #e23a4f;
+
+  /* Semantic — light "paper" theme */
+  --background: #f7f3ea;
+  --foreground: #1a1a1a;
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --popover: #ffffff;
+  --popover-foreground: #1a1a1a;
+  --primary: #16613a;
+  --primary-foreground: #f7f3ea;
+  --secondary: #f0ebdc;
+  --secondary-foreground: #1a1a1a;
+  --muted: #f0ebdc;
+  --muted-foreground: rgba(26, 26, 26, 0.6);
+  --accent: #fdecef;
+  --accent-foreground: #c8102e;
+  --destructive: #c8102e;
+  --destructive-foreground: #f7f3ea;
+  --border: rgba(22, 97, 58, 0.15);
+  --input: rgba(26, 26, 26, 0.06);
+  --ring: rgba(22, 97, 58, 0.4);
 }
 
 /* Light mode — ivory paper + navy ink */
