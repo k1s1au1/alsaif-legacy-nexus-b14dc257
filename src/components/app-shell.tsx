@@ -14,11 +14,13 @@ import {
   Archive,
   Shield,
   Bell,
+  Menu,
   LogOut,
   User,
   Users,
   ChevronDown,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
@@ -132,6 +134,7 @@ export function AppShell({
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const queryClient = useQueryClient();
 
   usePresenceHeartbeat();
