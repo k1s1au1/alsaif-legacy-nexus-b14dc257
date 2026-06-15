@@ -139,6 +139,21 @@
 }
 .animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.19, 1, 0.22, 1) both; }
 
+/* Responsive auth background object-position */
+.auth-bg-img {
+  object-position: center center;
+}
+@media (max-width: 640px) {
+  .auth-bg-img {
+    object-position: center top;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .auth-bg-img {
+    object-position: center 20%;
+  }
+}
+
 @utility input-base {
   width: 100%;
   padding: 0.625rem 0.875rem;
