@@ -4,8 +4,10 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, UserPlus, ArrowRight } from "lucide-react";
-import authBg from "@/assets/alsaif-auth-bg.png.asset.json";
+import logoAsset from "@/assets/alsaif-logo.png.asset.json";
+import { SaduPattern } from "@/components/sadu-pattern";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
+
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
