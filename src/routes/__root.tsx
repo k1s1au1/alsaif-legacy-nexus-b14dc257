@@ -92,6 +92,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content: "نصل العائلة، نحفظ الإرث، نبني المجتمع.",
       },
       { property: "og:type", content: "website" },
+      { name: "twitter:title", content: "السيف — Alsaif" },
+      { name: "description", content: "Alsaif is a private family and community management platform for secure communication and organization." },
+      { property: "og:description", content: "Alsaif is a private family and community management platform for secure communication and organization." },
+      { name: "twitter:description", content: "Alsaif is a private family and community management platform for secure communication and organization." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4749333f-9187-4b2c-993a-6031f42f0e73/id-preview-ea89afa8--47b0b5e8-553e-4c53-b0ab-c201294c3508.lovable.app-1781541713440.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/4749333f-9187-4b2c-993a-6031f42f0e73/id-preview-ea89afa8--47b0b5e8-553e-4c53-b0ab-c201294c3508.lovable.app-1781541713440.png" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
