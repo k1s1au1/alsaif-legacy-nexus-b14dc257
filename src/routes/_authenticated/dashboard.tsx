@@ -108,6 +108,7 @@ function Dashboard() {
   const [tripParticipants, setTripParticipants] = useState(0);
   const [pinned, setPinned] = useState<PinnedAnnouncement[]>([]);
   const [pinnedIdx, setPinnedIdx] = useState(0);
+  const [tasks, setTasks] = useState<{ id: string; title: string; pct: number }[]>([]);
 
   const loadProfile = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -250,6 +251,25 @@ function Dashboard() {
     setPinnedIdx(0);
   }, []);
 
+  const loadTasks = useCallback(async () => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { data } = await supabase
+      .from("tasks")
+      .select("id, title, status, assignee_id, created_by, created_at")
+      .or(`assignee_id.eq.${u.user.id},created_by.eq.${u.user.id}`)
+      .neq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    setTasks(
+      (data ?? []).map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        pct: t.status === "in_progress" ? 50 : t.status === "done" ? 100 : 10,
+      })),
+    );
+  }, []);
+
   useEffect(() => {
     loadProfile();
     loadFund();
@@ -257,6 +277,7 @@ function Dashboard() {
     loadMessages();
     loadTrip();
     loadPinned();
+    loadTasks();
 
     const channel = supabase
       .channel("dashboard-realtime")
@@ -267,6 +288,7 @@ function Dashboard() {
       .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadTrip())
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees" }, () => loadTrip())
       .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadPinned())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => loadTasks())
       .subscribe();
 
     const onVis = () => {
@@ -276,6 +298,7 @@ function Dashboard() {
         loadMessages();
         loadTrip();
         loadPinned();
+        loadTasks();
       }
     };
     document.addEventListener("visibilitychange", onVis);
@@ -284,7 +307,7 @@ function Dashboard() {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip, loadPinned]);
+  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip, loadPinned, loadTasks]);
 
   const meetingDate = nextMeeting ? new Date(nextMeeting.scheduled_at) : null;
 
@@ -527,33 +550,33 @@ function Dashboard() {
           <article className="lg:col-span-12 card-surface p-6 animate-fade-up">
             <div className="flex items-center justify-between mb-8">
               <h3 className="eyebrow">المهام والمسؤوليات</h3>
-              <button className="text-xs text-gold-primary border-b border-gold-primary/20 pb-0.5">
+              <Link to="/tasks" className="text-xs text-gold-primary border-b border-gold-primary/20 pb-0.5">
                 عرض الكل
-              </button>
+              </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { label: "تجديد وثائق الوقف", pct: 80 },
-                { label: "تنظيم صور الأرشيف (1980)", pct: 45 },
-                { label: "تجهيز قائمة مشتريات الرحلة", pct: 100 },
-              ].map((t) => (
-                <div key={t.label} className="space-y-3">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-ivory/80">{t.label}</span>
-                    <span className="text-gold-primary">{t.pct}%</span>
-                  </div>
-                  <div className="h-1 bg-ivory/5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gold-primary rounded-full"
-                      style={{
-                        width: `${t.pct}%`,
-                        boxShadow: t.pct > 60 ? "0 0 8px rgba(191,161,93,0.4)" : undefined,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {tasks.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">لا توجد مهام نشطة حالياً.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {tasks.map((t) => (
+                  <Link to="/tasks" key={t.id} className="space-y-3 hover:opacity-90 transition">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ivory/80 truncate ml-2">{t.title}</span>
+                      <span className="text-gold-primary">{t.pct}%</span>
+                    </div>
+                    <div className="h-1 bg-ivory/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gold-primary rounded-full"
+                        style={{
+                          width: `${t.pct}%`,
+                          boxShadow: t.pct > 60 ? "0 0 8px rgba(191,161,93,0.4)" : undefined,
+                        }}
+                      />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </article>
         </div>
 
