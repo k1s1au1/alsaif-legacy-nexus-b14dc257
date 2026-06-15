@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, UserPlus, ArrowRight } from "lucide-react";
 import authBg from "@/assets/alsaif-auth-bg.png.asset.json";
+import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -46,6 +47,8 @@ function AuthPage() {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -96,6 +99,10 @@ function AuthPage() {
       toast.error("كلمتا المرور غير متطابقتين");
       return;
     }
+    if (!agreeTerms) {
+      toast.error("يجب الموافقة على الإقرار والشروط للمتابعة");
+      return;
+    }
     setSubmitting(true);
     const { error } = await supabase.from("account_requests").insert({
       first_name: first.trim(),
@@ -105,6 +112,7 @@ function AuthPage() {
       email: reqEmail.trim(),
       desired_password: reqPassword,
       note: note.trim() || null,
+      terms_accepted: true,
     });
     setSubmitting(false);
     if (error) {
@@ -358,6 +366,24 @@ function AuthPage() {
                   placeholder="صلة القرابة أو أي تفاصيل تساعد المشرفين"
                 />
               </label>
+              <div className="rounded-lg border border-gold-primary/30 bg-background/40 p-3 space-y-2">
+                <label className="flex items-start gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={agreeTerms}
+                    onChange={(e) => setAgreeTerms(e.target.checked)}
+                    className="mt-1 size-4 accent-gold-primary flex-shrink-0"
+                  />
+                  <span className="text-xs text-ivory/90 leading-relaxed">{TERMS_SHORT}</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setShowTerms(true)}
+                  className="text-[11px] text-gold-primary hover:underline"
+                >
+                  عرض الإقرار الكامل
+                </button>
+              </div>
               <button
                 type="submit"
                 disabled={submitting}
@@ -378,6 +404,24 @@ function AuthPage() {
         )}
 
       </div>
+      {showTerms && (
+        <div className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-sm grid place-items-center p-4">
+          <div className="card-surface max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="rounded-lg border border-border/60 bg-background/40 p-4 mb-5">
+              <TermsContent />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowTerms(false)}
+                className="px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
