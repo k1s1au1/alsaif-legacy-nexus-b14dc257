@@ -47,6 +47,8 @@ function AuthPage() {
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [agreeTerms, setAgreeTerms] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
