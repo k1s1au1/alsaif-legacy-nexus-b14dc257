@@ -130,6 +130,8 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const queryClient = useQueryClient();
 
+  usePresenceHeartbeat();
+
   const loadUnreadNotifications = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) {
