@@ -47,6 +47,7 @@ function MemberProfilePage() {
   const [credential, setCredential] = useState<{ email: string | null; password: string | null } | null>(null);
   const [credLoading, setCredLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [lastSeen, setLastSeen] = useState<string | null>(null);
   const fetchCredential = useServerFn(getMemberCredential);
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
