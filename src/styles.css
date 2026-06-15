@@ -16,6 +16,8 @@
   --color-gold-primary: var(--gold-primary);
   --color-gold-soft: var(--gold-soft);
   --color-ivory: var(--ivory);
+  --color-saudi-red: var(--saudi-red);
+  --color-saudi-red-soft: var(--saudi-red-soft);
 
   /* Semantic shadcn-style tokens */
   --color-background: var(--background);
