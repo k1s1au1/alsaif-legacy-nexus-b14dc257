@@ -18,6 +18,8 @@ import {
   User,
   Users,
   ChevronDown,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
