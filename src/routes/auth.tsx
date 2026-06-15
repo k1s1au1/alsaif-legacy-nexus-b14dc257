@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, UserPlus, ArrowRight } from "lucide-react";
 import authBg from "@/assets/alsaif-auth-bg.png.asset.json";
+import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
