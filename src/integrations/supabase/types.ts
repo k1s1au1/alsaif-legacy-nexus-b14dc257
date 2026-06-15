@@ -270,6 +270,89 @@ export type Database = {
         }
         Relationships: []
       }
+      event_attendees: {
+        Row: {
+          created_at: string
+          event_id: string
+          id: string
+          rsvp: Database["public"]["Enums"]["event_rsvp"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_id: string
+          id?: string
+          rsvp?: Database["public"]["Enums"]["event_rsvp"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_id?: string
+          id?: string
+          rsvp?: Database["public"]["Enums"]["event_rsvp"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "event_attendees_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      events: {
+        Row: {
+          cover_image_url: string | null
+          created_at: string
+          created_by: string
+          description: string | null
+          ends_at: string | null
+          event_type: Database["public"]["Enums"]["event_type"]
+          id: string
+          location: string | null
+          location_url: string | null
+          starts_at: string
+          status: Database["public"]["Enums"]["event_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by: string
+          description?: string | null
+          ends_at?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          location?: string | null
+          location_url?: string | null
+          starts_at: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          ends_at?: string | null
+          event_type?: Database["public"]["Enums"]["event_type"]
+          id?: string
+          location?: string | null
+          location_url?: string | null
+          starts_at?: string
+          status?: Database["public"]["Enums"]["event_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fund_transactions: {
         Row: {
           amount: number
@@ -830,6 +913,15 @@ export type Database = {
       bank_transfer_status: "pending" | "approved" | "rejected"
       conv_role: "owner" | "admin" | "member"
       conversation_kind: "direct" | "group"
+      event_rsvp: "going" | "not_going" | "maybe"
+      event_status: "scheduled" | "cancelled" | "completed"
+      event_type:
+        | "wedding"
+        | "birthday"
+        | "graduation"
+        | "religious"
+        | "social"
+        | "other"
       fund_tx_type: "contribution" | "expense"
       group_send_permission: "all" | "admins" | "selected"
       majlis_post_kind: "announcement" | "discussion"
@@ -973,6 +1065,16 @@ export const Constants = {
       bank_transfer_status: ["pending", "approved", "rejected"],
       conv_role: ["owner", "admin", "member"],
       conversation_kind: ["direct", "group"],
+      event_rsvp: ["going", "not_going", "maybe"],
+      event_status: ["scheduled", "cancelled", "completed"],
+      event_type: [
+        "wedding",
+        "birthday",
+        "graduation",
+        "religious",
+        "social",
+        "other",
+      ],
       fund_tx_type: ["contribution", "expense"],
       group_send_permission: ["all", "admins", "selected"],
       majlis_post_kind: ["announcement", "discussion"],
