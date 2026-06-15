@@ -112,22 +112,64 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center px-4">
+    <div
+      className="min-h-screen relative overflow-hidden flex items-center justify-center px-4"
+      style={{
+        background:
+          "radial-gradient(ellipse at top, #0f2e26 0%, #0a1f1a 55%, #061511 100%)",
+      }}
+    >
       <div
-        className="absolute inset-0 opacity-40 pointer-events-none"
+        className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle at 30% 20%, rgba(191,161,93,0.18), transparent 50%), radial-gradient(circle at 80% 80%, rgba(191,161,93,0.10), transparent 50%)",
+            "radial-gradient(circle at 25% 15%, rgba(212,175,55,0.20), transparent 55%), radial-gradient(circle at 80% 85%, rgba(212,175,55,0.10), transparent 55%), radial-gradient(circle at 50% 50%, rgba(15,90,72,0.25), transparent 60%)",
         }}
       />
 
-      <div className="relative w-full max-w-md card-surface p-10 animate-fade-up">
+      <div
+        className="relative w-full max-w-md p-10 animate-fade-up rounded-2xl backdrop-blur-xl"
+        style={{
+          background:
+            "linear-gradient(160deg, rgba(15,46,38,0.85) 0%, rgba(10,31,26,0.92) 100%)",
+          border: "1px solid rgba(212,175,55,0.28)",
+          boxShadow:
+            "0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.08), inset 0 1px 0 rgba(212,175,55,0.15)",
+        }}
+      >
         <div className="flex flex-col items-center text-center mb-8">
-          <div className="size-14 rounded-xl bg-gold-primary/10 ring-1 ring-gold-primary/30 grid place-items-center mb-5">
-            <span className="text-gold-primary text-2xl font-semibold">ص</span>
+          <div
+            className="size-16 rounded-2xl grid place-items-center mb-5"
+            style={{
+              background:
+                "linear-gradient(145deg, rgba(212,175,55,0.18), rgba(212,175,55,0.04))",
+              border: "1px solid rgba(212,175,55,0.45)",
+              boxShadow:
+                "0 8px 24px -8px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,220,140,0.2)",
+            }}
+          >
+            <span
+              className="text-2xl font-semibold"
+              style={{ color: "#d4af37" }}
+            >
+              ص
+            </span>
           </div>
-          <h1 className="text-2xl font-medium text-ivory tracking-tight">السيف</h1>
-          <p className="eyebrow mt-2">ALSAIF · PRIVATE ACCESS</p>
+          <h1
+            className="text-2xl font-medium tracking-tight"
+            style={{ color: "#f5f2eb" }}
+          >
+            السيف
+          </h1>
+          <p
+            className="mt-2 text-[11px] font-medium uppercase"
+            style={{
+              color: "rgba(212,175,55,0.75)",
+              letterSpacing: "0.25em",
+            }}
+          >
+            ALSAIF · PRIVATE ACCESS
+          </p>
         </div>
 
         {mode === "login" ? (
