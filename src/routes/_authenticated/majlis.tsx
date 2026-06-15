@@ -14,6 +14,7 @@ import {
   Trash2,
   Loader2,
   X,
+  ShieldAlert,
 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/majlis")({
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/_authenticated/majlis")({
   component: MajlisPage,
 });
 
-type PostKind = "announcement" | "discussion";
+type PostKind = "announcement" | "discussion" | "complaint";
 
 type Profile = {
   id: string;
@@ -90,7 +91,10 @@ function MajlisPage() {
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [showCompose, setShowCompose] = useState(false);
   const [draft, setDraft] = useState({ kind: "discussion" as PostKind, title: "", body: "" });
+  // members without admin/manager can only post complaints
+
   const [filter, setFilter] = useState<"all" | PostKind>("all");
+
 
   const loadProfiles = useCallback(async (ids: string[]) => {
     if (!ids.length) return;
@@ -177,7 +181,8 @@ function MajlisPage() {
     };
   }, [loadPosts, loadComments, openComments]);
 
-  const canPost = !!me && (me.isAdmin || me.isManager);
+  const canPost = !!me; // every authenticated user can post (at minimum a complaint)
+  const canPostOfficial = !!me && (me.isAdmin || me.isManager);
 
   const filteredPosts = useMemo(() => {
     if (filter === "all") return posts;
@@ -203,7 +208,7 @@ function MajlisPage() {
       return;
     }
     toast.success("تم النشر");
-    setDraft({ kind: "discussion", title: "", body: "" });
+    setDraft({ kind: canPostOfficial ? "discussion" : "complaint", title: "", body: "" });
     setShowCompose(false);
     loadPosts();
   }
@@ -283,6 +288,9 @@ function MajlisPage() {
                 { k: "all", l: "الكل" },
                 { k: "announcement", l: "إعلانات" },
                 { k: "discussion", l: "نقاشات" },
+                ...(canPostOfficial || (me && !canPostOfficial)
+                  ? [{ k: "complaint" as const, l: "شكاوى" }]
+                  : []),
               ] as const).map((t) => (
                 <button
                   key={t.k}
@@ -299,11 +307,14 @@ function MajlisPage() {
             </div>
             {canPost && (
               <button
-                onClick={() => setShowCompose((v) => !v)}
+                onClick={() => {
+                  setShowCompose((v) => !v);
+                  if (!canPostOfficial) setDraft((d) => ({ ...d, kind: "complaint" }));
+                }}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition"
               >
                 {showCompose ? <X className="size-4" /> : <Plus className="size-4" />}
-                {showCompose ? "إلغاء" : "منشور جديد"}
+                {showCompose ? "إلغاء" : canPostOfficial ? "منشور جديد" : "شكوى جديدة"}
               </button>
             )}
           </div>
@@ -312,8 +323,11 @@ function MajlisPage() {
         {/* Compose */}
         {showCompose && canPost && (
           <section className="card-surface p-5 space-y-3 animate-fade-up">
-            <div className="flex items-center gap-2 text-xs">
-              {(["discussion", "announcement"] as PostKind[]).map((k) => (
+            <div className="flex items-center gap-2 text-xs flex-wrap">
+              {((canPostOfficial
+                ? (["discussion", "announcement", "complaint"] as PostKind[])
+                : (["complaint"] as PostKind[]))
+              ).map((k) => (
                 <button
                   key={k}
                   onClick={() => setDraft((d) => ({ ...d, kind: k }))}
@@ -323,10 +337,16 @@ function MajlisPage() {
                       : "border-border text-muted-foreground hover:text-ivory"
                   }`}
                 >
-                  {k === "announcement" ? "إعلان رسمي" : "نقاش"}
+                  {k === "announcement" ? "إعلان رسمي" : k === "complaint" ? "شكوى (للمسؤولين فقط)" : "نقاش"}
                 </button>
               ))}
             </div>
+            {draft.kind === "complaint" && (
+              <p className="text-[11px] text-amber-400/80 flex items-center gap-1">
+                <ShieldAlert className="size-3.5" />
+                هذه الشكوى لن يطّلع عليها سوى المسؤولين والمشرفين.
+              </p>
+            )}
             <input
               value={draft.title}
               onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
@@ -377,7 +397,7 @@ function MajlisPage() {
                 <article
                   key={post.id}
                   className={`card-surface p-5 space-y-4 animate-fade-up ${
-                    isAnnouncement ? "border-gold-primary/30" : ""
+                    isAnnouncement ? "border-gold-primary/30" : post.kind === "complaint" ? "border-amber-500/30" : ""
                   }`}
                 >
                   <header className="flex items-start justify-between gap-3">
@@ -397,6 +417,11 @@ function MajlisPage() {
                           {isAnnouncement && (
                             <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold-primary/15 text-gold-primary border border-gold-primary/30">
                               إعلان رسمي
+                            </span>
+                          )}
+                          {post.kind === "complaint" && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
+                              <ShieldAlert className="size-3" /> شكوى — مرئية للمسؤولين فقط
                             </span>
                           )}
                           {post.pinned && (
