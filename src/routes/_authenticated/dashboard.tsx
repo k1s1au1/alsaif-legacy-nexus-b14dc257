@@ -251,6 +251,25 @@ function Dashboard() {
     setPinnedIdx(0);
   }, []);
 
+  const loadTasks = useCallback(async () => {
+    const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+    const { data } = await supabase
+      .from("tasks")
+      .select("id, title, status, assignee_id, created_by, created_at")
+      .or(`assignee_id.eq.${u.user.id},created_by.eq.${u.user.id}`)
+      .neq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    setTasks(
+      (data ?? []).map((t: any) => ({
+        id: t.id,
+        title: t.title,
+        pct: t.status === "in_progress" ? 50 : t.status === "done" ? 100 : 10,
+      })),
+    );
+  }, []);
+
   useEffect(() => {
     loadProfile();
     loadFund();
