@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { ArrowRight, Calendar, Eye, EyeOff, KeyRound, Loader2, Mail, Phone, User as UserIcon } from "lucide-react";
 import { getMemberCredential } from "@/lib/api/member-credentials.functions";
+import { PresenceDot, presenceFromLastSeen, presenceLabel } from "@/lib/presence";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/members/$userId")({
