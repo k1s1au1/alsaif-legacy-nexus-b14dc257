@@ -113,16 +113,14 @@ function AuthPage() {
   }
 
   return (
-    <div
-      className="min-h-screen relative overflow-hidden flex items-center justify-center px-4"
-      style={{
-        backgroundColor: "#2a1d10",
-        backgroundImage: `url(${authBg.url})`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-      }}
-    >
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 auth-bg">
+      {/* Responsive background image via <img> for object-position control */}
+      <img
+        src={authBg.url}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover -z-10 auth-bg-img"
+      />
       {/* Warm vignette to anchor the form */}
       <div
         className="absolute inset-0 pointer-events-none"
