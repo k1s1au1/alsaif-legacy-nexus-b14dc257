@@ -365,7 +365,7 @@ function ConversationRow({
         {item.conversation.kind === "group" ? (
           <Users className="size-5" strokeWidth={1.5} />
         ) : (
-          <UserAvatar path={otherAvatarPath} initial={initial} className="size-full" />
+          <UserAvatar path={otherAvatarPath} initial={initial} className="size-full" userId={other?.user_id ?? null} />
         )}
       </div>
       <div className="flex-1 min-w-0">
