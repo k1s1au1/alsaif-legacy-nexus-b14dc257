@@ -718,6 +718,7 @@ function ConversationRoute() {
                 path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null}
                 initial={initial}
                 className="size-full"
+                userId={otherInDirect?.user_id ?? null}
               />
             )}
           </div>
