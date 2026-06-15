@@ -202,6 +202,7 @@ export function AppShell({
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
+      setMyUserId(u.user.id);
       if (user.avatarPath === undefined) {
         const { data: p } = await supabase
           .from("profiles")
