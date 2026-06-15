@@ -38,12 +38,12 @@ export const setMemberParent = createServerFn({ method: "POST" })
         }
         if (seen.has(cursor)) break;
         seen.add(cursor);
-        const { data: row } = await supabase
+        const { data: row } = (await supabase
           .from("profiles")
-          .select("parent_id")
+          .select("parent_id" as any)
           .eq("id", cursor)
-          .maybeSingle();
-        cursor = (row?.parent_id as string | null) ?? null;
+          .maybeSingle()) as { data: { parent_id: string | null } | null };
+        cursor = row?.parent_id ?? null;
       }
     }
 
