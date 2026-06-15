@@ -682,6 +682,7 @@ export type Database = {
           grandfather_name: string | null
           id: string
           is_active: boolean
+          parent_id: string | null
           phone: string | null
           updated_at: string
         }
@@ -695,6 +696,7 @@ export type Database = {
           grandfather_name?: string | null
           id: string
           is_active?: boolean
+          parent_id?: string | null
           phone?: string | null
           updated_at?: string
         }
@@ -708,10 +710,19 @@ export type Database = {
           grandfather_name?: string | null
           id?: string
           is_active?: boolean
+          parent_id?: string | null
           phone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       tasks: {
         Row: {
