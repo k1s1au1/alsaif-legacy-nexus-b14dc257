@@ -307,7 +307,7 @@ function Dashboard() {
       supabase.removeChannel(channel);
       document.removeEventListener("visibilitychange", onVis);
     };
-  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip, loadPinned]);
+  }, [loadProfile, loadFund, loadMeeting, loadMessages, loadTrip, loadPinned, loadTasks]);
 
   const meetingDate = nextMeeting ? new Date(nextMeeting.scheduled_at) : null;
 
