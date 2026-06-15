@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { ArrowRight, Calendar, Eye, EyeOff, KeyRound, Loader2, Mail, Phone, User as UserIcon } from "lucide-react";
 import { getMemberCredential } from "@/lib/api/member-credentials.functions";
+import { PresenceDot, presenceFromLastSeen, presenceLabel } from "@/lib/presence";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/members/$userId")({
@@ -46,6 +47,7 @@ function MemberProfilePage() {
   const [credential, setCredential] = useState<{ email: string | null; password: string | null } | null>(null);
   const [credLoading, setCredLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
+  const [lastSeen, setLastSeen] = useState<string | null>(null);
   const fetchCredential = useServerFn(getMemberCredential);
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
@@ -99,7 +101,32 @@ function MemberProfilePage() {
       }
       setLoading(false);
     })();
+
+    const loadPresence = async () => {
+      const { data } = await supabase
+        .from("user_presence")
+        .select("last_seen_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      setLastSeen(data?.last_seen_at ?? null);
+    };
+    loadPresence();
+    const channel = supabase
+      .channel(`presence-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_presence", filter: `user_id=eq.${userId}` },
+        loadPresence,
+      )
+      .subscribe();
+    const tick = window.setInterval(loadPresence, 30_000);
+    return () => {
+      supabase.removeChannel(channel);
+      window.clearInterval(tick);
+    };
   }, [userId]);
+
+  const presenceState = presenceFromLastSeen(lastSeen);
 
   const displayName =
     profile?.arabic_name?.trim() ||
@@ -135,7 +162,7 @@ function MemberProfilePage() {
         ) : (
           <>
             <section className="card-surface p-8 flex flex-col sm:flex-row items-center gap-6 animate-fade-up">
-              <div className="size-24 rounded-full ring-2 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
+              <div className="relative size-24 rounded-full ring-2 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
                 <UserAvatar
                   path={profile.avatar_url}
                   name={displayName}
@@ -143,10 +170,15 @@ function MemberProfilePage() {
                   className="size-full"
                   fallbackClassName="text-3xl text-gold-primary font-medium"
                 />
+                <PresenceDot state={presenceState} className="absolute bottom-1 left-1 size-3.5" />
               </div>
               <div className="text-center sm:text-right">
                 <h2 className="text-2xl font-medium text-ivory">{displayName}</h2>
                 <p className="text-sm text-gold-primary/80 mt-1">{roleLabel(role)}</p>
+                <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <PresenceDot state={presenceState} withRing={false} className="size-2" />
+                  <span>{presenceLabel(presenceState)}</span>
+                </div>
                 {profile.full_name && profile.arabic_name && (
                   <p className="text-xs text-muted-foreground mt-1">{profile.full_name}</p>
                 )}

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Loader2, Search, Users } from "lucide-react";
+import { PresenceDot, presenceFromLastSeen, type PresenceState } from "@/lib/presence";
 
 export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
@@ -26,6 +27,8 @@ type MemberRow = {
 function MembersPage() {
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [presence, setPresence] = useState<Record<string, string>>({});
+  const [, setTick] = useState(0);
   const [q, setQ] = useState("");
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
@@ -52,6 +55,29 @@ function MembersPage() {
       }
       setLoading(false);
     })();
+
+    const loadPresence = async () => {
+      const { data } = await supabase.from("user_presence").select("user_id, last_seen_at");
+      if (data) {
+        const map: Record<string, string> = {};
+        for (const r of data) map[r.user_id] = r.last_seen_at;
+        setPresence(map);
+      }
+    };
+    loadPresence();
+
+    const channel = supabase
+      .channel("members-presence")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_presence" }, loadPresence)
+      .subscribe();
+
+    // Re-render every 30s so dots transition online -> idle -> offline.
+    const tickId = window.setInterval(() => setTick((t) => t + 1), 30_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.clearInterval(tickId);
+    };
   }, []);
 
   const filtered = members.filter((m) => {
@@ -94,6 +120,7 @@ function MembersPage() {
             <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filtered.map((m) => {
                 const displayName = m.arabic_name?.trim() || m.full_name?.trim() || "عضو";
+                const state: PresenceState = presenceFromLastSeen(presence[m.id]);
                 return (
                   <li key={m.id}>
                     <Link
@@ -101,13 +128,14 @@ function MembersPage() {
                       params={{ userId: m.id }}
                       className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-border hover:border-gold-primary/40 hover:bg-background/60 transition"
                     >
-                      <div className="size-12 rounded-full ring-1 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
+                      <div className="relative size-12 rounded-full ring-1 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
                         <UserAvatar
                           path={m.avatar_url}
                           name={displayName}
                           className="size-full"
                           fallbackClassName="text-lg text-gold-primary"
                         />
+                        <PresenceDot state={state} className="absolute -bottom-0.5 -left-0.5" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm text-ivory truncate">{displayName}</p>

@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
+import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
 import {
   DropdownMenu,
@@ -128,6 +129,8 @@ export function AppShell({
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const queryClient = useQueryClient();
+
+  usePresenceHeartbeat();
 
   const loadUnreadNotifications = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
