@@ -935,7 +935,7 @@ export type Database = {
         | "other"
       fund_tx_type: "contribution" | "expense"
       group_send_permission: "all" | "admins" | "selected"
-      majlis_post_kind: "announcement" | "discussion"
+      majlis_post_kind: "announcement" | "discussion" | "complaint"
       meeting_rsvp: "going" | "not_going" | "maybe"
       meeting_status: "scheduled" | "cancelled" | "completed"
       message_kind: "text" | "image" | "video" | "audio" | "file"
@@ -1088,7 +1088,7 @@ export const Constants = {
       ],
       fund_tx_type: ["contribution", "expense"],
       group_send_permission: ["all", "admins", "selected"],
-      majlis_post_kind: ["announcement", "discussion"],
+      majlis_post_kind: ["announcement", "discussion", "complaint"],
       meeting_rsvp: ["going", "not_going", "maybe"],
       meeting_status: ["scheduled", "cancelled", "completed"],
       message_kind: ["text", "image", "video", "audio", "file"],
