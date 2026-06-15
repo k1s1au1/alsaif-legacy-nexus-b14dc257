@@ -231,7 +231,7 @@ export function NotificationsBell() {
   }, [load]);
 
   const iconFor = (k: NotifKind) =>
-    k === "message" ? MessageCircle : k === "meeting" ? CalendarDays : UserPlus;
+    k === "message" ? MessageCircle : k === "meeting" ? CalendarDays : k === "task" ? ListChecks : UserPlus;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
