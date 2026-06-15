@@ -291,7 +291,50 @@ export function AppShell({
           </span>
         </div>
 
-...
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+          {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
+            const active = path === to || path.startsWith(to + "/");
+            const badgeCount = navBadges[to] ?? 0;
+            return (
+              <Link
+                key={to}
+                to={to}
+                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
+                  active
+                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                    : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
+                }`}
+              >
+                <div className="relative">
+                  <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+                  {badgeCount > 0 && (
+                    <span className="absolute -top-1.5 -left-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-gold-primary text-navy-base text-[8px] font-bold grid place-items-center leading-none">
+                      {badgeCount > 99 ? "99+" : badgeCount}
+                    </span>
+                  )}
+                </div>
+                <span className="hidden lg:block mr-3 font-medium">{label}</span>
+                {badgeCount > 0 && (
+                  <span className="hidden lg:flex mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center">
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 border-t border-border">
+          <button
+            onClick={signOut}
+            className="w-full flex items-center justify-center lg:justify-start lg:px-3 py-2 text-xs text-muted-foreground hover:text-gold-primary transition-colors rounded-lg"
+          >
+            <LogOut className="size-4" strokeWidth={1.5} />
+            <span className="hidden lg:block mr-3">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
+
 
       {/* Main */}
       <main
