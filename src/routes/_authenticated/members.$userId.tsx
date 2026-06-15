@@ -101,7 +101,32 @@ function MemberProfilePage() {
       }
       setLoading(false);
     })();
+
+    const loadPresence = async () => {
+      const { data } = await supabase
+        .from("user_presence")
+        .select("last_seen_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      setLastSeen(data?.last_seen_at ?? null);
+    };
+    loadPresence();
+    const channel = supabase
+      .channel(`presence-${userId}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "user_presence", filter: `user_id=eq.${userId}` },
+        loadPresence,
+      )
+      .subscribe();
+    const tick = window.setInterval(loadPresence, 30_000);
+    return () => {
+      supabase.removeChannel(channel);
+      window.clearInterval(tick);
+    };
   }, [userId]);
+
+  const presenceState = presenceFromLastSeen(lastSeen);
 
   const displayName =
     profile?.arabic_name?.trim() ||
