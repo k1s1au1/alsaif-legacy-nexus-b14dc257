@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell, MessageCircle, CalendarDays, UserPlus, Inbox } from "lucide-react";
+import { Bell, MessageCircle, CalendarDays, UserPlus, Inbox, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type NotifKind = "message" | "meeting" | "account_request";
+type NotifKind = "message" | "meeting" | "account_request" | "task";
 type Notif = {
   id: string;
   kind: NotifKind;
@@ -183,6 +183,25 @@ export function NotificationsBell() {
       }
     }
 
+    // 4) Tasks assigned to the current user (not done)
+    const { data: myTasks } = await supabase
+      .from("tasks")
+      .select("id,title,status,priority,due_date,created_at,created_by")
+      .eq("assignee_id", userId)
+      .neq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    for (const t of myTasks ?? []) {
+      out.push({
+        id: `task-${t.id}`,
+        kind: "task",
+        title: "مهمة جديدة موكلة إليك",
+        description: t.title,
+        href: "/tasks",
+        at: t.created_at,
+      });
+    }
+
     out.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
     setItems(out);
     setCount(out.length);
@@ -197,6 +216,7 @@ export function NotificationsBell() {
       .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "meeting_attendees" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "account_requests" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, load)
       .subscribe();
     const onVis = () => {
       if (document.visibilityState === "visible") load();
@@ -211,7 +231,7 @@ export function NotificationsBell() {
   }, [load]);
 
   const iconFor = (k: NotifKind) =>
-    k === "message" ? MessageCircle : k === "meeting" ? CalendarDays : UserPlus;
+    k === "message" ? MessageCircle : k === "meeting" ? CalendarDays : k === "task" ? ListChecks : UserPlus;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
@@ -261,7 +281,9 @@ export function NotificationsBell() {
                         ? "bg-gold-primary/10 text-gold-primary"
                         : n.kind === "meeting"
                           ? "bg-emerald-500/10 text-emerald-400"
-                          : "bg-sky-500/10 text-sky-400"
+                          : n.kind === "task"
+                            ? "bg-violet-500/10 text-violet-400"
+                            : "bg-sky-500/10 text-sky-400"
                     }`}
                   >
                     <Icon className="size-4" strokeWidth={1.5} />
