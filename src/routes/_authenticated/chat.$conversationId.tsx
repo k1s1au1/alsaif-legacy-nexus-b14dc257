@@ -1082,6 +1082,7 @@ function MessageBubble({
             path={profiles[m.sender_id]?.avatar_url ?? null}
             initial={initial}
             className="size-full"
+            userId={m.sender_id}
           />
         </div>
       )}
