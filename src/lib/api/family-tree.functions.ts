@@ -52,7 +52,7 @@ export const setMemberParent = createServerFn({ method: "POST" })
     );
     const { error } = await supabaseAdmin
       .from("profiles")
-      .update({ parent_id: data.parentId })
+      .update({ parent_id: data.parentId } as any)
       .eq("id", data.userId);
     if (error) throw new Error(error.message);
 
