@@ -132,6 +132,9 @@ function AuthPage() {
     }
     setForgotSent(true);
     toast.success("تم إرسال رابط إعادة التعيين");
+  }
+
+
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 auth-bg">
