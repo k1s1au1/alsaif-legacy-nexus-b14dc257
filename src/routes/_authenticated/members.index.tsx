@@ -55,6 +55,29 @@ function MembersPage() {
       }
       setLoading(false);
     })();
+
+    const loadPresence = async () => {
+      const { data } = await supabase.from("user_presence").select("user_id, last_seen_at");
+      if (data) {
+        const map: Record<string, string> = {};
+        for (const r of data) map[r.user_id] = r.last_seen_at;
+        setPresence(map);
+      }
+    };
+    loadPresence();
+
+    const channel = supabase
+      .channel("members-presence")
+      .on("postgres_changes", { event: "*", schema: "public", table: "user_presence" }, loadPresence)
+      .subscribe();
+
+    // Re-render every 30s so dots transition online -> idle -> offline.
+    const tickId = window.setInterval(() => setTick((t) => t + 1), 30_000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      window.clearInterval(tickId);
+    };
   }, []);
 
   const filtered = members.filter((m) => {
