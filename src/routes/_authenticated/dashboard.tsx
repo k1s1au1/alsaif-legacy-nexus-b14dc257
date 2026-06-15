@@ -298,6 +298,7 @@ function Dashboard() {
         loadMessages();
         loadTrip();
         loadPinned();
+        loadTasks();
       }
     };
     document.addEventListener("visibilitychange", onVis);
