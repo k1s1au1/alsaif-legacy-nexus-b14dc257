@@ -19,6 +19,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMajlisRouteImport } from './routes/_authenticated/majlis'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
+import { Route as AuthenticatedFamilyTreeRouteImport } from './routes/_authenticated/family-tree'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedChatRouteImport } from './routes/_authenticated/chat'
@@ -78,6 +79,11 @@ const AuthenticatedMajlisRoute = AuthenticatedMajlisRouteImport.update({
 const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
   id: '/finance',
   path: '/finance',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedFamilyTreeRoute = AuthenticatedFamilyTreeRouteImport.update({
+  id: '/family-tree',
+  path: '/family-tree',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
@@ -149,6 +155,7 @@ export interface FileRoutesByFullPath {
   '/chat': typeof AuthenticatedChatRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/events': typeof AuthenticatedEventsRoute
+  '/family-tree': typeof AuthenticatedFamilyTreeRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/majlis': typeof AuthenticatedMajlisRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -170,6 +177,7 @@ export interface FileRoutesByTo {
   '/archive': typeof AuthenticatedArchiveRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/events': typeof AuthenticatedEventsRoute
+  '/family-tree': typeof AuthenticatedFamilyTreeRoute
   '/finance': typeof AuthenticatedFinanceRoute
   '/majlis': typeof AuthenticatedMajlisRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
@@ -194,6 +202,7 @@ export interface FileRoutesById {
   '/_authenticated/chat': typeof AuthenticatedChatRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/events': typeof AuthenticatedEventsRoute
+  '/_authenticated/family-tree': typeof AuthenticatedFamilyTreeRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
   '/_authenticated/majlis': typeof AuthenticatedMajlisRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
@@ -218,6 +227,7 @@ export interface FileRouteTypes {
     | '/chat'
     | '/dashboard'
     | '/events'
+    | '/family-tree'
     | '/finance'
     | '/majlis'
     | '/meetings'
@@ -239,6 +249,7 @@ export interface FileRouteTypes {
     | '/archive'
     | '/dashboard'
     | '/events'
+    | '/family-tree'
     | '/finance'
     | '/majlis'
     | '/meetings'
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat'
     | '/_authenticated/dashboard'
     | '/_authenticated/events'
+    | '/_authenticated/family-tree'
     | '/_authenticated/finance'
     | '/_authenticated/majlis'
     | '/_authenticated/meetings'
@@ -353,6 +365,13 @@ declare module '@tanstack/react-router' {
       path: '/finance'
       fullPath: '/finance'
       preLoaderRoute: typeof AuthenticatedFinanceRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/family-tree': {
+      id: '/_authenticated/family-tree'
+      path: '/family-tree'
+      fullPath: '/family-tree'
+      preLoaderRoute: typeof AuthenticatedFamilyTreeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/events': {
@@ -454,6 +473,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedChatRoute: typeof AuthenticatedChatRouteWithChildren
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
+  AuthenticatedFamilyTreeRoute: typeof AuthenticatedFamilyTreeRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
   AuthenticatedMajlisRoute: typeof AuthenticatedMajlisRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
@@ -472,6 +492,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedChatRoute: AuthenticatedChatRouteWithChildren,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
+  AuthenticatedFamilyTreeRoute: AuthenticatedFamilyTreeRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
   AuthenticatedMajlisRoute: AuthenticatedMajlisRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,

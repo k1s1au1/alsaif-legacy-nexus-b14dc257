@@ -111,6 +111,8 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge
   { to: "/archive", label: "الأرشيف", icon: Archive },
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
   { to: "/members", label: "الأعضاء", icon: Users },
+  { to: "/family-tree", label: "شجرة العائلة", icon: Users },
+
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
 
