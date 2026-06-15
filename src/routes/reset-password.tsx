@@ -127,7 +127,18 @@ function ResetPasswordPage() {
           أدخل كلمة مرور جديدة للحساب
         </p>
 
-        {!ready ? (
+        {error ? (
+          <div className="text-center text-sm text-red-300 py-4 space-y-3">
+            <p>تعذّر التحقق من رابط إعادة التعيين</p>
+            <p className="text-xs text-muted-foreground">{error}</p>
+            <button
+              onClick={() => navigate({ to: "/auth", replace: true })}
+              className="text-xs text-gold-primary underline"
+            >
+              العودة لتسجيل الدخول
+            </button>
+          </div>
+        ) : !ready ? (
           <div className="text-center text-sm text-muted-foreground py-6">
             <Loader2 className="size-5 animate-spin mx-auto mb-3" />
             جاري التحقق من رابط إعادة التعيين...
