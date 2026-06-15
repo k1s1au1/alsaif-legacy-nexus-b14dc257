@@ -261,6 +261,58 @@ function AuthPage() {
               </button>
             </div>
           </>
+        ) : mode === "forgot" ? (
+          forgotSent ? (
+            <div className="text-center space-y-4 py-4">
+              <h2 className="text-lg text-ivory">تم إرسال البريد</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                إذا كان البريد مسجلاً لدينا، فستصلك رسالة فيها رابط لإعادة تعيين كلمة المرور خلال دقائق.
+              </p>
+              <button
+                onClick={() => { setMode("login"); setForgotSent(false); setForgotEmail(""); }}
+                className="inline-flex items-center gap-2 text-sm text-gold-primary hover:underline"
+              >
+                <ArrowRight className="size-4" />
+                العودة إلى تسجيل الدخول
+              </button>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-muted-foreground text-center max-w-[30ch] mx-auto leading-relaxed mb-6">
+                أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.
+              </p>
+              <form onSubmit={onSubmitForgot} className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-xs text-muted-foreground" htmlFor="forgotEmail">البريد الإلكتروني</label>
+                  <input
+                    id="forgotEmail"
+                    type="email"
+                    required
+                    dir="ltr"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                    className="w-full bg-input/60 border border-border rounded-lg px-4 py-3 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-ring text-right"
+                    placeholder="name@alsaif.family"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={forgotLoading}
+                  className="w-full py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                >
+                  {forgotLoading && <Loader2 className="size-4 animate-spin" />}
+                  إرسال رابط الإعادة
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("login")}
+                  className="w-full text-xs text-muted-foreground hover:text-ivory transition pt-1"
+                >
+                  العودة إلى تسجيل الدخول
+                </button>
+              </form>
+            </>
+          )
         ) : submitted ? (
           <div className="text-center space-y-4 py-4">
             <div className="size-12 mx-auto rounded-full bg-gold-primary/10 ring-1 ring-gold-primary/30 grid place-items-center">
