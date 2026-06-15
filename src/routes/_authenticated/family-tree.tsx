@@ -156,9 +156,10 @@ function FamilyTreePage() {
         >
           <UserAvatar
             name={displayName(m)}
-            avatarPath={m.avatar_url}
-            size="sm"
+            path={m.avatar_url}
+            className="size-8"
           />
+
           <div className="flex flex-col text-right">
             <span className="text-sm font-medium text-ivory leading-tight">
               {m.first_name || "—"}
