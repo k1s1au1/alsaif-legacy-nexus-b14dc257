@@ -28,6 +28,7 @@ export type Database = {
           reviewed_at: string | null
           reviewed_by: string | null
           status: Database["public"]["Enums"]["account_request_status"]
+          terms_accepted: boolean
           updated_at: string
         }
         Insert: {
@@ -43,6 +44,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["account_request_status"]
+          terms_accepted?: boolean
           updated_at?: string
         }
         Update: {
@@ -58,6 +60,7 @@ export type Database = {
           reviewed_at?: string | null
           reviewed_by?: string | null
           status?: Database["public"]["Enums"]["account_request_status"]
+          terms_accepted?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -684,6 +687,7 @@ export type Database = {
           is_active: boolean
           parent_id: string | null
           phone: string | null
+          terms_accepted_at: string | null
           updated_at: string
         }
         Insert: {
@@ -698,6 +702,7 @@ export type Database = {
           is_active?: boolean
           parent_id?: string | null
           phone?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -712,6 +717,7 @@ export type Database = {
           is_active?: boolean
           parent_id?: string | null
           phone?: string | null
+          terms_accepted_at?: string | null
           updated_at?: string
         }
         Relationships: [
