@@ -279,12 +279,14 @@ export function AppShell({
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Right Navigation Rail (RTL) */}
-      <aside className="fixed inset-y-0 right-0 w-20 lg:w-64 bg-card/60 border-l border-border backdrop-blur-xl z-50 flex flex-col">
+      <aside
+        className={cn(
+          "fixed inset-y-0 right-0 bg-card/60 border-l border-border backdrop-blur-xl z-50 flex flex-col transition-all duration-300",
+          sidebarOpen ? "w-20 lg:w-64" : "w-0 overflow-hidden border-l-0",
+        )}
+      >
         <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-border">
-          <div className="size-10 bg-gold-primary/10 ring-1 ring-gold-primary/30 rounded-lg grid place-items-center">
-            <span className="text-gold-primary text-xl font-semibold select-none">ص</span>
-          </div>
-          <span className="hidden lg:block mr-4 text-xl font-medium tracking-wide text-gold-primary">
+          <span className="hidden lg:block text-xl font-medium tracking-wide text-gold-primary">
             السيف
           </span>
         </div>
@@ -333,10 +335,25 @@ export function AppShell({
         </div>
       </aside>
 
+
       {/* Main */}
-      <main className="mr-20 lg:mr-64 min-h-screen pb-16">
+      <main
+        className={cn(
+          "min-h-screen pb-16 transition-all duration-300",
+          sidebarOpen ? "mr-20 lg:mr-64" : "mr-0",
+        )}
+      >
         <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between">
-          <h1 className="text-lg font-medium tracking-tight">{title}</h1>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setSidebarOpen((v) => !v)}
+              aria-label={sidebarOpen ? "إخفاء القائمة" : "إظهار القائمة"}
+              className="size-10 grid place-items-center rounded-lg bg-gold-primary/10 ring-1 ring-gold-primary/30 text-gold-primary hover:bg-gold-primary/20 transition-colors"
+            >
+              <Menu className="size-5" strokeWidth={1.5} />
+            </button>
+            <h1 className="text-lg font-medium tracking-tight">{title}</h1>
+          </div>
           <div className="flex items-center gap-6">
             <NotificationsBell />
 
