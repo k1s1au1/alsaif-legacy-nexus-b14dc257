@@ -4,6 +4,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, UserPlus, ArrowRight } from "lucide-react";
+import authBg from "@/assets/alsaif-auth-bg.png.asset.json";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -115,15 +116,19 @@ function AuthPage() {
     <div
       className="min-h-screen relative overflow-hidden flex items-center justify-center px-4"
       style={{
-        background:
-          "radial-gradient(ellipse at top, #0f2e26 0%, #0a1f1a 55%, #061511 100%)",
+        backgroundColor: "#2a1d10",
+        backgroundImage: `url(${authBg.url})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
       }}
     >
+      {/* Warm vignette to anchor the form */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
           background:
-            "radial-gradient(circle at 25% 15%, rgba(212,175,55,0.20), transparent 55%), radial-gradient(circle at 80% 85%, rgba(212,175,55,0.10), transparent 55%), radial-gradient(circle at 50% 50%, rgba(15,90,72,0.25), transparent 60%)",
+            "radial-gradient(ellipse at center, rgba(20,12,4,0.15) 0%, rgba(20,12,4,0.55) 75%, rgba(10,6,2,0.78) 100%)",
         }}
       />
 
@@ -131,10 +136,10 @@ function AuthPage() {
         className="relative w-full max-w-md p-10 animate-fade-up rounded-2xl backdrop-blur-xl"
         style={{
           background:
-            "linear-gradient(160deg, rgba(15,46,38,0.85) 0%, rgba(10,31,26,0.92) 100%)",
-          border: "1px solid rgba(212,175,55,0.28)",
+            "linear-gradient(160deg, rgba(38,26,14,0.78) 0%, rgba(24,16,8,0.88) 100%)",
+          border: "1px solid rgba(212,175,90,0.35)",
           boxShadow:
-            "0 30px 80px -20px rgba(0,0,0,0.6), 0 0 0 1px rgba(212,175,55,0.08), inset 0 1px 0 rgba(212,175,55,0.15)",
+            "0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,175,90,0.10), inset 0 1px 0 rgba(245,222,179,0.18)",
         }}
       >
         <div className="flex flex-col items-center text-center mb-8">
