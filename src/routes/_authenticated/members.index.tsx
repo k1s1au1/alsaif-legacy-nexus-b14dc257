@@ -120,6 +120,7 @@ function MembersPage() {
             <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filtered.map((m) => {
                 const displayName = m.arabic_name?.trim() || m.full_name?.trim() || "عضو";
+                const state: PresenceState = presenceFromLastSeen(presence[m.id]);
                 return (
                   <li key={m.id}>
                     <Link
@@ -127,13 +128,14 @@ function MembersPage() {
                       params={{ userId: m.id }}
                       className="flex items-center gap-3 p-3 rounded-lg bg-background/40 border border-border hover:border-gold-primary/40 hover:bg-background/60 transition"
                     >
-                      <div className="size-12 rounded-full ring-1 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
+                      <div className="relative size-12 rounded-full ring-1 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
                         <UserAvatar
                           path={m.avatar_url}
                           name={displayName}
                           className="size-full"
                           fallbackClassName="text-lg text-gold-primary"
                         />
+                        <PresenceDot state={state} className="absolute -bottom-0.5 -left-0.5" />
                       </div>
                       <div className="min-w-0">
                         <p className="text-sm text-ivory truncate">{displayName}</p>
