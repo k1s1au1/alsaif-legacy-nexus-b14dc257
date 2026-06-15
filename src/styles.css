@@ -64,6 +64,12 @@
   --saudi-red: #c8102e;
   --saudi-red-soft: #e23a4f;
 
+  /* Luxury gold accent */
+  --luxury-gold: #c5a050;
+  --luxury-gold-light: #e8d5a3;
+  --luxury-gold-dark: #a08040;
+  --luxury-glow: rgba(197, 160, 80, 0.35);
+
   /* Semantic — light "paper" theme */
   --background: #f7f3ea;
   --foreground: #1a1a1a;
@@ -174,6 +180,35 @@
     border-color: color-mix(in oklab, var(--gold-primary) 50%, transparent);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-primary) 12%, transparent);
   }
+}
+
+/* Luxury gold gradients & effects */
+@utility btn-gold {
+  background: linear-gradient(135deg, var(--luxury-gold) 0%, var(--luxury-gold-dark) 100%);
+  color: #1a1a1a;
+  box-shadow: 0 4px 16px -4px var(--luxury-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -4px var(--luxury-glow), inset 0 1px 0 rgba(255,255,255,0.35);
+  }
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 8px -2px var(--luxury-glow);
+  }
+}
+
+@utility gold-icon-glow {
+  background: linear-gradient(135deg, var(--luxury-gold-light) 0%, var(--luxury-gold) 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 4px var(--luxury-glow));
+}
+
+@utility ring-gold-luxury {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--luxury-gold) 30%, transparent),
+              0 0 20px -4px color-mix(in oklab, var(--luxury-gold) 25%, transparent);
 }
 
 
