@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
+import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
 import {
   DropdownMenu,
