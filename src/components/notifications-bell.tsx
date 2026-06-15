@@ -216,6 +216,7 @@ export function NotificationsBell() {
       .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "meeting_attendees" }, load)
       .on("postgres_changes", { event: "*", schema: "public", table: "account_requests" }, load)
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, load)
       .subscribe();
     const onVis = () => {
       if (document.visibilityState === "visible") load();
