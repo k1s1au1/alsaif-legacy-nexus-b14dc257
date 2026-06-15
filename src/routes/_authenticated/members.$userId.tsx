@@ -162,7 +162,7 @@ function MemberProfilePage() {
         ) : (
           <>
             <section className="card-surface p-8 flex flex-col sm:flex-row items-center gap-6 animate-fade-up">
-              <div className="size-24 rounded-full ring-2 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
+              <div className="relative size-24 rounded-full ring-2 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden shrink-0">
                 <UserAvatar
                   path={profile.avatar_url}
                   name={displayName}
@@ -170,10 +170,15 @@ function MemberProfilePage() {
                   className="size-full"
                   fallbackClassName="text-3xl text-gold-primary font-medium"
                 />
+                <PresenceDot state={presenceState} className="absolute bottom-1 left-1 size-3.5" />
               </div>
               <div className="text-center sm:text-right">
                 <h2 className="text-2xl font-medium text-ivory">{displayName}</h2>
                 <p className="text-sm text-gold-primary/80 mt-1">{roleLabel(role)}</p>
+                <div className="mt-2 inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <PresenceDot state={presenceState} withRing={false} className="size-2" />
+                  <span>{presenceLabel(presenceState)}</span>
+                </div>
                 {profile.full_name && profile.arabic_name && (
                   <p className="text-xs text-muted-foreground mt-1">{profile.full_name}</p>
                 )}
