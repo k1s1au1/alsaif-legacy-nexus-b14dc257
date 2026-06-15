@@ -19,19 +19,71 @@ function ResetPasswordPage() {
   const [password2, setPassword2] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    // Supabase recovery links arrive with #access_token=...&type=recovery
-    // The client auto-parses the hash and fires PASSWORD_RECOVERY.
+    let cancelled = false;
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
-      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
+      if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN" || event === "USER_UPDATED") {
         setReady(true);
       }
     });
-    // Also check existing session in case event fired before mount
-    supabase.auth.getSession().then(({ data }) => {
-      if (data.session) setReady(true);
-    });
-    return () => sub.subscription.unsubscribe();
+
+    (async () => {
+      try {
+        const url = new URL(window.location.href);
+        const code = url.searchParams.get("code");
+        const hash = window.location.hash.startsWith("#")
+          ? window.location.hash.slice(1)
+          : "";
+        const hashParams = new URLSearchParams(hash);
+        const errDesc = url.searchParams.get("error_description") || hashParams.get("error_description");
+        if (errDesc) {
+          if (!cancelled) setError(decodeURIComponent(errDesc));
+          return;
+        }
+
+        if (code) {
+          const { error } = await supabase.auth.exchangeCodeForSession(code);
+          if (!cancelled) {
+            if (error) setError(error.message);
+            else setReady(true);
+          }
+          return;
+        }
+
+        const accessToken = hashParams.get("access_token");
+        const refreshToken = hashParams.get("refresh_token");
+        if (accessToken && refreshToken) {
+          const { error } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: refreshToken,
+          });
+          if (!cancelled) {
+            if (error) setError(error.message);
+            else setReady(true);
+          }
+          return;
+        }
+
+        const { data } = await supabase.auth.getSession();
+        if (!cancelled && data.session) setReady(true);
+        else if (!cancelled) {
+          // Fallback after a short wait so the form still shows
+          setTimeout(() => {
+            if (!cancelled) setReady(true);
+          }, 1500);
+        }
+      } catch (e) {
+        if (!cancelled) setError((e as Error).message);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   async function onSubmit(e: React.FormEvent) {
