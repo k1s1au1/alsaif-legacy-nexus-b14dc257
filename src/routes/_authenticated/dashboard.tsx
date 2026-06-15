@@ -288,6 +288,7 @@ function Dashboard() {
       .on("postgres_changes", { event: "*", schema: "public", table: "trips" }, () => loadTrip())
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees" }, () => loadTrip())
       .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadPinned())
+      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => loadTasks())
       .subscribe();
 
     const onVis = () => {
