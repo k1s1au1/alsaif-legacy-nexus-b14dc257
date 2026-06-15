@@ -75,15 +75,22 @@ export function NotificationsBell() {
       );
       const { data: msgs } = await supabase
         .from("messages")
-        .select("id,conversation_id,content,created_at,sender_id")
+        .select("id,conversation_id,body,created_at,sender_id")
         .in("conversation_id", [...readMap.keys()])
         .neq("sender_id", userId)
         .order("created_at", { ascending: false })
         .limit(200);
-      const unread = (msgs ?? []).filter(
+      type MsgRow = {
+        id: string;
+        conversation_id: string;
+        body: string | null;
+        created_at: string;
+        sender_id: string;
+      };
+      const unread = ((msgs ?? []) as MsgRow[]).filter(
         (m) => new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0),
       );
-      const byConv = new Map<string, { count: number; last: typeof unread[0] }>();
+      const byConv = new Map<string, { count: number; last: MsgRow }>();
       for (const m of unread) {
         const cur = byConv.get(m.conversation_id);
         if (!cur) byConv.set(m.conversation_id, { count: 1, last: m });
@@ -111,7 +118,7 @@ export function NotificationsBell() {
             c?.kind === "group"
               ? c?.title || "محادثة جماعية"
               : senderName || "رسالة جديدة";
-          const preview = (info.last.content ?? "").slice(0, 60) || "📎 مرفق";
+          const preview = (info.last.body ?? "").slice(0, 60) || "📎 مرفق";
           out.push({
             id: `msg-${convId}`,
             kind: "message",
