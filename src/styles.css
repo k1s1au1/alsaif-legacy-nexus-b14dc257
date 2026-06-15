@@ -52,45 +52,46 @@
 }
 
 :root {
-  /* Brand raw values — Saudi heritage: deep green + red on ivory paper */
-  --navy-base: #f7f3ea;
-  --navy-card: #ffffff;
-  --navy-elev: #f0ebdc;
-  --gold-primary: #16613a; /* heritage green (kept var name for compatibility) */
-  --gold-soft: #1f7a48;
-  --ivory: #1a1a1a;
+  /* Brand raw values — Saudi heritage palette (STRICT) */
+  --navy-base: #F5F5F5;     /* page bg */
+  --navy-card: #FFFFFF;     /* card bg */
+  --navy-elev: #EAEAEA;     /* elevated surface */
+  --gold-primary: #0F5A3A;  /* primary Saudi green (kept var name for compat) */
+  --gold-soft: #0B472D;     /* dark green */
+  --ivory: #1A1A1A;         /* primary text */
 
   /* Saudi red accent */
-  --saudi-red: #c8102e;
-  --saudi-red-soft: #e23a4f;
+  --saudi-red: #C62828;
+  --saudi-red-soft: #E23A4F;
 
-  /* Luxury gold accent */
-  --luxury-gold: #c5a050;
-  --luxury-gold-light: #e8d5a3;
-  --luxury-gold-dark: #a08040;
-  --luxury-glow: rgba(197, 160, 80, 0.35);
+  /* Legacy "luxury" tokens mapped to heritage green for backward compat */
+  --luxury-gold: #0F5A3A;
+  --luxury-gold-light: #1F7A48;
+  --luxury-gold-dark: #0B472D;
+  --luxury-glow: rgba(15, 90, 58, 0.25);
 
-  /* Semantic — light "paper" theme */
-  --background: #f7f3ea;
-  --foreground: #1a1a1a;
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-  --primary: #16613a;
-  --primary-foreground: #f7f3ea;
-  --secondary: #f0ebdc;
-  --secondary-foreground: #1a1a1a;
-  --muted: #f0ebdc;
-  --muted-foreground: rgba(26, 26, 26, 0.6);
-  --accent: #fdecef;
-  --accent-foreground: #c8102e;
-  --destructive: #c8102e;
-  --destructive-foreground: #f7f3ea;
-  --border: rgba(22, 97, 58, 0.15);
-  --input: rgba(26, 26, 26, 0.06);
-  --ring: rgba(22, 97, 58, 0.4);
+  /* Semantic — light heritage theme */
+  --background: #F5F5F5;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary: #0F5A3A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EAEAEA;
+  --secondary-foreground: #1A1A1A;
+  --muted: #EAEAEA;
+  --muted-foreground: #666666;
+  --accent: #FDECEF;
+  --accent-foreground: #C62828;
+  --destructive: #C62828;
+  --destructive-foreground: #FFFFFF;
+  --border: #EAEAEA;
+  --input: #FFFFFF;
+  --ring: rgba(15, 90, 58, 0.35);
 }
+
 
 /* Light mode — ivory paper + navy ink */
 .light {
