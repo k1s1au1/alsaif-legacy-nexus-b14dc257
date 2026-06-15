@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/majlis")({
   component: MajlisPage,
 });
 
-type PostKind = "announcement" | "discussion";
+type PostKind = "announcement" | "discussion" | "complaint";
 
 type Profile = {
   id: string;
@@ -90,7 +90,10 @@ function MajlisPage() {
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [showCompose, setShowCompose] = useState(false);
   const [draft, setDraft] = useState({ kind: "discussion" as PostKind, title: "", body: "" });
+  // members without admin/manager can only post complaints
+
   const [filter, setFilter] = useState<"all" | PostKind>("all");
+
 
   const loadProfiles = useCallback(async (ids: string[]) => {
     if (!ids.length) return;
