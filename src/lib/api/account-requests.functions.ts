@@ -25,7 +25,9 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (reqErr || !req) throw new Error("الطلب غير موجود");
-    if (req.status === "approved") return { ok: true, alreadyApproved: true };
+    // Note: do NOT early-return on already-approved. We re-run creation so that
+    // requests that were marked approved but whose auth user creation failed
+    // (silently) can still be activated by re-approving from the admin panel.
     if (!req.email || !req.desired_password)
       throw new Error("الطلب يفتقد البريد أو كلمة المرور");
 
