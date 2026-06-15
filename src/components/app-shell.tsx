@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
+import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
 import {
@@ -332,14 +333,8 @@ export function AppShell({
         <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between">
           <h1 className="text-lg font-medium tracking-tight">{title}</h1>
           <div className="flex items-center gap-6">
-            <button className="relative p-2 text-muted-foreground hover:text-gold-primary transition">
-              <Bell className="size-5" strokeWidth={1.5} />
-              {unreadNotifications > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-gold-primary text-navy-base text-[9px] font-bold grid place-items-center leading-none">
-                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
-                </span>
-              )}
-            </button>
+            <NotificationsBell />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
