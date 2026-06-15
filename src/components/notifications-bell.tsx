@@ -183,6 +183,25 @@ export function NotificationsBell() {
       }
     }
 
+    // 4) Tasks assigned to the current user (not done)
+    const { data: myTasks } = await supabase
+      .from("tasks")
+      .select("id,title,status,priority,due_date,created_at,created_by")
+      .eq("assignee_id", userId)
+      .neq("status", "done")
+      .order("created_at", { ascending: false })
+      .limit(20);
+    for (const t of myTasks ?? []) {
+      out.push({
+        id: `task-${t.id}`,
+        kind: "task",
+        title: "مهمة جديدة موكلة إليك",
+        description: t.title,
+        href: "/tasks",
+        at: t.created_at,
+      });
+    }
+
     out.sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime());
     setItems(out);
     setCount(out.length);
