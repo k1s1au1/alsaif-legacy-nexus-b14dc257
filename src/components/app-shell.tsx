@@ -128,6 +128,7 @@ export function AppShell({
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   usePresenceHeartbeat();
@@ -201,6 +202,7 @@ export function AppShell({
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
+      setMyUserId(u.user.id);
       if (user.avatarPath === undefined) {
         const { data: p } = await supabase
           .from("profiles")
@@ -350,13 +352,14 @@ export function AppShell({
                       {user.role}
                     </p>
                   </div>
-                  <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold overflow-hidden">
+                  <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
                       initial={user.initial}
-                      className="size-full"
-                      fallbackClassName=""
+                      className="size-full rounded-full"
+                      fallbackClassName="grid place-items-center size-full"
+                      userId={myUserId}
                     />
                   </div>
                   <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />

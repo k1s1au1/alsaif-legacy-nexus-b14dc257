@@ -439,6 +439,7 @@ function AdminPage() {
                                 initial={(memberFullName(m)[0] ?? "ع").toUpperCase()}
                                 className="size-full"
                                 fallbackClassName=""
+                                userId={m.id}
                               />
                             </div>
                             <div className="min-w-0">

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useSyncExternalStore } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -118,3 +118,76 @@ export function usePresenceHeartbeat() {
     };
   }, [navigate, queryClient]);
 }
+
+/* -------------------------------------------------------------------------- */
+/*  Shared presence store: one fetch + one realtime channel for the whole app */
+/* -------------------------------------------------------------------------- */
+
+type PresenceMap = Record<string, string>; // user_id -> last_seen_at ISO
+
+const presenceStore: { map: PresenceMap; tick: number } = { map: {}, tick: 0 };
+const presenceListeners = new Set<() => void>();
+let presenceInitialized = false;
+let presenceChannel: ReturnType<typeof supabase.channel> | null = null;
+let presenceTickTimer: number | null = null;
+
+function emitPresence() {
+  presenceStore.tick++;
+  for (const fn of presenceListeners) fn();
+}
+
+async function refreshPresenceAll() {
+  const { data } = await supabase.from("user_presence").select("user_id, last_seen_at");
+  if (data) {
+    const next: PresenceMap = {};
+    for (const r of data) next[r.user_id] = r.last_seen_at;
+    presenceStore.map = next;
+    emitPresence();
+  }
+}
+
+function ensurePresenceSubscription() {
+  if (presenceInitialized || typeof window === "undefined") return;
+  presenceInitialized = true;
+  refreshPresenceAll();
+  presenceChannel = supabase
+    .channel("global-user-presence")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "user_presence" },
+      (payload) => {
+        const row = (payload.new ?? payload.old) as
+          | { user_id?: string; last_seen_at?: string }
+          | null;
+        if (row?.user_id && row.last_seen_at) {
+          presenceStore.map = { ...presenceStore.map, [row.user_id]: row.last_seen_at };
+          emitPresence();
+        } else {
+          refreshPresenceAll();
+        }
+      },
+    )
+    .subscribe();
+  // Re-emit every 30s so dots transition online -> idle -> offline over time.
+  presenceTickTimer = window.setInterval(emitPresence, 30_000);
+}
+
+function subscribePresence(cb: () => void) {
+  ensurePresenceSubscription();
+  presenceListeners.add(cb);
+  return () => {
+    presenceListeners.delete(cb);
+  };
+}
+
+function getPresenceSnapshot() {
+  return presenceStore.tick;
+}
+
+/** Get the presence state for a given user id (auto-refreshing). */
+export function usePresenceFor(userId: string | null | undefined): PresenceState {
+  useSyncExternalStore(subscribePresence, getPresenceSnapshot, () => 0);
+  if (!userId) return "offline";
+  return presenceFromLastSeen(presenceStore.map[userId]);
+}
+

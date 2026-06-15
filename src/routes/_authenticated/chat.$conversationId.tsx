@@ -718,6 +718,7 @@ function ConversationRoute() {
                 path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null}
                 initial={initial}
                 className="size-full"
+                userId={otherInDirect?.user_id ?? null}
               />
             )}
           </div>
@@ -1081,6 +1082,7 @@ function MessageBubble({
             path={profiles[m.sender_id]?.avatar_url ?? null}
             initial={initial}
             className="size-full"
+            userId={m.sender_id}
           />
         </div>
       )}
@@ -1541,11 +1543,9 @@ function InfoDrawer({
                           path={profiles[p.user_id]?.avatar_url ?? null}
                           name={name}
                           className="size-full"
+                          userId={p.user_id}
                         />
                       </div>
-                      {pres?.status === "online" && (
-                        <span className="absolute bottom-0 left-0 size-2.5 rounded-full bg-emerald-400 ring-2 ring-card" />
-                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="text-sm text-ivory truncate flex items-center gap-1.5">

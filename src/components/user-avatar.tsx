@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { initialOf } from "@/lib/chat";
+import { PresenceDot, usePresenceFor } from "@/lib/presence";
 
 // Module-level cache of signed URLs for avatar storage paths.
 // key = storage object path, value = { url, expiresAt }
@@ -54,15 +55,22 @@ export function UserAvatar({
   initial,
   className = "",
   fallbackClassName = "",
+  userId,
+  presenceDotClassName = "absolute -bottom-0.5 -left-0.5 z-10",
 }: {
   path?: string | null;
   name?: string;
   initial?: string;
   className?: string;
   fallbackClassName?: string;
+  /** When provided, an online/idle/offline dot is overlaid on the avatar. */
+  userId?: string | null;
+  presenceDotClassName?: string;
 }) {
   const [src, setSrc] = useState<string | null>(null);
   const ini = (initial ?? initialOf(name ?? "")).toUpperCase();
+  const presenceState = usePresenceFor(userId);
+  const showDot = !!userId;
 
   useEffect(() => {
     let active = true;
@@ -88,22 +96,29 @@ export function UserAvatar({
     };
   }, [path]);
 
-  if (src) {
-    return (
-      <img
-        src={src}
-        alt={name ?? "avatar"}
-        className={`object-cover ${className}`}
-        loading="lazy"
-        onError={() => {
-          if (path) {
-            cache.delete(path);
-            setSrc(null);
-          }
-        }}
-      />
-    );
-  }
+  const inner = src ? (
+    <img
+      src={src}
+      alt={name ?? "avatar"}
+      className={`object-cover ${className}`}
+      loading="lazy"
+      onError={() => {
+        if (path) {
+          cache.delete(path);
+          setSrc(null);
+        }
+      }}
+    />
+  ) : (
+    <span className={fallbackClassName}>{ini}</span>
+  );
 
-  return <span className={fallbackClassName}>{ini}</span>;
+  if (!showDot) return inner;
+
+  return (
+    <span className="relative inline-flex w-full h-full items-center justify-center">
+      {inner}
+      <PresenceDot state={presenceState} className={presenceDotClassName} />
+    </span>
+  );
 }
