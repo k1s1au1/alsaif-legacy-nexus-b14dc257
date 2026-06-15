@@ -550,33 +550,33 @@ function Dashboard() {
           <article className="lg:col-span-12 card-surface p-6 animate-fade-up">
             <div className="flex items-center justify-between mb-8">
               <h3 className="eyebrow">المهام والمسؤوليات</h3>
-              <button className="text-xs text-gold-primary border-b border-gold-primary/20 pb-0.5">
+              <Link to="/tasks" className="text-xs text-gold-primary border-b border-gold-primary/20 pb-0.5">
                 عرض الكل
-              </button>
+              </Link>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {[
-                { label: "تجديد وثائق الوقف", pct: 80 },
-                { label: "تنظيم صور الأرشيف (1980)", pct: 45 },
-                { label: "تجهيز قائمة مشتريات الرحلة", pct: 100 },
-              ].map((t) => (
-                <div key={t.label} className="space-y-3">
-                  <div className="flex justify-between text-xs">
-                    <span className="text-ivory/80">{t.label}</span>
-                    <span className="text-gold-primary">{t.pct}%</span>
-                  </div>
-                  <div className="h-1 bg-ivory/5 rounded-full overflow-hidden">
-                    <div
-                      className="h-full bg-gold-primary rounded-full"
-                      style={{
-                        width: `${t.pct}%`,
-                        boxShadow: t.pct > 60 ? "0 0 8px rgba(191,161,93,0.4)" : undefined,
-                      }}
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
+            {tasks.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">لا توجد مهام نشطة حالياً.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {tasks.map((t) => (
+                  <Link to="/tasks" key={t.id} className="space-y-3 hover:opacity-90 transition">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ivory/80 truncate ml-2">{t.title}</span>
+                      <span className="text-gold-primary">{t.pct}%</span>
+                    </div>
+                    <div className="h-1 bg-ivory/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gold-primary rounded-full"
+                        style={{
+                          width: `${t.pct}%`,
+                          boxShadow: t.pct > 60 ? "0 0 8px rgba(191,161,93,0.4)" : undefined,
+                        }}
+                      />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
           </article>
         </div>
 
