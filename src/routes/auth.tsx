@@ -404,6 +404,24 @@ function AuthPage() {
         )}
 
       </div>
+      {showTerms && (
+        <div className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-sm grid place-items-center p-4">
+          <div className="card-surface max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="rounded-lg border border-border/60 bg-background/40 p-4 mb-5">
+              <TermsContent />
+            </div>
+            <div className="flex justify-end">
+              <button
+                type="button"
+                onClick={() => setShowTerms(false)}
+                className="px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+              >
+                إغلاق
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
