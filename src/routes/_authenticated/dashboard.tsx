@@ -277,6 +277,7 @@ function Dashboard() {
     loadMessages();
     loadTrip();
     loadPinned();
+    loadTasks();
 
     const channel = supabase
       .channel("dashboard-realtime")
