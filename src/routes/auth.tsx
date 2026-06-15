@@ -239,6 +239,16 @@ function AuthPage() {
               </button>
             </form>
 
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => setMode("forgot")}
+                className="text-xs text-gold-primary/80 hover:text-gold-primary hover:underline transition"
+              >
+                نسيت كلمة المرور؟
+              </button>
+            </div>
+
             <div className="mt-6 pt-6 border-t border-border/60 text-center">
               <p className="text-xs text-muted-foreground mb-3">ليس لديك حساب بعد؟</p>
               <button
