@@ -2,6 +2,7 @@
 // ssr:false because the Supabase session lives in localStorage (unreachable on the server).
 import { createFileRoute, Outlet, redirect } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { TermsGate } from "@/components/terms-gate";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
@@ -27,5 +28,10 @@ export const Route = createFileRoute("/_authenticated")({
 
     return { user: data.user };
   },
-  component: () => <Outlet />,
+  component: () => (
+    <TermsGate>
+      <Outlet />
+    </TermsGate>
+  ),
 });
+
