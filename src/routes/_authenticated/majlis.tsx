@@ -388,6 +388,7 @@ function MajlisPage() {
                           name={authorName}
                           className="size-full"
                           fallbackClassName="text-base text-gold-primary"
+                          userId={post.author_id}
                         />
                       </div>
                       <div className="min-w-0">
