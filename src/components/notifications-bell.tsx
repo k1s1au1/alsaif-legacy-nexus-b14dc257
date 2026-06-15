@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Bell, MessageCircle, CalendarDays, UserPlus, Inbox } from "lucide-react";
+import { Bell, MessageCircle, CalendarDays, UserPlus, Inbox, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
