@@ -115,6 +115,24 @@ function AuthPage() {
     toast.success("تم إرسال طلبك، سيتواصل معك المشرفون قريباً");
   }
 
+  async function onSubmitForgot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!z.string().email().safeParse(forgotEmail.trim()).success) {
+      toast.error("البريد الإلكتروني غير صالح");
+      return;
+    }
+    setForgotLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail.trim(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setForgotLoading(false);
+    if (error) {
+      toast.error("تعذّر إرسال البريد", { description: error.message });
+      return;
+    }
+    setForgotSent(true);
+    toast.success("تم إرسال رابط إعادة التعيين");
+
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 auth-bg">
       {/* Responsive background image via <img> for object-position control */}
