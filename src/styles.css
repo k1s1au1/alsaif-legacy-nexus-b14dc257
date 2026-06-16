@@ -16,8 +16,6 @@
   --color-gold-primary: var(--gold-primary);
   --color-gold-soft: var(--gold-soft);
   --color-ivory: var(--ivory);
-  --color-saudi-red: var(--saudi-red);
-  --color-saudi-red-soft: var(--saudi-red-soft);
 
   /* Semantic shadcn-style tokens */
   --color-background: var(--background);
@@ -40,7 +38,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-arabic: "Tajawal", "Cairo", "IBM Plex Sans Arabic", sans-serif;
+  --font-arabic: "Cairo", "IBM Plex Sans Arabic", sans-serif;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -52,46 +50,35 @@
 }
 
 :root {
-  /* Brand raw values — Saudi heritage palette (STRICT) */
-  --navy-base: #F5F5F5;     /* page bg */
-  --navy-card: #FFFFFF;     /* card bg */
-  --navy-elev: #EAEAEA;     /* elevated surface */
-  --gold-primary: #0F5A3A;  /* primary Saudi green (kept var name for compat) */
-  --gold-soft: #0B472D;     /* dark green */
-  --ivory: #1A1A1A;         /* primary text */
+  /* Brand raw values */
+  --navy-base: #050a18;
+  --navy-card: #0d152b;
+  --navy-elev: #131e3d;
+  --gold-primary: #bfa15d;
+  --gold-soft: #8e7745;
+  --ivory: #f5f2eb;
 
-  /* Saudi red accent */
-  --saudi-red: #C62828;
-  --saudi-red-soft: #E23A4F;
-
-  /* Legacy "luxury" tokens mapped to heritage green for backward compat */
-  --luxury-gold: #0F5A3A;
-  --luxury-gold-light: #1F7A48;
-  --luxury-gold-dark: #0B472D;
-  --luxury-glow: rgba(15, 90, 58, 0.25);
-
-  /* Semantic — light heritage theme */
-  --background: #F5F5F5;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  --primary: #0F5A3A;
-  --primary-foreground: #FFFFFF;
-  --secondary: #EAEAEA;
-  --secondary-foreground: #1A1A1A;
-  --muted: #EAEAEA;
-  --muted-foreground: #666666;
-  --accent: #FDECEF;
-  --accent-foreground: #C62828;
-  --destructive: #C62828;
-  --destructive-foreground: #FFFFFF;
-  --border: #EAEAEA;
-  --input: #FFFFFF;
-  --ring: rgba(15, 90, 58, 0.35);
+  /* Semantic — dark by default (Private Club Midnight is dark) */
+  --background: #050a18;
+  --foreground: #f5f2eb;
+  --card: #0d152b;
+  --card-foreground: #f5f2eb;
+  --popover: #0d152b;
+  --popover-foreground: #f5f2eb;
+  --primary: #bfa15d;
+  --primary-foreground: #050a18;
+  --secondary: #131e3d;
+  --secondary-foreground: #f5f2eb;
+  --muted: #0d152b;
+  --muted-foreground: rgba(245, 242, 235, 0.55);
+  --accent: #131e3d;
+  --accent-foreground: #bfa15d;
+  --destructive: #b8424a;
+  --destructive-foreground: #f5f2eb;
+  --border: rgba(191, 161, 93, 0.12);
+  --input: rgba(245, 242, 235, 0.08);
+  --ring: rgba(191, 161, 93, 0.5);
 }
-
 
 /* Light mode — ivory paper + navy ink */
 .light {
@@ -112,43 +99,6 @@
   --border: rgba(5, 10, 24, 0.1);
   --input: rgba(5, 10, 24, 0.06);
   --ring: rgba(142, 119, 69, 0.5);
-}
-
-/* Dark mode — deep navy + soft gold */
-.dark {
-  --navy-base: #0a0e1a;
-  --navy-card: #12172a;
-  --navy-elev: #1a2035;
-  --gold-primary: #d4af37;
-  --gold-soft: #e8c96a;
-  --ivory: #f0e6d2;
-
-  /* Luxury gold — brighter for dark backgrounds */
-  --luxury-gold: #d4af37;
-  --luxury-gold-light: #f0d878;
-  --luxury-gold-dark: #b8972e;
-  --luxury-glow: rgba(212, 175, 55, 0.45);
-
-  /* Semantic — dark theme */
-  --background: #0a0e1a;
-  --foreground: #f0e6d2;
-  --card: #12172a;
-  --card-foreground: #f0e6d2;
-  --popover: #12172a;
-  --popover-foreground: #f0e6d2;
-  --primary: #d4af37;
-  --primary-foreground: #0a0e1a;
-  --secondary: #1a2035;
-  --secondary-foreground: #e8c96a;
-  --muted: #1a2035;
-  --muted-foreground: rgba(240, 230, 210, 0.55);
-  --accent: #1a2035;
-  --accent-foreground: #d4af37;
-  --destructive: #e23a4f;
-  --destructive-foreground: #f0e6d2;
-  --border: rgba(212, 175, 55, 0.12);
-  --input: rgba(240, 230, 210, 0.08);
-  --ring: rgba(212, 175, 55, 0.5);
 }
 
 @layer base {
@@ -218,35 +168,6 @@
     border-color: color-mix(in oklab, var(--gold-primary) 50%, transparent);
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-primary) 12%, transparent);
   }
-}
-
-/* Luxury gold gradients & effects */
-@utility btn-gold {
-  background: linear-gradient(135deg, var(--luxury-gold) 0%, var(--luxury-gold-dark) 100%);
-  color: #1a1a1a;
-  box-shadow: 0 4px 16px -4px var(--luxury-glow), inset 0 1px 0 rgba(255,255,255,0.25);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  &:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 24px -4px var(--luxury-glow), inset 0 1px 0 rgba(255,255,255,0.35);
-  }
-  &:active {
-    transform: translateY(0);
-    box-shadow: 0 2px 8px -2px var(--luxury-glow);
-  }
-}
-
-@utility gold-icon-glow {
-  background: linear-gradient(135deg, var(--luxury-gold-light) 0%, var(--luxury-gold) 60%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  filter: drop-shadow(0 0 4px var(--luxury-glow));
-}
-
-@utility ring-gold-luxury {
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--luxury-gold) 30%, transparent),
-              0 0 20px -4px color-mix(in oklab, var(--luxury-gold) 25%, transparent);
 }
 
 

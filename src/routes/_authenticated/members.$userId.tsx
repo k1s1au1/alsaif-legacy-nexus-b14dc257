@@ -1,10 +1,13 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { ArrowRight, Calendar, Loader2, Phone, User as UserIcon } from "lucide-react";
+import { ArrowRight, Calendar, Eye, EyeOff, KeyRound, Loader2, Mail, Phone, User as UserIcon } from "lucide-react";
+import { getMemberCredential } from "@/lib/api/member-credentials.functions";
 import { PresenceDot, presenceFromLastSeen, presenceLabel } from "@/lib/presence";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/members/$userId")({
   ssr: false,
@@ -40,7 +43,12 @@ function MemberProfilePage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [credential, setCredential] = useState<{ email: string | null; password: string | null } | null>(null);
+  const [credLoading, setCredLoading] = useState(false);
+  const [showPwd, setShowPwd] = useState(false);
   const [lastSeen, setLastSeen] = useState<string | null>(null);
+  const fetchCredential = useServerFn(getMemberCredential);
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
     initial: "س",
@@ -71,11 +79,14 @@ function MemberProfilePage() {
       setRole((r?.role as string | null) ?? null);
 
       if (u.user) {
-        const { data: mine } = await supabase
-          .from("profiles")
-          .select("arabic_name, full_name, avatar_url")
-          .eq("id", u.user.id)
-          .maybeSingle();
+        const [{ data: mine }, { data: adminCheck }] = await Promise.all([
+          supabase
+            .from("profiles")
+            .select("arabic_name, full_name, avatar_url")
+            .eq("id", u.user.id)
+            .maybeSingle(),
+          supabase.rpc("has_role", { _user_id: u.user.id, _role: "admin" }),
+        ]);
         const name =
           mine?.arabic_name?.trim() ||
           mine?.full_name?.trim() ||
@@ -86,6 +97,7 @@ function MemberProfilePage() {
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: mine?.avatar_url ?? null,
         });
+        setIsAdmin(!!adminCheck);
       }
       setLoading(false);
     })();
@@ -200,6 +212,74 @@ function MemberProfilePage() {
               </dl>
             </section>
 
+            {isAdmin && (
+              <section className="card-surface p-6 space-y-4 animate-fade-up border-gold-primary/30">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="eyebrow flex items-center gap-2">
+                    <KeyRound className="size-4 text-gold-primary" />
+                    بيانات تسجيل الدخول
+                  </h3>
+                  <span className="text-[10px] text-muted-foreground">للمسؤول فقط</span>
+                </div>
+                {credential ? (
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+                    <InfoItem
+                      icon={<Mail className="size-4" />}
+                      label="البريد الإلكتروني"
+                      value={credential.email ?? "غير متوفر"}
+                    />
+                    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 border border-border">
+                      <div className="text-gold-primary mt-0.5"><KeyRound className="size-4" /></div>
+                      <div className="min-w-0 flex-1">
+                        <dt className="text-[11px] text-muted-foreground uppercase tracking-wider">كلمة المرور</dt>
+                        <dd className="text-sm text-ivory mt-0.5 flex items-center gap-2">
+                          {credential.password ? (
+                            <>
+                              <span className="font-mono truncate">
+                                {showPwd ? credential.password : "•".repeat(Math.min(credential.password.length, 12))}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setShowPwd((v) => !v)}
+                                className="text-gold-primary/80 hover:text-gold-primary transition shrink-0"
+                                aria-label={showPwd ? "إخفاء" : "إظهار"}
+                              >
+                                {showPwd ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                              </button>
+                            </>
+                          ) : (
+                            <span className="text-muted-foreground">غير محفوظة</span>
+                          )}
+                        </dd>
+                      </div>
+                    </div>
+                  </dl>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={credLoading}
+                    onClick={async () => {
+                      setCredLoading(true);
+                      try {
+                        const res = await fetchCredential({ data: { userId } });
+                        setCredential(res);
+                      } catch (e) {
+                        toast.error(e instanceof Error ? e.message : "تعذر تحميل البيانات");
+                      } finally {
+                        setCredLoading(false);
+                      }
+                    }}
+                    className="px-4 py-2 rounded-lg bg-gold-primary/10 border border-gold-primary/30 text-gold-primary text-sm hover:bg-gold-primary/20 transition inline-flex items-center gap-2"
+                  >
+                    {credLoading && <Loader2 className="size-4 animate-spin" />}
+                    عرض بيانات الدخول
+                  </button>
+                )}
+                <p className="text-[11px] text-muted-foreground">
+                  تُعرض كلمة المرور المحفوظة عند إنشاء الحساب فقط. إذا قام العضو بتغييرها لاحقاً فلن تظهر هنا.
+                </p>
+              </section>
+            )}
           </>
         )}
       </div>

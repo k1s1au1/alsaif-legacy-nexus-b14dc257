@@ -1,18 +1,16 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { MobileShell } from "@/components/mobile-shell";
-import { Card, PrimaryButton } from "@/components/ui/mobile-primitives";
-import { Skyline } from "@/components/skyline";
-import { SaduPattern } from "@/components/sadu-pattern";
-import { Wallet, Calendar } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
+import { Megaphone, Clock, MapPin, ChevronLeft } from "lucide-react";
+import tripImage from "@/assets/trip-alula.jpg";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "لوحة العائلة — السيف" },
-      { name: "description", content: "ملخص نشاط العائلة: الإعلانات، الاجتماعات، الصندوق." },
+      { title: "لوحة التحكم — السيف" },
+      { name: "description", content: "ملخص نشاط العائلة: الإعلانات، الاجتماعات، الرحلات والمهام." },
     ],
   }),
   component: Dashboard,
@@ -314,103 +312,280 @@ function Dashboard() {
   const meetingDate = nextMeeting ? new Date(nextMeeting.scheduled_at) : null;
 
   return (
-    <MobileShell title="لوحة العائلة" user={profile} unreadCount={pinned.length}>
-      <div className="pt-2 space-y-4">
-        {/* Welcome card with skyline - full width */}
-        <Card className="relative overflow-hidden">
-          <p className="text-xs text-[#666666] mb-1">أهلاً بك</p>
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
-            {profile.name}
-          </h2>
-          <p className="text-xs sm:text-sm text-[#666666] mt-1 leading-relaxed">
-            نصل العائلة، نحفظ الإرث، نبني المجتمع
-          </p>
-          <div className="relative h-16 sm:h-20 lg:h-24 -mx-2 -mb-2 mt-3">
-            <Skyline className="absolute inset-x-0 bottom-0 w-full h-full" opacity={0.22} />
+    <AppShell title="لوحة العائلة" user={profile}>
+      <div className="space-y-8">
+        {/* Hero greeting */}
+        <section className="relative py-12 px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">
+          <div className="absolute inset-0 bg-gradient-to-l from-gold-primary/20 to-transparent" />
+          <div className="absolute inset-0 bg-card ring-1 ring-gold-primary/20 rounded-2xl" />
+          <div className="relative z-10 space-y-3">
+            <p className="eyebrow">أهلاً بعودتك</p>
+            <h2 className="text-3xl lg:text-5xl font-medium text-ivory leading-tight tracking-tight">
+              {profile.name}
+            </h2>
+            <p className="text-base lg:text-lg text-gold-primary/80 max-w-[48ch] leading-relaxed">
+              نصل العائلة، نحفظ الإرث، نبني المجتمع.
+            </p>
           </div>
-        </Card>
+        </section>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 transition-all">
-
-
-        {/* Announcement */}
-        <Card>
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-[11px] font-semibold text-foreground">إعلان مهم</span>
-            <span className="size-5 grid place-items-center rounded bg-[var(--saudi-red)]/10 text-[var(--saudi-red)] text-[10px] font-bold">!</span>
-          </div>
-          <h3 className="text-[15px] font-bold text-foreground leading-snug">
-            {pinned[0]?.title ?? "دعوة لحضور اجتماع العائلة السنوي"}
-          </h3>
-          <p className="text-xs text-[#666666] mt-1">
-            {nextMeeting
-              ? `يوم ${new Intl.DateTimeFormat("ar-SA-u-ca-gregory",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date(nextMeeting.scheduled_at))}`
-              : "الجمعة 25 مايو 2024"}
-          </p>
-          <Link to="/majlis" className="inline-block mt-3 text-xs font-semibold text-[var(--saudi-red)]">
-            عرض الإعلان
-          </Link>
-        </Card>
-
-        {/* Family Fund */}
-        <Card>
-          <div className="flex items-start gap-3">
-            <div className="size-11 rounded-xl bg-[var(--primary)] grid place-items-center shrink-0">
-              <Wallet className="size-5 text-white" strokeWidth={1.8} />
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-bold text-foreground">صندوق العائلة</span>
-                <span className="text-[11px] text-[#666666]">الرصيد الحالي</span>
+        {/* Bento */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Pinned Announcement */}
+          <article className="lg:col-span-8 card-surface p-6 space-y-4 animate-fade-up">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Megaphone className="size-4 text-gold-primary" strokeWidth={1.5} />
+                <h3 className="eyebrow">
+                  {pinned.length > 1 ? `إعلانات مثبتة (${pinnedIdx + 1}/${pinned.length})` : "إعلان مثبت"}
+                </h3>
               </div>
-              <div className="mt-2 flex items-baseline justify-between">
-                <Link to="/finance" className="text-[11px] text-[var(--primary)] font-semibold">
-                  عرض التفاصيل
-                </Link>
-                <div className="text-left">
-                  <div className="text-2xl font-bold text-foreground leading-none">
-                    {(fundBalance ?? 12450).toLocaleString("en-US")}
+              <div className="flex items-center gap-3">
+                {pinned[pinnedIdx] && (
+                  <span className="text-[11px] text-muted-foreground">
+                    {relativeAr(pinned[pinnedIdx].created_at)}
+                  </span>
+                )}
+                {pinned.length > 1 && (
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setPinnedIdx((i) => (i - 1 + pinned.length) % pinned.length)}
+                      className="size-6 grid place-items-center rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                      aria-label="السابق"
+                    >
+                      <ChevronLeft className="size-3 rotate-180" strokeWidth={1.5} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setPinnedIdx((i) => (i + 1) % pinned.length)}
+                      className="size-6 grid place-items-center rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                      aria-label="التالي"
+                    >
+                      <ChevronLeft className="size-3" strokeWidth={1.5} />
+                    </button>
                   </div>
-                  <div className="text-[11px] text-[#666666] mt-1">ريال سعودي</div>
-                </div>
+                )}
               </div>
             </div>
-          </div>
-        </Card>
+            {pinned[pinnedIdx] ? (
+              <Link to="/majlis" className="block group">
+                <h4 className="text-xl font-medium text-ivory group-hover:text-gold-primary transition">
+                  {pinned[pinnedIdx].title}
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch] mt-2 whitespace-pre-wrap line-clamp-4">
+                  {pinned[pinnedIdx].body}
+                </p>
+              </Link>
+            ) : (
+              <>
+                <h4 className="text-xl font-medium text-ivory">لا توجد إعلانات مثبتة حالياً</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[60ch]">
+                  ستظهر هنا الإعلانات الرسمية المثبتة من <Link to="/majlis" className="text-gold-primary hover:underline">المجلس</Link>.
+                </p>
+              </>
+            )}
+          </article>
 
-        {/* Upcoming meeting */}
-        <Card>
-          <div className="flex items-start gap-3">
-            <div className="size-11 rounded-xl bg-[var(--primary)]/10 grid place-items-center shrink-0">
-              <Calendar className="size-5 text-[var(--primary)]" strokeWidth={1.8} />
+
+          {/* Fund */}
+          <article className="lg:col-span-4 bg-card ring-1 ring-gold-primary/20 rounded-2xl p-6 flex flex-col justify-between animate-fade-up">
+            <h3 className="eyebrow">صندوق العائلة</h3>
+            <div className="mt-4">
+              <span className="text-[11px] text-muted-foreground">الرصيد المتاح</span>
+              <div className="text-3xl font-medium text-ivory mt-1">
+                {fundBalance === null
+                  ? "—"
+                  : fundBalance.toLocaleString("en-US", { maximumFractionDigits: 0 })}{" "}
+                <span className="text-sm text-gold-primary">ر.س</span>
+              </div>
             </div>
-            <div className="flex-1">
-              <span className="text-[11px] text-[#666666]">الاجتماع القادم</span>
-              <h3 className="text-[15px] font-bold text-foreground mt-0.5">
-                {nextMeeting?.title ?? "اجتماع العائلة السنوي"}
-              </h3>
-              <p className="text-xs text-[#666666] mt-1">
-                {nextMeeting
-                  ? `${new Intl.DateTimeFormat("ar-SA-u-ca-gregory",{weekday:"long",day:"numeric",month:"long",year:"numeric"}).format(new Date(nextMeeting.scheduled_at))} • ${timeAr(nextMeeting.scheduled_at)}`
-                  : "الجمعة 25 مايو 2024 • 8:00 مساءً"}
-              </p>
-              <Link to="/meetings" className="inline-block mt-3 text-xs font-semibold text-[var(--primary)]">
-                عرض التفاصيل
+            <div className="mt-6 pt-6 border-t border-border">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground">آخر مساهمة</span>
+                <span className="text-gold-primary">
+                  {lastContribution !== null
+                    ? `+${lastContribution.toLocaleString("en-US", { maximumFractionDigits: 0 })} ر.س`
+                    : "—"}
+                </span>
+              </div>
+            </div>
+          </article>
+
+          {/* Next meeting */}
+          <article className="lg:col-span-6 card-surface p-6 space-y-6 animate-fade-up">
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <h3 className="eyebrow">الاجتماع القادم</h3>
+                <h4 className="text-lg font-medium text-ivory">
+                  {nextMeeting?.title ?? "لا توجد اجتماعات قادمة"}
+                </h4>
+              </div>
+              {meetingDate && (
+                <div className="text-left">
+                  <div className="text-xl font-medium text-ivory">{meetingDate.getDate()}</div>
+                  <div className="text-[10px] uppercase text-muted-foreground tracking-wider">
+                    {AR_MONTHS[meetingDate.getMonth()]} {meetingDate.getFullYear()}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 py-4 border-y border-border">
+              <div className="flex items-center gap-3">
+                <Clock className="size-4 text-muted-foreground shrink-0" strokeWidth={1.5} />
+                <span className="text-xs text-muted-foreground">
+                  {meetingDate ? timeAr(nextMeeting!.scheduled_at) : "—"}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <MapPin className="size-4 text-muted-foreground shrink-0" strokeWidth={1.5} />
+                <span className="text-xs text-muted-foreground">
+                  {nextMeeting?.location || "—"}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex -space-x-2 space-x-reverse">
+              <div className="size-7 rounded-full bg-gold-primary ring-2 ring-card" />
+              <div className="size-7 rounded-full bg-ivory/10 ring-2 ring-card" />
+              <div className="size-7 rounded-full bg-gold-soft ring-2 ring-card" />
+              <div className="size-7 rounded-full bg-navy-base ring-2 ring-card grid place-items-center text-[10px] text-muted-foreground">
+                {attendeeCount > 0 ? `+${attendeeCount}` : "—"}
+              </div>
+            </div>
+          </article>
+
+          {/* Recent messages */}
+          <article className="lg:col-span-6 card-surface p-6 space-y-6 animate-fade-up">
+            <h3 className="eyebrow">أحدث الرسائل</h3>
+            <ul className="space-y-4">
+              {recentMsgs.length === 0 && (
+                <li className="text-xs text-muted-foreground">لا توجد رسائل حديثة.</li>
+              )}
+              {recentMsgs.map((m, idx, arr) => {
+                const displayName = m.conv_kind === "group" && m.conv_title
+                  ? `${m.conv_title} (قروب)`
+                  : m.sender_name;
+                const preview = m.conv_kind === "group"
+                  ? `${m.sender_name}: ${m.body ?? ""}`
+                  : (m.body ?? "");
+                return (
+                  <li key={m.id} className="flex items-center gap-4">
+                    <div className="size-10 rounded-full bg-gold-primary/10 grid place-items-center text-xs font-medium text-gold-primary">
+                      {(displayName[0] ?? "؟").toUpperCase()}
+                    </div>
+                    <div className={`flex-1 ${idx < arr.length - 1 ? "border-b border-border pb-4" : ""}`}>
+                      <div className="flex justify-between">
+                        <span className="text-sm font-medium text-ivory">{displayName}</span>
+                        <span className="text-[10px] text-muted-foreground">{relativeAr(m.created_at)}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1 truncate">{preview}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </article>
+
+          {/* Trip */}
+          <article className="lg:col-span-12 card-surface overflow-hidden flex flex-col lg:flex-row animate-fade-up">
+            <div className="lg:w-1/3 h-56 lg:h-auto relative">
+              <img
+                src={featuredTrip?.image_url || tripImage}
+                alt={featuredTrip?.title || "مخيم العلا في المملكة العربية السعودية عند الغروب"}
+                width={1280}
+                height={800}
+                loading="lazy"
+                className="absolute inset-0 size-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-l from-card via-card/30 to-transparent" />
+            </div>
+            <div className="p-8 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-0.5 bg-gold-primary/10 text-gold-primary text-[10px] rounded uppercase tracking-wider ring-1 ring-gold-primary/20">
+                    {featuredTrip?.badge || "الرحلة القادمة"}
+                  </span>
+                  <span className="text-muted-foreground text-xs">
+                    {featuredTrip?.location || "—"}
+                  </span>
+                </div>
+                <h4 className="text-2xl font-medium text-ivory">
+                  {featuredTrip?.title || "لا توجد رحلات قادمة"}
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed max-w-[52ch]">
+                  {featuredTrip?.description ||
+                    "أضف رحلة جديدة من قسم الرحلات لتظهر هنا."}
+                </p>
+              </div>
+              <div className="mt-8 flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center gap-6">
+                  <div>
+                    <div className="eyebrow mb-1">التاريخ</div>
+                    <div className="text-sm text-ivory">
+                      {featuredTrip
+                        ? formatTripRange(featuredTrip.start_date, featuredTrip.end_date)
+                        : "—"}
+                    </div>
+                  </div>
+                  <div className="w-px h-8 bg-border" />
+                  <div>
+                    <div className="eyebrow mb-1">المشاركين</div>
+                    <div className="text-sm text-ivory">{tripParticipants} عضواً</div>
+                  </div>
+                </div>
+                <Link
+                  to="/trips"
+                  className="inline-flex items-center gap-2 px-5 py-2 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+                >
+                  عرض التفاصيل
+                  <ChevronLeft className="size-4" />
+                </Link>
+              </div>
+            </div>
+          </article>
+
+          {/* Tasks */}
+          <article className="lg:col-span-12 card-surface p-6 animate-fade-up">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="eyebrow">المهام والمسؤوليات</h3>
+              <Link to="/tasks" className="text-xs text-gold-primary border-b border-gold-primary/20 pb-0.5">
+                عرض الكل
               </Link>
             </div>
-          </div>
-        </Card>
+            {tasks.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-6">لا توجد مهام نشطة حالياً.</p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                {tasks.map((t) => (
+                  <Link to="/tasks" key={t.id} className="space-y-3 hover:opacity-90 transition">
+                    <div className="flex justify-between text-xs">
+                      <span className="text-ivory/80 truncate ml-2">{t.title}</span>
+                      <span className="text-gold-primary">{t.pct}%</span>
+                    </div>
+                    <div className="h-1 bg-ivory/5 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gold-primary rounded-full"
+                        style={{
+                          width: `${t.pct}%`,
+                          boxShadow: t.pct > 60 ? "0 0 8px rgba(191,161,93,0.4)" : undefined,
+                        }}
+                      />
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </article>
         </div>
 
-        <Link to="/meetings" className="block">
-          <PrimaryButton className="mt-2">اقتراح اجتماع جديد</PrimaryButton>
-        </Link>
-
-        <div className="pt-2">
-          <SaduPattern height={18} />
-        </div>
+        {/* Placeholder modules notice */}
+        <p className="text-center text-xs text-muted-foreground pt-4 leading-relaxed">
+          المرحلة الأولى: الأساس، المصادقة، ولوحة التحكم. الوحدات الأخرى (الرسائل، الاجتماعات،
+          الرحلات، المالية، المهام، المناسبات، المجلس، الأرشيف، الإدارة) قادمة في المراحل القادمة.
+        </p>
       </div>
-
-    </MobileShell>
+    </AppShell>
   );
 }

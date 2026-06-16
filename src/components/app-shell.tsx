@@ -299,10 +299,10 @@ export function AppShell({
               <Link
                 key={to}
                 to={to}
-                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-all duration-300 relative ${
+                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
                   active
-                    ? "bg-gradient-to-br from-[var(--luxury-gold)]/15 to-[var(--luxury-gold-dark)]/10 text-[var(--luxury-gold)] ring-1 ring-[var(--luxury-gold)]/30 shadow-[0_0_16px_-4px_var(--luxury-glow)]"
-                    : "text-foreground/55 hover:text-[var(--luxury-gold)] hover:bg-secondary/40"
+                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                    : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
                 }`}
               >
                 <div className="relative">
