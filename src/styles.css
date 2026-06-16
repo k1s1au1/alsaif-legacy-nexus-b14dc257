@@ -50,57 +50,55 @@
 }
 
 :root {
-  /* Brand raw values — White / Gray / Dark Green family theme.
-   * Legacy token names (navy-*, gold-*, ivory) are preserved and remapped
-   * so existing components inherit the new palette without per-file edits. */
-  --navy-base: #ffffff;        /* page background */
+  /* Brand raw values — Gray scale + single Dark Green accent. */
+  --navy-base: #f4f5f6;        /* page background (light gray) */
   --navy-card: #ffffff;        /* cards */
-  --navy-elev: #f7f7f7;        /* elevated / secondary surfaces */
-  --gold-primary: #1b5e20;     /* primary dark green */
-  --gold-soft: #2e7d32;        /* secondary green */
-  --ivory: #111827;            /* primary text */
+  --navy-elev: #eaecee;        /* elevated / secondary surfaces */
+  --gold-primary: #1b4d2b;     /* single dark green accent */
+  --gold-soft: #2d6a3e;        /* slightly lighter green for hovers */
+  --ivory: #1f2937;            /* primary text (dark gray) */
 
   /* Semantic — light */
-  --background: #ffffff;
-  --foreground: #111827;
+  --background: #f4f5f6;
+  --foreground: #1f2937;
   --card: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: #1f2937;
   --popover: #ffffff;
-  --popover-foreground: #111827;
-  --primary: #1b5e20;
+  --popover-foreground: #1f2937;
+  --primary: #1b4d2b;
   --primary-foreground: #ffffff;
-  --secondary: #f7f7f7;
+  --secondary: #eaecee;
   --secondary-foreground: #374151;
-  --muted: #f7f7f7;
+  --muted: #eef0f2;
   --muted-foreground: #6b7280;
-  --accent: #e8f5e9;
-  --accent-foreground: #1b5e20;
+  --accent: #e6ece8;
+  --accent-foreground: #1b4d2b;
   --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
-  --border: #d1d5db;
+  --border: #d6d9dc;
   --input: #ffffff;
-  --ring: rgba(27, 94, 32, 0.45);
+  --ring: rgba(27, 77, 43, 0.45);
 }
 
 /* Light mode alias — same palette (kept for compatibility with the .light class) */
 .light {
-  --background: #ffffff;
-  --foreground: #111827;
+  --background: #f4f5f6;
+  --foreground: #1f2937;
   --card: #ffffff;
-  --card-foreground: #111827;
+  --card-foreground: #1f2937;
   --popover: #ffffff;
-  --popover-foreground: #111827;
-  --primary: #1b5e20;
+  --popover-foreground: #1f2937;
+  --primary: #1b4d2b;
   --primary-foreground: #ffffff;
-  --secondary: #f7f7f7;
+  --secondary: #eaecee;
   --secondary-foreground: #374151;
-  --muted: #f7f7f7;
+  --muted: #eef0f2;
   --muted-foreground: #6b7280;
-  --accent: #e8f5e9;
-  --accent-foreground: #1b5e20;
-  --border: #d1d5db;
+  --accent: #e6ece8;
+  --accent-foreground: #1b4d2b;
+  --border: #d6d9dc;
   --input: #ffffff;
-  --ring: rgba(27, 94, 32, 0.45);
+  --ring: rgba(27, 77, 43, 0.45);
 }
 
 
