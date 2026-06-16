@@ -171,7 +171,7 @@ export function ShortcutsGrid({
                         animate={{ scale: [1, 1.6], opacity: [0.5, 0] }}
                         transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
                       />
-                      <span className="relative">{s.badge! > 99 ? "99+" : s.badge}</span>
+                      <span className="relative">{displayBadge > 99 ? "99+" : displayBadge}</span>
                     </motion.span>
                   )}
                 </div>
