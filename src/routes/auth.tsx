@@ -44,8 +44,6 @@ function AuthPage() {
   const [grand, setGrand] = useState("");
   const [phone, setPhone] = useState("");
   const [reqEmail, setReqEmail] = useState("");
-  const [reqPassword, setReqPassword] = useState("");
-  const [reqPassword2, setReqPassword2] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -93,14 +91,6 @@ function AuthPage() {
       toast.error("البريد الإلكتروني غير صالح");
       return;
     }
-    if (reqPassword.length < 8) {
-      toast.error("كلمة المرور يجب ألا تقل عن 8 أحرف");
-      return;
-    }
-    if (reqPassword !== reqPassword2) {
-      toast.error("كلمتا المرور غير متطابقتين");
-      return;
-    }
     if (!agreeTerms) {
       toast.error("يجب الموافقة على الإقرار والشروط للمتابعة");
       return;
@@ -112,7 +102,6 @@ function AuthPage() {
       grandfather_name: grand.trim(),
       phone: phone.trim(),
       email: reqEmail.trim(),
-      desired_password: reqPassword,
       note: note.trim() || null,
       terms_accepted: true,
     });
@@ -314,7 +303,7 @@ function AuthPage() {
               onClick={() => {
                 setMode("login");
                 setSubmitted(false);
-                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
+                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setNote("");
               }}
               className="inline-flex items-center gap-2 text-sm text-gold-primary hover:underline"
             >
@@ -324,8 +313,8 @@ function AuthPage() {
           </div>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground text-center max-w-[30ch] mx-auto leading-relaxed mb-6">
-              أدخل اسمك الثلاثي ورقم جوالك. سيقوم المشرفون بمراجعة الطلب.
+            <p className="text-sm text-muted-foreground text-center max-w-[34ch] mx-auto leading-relaxed mb-6">
+              أدخل اسمك الثلاثي وبريدك. بعد موافقة المشرفين، ستصلك رسالة تحوي رابطاً لإنشاء كلمة المرور الخاصة بك.
             </p>
             <form onSubmit={onSubmitRequest} className="space-y-3">
               <ReqField label="الاسم الأول" value={first} onChange={setFirst} placeholder="فيصل" />
@@ -333,8 +322,6 @@ function AuthPage() {
               <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
               <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
               <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
-              <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
-              <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
               <label className="block space-y-1.5">
                 <span className="text-xs text-muted-foreground">ملاحظات (اختياري)</span>
                 <textarea
