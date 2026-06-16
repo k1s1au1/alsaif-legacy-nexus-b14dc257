@@ -102,7 +102,10 @@ export function ShortcutsGrid({
         {sorted.map((s) => {
           const isFav = favs.includes(s.key);
           const Icon = s.icon;
-          const hasBadge = typeof s.badge === "number" && s.badge > 0;
+          const rawBadge = typeof s.badge === "number" ? s.badge : 0;
+          const seen = seenMap[s.key] ?? 0;
+          const displayBadge = Math.max(0, rawBadge - seen);
+          const hasBadge = displayBadge > 0;
           return (
             <motion.div
               key={s.key}
