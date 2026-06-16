@@ -255,10 +255,14 @@ export function AppShell({
       {/* Main */}
       <main
         className={cn(
-          "min-h-screen pb-16 transition-all duration-300",
+          "relative min-h-screen pb-16 transition-all duration-300",
           sidebarOpen ? "mr-20 lg:mr-64" : "mr-0",
         )}
       >
+        {/* Subtle moving palm pattern background */}
+        <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
+          <div className="palm-bg-layer" />
+        </div>
         <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <button
@@ -325,7 +329,7 @@ export function AppShell({
           </div>
         </header>
 
-        <div className="p-6 lg:p-10 max-w-7xl">{children}</div>
+        <div className="relative z-10 p-6 lg:p-10 max-w-7xl">{children}</div>
       </main>
     </div>
   );
