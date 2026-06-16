@@ -91,14 +91,14 @@ export function ShortcutsGrid({
             <div
               key={s.key}
               className={cn(
-                "group relative overflow-hidden rounded-2xl bg-card ring-1 ring-border p-4 sm:p-5",
-                "transition-all duration-300 hover:-translate-y-1 hover:ring-gold-primary/40 hover:shadow-gold",
+                i % 2 === 0 ? "card-surface" : "card-surface-alt",
+                "card-hover-lift group relative overflow-hidden p-4 sm:p-5",
                 "animate-fade-up flex flex-col",
               )}
               style={{ animationDelay: `${i * 50}ms` }}
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-40 transition-opacity group-hover:opacity-80 pointer-events-none", s.accent)} />
-              <div className="absolute -top-10 -left-10 size-24 rounded-full bg-gold-primary/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className="absolute -top-12 -left-12 size-28 rounded-full bg-gold-primary/15 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+
 
               <button
                 type="button"
