@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Bell, MessageCircle, CalendarDays, UserPlus, Inbox, ListChecks } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -45,6 +45,8 @@ export function NotificationsBell() {
   const [items, setItems] = useState<Notif[]>([]);
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const inChat = pathname.startsWith("/chat");
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -233,6 +235,10 @@ export function NotificationsBell() {
   const iconFor = (k: NotifKind) =>
     k === "message" ? MessageCircle : k === "meeting" ? CalendarDays : k === "task" ? ListChecks : UserPlus;
 
+  const visibleItems = inChat ? items.filter((n) => n.kind !== "message") : items;
+  const visibleCount = visibleItems.length;
+
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
@@ -241,9 +247,9 @@ export function NotificationsBell() {
           aria-label="الإشعارات"
         >
           <Bell className="size-5" strokeWidth={1.5} />
-          {count > 0 && (
+          {visibleCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-gold-primary text-navy-base text-[9px] font-bold grid place-items-center leading-none">
-              {count > 99 ? "99+" : count}
+              {visibleCount > 99 ? "99+" : visibleCount}
             </span>
           )}
         </button>
@@ -255,18 +261,18 @@ export function NotificationsBell() {
       >
         <DropdownMenuLabel className="px-4 py-3 flex items-center justify-between sticky top-0 bg-popover z-10 border-b border-border">
           <span className="text-sm font-medium">الإشعارات</span>
-          {count > 0 && (
-            <span className="text-[10px] text-gold-primary">{count} جديد</span>
+          {visibleCount > 0 && (
+            <span className="text-[10px] text-gold-primary">{visibleCount} جديد</span>
           )}
         </DropdownMenuLabel>
-        {items.length === 0 ? (
+        {visibleItems.length === 0 ? (
           <div className="px-4 py-10 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
             <Inbox className="size-8 opacity-40" strokeWidth={1.5} />
             لا توجد إشعارات حالياً
           </div>
         ) : (
           <div className="py-1">
-            {items.map((n) => {
+            {visibleItems.map((n) => {
               const Icon = iconFor(n.kind);
               return (
                 <Link
