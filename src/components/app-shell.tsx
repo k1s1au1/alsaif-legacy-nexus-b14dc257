@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
