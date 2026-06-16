@@ -71,14 +71,11 @@ function MemberProfilePage() {
       setRole((r?.role as string | null) ?? null);
 
       if (u.user) {
-        const [{ data: mine }, { data: adminCheck }] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("arabic_name, full_name, avatar_url")
-            .eq("id", u.user.id)
-            .maybeSingle(),
-          supabase.rpc("has_role", { _user_id: u.user.id, _role: "admin" }),
-        ]);
+        const { data: mine } = await supabase
+          .from("profiles")
+          .select("arabic_name, full_name, avatar_url")
+          .eq("id", u.user.id)
+          .maybeSingle();
         const name =
           mine?.arabic_name?.trim() ||
           mine?.full_name?.trim() ||
@@ -89,7 +86,6 @@ function MemberProfilePage() {
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: mine?.avatar_url ?? null,
         });
-        setIsAdmin(!!adminCheck);
       }
       setLoading(false);
     })();
