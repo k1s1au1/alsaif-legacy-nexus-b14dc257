@@ -45,6 +45,8 @@ export function NotificationsBell() {
   const [items, setItems] = useState<Notif[]>([]);
   const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const inChat = pathname.startsWith("/chat");
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
