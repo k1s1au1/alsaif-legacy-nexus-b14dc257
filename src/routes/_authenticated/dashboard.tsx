@@ -315,20 +315,23 @@ function Dashboard() {
 
   return (
     <MobileShell title="لوحة العائلة" user={profile} unreadCount={pinned.length}>
-      <div className="space-y-4 pt-2">
-        {/* Welcome card with skyline */}
+      <div className="pt-2 space-y-4">
+        {/* Welcome card with skyline - full width */}
         <Card className="relative overflow-hidden">
           <p className="text-xs text-[#666666] mb-1">أهلاً بك</p>
-          <h2 className="text-xl font-bold text-foreground leading-tight">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground leading-tight">
             {profile.name}
           </h2>
-          <p className="text-xs text-[#666666] mt-1 leading-relaxed">
+          <p className="text-xs sm:text-sm text-[#666666] mt-1 leading-relaxed">
             نصل العائلة، نحفظ الإرث، نبني المجتمع
           </p>
-          <div className="relative h-16 -mx-2 -mb-2 mt-3">
+          <div className="relative h-16 sm:h-20 lg:h-24 -mx-2 -mb-2 mt-3">
             <Skyline className="absolute inset-x-0 bottom-0 w-full h-full" opacity={0.22} />
           </div>
         </Card>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 transition-all">
+
 
         {/* Announcement */}
         <Card>
@@ -397,6 +400,7 @@ function Dashboard() {
             </div>
           </div>
         </Card>
+        </div>
 
         <Link to="/meetings" className="block">
           <PrimaryButton className="mt-2">اقتراح اجتماع جديد</PrimaryButton>
@@ -406,6 +410,7 @@ function Dashboard() {
           <SaduPattern height={18} />
         </div>
       </div>
+
     </MobileShell>
   );
 }
