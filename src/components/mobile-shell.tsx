@@ -77,9 +77,9 @@ export function MobileShell({
           className="fixed bottom-0 left-0 right-0 z-40 pointer-events-none"
           style={{ paddingBottom: "max(env(safe-area-inset-bottom), 12px)" }}
         >
-          <div className="mx-auto w-full max-w-[420px] px-4">
+          <div className="mx-auto w-full max-w-[420px] sm:max-w-md px-4">
             <div
-              className="pointer-events-auto bg-card rounded-[24px] flex items-center justify-around px-2 py-2"
+              className="pointer-events-auto bg-card rounded-[24px] flex items-center justify-around px-2 py-2 transition-all"
               style={{ boxShadow: "0 8px 28px -8px rgba(0,0,0,0.12), 0 2px 8px -2px rgba(0,0,0,0.06)" }}
             >
               {tabs.map(({ to, label, icon: Icon }) => {
