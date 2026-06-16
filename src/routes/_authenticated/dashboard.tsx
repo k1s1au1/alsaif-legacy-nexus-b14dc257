@@ -18,6 +18,7 @@ import {
   Plus,
 } from "lucide-react";
 import tripImage from "@/assets/trip-alula.jpg";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { FinanceChart } from "@/components/dashboard/finance-chart";
 import { LiveClock } from "@/components/dashboard/live-clock";
