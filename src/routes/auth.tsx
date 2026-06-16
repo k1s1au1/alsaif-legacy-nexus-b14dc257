@@ -419,7 +419,7 @@ function AuthPage() {
                 onClick={() => {
                   setMode("login");
                   setSubmitted(false);
-                  setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
+                  setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setNote("");
                 }}
                 className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
                 style={{ color: PRIMARY }}
