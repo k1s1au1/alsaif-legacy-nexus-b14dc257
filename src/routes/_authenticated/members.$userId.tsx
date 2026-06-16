@@ -1,13 +1,10 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { ArrowRight, Calendar, Eye, EyeOff, KeyRound, Loader2, Mail, Phone, User as UserIcon } from "lucide-react";
-import { getMemberCredential } from "@/lib/api/member-credentials.functions";
+import { ArrowRight, Calendar, Loader2, Phone, User as UserIcon } from "lucide-react";
 import { PresenceDot, presenceFromLastSeen, presenceLabel } from "@/lib/presence";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/members/$userId")({
   ssr: false,
@@ -43,12 +40,7 @@ function MemberProfilePage() {
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [role, setRole] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [credential, setCredential] = useState<{ email: string | null; password: string | null } | null>(null);
-  const [credLoading, setCredLoading] = useState(false);
-  const [showPwd, setShowPwd] = useState(false);
   const [lastSeen, setLastSeen] = useState<string | null>(null);
-  const fetchCredential = useServerFn(getMemberCredential);
   const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
     name: "...",
     initial: "س",
