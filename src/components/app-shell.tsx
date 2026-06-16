@@ -212,11 +212,19 @@ export function AppShell({
           sidebarOpen ? "w-20 lg:w-64" : "w-0 overflow-hidden border-l-0",
         )}
       >
-        <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 bg-gold-soft text-white">
-          <span className="hidden lg:block text-xl font-medium tracking-wide">
-            السيف
-          </span>
+        <div className="h-20 flex items-center justify-center lg:justify-end lg:px-6 gap-3 bg-gold-soft text-white">
+          <div className="hidden lg:flex flex-col items-end leading-tight">
+            <span className="text-lg font-semibold tracking-wide">السيف</span>
+            <span className="text-[11px] text-white/70">لوحة العائلة</span>
+          </div>
+          <img
+            src={alsaifMark.url}
+            alt="العلي"
+            className="size-10 object-contain invert brightness-0 contrast-200"
+            style={{ filter: "brightness(0) invert(1)" }}
+          />
         </div>
+
 
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
