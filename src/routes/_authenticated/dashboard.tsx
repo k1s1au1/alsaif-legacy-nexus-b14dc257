@@ -467,18 +467,17 @@ function Dashboard() {
               key={s.label}
               to={s.to}
               className={cn(
-                "group relative overflow-hidden rounded-2xl bg-card ring-1 ring-border p-4 sm:p-5",
-                "transition-all duration-300 hover:-translate-y-1 hover:ring-gold-primary/40 hover:shadow-gold",
+                i % 2 === 0 ? "card-surface" : "card-surface-alt",
+                "card-hover-lift group relative overflow-hidden p-4 sm:p-5",
                 "animate-fade-up",
               )}
               style={{ animationDelay: `${i * 60}ms` }}
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-50 transition-opacity group-hover:opacity-90", s.accent)} />
               <div className="relative space-y-3">
                 <div className="flex items-center justify-between">
                   <span className="eyebrow text-[10px]">{s.label}</span>
-                  <span className="size-8 grid place-items-center rounded-lg bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 transition-transform group-hover:scale-110">
-                    <s.icon className="size-4" strokeWidth={1.5} />
+                  <span className="icon-bubble size-10 transition-transform group-hover:scale-110">
+                    <s.icon className="size-4" strokeWidth={1.6} />
                   </span>
                 </div>
                 <div className="text-xl sm:text-2xl lg:text-3xl font-semibold text-ivory tabular-nums leading-tight">
