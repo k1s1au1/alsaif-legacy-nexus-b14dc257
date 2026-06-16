@@ -28,7 +28,8 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
     // Note: do NOT early-return on already-approved. We re-run creation so that
     // requests that were marked approved but whose auth user creation failed
     // (silently) can still be activated by re-approving from the admin panel.
-    if (!req.email) throw new Error("الطلب يفتقد البريد الإلكتروني");
+    if (!req.email || !req.desired_password)
+      throw new Error("الطلب يفتقد البريد أو كلمة المرور");
 
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
@@ -38,17 +39,12 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join(" ");
 
-    // Generate a strong random temporary password. The user will set their own
-    // password via the password reset email we send after creation.
-    const tempPassword =
-      crypto.randomUUID().replace(/-/g, "") + "Aa1!";
-
     // Create the auth user (handle_new_user trigger creates profile + member role)
     let newUserId: string | null = null;
     const { data: created, error: createErr } =
       await supabaseAdmin.auth.admin.createUser({
         email: req.email,
-        password: tempPassword,
+        password: req.desired_password,
         email_confirm: true,
         user_metadata: { full_name: fullName, arabic_name: fullName },
       });
@@ -70,15 +66,6 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
       newUserId = created.user?.id ?? null;
     }
     if (!newUserId) throw new Error("تعذر إنشاء المستخدم");
-
-    // Send a password reset email so the user can set their own password.
-    // Failure here should not block approval — log and continue.
-    try {
-      await supabaseAdmin.auth.resetPasswordForEmail(req.email);
-    } catch {
-      // ignore — admin can resend from the dashboard
-    }
-
 
     // Upsert profile with three-part name and phone
     await supabaseAdmin

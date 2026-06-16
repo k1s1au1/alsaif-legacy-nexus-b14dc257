@@ -19,12 +19,23 @@ export const getMemberCredential = createServerFn({ method: "POST" })
       "@/integrations/supabase/client.server"
     );
 
-    // Resolve the target user's email. Passwords are no longer stored in the
-    // database — admins must send a password reset link instead.
+    // Resolve the target user's email
     const { data: userRes, error: userErr } =
       await supabaseAdmin.auth.admin.getUserById(data.userId);
     if (userErr || !userRes?.user?.email) {
       return { email: null, password: null };
     }
-    return { email: userRes.user.email, password: null };
+    const email = userRes.user.email;
+
+    // Find the latest account request with the stored desired password
+    const { data: req } = await supabaseAdmin
+      .from("account_requests")
+      .select("desired_password, created_at")
+      .ilike("email", email)
+      .not("desired_password", "is", null)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return { email, password: req?.desired_password ?? null };
   });
