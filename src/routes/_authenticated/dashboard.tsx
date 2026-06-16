@@ -400,6 +400,7 @@ function Dashboard() {
             </div>
           </div>
         </Card>
+        </div>
 
         <Link to="/meetings" className="block">
           <PrimaryButton className="mt-2">اقتراح اجتماع جديد</PrimaryButton>
@@ -409,6 +410,7 @@ function Dashboard() {
           <SaduPattern height={18} />
         </div>
       </div>
+
     </MobileShell>
   );
 }
