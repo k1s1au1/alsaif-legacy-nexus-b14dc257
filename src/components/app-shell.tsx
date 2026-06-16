@@ -303,7 +303,7 @@ export function AppShell({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition outline-none"
+                  className="flex items-center gap-3 pr-6 border-r border-white/20 hover:opacity-80 transition outline-none"
                   aria-label="الملف الشخصي"
                 >
                   <div className="text-left hidden sm:block">
