@@ -21,6 +21,7 @@ import tripImage from "@/assets/trip-alula.jpg";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { FinanceChart } from "@/components/dashboard/finance-chart";
 import { LiveClock } from "@/components/dashboard/live-clock";
+import { ShortcutsGrid } from "@/components/dashboard/shortcuts-grid";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
