@@ -50,56 +50,60 @@
 }
 
 :root {
-  /* Brand raw values */
-  --navy-base: #050a18;
-  --navy-card: #0d152b;
-  --navy-elev: #131e3d;
-  --gold-primary: #bfa15d;
-  --gold-soft: #8e7745;
-  --ivory: #f5f2eb;
+  /* Brand raw values — White / Gray / Green family theme.
+   * Legacy token names (navy-*, gold-*, ivory) are preserved and remapped
+   * to the new palette so all existing components inherit the new theme
+   * without per-file edits. */
+  --navy-base: #ffffff;        /* page background */
+  --navy-card: #fafafa;        /* cards */
+  --navy-elev: #f5f5f5;        /* elevated / secondary surfaces */
+  --gold-primary: #2e7d32;     /* primary green */
+  --gold-soft: #4caf50;        /* secondary green */
+  --ivory: #212121;            /* primary text (dark on light) */
 
-  /* Semantic — dark by default (Private Club Midnight is dark) */
-  --background: #050a18;
-  --foreground: #f5f2eb;
-  --card: #0d152b;
-  --card-foreground: #f5f2eb;
-  --popover: #0d152b;
-  --popover-foreground: #f5f2eb;
-  --primary: #bfa15d;
-  --primary-foreground: #050a18;
-  --secondary: #131e3d;
-  --secondary-foreground: #f5f2eb;
-  --muted: #0d152b;
-  --muted-foreground: rgba(245, 242, 235, 0.55);
-  --accent: #131e3d;
-  --accent-foreground: #bfa15d;
-  --destructive: #b8424a;
-  --destructive-foreground: #f5f2eb;
-  --border: rgba(191, 161, 93, 0.12);
-  --input: rgba(245, 242, 235, 0.08);
-  --ring: rgba(191, 161, 93, 0.5);
-}
-
-/* Light mode — ivory paper + navy ink */
-.light {
-  --background: #faf8f2;
-  --foreground: #050a18;
-  --card: #ffffff;
-  --card-foreground: #050a18;
+  /* Semantic — light by default */
+  --background: #ffffff;
+  --foreground: #212121;
+  --card: #fafafa;
+  --card-foreground: #212121;
   --popover: #ffffff;
-  --popover-foreground: #050a18;
-  --primary: #8e7745;
-  --primary-foreground: #faf8f2;
-  --secondary: #f0ebdc;
-  --secondary-foreground: #050a18;
-  --muted: #f0ebdc;
-  --muted-foreground: rgba(5, 10, 24, 0.6);
-  --accent: #f0ebdc;
-  --accent-foreground: #8e7745;
-  --border: rgba(5, 10, 24, 0.1);
-  --input: rgba(5, 10, 24, 0.06);
-  --ring: rgba(142, 119, 69, 0.5);
+  --popover-foreground: #212121;
+  --primary: #2e7d32;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #212121;
+  --muted: #f5f5f5;
+  --muted-foreground: #757575;
+  --accent: #e8f5e9;
+  --accent-foreground: #2e7d32;
+  --destructive: #c62828;
+  --destructive-foreground: #ffffff;
+  --border: #e0e0e0;
+  --input: #f5f5f5;
+  --ring: rgba(46, 125, 50, 0.45);
 }
+
+/* Light mode alias — same palette (kept for compatibility with the .light class) */
+.light {
+  --background: #ffffff;
+  --foreground: #212121;
+  --card: #fafafa;
+  --card-foreground: #212121;
+  --popover: #ffffff;
+  --popover-foreground: #212121;
+  --primary: #2e7d32;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #212121;
+  --muted: #f5f5f5;
+  --muted-foreground: #757575;
+  --accent: #e8f5e9;
+  --accent-foreground: #2e7d32;
+  --border: #e0e0e0;
+  --input: #f5f5f5;
+  --ring: rgba(46, 125, 50, 0.45);
+}
+
 
 @layer base {
   * { border-color: var(--color-border); }
