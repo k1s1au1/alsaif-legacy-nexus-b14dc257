@@ -275,29 +275,18 @@ export function AppShell({
           <div className="palm-bg-layer" />
         </div>
         <header
-          className="h-20 border-b sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between transition-all duration-500"
-          style={{
-            backgroundImage: `linear-gradient(90deg,
-              color-mix(in oklab, var(--background) ${85 - scrollProgress * 10}%, transparent) 0%,
-              color-mix(in oklab, var(--gold-primary) ${3 + scrollProgress * 8}%, var(--background)) 50%,
-              color-mix(in oklab, var(--gold-primary) ${6 + scrollProgress * 14}%, var(--background)) 100%)`,
-            backdropFilter: `blur(${8 + scrollProgress * 8}px) saturate(140%)`,
-            WebkitBackdropFilter: `blur(${8 + scrollProgress * 8}px) saturate(140%)`,
-            borderBottomColor: `color-mix(in oklab, var(--gold-primary) ${15 + scrollProgress * 30}%, transparent)`,
-            boxShadow: scrollProgress > 0.05
-              ? `0 ${4 + scrollProgress * 12}px ${20 + scrollProgress * 24}px -12px color-mix(in oklab, var(--gold-primary) ${10 + scrollProgress * 20}%, transparent)`
-              : "none",
-          }}
+          className="h-20 sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between bg-gold-soft text-white shadow-md"
         >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen((v) => !v)}
               aria-label={sidebarOpen ? "إخفاء القائمة" : "إظهار القائمة"}
-              className="size-10 grid place-items-center rounded-lg bg-gold-primary/10 ring-1 ring-gold-primary/30 text-gold-primary hover:bg-gold-primary/20 transition-colors"
+              className="size-10 grid place-items-center rounded-lg bg-white/10 ring-1 ring-white/20 text-white hover:bg-white/20 transition-colors"
             >
               <Menu className="size-5" strokeWidth={1.5} />
             </button>
-            <h1 className="text-lg font-medium tracking-tight">{title}</h1>
+            <h1 className="text-lg font-medium tracking-tight text-white">{title}</h1>
+
           </div>
           <div className="flex items-center gap-6">
             <NotificationsBell />
