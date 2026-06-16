@@ -206,11 +206,13 @@ function FamilyTreePage() {
           <div
             dir="rtl"
             onClick={toggleNode}
-            className={`group relative w-full h-full rounded-xl border ${
+            className={`group relative w-full h-full rounded-2xl border bg-card ${
               isSynthetic
-                ? "border-gold-primary/60 bg-gradient-to-br from-gold-primary/20 to-transparent"
-                : "border-border bg-card/80"
-            } backdrop-blur-sm shadow-lg hover:border-gold-primary/60 hover:shadow-gold-primary/20 transition-all duration-300 cursor-pointer p-2 flex items-center gap-2 animate-in fade-in zoom-in-95`}
+                ? "border-gold-primary/60 bg-gradient-to-br from-gold-primary/15 to-transparent"
+                : m && me && m.id === me.id
+                  ? "border-2 border-gold-primary ring-2 ring-gold-primary/30"
+                  : "border-border"
+            } shadow-sm hover:border-gold-primary/60 hover:shadow-md transition-all duration-300 cursor-pointer p-2 flex items-center gap-2 animate-in fade-in zoom-in-95`}
             style={{ animationDuration: "400ms" }}
           >
             {m ? (
