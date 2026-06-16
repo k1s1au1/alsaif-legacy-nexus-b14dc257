@@ -51,7 +51,17 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // 0 at top → 1 after 240px of scroll
+  const scrollProgress = Math.min(scrollY / 240, 1);
 
   usePresenceHeartbeat();
 
