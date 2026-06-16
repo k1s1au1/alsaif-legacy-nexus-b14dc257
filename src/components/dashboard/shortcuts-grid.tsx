@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSeenMap, writeBadge } from "@/hooks/use-shortcut-badges";
 
 export type Shortcut = {
   key: string;
@@ -41,6 +42,12 @@ export function ShortcutsGrid({
 }) {
   const [favs, setFavs] = useState<string[]>([]);
   useEffect(() => setFavs(loadFavs()), []);
+
+  const badgeKeys = useMemo(() => Object.keys(badges), [badges]);
+  const seenMap = useSeenMap(badgeKeys);
+  useEffect(() => {
+    for (const k of badgeKeys) writeBadge(k, badges[k] ?? null);
+  }, [badges, badgeKeys]);
 
   const toggleFav = (key: string) => {
     setFavs((prev) => {
@@ -95,7 +102,10 @@ export function ShortcutsGrid({
         {sorted.map((s) => {
           const isFav = favs.includes(s.key);
           const Icon = s.icon;
-          const hasBadge = typeof s.badge === "number" && s.badge > 0;
+          const rawBadge = typeof s.badge === "number" ? s.badge : 0;
+          const seen = seenMap[s.key] ?? 0;
+          const displayBadge = Math.max(0, rawBadge - seen);
+          const hasBadge = displayBadge > 0;
           return (
             <motion.div
               key={s.key}
@@ -149,7 +159,7 @@ export function ShortcutsGrid({
                   </motion.span>
                   {hasBadge && (
                     <motion.span
-                      key={s.badge}
+                      key={displayBadge}
                       initial={{ scale: 0, opacity: 0 }}
                       animate={{ scale: 1, opacity: 1 }}
                       transition={{ type: "spring", stiffness: 500, damping: 18 }}
@@ -161,7 +171,7 @@ export function ShortcutsGrid({
                         animate={{ scale: [1, 1.6], opacity: [0.5, 0] }}
                         transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
                       />
-                      <span className="relative">{s.badge! > 99 ? "99+" : s.badge}</span>
+                      <span className="relative">{displayBadge > 99 ? "99+" : displayBadge}</span>
                     </motion.span>
                   )}
                 </div>

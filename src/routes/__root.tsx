@@ -8,6 +8,7 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
+import { markSeen } from "@/hooks/use-shortcut-badges";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -135,6 +136,34 @@ function RootComponent() {
     });
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
+
+  // Auto-clear shortcut badges when entering the matching page
+  useEffect(() => {
+    const PATH_TO_KEY: Array<{ test: (p: string) => boolean; key: string }> = [
+      { test: (p) => p.startsWith("/meetings"), key: "meetings" },
+      { test: (p) => p.startsWith("/trips"), key: "trips" },
+      { test: (p) => p.startsWith("/tasks"), key: "tasks" },
+      { test: (p) => p.startsWith("/chat"), key: "chat" },
+      { test: (p) => p.startsWith("/majlis"), key: "majlis" },
+      { test: (p) => p.startsWith("/events"), key: "events" },
+      { test: (p) => p.startsWith("/archive"), key: "archive" },
+      { test: (p) => p.startsWith("/finance"), key: "finance" },
+      { test: (p) => p.startsWith("/family-tree"), key: "family-tree" },
+    ];
+    const apply = (path: string) => {
+      for (const m of PATH_TO_KEY) if (m.test(path)) {
+        markSeen(m.key);
+        setTimeout(() => markSeen(m.key), 1500);
+      }
+    };
+    apply(router.state.location.pathname);
+    const unsub = router.subscribe("onResolved", ({ toLocation }) => {
+      apply(toLocation.pathname);
+    });
+    return () => unsub();
+  }, [router]);
+
+
 
   return (
     <QueryClientProvider client={queryClient}>
