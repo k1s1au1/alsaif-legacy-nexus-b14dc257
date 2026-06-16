@@ -51,8 +51,6 @@ function AuthPage() {
   const [grand, setGrand] = useState("");
   const [phone, setPhone] = useState("");
   const [reqEmail, setReqEmail] = useState("");
-  const [reqPassword, setReqPassword] = useState("");
-  const [reqPassword2, setReqPassword2] = useState("");
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -100,14 +98,6 @@ function AuthPage() {
       toast.error("البريد الإلكتروني غير صالح");
       return;
     }
-    if (reqPassword.length < 8) {
-      toast.error("كلمة المرور يجب ألا تقل عن 8 أحرف");
-      return;
-    }
-    if (reqPassword !== reqPassword2) {
-      toast.error("كلمتا المرور غير متطابقتين");
-      return;
-    }
     if (!agreeTerms) {
       toast.error("يجب الموافقة على الإقرار والشروط للمتابعة");
       return;
@@ -119,7 +109,6 @@ function AuthPage() {
       grandfather_name: grand.trim(),
       phone: phone.trim(),
       email: reqEmail.trim(),
-      desired_password: reqPassword,
       note: note.trim() || null,
       terms_accepted: true,
     });
@@ -430,7 +419,7 @@ function AuthPage() {
                 onClick={() => {
                   setMode("login");
                   setSubmitted(false);
-                  setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
+                  setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setNote("");
                 }}
                 className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
                 style={{ color: PRIMARY }}
@@ -450,8 +439,6 @@ function AuthPage() {
                 <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
                 <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
                 <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
-                <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
-                <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
                 <label className="block space-y-1.5">
                   <span className="text-xs" style={{ color: MUTED }}>ملاحظات (اختياري)</span>
                   <textarea
