@@ -417,16 +417,17 @@ function FamilyTreePage() {
       <style>{`
         .family-tree-link {
           fill: none;
-          stroke: hsl(var(--gold-primary, 43 74% 49%) / 0.55);
-          stroke-width: 1.5px;
+          stroke: #4caf50;
+          stroke-width: 2px;
           stroke-linecap: round;
           stroke-linejoin: round;
-          filter: drop-shadow(0 0 4px hsl(var(--gold-primary, 43 74% 49%) / 0.2));
+          filter: drop-shadow(0 1px 2px rgba(46, 125, 50, 0.25));
         }
         .rd3t-tree-container { width: 100%; height: 100%; }
         .rd3t-grabbable { cursor: grab; }
         .rd3t-grabbable:active { cursor: grabbing; }
       `}</style>
+
     </AppShell>
   );
 }
