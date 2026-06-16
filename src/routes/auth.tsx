@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, UserPlus, ArrowRight } from "lucide-react";
-import authBg from "@/assets/alsaif-auth-bg.png.asset.json";
+import { Loader2, UserPlus, ArrowRight, Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import logoAsset from "@/assets/alsaif-logo.png.asset.json";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
 
 export const Route = createFileRoute("/auth")({
@@ -17,6 +17,13 @@ export const Route = createFileRoute("/auth")({
   }),
   component: AuthPage,
 });
+
+const PRIMARY = "#165A3A";
+const SECONDARY = "#2E7D32";
+const BORDER = "#E5E7EB";
+const DARK = "#1F2937";
+const MUTED = "#6B7280";
+const ERROR = "#C62828";
 
 const nameSchema = z.string().trim().min(2, "حرفان على الأقل").max(40, "طويل جداً");
 const phoneSchema = z
@@ -34,6 +41,8 @@ function AuthPage() {
   const [forgotSent, setForgotSent] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // request form
@@ -142,143 +151,289 @@ function AuthPage() {
     toast.success("تم إرسال رابط إعادة التعيين");
   }
 
-
+  // CSS filter to tint the black logo to dark green (#165A3A)
+  const greenLogoFilter =
+    "brightness(0) saturate(100%) invert(24%) sepia(45%) saturate(900%) hue-rotate(105deg) brightness(92%) contrast(92%)";
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 auth-bg">
-      {/* Responsive background image via <img> for object-position control */}
-      <img
-        src={authBg.url}
-        alt=""
+    <div
+      dir="rtl"
+      className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10"
+      style={{ background: "#FFFFFF", color: DARK, fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif" }}
+    >
+      {/* Palm tree watermark */}
+      <svg
         aria-hidden="true"
-        className="absolute inset-0 w-full h-full object-cover -z-10 auth-bg-img"
-      />
-      {/* Warm vignette to anchor the form */}
+        className="absolute left-0 bottom-20 h-[60vh] w-auto opacity-[0.06] pointer-events-none"
+        viewBox="0 0 200 400"
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth="1.5"
+      >
+        <path d="M100 400 L100 180" />
+        <path d="M100 180 Q60 140 30 150 Q60 160 100 180" />
+        <path d="M100 180 Q140 140 170 150 Q140 160 100 180" />
+        <path d="M100 180 Q70 110 40 100 Q75 130 100 180" />
+        <path d="M100 180 Q130 110 160 100 Q125 130 100 180" />
+        <path d="M100 180 Q95 120 80 80 Q98 130 100 180" />
+        <path d="M100 180 Q105 120 120 80 Q102 130 100 180" />
+        {[220, 260, 300, 340].map((y) => (
+          <path key={y} d={`M97 ${y} Q100 ${y - 4} 103 ${y}`} />
+        ))}
+      </svg>
+      {/* Skyline footer */}
+      <svg
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-10 w-full opacity-[0.07] pointer-events-none"
+        viewBox="0 0 1200 120"
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth="1.2"
+      >
+        <path d="M0 110 L60 110 L60 80 L80 80 L80 110 L120 110 L120 60 L140 60 L140 110 L200 110 L210 50 L220 110 L280 110 L280 70 L300 70 L300 40 L320 40 L320 70 L340 70 L340 110 L420 110 L420 30 L440 30 L440 10 L450 10 L450 30 L470 30 L470 110 L560 110 L560 50 L580 50 L580 20 L600 20 L600 50 L620 50 L620 110 L720 110 L720 60 L740 60 L740 110 L800 110 L810 40 L820 110 L900 110 L900 70 L920 70 L920 35 L940 35 L940 70 L960 70 L960 110 L1040 110 L1040 50 L1060 50 L1060 20 L1080 20 L1080 50 L1100 50 L1100 110 L1200 110" />
+      </svg>
+      {/* Decorative border at bottom */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-3 pointer-events-none"
         style={{
           background:
-            "radial-gradient(ellipse at center, rgba(40,24,8,0.25) 0%, rgba(20,12,4,0.55) 70%, rgba(10,6,2,0.80) 100%)",
+            `repeating-linear-gradient(135deg, ${PRIMARY} 0 8px, transparent 8px 16px), repeating-linear-gradient(45deg, ${SECONDARY} 0 8px, transparent 8px 16px)`,
+          opacity: 0.85,
         }}
       />
 
-      <div
-        className="relative w-full max-w-md p-10 animate-fade-up rounded-2xl backdrop-blur-xl"
-        style={{
-          background:
-            "linear-gradient(160deg, rgba(38,26,14,0.78) 0%, rgba(24,16,8,0.88) 100%)",
-          border: "1px solid rgba(212,175,90,0.35)",
-          boxShadow:
-            "0 30px 80px -20px rgba(0,0,0,0.7), 0 0 0 1px rgba(212,175,90,0.10), inset 0 1px 0 rgba(245,222,179,0.18)",
-        }}
-      >
-        <div className="flex flex-col items-center text-center mb-8">
-          <div
-            className="size-16 rounded-2xl grid place-items-center mb-5"
-            style={{
-              background:
-                "linear-gradient(145deg, rgba(212,175,55,0.18), rgba(212,175,55,0.04))",
-              border: "1px solid rgba(212,175,55,0.45)",
-              boxShadow:
-                "0 8px 24px -8px rgba(212,175,55,0.4), inset 0 1px 0 rgba(255,220,140,0.2)",
-            }}
-          >
-            <span
-              className="text-2xl font-semibold"
-              style={{ color: "#d4af37" }}
-            >
-              ص
-            </span>
-          </div>
-          <h1
-            className="text-2xl font-medium tracking-tight"
-            style={{ color: "#f5f2eb" }}
-          >
+      <div className="relative w-full max-w-md">
+        {/* Brand header */}
+        <div className="flex flex-col items-center text-center mb-7">
+          <img
+            src={logoAsset.url}
+            alt="شعار عائلة السيف"
+            width={140}
+            height={140}
+            className="w-28 h-28 sm:w-32 sm:h-32 object-contain mb-4"
+            style={{ filter: greenLogoFilter }}
+          />
+          <h1 className="text-3xl font-bold tracking-tight" style={{ color: PRIMARY }}>
             السيف
           </h1>
           <p
-            className="mt-2 text-[11px] font-medium uppercase"
-            style={{
-              color: "rgba(212,175,55,0.75)",
-              letterSpacing: "0.25em",
-            }}
+            className="mt-2 text-[11px] font-semibold"
+            style={{ color: SECONDARY, letterSpacing: "0.28em" }}
           >
             ALSAIF · PRIVATE ACCESS
           </p>
+          <p className="mt-4 text-sm leading-relaxed max-w-[32ch]" style={{ color: MUTED }}>
+            هذه المنصة خاصة بأعضاء العائلة.
+            <br />
+            الوصول بدعوة أو بموافقة المشرفين.
+          </p>
         </div>
 
-        {mode === "login" ? (
-          <>
-            <p className="text-sm text-muted-foreground text-center max-w-[28ch] mx-auto leading-relaxed mb-6">
-              هذه المنصة خاصة بأعضاء العائلة. الوصول بدعوة أو بموافقة المشرفين.
-            </p>
-            <form onSubmit={onSubmit} className="space-y-5">
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground" htmlFor="email">البريد الإلكتروني</label>
-                <input
-                  id="email"
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  dir="ltr"
-                  className="w-full bg-input/60 border border-border rounded-lg px-4 py-3 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-ring text-right"
-                  placeholder="name@alsaif.family"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-xs text-muted-foreground" htmlFor="password">كلمة المرور</label>
-                <input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-input/60 border border-border rounded-lg px-4 py-3 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-ring"
-                  placeholder="••••••••"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-50"
-              >
-                {loading ? "...جاري الدخول" : "دخول إلى المجلس"}
-              </button>
-            </form>
+        {/* Card */}
+        <div
+          className="p-7 sm:p-8 animate-fade-up"
+          style={{
+            background: "#FFFFFF",
+            border: `1px solid ${BORDER}`,
+            borderRadius: 24,
+            boxShadow:
+              "0 20px 60px -25px rgba(22,90,58,0.18), 0 8px 20px -12px rgba(0,0,0,0.08)",
+          }}
+        >
+          {mode === "login" ? (
+            <>
+              <form onSubmit={onSubmit} className="space-y-5">
+                <Field
+                  label="البريد الإلكتروني"
+                  icon={<Mail className="size-4" style={{ color: PRIMARY }} strokeWidth={1.8} />}
+                >
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    dir="ltr"
+                    placeholder="name@alsaif.family"
+                    className="w-full bg-transparent outline-none text-sm text-right py-1"
+                    style={{ color: DARK }}
+                  />
+                </Field>
 
-            <div className="mt-4 text-center">
-              <button
-                type="button"
-                onClick={() => setMode("forgot")}
-                className="text-xs text-gold-primary/80 hover:text-gold-primary hover:underline transition"
-              >
-                نسيت كلمة المرور؟
-              </button>
-            </div>
+                <Field
+                  label="كلمة المرور"
+                  icon={<Lock className="size-4" style={{ color: PRIMARY }} strokeWidth={1.8} />}
+                  trailing={
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((v) => !v)}
+                      className="p-1 rounded hover:bg-gray-100 transition"
+                      aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" style={{ color: MUTED }} strokeWidth={1.8} />
+                      ) : (
+                        <Eye className="size-4" style={{ color: MUTED }} strokeWidth={1.8} />
+                      )}
+                    </button>
+                  }
+                >
+                  <input
+                    type={showPassword ? "text" : "password"}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="w-full bg-transparent outline-none text-sm py-1"
+                    style={{ color: DARK }}
+                  />
+                </Field>
 
-            <div className="mt-6 pt-6 border-t border-border/60 text-center">
-              <p className="text-xs text-muted-foreground mb-3">ليس لديك حساب بعد؟</p>
-              <button
-                type="button"
-                onClick={() => setMode("request")}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gold-primary/40 text-gold-primary text-sm hover:bg-gold-primary/10 transition"
-              >
-                <UserPlus className="size-4" strokeWidth={1.7} />
-                طلب إنشاء حساب
-              </button>
-            </div>
-          </>
-        ) : mode === "forgot" ? (
-          forgotSent ? (
+                <div className="flex items-center justify-between text-xs">
+                  <label className="flex items-center gap-2 cursor-pointer select-none" style={{ color: MUTED }}>
+                    <input
+                      type="checkbox"
+                      checked={remember}
+                      onChange={(e) => setRemember(e.target.checked)}
+                      className="size-4 rounded"
+                      style={{ accentColor: PRIMARY }}
+                    />
+                    تذكرني
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setMode("forgot")}
+                    className="font-medium hover:underline transition"
+                    style={{ color: ERROR }}
+                  >
+                    نسيت كلمة المرور؟
+                  </button>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 text-white text-sm font-semibold rounded-2xl transition-all duration-300 disabled:opacity-60 inline-flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-[1px]"
+                  style={{
+                    background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
+                    boxShadow: "0 10px 24px -10px rgba(22,90,58,0.55)",
+                  }}
+                >
+                  {loading ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
+                  {loading ? "جاري الدخول…" : "دخول إلى المجلس"}
+                </button>
+              </form>
+
+              <div className="my-6 flex items-center gap-3" style={{ color: MUTED }}>
+                <div className="flex-1 h-px" style={{ background: BORDER }} />
+                <span className="text-[11px]">أو</span>
+                <div className="flex-1 h-px" style={{ background: BORDER }} />
+              </div>
+
+              <div className="text-center space-y-3">
+                <p className="text-xs" style={{ color: MUTED }}>
+                  ليس لديك حساب بعد؟
+                </p>
+                <button
+                  type="button"
+                  onClick={() => setMode("request")}
+                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 hover:bg-[color:var(--primary-soft)] hover:-translate-y-[1px]"
+                  style={{
+                    background: "#FFFFFF",
+                    border: `1.5px solid ${PRIMARY}`,
+                    color: PRIMARY,
+                    ['--primary-soft' as never]: "#F0F7F2",
+                  }}
+                >
+                  <UserPlus className="size-4" strokeWidth={1.8} />
+                  طلب إنشاء حساب
+                </button>
+              </div>
+            </>
+          ) : mode === "forgot" ? (
+            forgotSent ? (
+              <div className="text-center space-y-4 py-4">
+                <h2 className="text-lg font-semibold" style={{ color: DARK }}>
+                  تم إرسال البريد
+                </h2>
+                <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
+                  إذا كان البريد مسجلاً لدينا، فستصلك رسالة فيها رابط لإعادة تعيين كلمة المرور خلال دقائق.
+                </p>
+                <button
+                  onClick={() => { setMode("login"); setForgotSent(false); setForgotEmail(""); }}
+                  className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
+                  style={{ color: PRIMARY }}
+                >
+                  <ArrowRight className="size-4" />
+                  العودة إلى تسجيل الدخول
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-sm text-center max-w-[30ch] mx-auto leading-relaxed mb-6" style={{ color: MUTED }}>
+                  أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.
+                </p>
+                <form onSubmit={onSubmitForgot} className="space-y-4">
+                  <Field
+                    label="البريد الإلكتروني"
+                    icon={<Mail className="size-4" style={{ color: PRIMARY }} strokeWidth={1.8} />}
+                  >
+                    <input
+                      type="email"
+                      required
+                      dir="ltr"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="name@alsaif.family"
+                      className="w-full bg-transparent outline-none text-sm text-right py-1"
+                      style={{ color: DARK }}
+                    />
+                  </Field>
+                  <button
+                    type="submit"
+                    disabled={forgotLoading}
+                    className="w-full py-3.5 text-white text-sm font-semibold rounded-2xl transition-all duration-300 disabled:opacity-60 inline-flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-[1px]"
+                    style={{
+                      background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
+                      boxShadow: "0 10px 24px -10px rgba(22,90,58,0.55)",
+                    }}
+                  >
+                    {forgotLoading && <Loader2 className="size-4 animate-spin" />}
+                    إرسال رابط الإعادة
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setMode("login")}
+                    className="w-full text-xs hover:text-[color:var(--primary)] transition pt-1"
+                    style={{ color: MUTED, ['--primary' as never]: PRIMARY }}
+                  >
+                    العودة إلى تسجيل الدخول
+                  </button>
+                </form>
+              </>
+            )
+          ) : submitted ? (
             <div className="text-center space-y-4 py-4">
-              <h2 className="text-lg text-ivory">تم إرسال البريد</h2>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                إذا كان البريد مسجلاً لدينا، فستصلك رسالة فيها رابط لإعادة تعيين كلمة المرور خلال دقائق.
+              <div
+                className="size-12 mx-auto rounded-full grid place-items-center"
+                style={{ background: "#F0F7F2", border: `1px solid ${PRIMARY}33` }}
+              >
+                <UserPlus className="size-5" style={{ color: PRIMARY }} strokeWidth={1.6} />
+              </div>
+              <h2 className="text-lg font-semibold" style={{ color: DARK }}>
+                تم استلام طلبك
+              </h2>
+              <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
+                سيقوم المشرفون بمراجعة طلبك والتواصل معك على رقم الجوال المسجّل.
               </p>
               <button
-                onClick={() => { setMode("login"); setForgotSent(false); setForgotEmail(""); }}
-                className="inline-flex items-center gap-2 text-sm text-gold-primary hover:underline"
+                onClick={() => {
+                  setMode("login");
+                  setSubmitted(false);
+                  setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
+                }}
+                className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
+                style={{ color: PRIMARY }}
               >
                 <ArrowRight className="size-4" />
                 العودة إلى تسجيل الدخول
@@ -286,135 +441,90 @@ function AuthPage() {
             </div>
           ) : (
             <>
-              <p className="text-sm text-muted-foreground text-center max-w-[30ch] mx-auto leading-relaxed mb-6">
-                أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.
+              <p className="text-sm text-center max-w-[30ch] mx-auto leading-relaxed mb-6" style={{ color: MUTED }}>
+                أدخل اسمك الثلاثي ورقم جوالك. سيقوم المشرفون بمراجعة الطلب.
               </p>
-              <form onSubmit={onSubmitForgot} className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-xs text-muted-foreground" htmlFor="forgotEmail">البريد الإلكتروني</label>
-                  <input
-                    id="forgotEmail"
-                    type="email"
-                    required
-                    dir="ltr"
-                    value={forgotEmail}
-                    onChange={(e) => setForgotEmail(e.target.value)}
-                    className="w-full bg-input/60 border border-border rounded-lg px-4 py-3 text-sm text-ivory focus:outline-none focus:ring-2 focus:ring-ring text-right"
-                    placeholder="name@alsaif.family"
+              <form onSubmit={onSubmitRequest} className="space-y-3">
+                <ReqField label="الاسم الأول" value={first} onChange={setFirst} placeholder="فيصل" />
+                <ReqField label="اسم الأب" value={father} onChange={setFather} placeholder="عبدالله" />
+                <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
+                <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
+                <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+                <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
+                <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
+                <label className="block space-y-1.5">
+                  <span className="text-xs" style={{ color: MUTED }}>ملاحظات (اختياري)</span>
+                  <textarea
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                    rows={2}
+                    maxLength={400}
+                    className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
+                    style={{ background: "#FFFFFF", border: `1px solid ${BORDER}`, color: DARK }}
+                    placeholder="صلة القرابة أو أي تفاصيل تساعد المشرفين"
                   />
+                </label>
+                <div className="rounded-xl p-3 space-y-2" style={{ border: `1px solid ${BORDER}`, background: "#F9FAFB" }}>
+                  <label className="flex items-start gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={agreeTerms}
+                      onChange={(e) => setAgreeTerms(e.target.checked)}
+                      className="mt-1 size-4 flex-shrink-0"
+                      style={{ accentColor: PRIMARY }}
+                    />
+                    <span className="text-xs leading-relaxed" style={{ color: DARK }}>{TERMS_SHORT}</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setShowTerms(true)}
+                    className="text-[11px] hover:underline"
+                    style={{ color: PRIMARY }}
+                  >
+                    عرض الإقرار الكامل
+                  </button>
                 </div>
                 <button
                   type="submit"
-                  disabled={forgotLoading}
-                  className="w-full py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                  disabled={submitting}
+                  className="w-full py-3.5 text-white text-sm font-semibold rounded-2xl transition-all duration-300 disabled:opacity-60 inline-flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-[1px]"
+                  style={{
+                    background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
+                    boxShadow: "0 10px 24px -10px rgba(22,90,58,0.55)",
+                  }}
                 >
-                  {forgotLoading && <Loader2 className="size-4 animate-spin" />}
-                  إرسال رابط الإعادة
+                  {submitting && <Loader2 className="size-4 animate-spin" />}
+                  إرسال الطلب
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode("login")}
-                  className="w-full text-xs text-muted-foreground hover:text-ivory transition pt-1"
+                  className="w-full text-xs transition pt-1 hover:underline"
+                  style={{ color: MUTED }}
                 >
                   العودة إلى تسجيل الدخول
                 </button>
               </form>
             </>
-          )
-        ) : submitted ? (
-          <div className="text-center space-y-4 py-4">
-            <div className="size-12 mx-auto rounded-full bg-gold-primary/10 ring-1 ring-gold-primary/30 grid place-items-center">
-              <UserPlus className="size-5 text-gold-primary" strokeWidth={1.5} />
-            </div>
-            <h2 className="text-lg text-ivory">تم استلام طلبك</h2>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              سيقوم المشرفون بمراجعة طلبك والتواصل معك على رقم الجوال المسجّل.
-            </p>
-            <button
-              onClick={() => {
-                setMode("login");
-                setSubmitted(false);
-                setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
-              }}
-              className="inline-flex items-center gap-2 text-sm text-gold-primary hover:underline"
-            >
-              <ArrowRight className="size-4" />
-              العودة إلى تسجيل الدخول
-            </button>
-          </div>
-        ) : (
-          <>
-            <p className="text-sm text-muted-foreground text-center max-w-[30ch] mx-auto leading-relaxed mb-6">
-              أدخل اسمك الثلاثي ورقم جوالك. سيقوم المشرفون بمراجعة الطلب.
-            </p>
-            <form onSubmit={onSubmitRequest} className="space-y-3">
-              <ReqField label="الاسم الأول" value={first} onChange={setFirst} placeholder="فيصل" />
-              <ReqField label="اسم الأب" value={father} onChange={setFather} placeholder="عبدالله" />
-              <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
-              <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
-              <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
-              <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
-              <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
-              <label className="block space-y-1.5">
-                <span className="text-xs text-muted-foreground">ملاحظات (اختياري)</span>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={2}
-                  maxLength={400}
-                  className="w-full px-3 py-2.5 rounded-lg bg-input/60 border border-border text-sm text-ivory placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-                  placeholder="صلة القرابة أو أي تفاصيل تساعد المشرفين"
-                />
-              </label>
-              <div className="rounded-lg border border-gold-primary/30 bg-background/40 p-3 space-y-2">
-                <label className="flex items-start gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={agreeTerms}
-                    onChange={(e) => setAgreeTerms(e.target.checked)}
-                    className="mt-1 size-4 accent-gold-primary flex-shrink-0"
-                  />
-                  <span className="text-xs text-ivory/90 leading-relaxed">{TERMS_SHORT}</span>
-                </label>
-                <button
-                  type="button"
-                  onClick={() => setShowTerms(true)}
-                  className="text-[11px] text-gold-primary hover:underline"
-                >
-                  عرض الإقرار الكامل
-                </button>
-              </div>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="w-full py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-50 inline-flex items-center justify-center gap-2"
-              >
-                {submitting && <Loader2 className="size-4 animate-spin" />}
-                إرسال الطلب
-              </button>
-              <button
-                type="button"
-                onClick={() => setMode("login")}
-                className="w-full text-xs text-muted-foreground hover:text-ivory transition pt-1"
-              >
-                العودة إلى تسجيل الدخول
-              </button>
-            </form>
-          </>
-        )}
-
+          )}
+        </div>
       </div>
+
       {showTerms && (
-        <div className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-sm grid place-items-center p-4">
-          <div className="card-surface max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto">
-            <div className="rounded-lg border border-border/60 bg-background/40 p-4 mb-5">
+        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm grid place-items-center p-4">
+          <div
+            className="max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto"
+            style={{ background: "#FFFFFF", borderRadius: 24, border: `1px solid ${BORDER}` }}
+          >
+            <div className="rounded-xl p-4 mb-5" style={{ border: `1px solid ${BORDER}`, background: "#F9FAFB" }}>
               <TermsContent />
             </div>
             <div className="flex justify-end">
               <button
                 type="button"
                 onClick={() => setShowTerms(false)}
-                className="px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+                className="px-5 py-2.5 text-white text-sm font-semibold rounded-2xl transition hover:shadow-lg"
+                style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)` }}
               >
                 إغلاق
               </button>
@@ -423,6 +533,40 @@ function AuthPage() {
         </div>
       )}
     </div>
+  );
+}
+
+function Field({
+  label,
+  icon,
+  trailing,
+  children,
+}: {
+  label: string;
+  icon?: React.ReactNode;
+  trailing?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <label className="block space-y-2">
+      <span className="text-xs font-medium" style={{ color: DARK }}>
+        {label}
+      </span>
+      <div
+        className="flex items-center gap-3 px-4 py-2.5 transition-all focus-within:border-[color:var(--p)] focus-within:ring-2 focus-within:ring-[color:var(--pr)]"
+        style={{
+          background: "#FFFFFF",
+          border: `1px solid ${BORDER}`,
+          borderRadius: 16,
+          ['--p' as never]: PRIMARY,
+          ['--pr' as never]: "rgba(22,90,58,0.15)",
+        }}
+      >
+        {icon}
+        <div className="flex-1 min-w-0">{children}</div>
+        {trailing}
+      </div>
+    </label>
   );
 }
 
@@ -441,13 +585,19 @@ function ReqField({
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-xs text-muted-foreground">{label}</span>
+      <span className="text-xs font-medium" style={{ color: DARK }}>{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-3 py-2.5 rounded-lg bg-input/60 border border-border text-sm text-ivory placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
+        className="w-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
+        style={{
+          background: "#FFFFFF",
+          border: `1px solid ${BORDER}`,
+          borderRadius: 16,
+          color: DARK,
+        }}
       />
     </label>
   );
