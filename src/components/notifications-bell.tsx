@@ -247,9 +247,9 @@ export function NotificationsBell() {
           aria-label="الإشعارات"
         >
           <Bell className="size-5" strokeWidth={1.5} />
-          {count > 0 && (
+          {visibleCount > 0 && (
             <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 px-1 rounded-full bg-gold-primary text-navy-base text-[9px] font-bold grid place-items-center leading-none">
-              {count > 99 ? "99+" : count}
+              {visibleCount > 99 ? "99+" : visibleCount}
             </span>
           )}
         </button>
@@ -261,18 +261,18 @@ export function NotificationsBell() {
       >
         <DropdownMenuLabel className="px-4 py-3 flex items-center justify-between sticky top-0 bg-popover z-10 border-b border-border">
           <span className="text-sm font-medium">الإشعارات</span>
-          {count > 0 && (
-            <span className="text-[10px] text-gold-primary">{count} جديد</span>
+          {visibleCount > 0 && (
+            <span className="text-[10px] text-gold-primary">{visibleCount} جديد</span>
           )}
         </DropdownMenuLabel>
-        {items.length === 0 ? (
+        {visibleItems.length === 0 ? (
           <div className="px-4 py-10 text-center text-muted-foreground text-sm flex flex-col items-center gap-2">
             <Inbox className="size-8 opacity-40" strokeWidth={1.5} />
             لا توجد إشعارات حالياً
           </div>
         ) : (
           <div className="py-1">
-            {items.map((n) => {
+            {visibleItems.map((n) => {
               const Icon = iconFor(n.kind);
               return (
                 <Link
