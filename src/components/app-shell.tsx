@@ -307,12 +307,12 @@ export function AppShell({
                   aria-label="الملف الشخصي"
                 >
                   <div className="text-left hidden sm:block">
-                    <p className="text-sm font-medium text-ivory">{user.name}</p>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                    <p className="text-sm font-medium text-white">{user.name}</p>
+                    <p className="text-[11px] text-white/70 uppercase tracking-wider">
                       {user.role}
                     </p>
                   </div>
-                  <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
+                  <div className="size-10 rounded-full bg-white/15 ring-1 ring-white/30 grid place-items-center text-white font-semibold">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
@@ -322,7 +322,8 @@ export function AppShell({
                       userId={myUserId}
                     />
                   </div>
-                  <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />
+                  <ChevronDown className="hidden sm:block size-4 text-white/70" strokeWidth={1.5} />
+
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem]">
