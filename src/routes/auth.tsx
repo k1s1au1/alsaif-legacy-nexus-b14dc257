@@ -98,14 +98,6 @@ function AuthPage() {
       toast.error("البريد الإلكتروني غير صالح");
       return;
     }
-    if (reqPassword.length < 8) {
-      toast.error("كلمة المرور يجب ألا تقل عن 8 أحرف");
-      return;
-    }
-    if (reqPassword !== reqPassword2) {
-      toast.error("كلمتا المرور غير متطابقتين");
-      return;
-    }
     if (!agreeTerms) {
       toast.error("يجب الموافقة على الإقرار والشروط للمتابعة");
       return;
@@ -117,7 +109,6 @@ function AuthPage() {
       grandfather_name: grand.trim(),
       phone: phone.trim(),
       email: reqEmail.trim(),
-      desired_password: reqPassword,
       note: note.trim() || null,
       terms_accepted: true,
     });
