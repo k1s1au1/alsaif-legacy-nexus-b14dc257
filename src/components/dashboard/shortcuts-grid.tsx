@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   MessageCircle, CalendarDays, Plane, Wallet, ListChecks,
   Sparkles, Megaphone, Archive, TreePine, Star, ArrowLeft,
@@ -13,7 +14,7 @@ export type Shortcut = {
   title: string;
   description: string;
   icon: LucideIcon;
-  accent: string; // gradient classes
+  accent: string;
   badge?: number | null;
   stat?: string | null;
   cta: string;
@@ -50,15 +51,15 @@ export function ShortcutsGrid({
   };
 
   const baseShortcuts: Shortcut[] = useMemo(() => [
-    { key: "chat", to: "/chat", title: "المحادثات", description: "تواصل مباشر مع العائلة", icon: MessageCircle, accent: "from-sky-500/25 to-transparent", cta: "افتح المحادثات", badge: badges.chat ?? null, stat: stats.chat ?? null },
-    { key: "meetings", to: "/meetings", title: "الاجتماعات", description: "جدول الاجتماعات والحضور", icon: CalendarDays, accent: "from-blue-500/25 to-transparent", cta: "عرض الاجتماعات", badge: badges.meetings ?? null, stat: stats.meetings ?? null },
-    { key: "trips", to: "/trips", title: "الرحلات", description: "رحلات العائلة القادمة", icon: Plane, accent: "from-cyan-500/25 to-transparent", cta: "تصفح الرحلات", badge: badges.trips ?? null, stat: stats.trips ?? null },
-    { key: "finance", to: "/finance", title: "الصندوق المالي", description: "الرصيد والمساهمات", icon: Wallet, accent: "from-gold-primary/30 to-transparent", cta: "إدارة الصندوق", badge: badges.finance ?? null, stat: stats.finance ?? null },
-    { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-purple-500/25 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
-    { key: "events", to: "/events", title: "المناسبات", description: "الأفراح والمناسبات الخاصة", icon: Sparkles, accent: "from-pink-500/20 to-transparent", cta: "تصفح المناسبات", badge: badges.events ?? null, stat: stats.events ?? null },
-    { key: "majlis", to: "/majlis", title: "المجلس", description: "الإعلانات والنقاشات الرسمية", icon: Megaphone, accent: "from-amber-500/25 to-transparent", cta: "ادخل المجلس", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
-    { key: "archive", to: "/archive", title: "الأرشيف", description: "صور ووثائق العائلة", icon: Archive, accent: "from-slate-500/25 to-transparent", cta: "افتح الأرشيف", badge: badges.archive ?? null, stat: stats.archive ?? null },
-    { key: "family-tree", to: "/family-tree", title: "شجرة العائلة", description: "نسب العائلة وفروعها", icon: TreePine, accent: "from-emerald-500/25 to-transparent", cta: "عرض الشجرة", badge: badges["family-tree"] ?? null, stat: stats["family-tree"] ?? null },
+    { key: "chat", to: "/chat", title: "المحادثات", description: "تواصل مباشر مع العائلة", icon: MessageCircle, accent: "from-sky-500/20 to-transparent", cta: "افتح المحادثات", badge: badges.chat ?? null, stat: stats.chat ?? null },
+    { key: "meetings", to: "/meetings", title: "الاجتماعات", description: "جدول الاجتماعات والحضور", icon: CalendarDays, accent: "from-blue-500/20 to-transparent", cta: "عرض الاجتماعات", badge: badges.meetings ?? null, stat: stats.meetings ?? null },
+    { key: "trips", to: "/trips", title: "الرحلات", description: "رحلات العائلة القادمة", icon: Plane, accent: "from-cyan-500/20 to-transparent", cta: "تصفح الرحلات", badge: badges.trips ?? null, stat: stats.trips ?? null },
+    { key: "finance", to: "/finance", title: "الصندوق المالي", description: "الرصيد والمساهمات", icon: Wallet, accent: "from-gold-primary/25 to-transparent", cta: "إدارة الصندوق", badge: badges.finance ?? null, stat: stats.finance ?? null },
+    { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-purple-500/20 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
+    { key: "events", to: "/events", title: "المناسبات", description: "الأفراح والمناسبات الخاصة", icon: Sparkles, accent: "from-pink-500/15 to-transparent", cta: "تصفح المناسبات", badge: badges.events ?? null, stat: stats.events ?? null },
+    { key: "majlis", to: "/majlis", title: "المجلس", description: "الإعلانات والنقاشات الرسمية", icon: Megaphone, accent: "from-amber-500/20 to-transparent", cta: "ادخل المجلس", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
+    { key: "archive", to: "/archive", title: "الأرشيف", description: "صور ووثائق العائلة", icon: Archive, accent: "from-slate-500/20 to-transparent", cta: "افتح الأرشيف", badge: badges.archive ?? null, stat: stats.archive ?? null },
+    { key: "family-tree", to: "/family-tree", title: "شجرة العائلة", description: "نسب العائلة وفروعها", icon: TreePine, accent: "from-emerald-500/20 to-transparent", cta: "عرض الشجرة", badge: badges["family-tree"] ?? null, stat: stats["family-tree"] ?? null },
   ], [badges, stats]);
 
   const sorted = useMemo(() => {
@@ -82,52 +83,91 @@ export function ShortcutsGrid({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-        {sorted.map((s, i) => {
+      <motion.div
+        className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4"
+        initial="hidden"
+        animate="show"
+        variants={{
+          hidden: {},
+          show: { transition: { staggerChildren: 0.05 } },
+        }}
+      >
+        {sorted.map((s) => {
           const isFav = favs.includes(s.key);
           const Icon = s.icon;
           const hasBadge = typeof s.badge === "number" && s.badge > 0;
           return (
-            <div
+            <motion.div
               key={s.key}
+              variants={{
+                hidden: { opacity: 0, y: 12 },
+                show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.19, 1, 0.22, 1] } },
+              }}
+              whileHover={{ y: -6, scale: 1.03 }}
+              whileTap={{ scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 320, damping: 22 }}
               className={cn(
                 "group relative overflow-hidden rounded-2xl bg-card ring-1 ring-border p-4 sm:p-5",
-                "transition-all duration-300 hover:-translate-y-1 hover:ring-gold-primary/40 hover:shadow-gold",
-                "animate-fade-up flex flex-col",
+                "shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_45px_-15px_color-mix(in_oklab,var(--gold-primary)_35%,transparent)]",
+                "hover:ring-gold-primary/40 transition-[box-shadow,border-color] duration-300 flex flex-col",
               )}
-              style={{ animationDelay: `${i * 50}ms` }}
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-40 transition-opacity group-hover:opacity-80 pointer-events-none", s.accent)} />
-              <div className="absolute -top-10 -left-10 size-24 rounded-full bg-gold-primary/10 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30 transition-opacity duration-300 group-hover:opacity-90 pointer-events-none", s.accent)} />
+              <motion.div
+                aria-hidden
+                className="absolute -inset-px rounded-2xl pointer-events-none"
+                initial={{ opacity: 0 }}
+                whileHover={{ opacity: 1 }}
+                style={{
+                  background:
+                    "radial-gradient(120px circle at 50% 0%, color-mix(in oklab, var(--gold-primary) 22%, transparent), transparent 70%)",
+                }}
+              />
 
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); toggleFav(s.key); }}
                 aria-label={isFav ? "إلغاء التثبيت" : "تثبيت كمفضل"}
                 className={cn(
-                  "absolute top-2 left-2 z-20 size-7 grid place-items-center rounded-full transition-all",
+                  "absolute top-2 left-2 z-20 size-7 grid place-items-center rounded-full transition-all duration-300",
                   isFav
-                    ? "bg-gold-primary/20 text-gold-primary ring-1 ring-gold-primary/40"
-                    : "bg-card/40 text-muted-foreground hover:text-gold-primary opacity-0 group-hover:opacity-100",
+                    ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/40"
+                    : "bg-background/60 text-muted-foreground hover:text-gold-primary opacity-0 group-hover:opacity-100",
                 )}
               >
-                <Star className={cn("size-3.5", isFav && "fill-gold-primary")} strokeWidth={1.5} />
+                <Star className={cn("size-3.5 transition-transform", isFav && "fill-gold-primary")} strokeWidth={1.5} />
               </button>
 
               <Link to={s.to} className="relative z-10 flex flex-col gap-3 flex-1">
                 <div className="flex items-start justify-between">
-                  <span className="size-11 grid place-items-center rounded-xl bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 transition-transform group-hover:scale-110">
+                  <motion.span
+                    className="size-11 grid place-items-center rounded-xl bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                    whileHover={{ rotate: [0, -8, 8, -4, 0], scale: 1.1 }}
+                    transition={{ duration: 0.6, ease: "easeInOut" }}
+                  >
                     <Icon className="size-5" strokeWidth={1.5} />
-                  </span>
+                  </motion.span>
                   {hasBadge && (
-                    <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-navy-base text-[10px] font-bold grid place-items-center leading-none animate-pulse">
-                      {s.badge! > 99 ? "99+" : s.badge}
-                    </span>
+                    <motion.span
+                      key={s.badge}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
+                      className="relative min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-primary-foreground text-[10px] font-bold grid place-items-center leading-none"
+                    >
+                      <motion.span
+                        aria-hidden
+                        className="absolute inset-0 rounded-full bg-gold-primary"
+                        animate={{ scale: [1, 1.6], opacity: [0.5, 0] }}
+                        transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
+                      />
+                      <span className="relative">{s.badge! > 99 ? "99+" : s.badge}</span>
+                    </motion.span>
                   )}
                 </div>
 
                 <div className="space-y-1">
-                  <h4 className="text-sm sm:text-base font-medium text-ivory group-hover:text-gold-primary transition">
+                  <h4 className="text-sm sm:text-base font-medium text-foreground group-hover:text-gold-primary transition-colors duration-300">
                     {s.title}
                   </h4>
                   <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2">
@@ -141,13 +181,19 @@ export function ShortcutsGrid({
 
                 <div className="mt-auto pt-2 flex items-center justify-between text-[11px] text-gold-primary/80 group-hover:text-gold-primary transition">
                   <span>{s.cta}</span>
-                  <ArrowLeft className="size-3.5 transition-transform group-hover:-translate-x-1" strokeWidth={1.5} />
+                  <motion.span
+                    className="inline-block"
+                    initial={{ x: 0 }}
+                    whileHover={{ x: -4 }}
+                  >
+                    <ArrowLeft className="size-3.5" strokeWidth={1.5} />
+                  </motion.span>
                 </div>
               </Link>
-            </div>
+            </motion.div>
           );
         })}
-      </div>
+      </motion.div>
     </section>
   );
 }
