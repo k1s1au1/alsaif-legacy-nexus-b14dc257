@@ -12,6 +12,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
@@ -211,11 +212,19 @@ export function AppShell({
           sidebarOpen ? "w-20 lg:w-64" : "w-0 overflow-hidden border-l-0",
         )}
       >
-        <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 bg-gold-soft text-white">
-          <span className="hidden lg:block text-xl font-medium tracking-wide">
-            السيف
-          </span>
+        <div className="h-20 flex items-center justify-center lg:justify-end lg:px-6 gap-3 bg-gold-soft text-white">
+          <div className="hidden lg:flex flex-col items-end leading-tight">
+            <span className="text-lg font-semibold tracking-wide">السيف</span>
+            <span className="text-[11px] text-white/70">لوحة العائلة</span>
+          </div>
+          <img
+            src={alsaifMark.url}
+            alt="العلي"
+            className="size-10 object-contain invert brightness-0 contrast-200"
+            style={{ filter: "brightness(0) invert(1)" }}
+          />
         </div>
+
 
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
@@ -294,16 +303,16 @@ export function AppShell({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition outline-none"
+                  className="flex items-center gap-3 pr-6 border-r border-white/20 hover:opacity-80 transition outline-none"
                   aria-label="الملف الشخصي"
                 >
                   <div className="text-left hidden sm:block">
-                    <p className="text-sm font-medium text-ivory">{user.name}</p>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
+                    <p className="text-sm font-medium text-white">{user.name}</p>
+                    <p className="text-[11px] text-white/70 uppercase tracking-wider">
                       {user.role}
                     </p>
                   </div>
-                  <div className="size-10 rounded-full bg-gold-primary/20 ring-1 ring-gold-primary/30 grid place-items-center text-gold-primary font-semibold">
+                  <div className="size-10 rounded-full bg-white/15 ring-1 ring-white/30 grid place-items-center text-white font-semibold">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
@@ -313,7 +322,8 @@ export function AppShell({
                       userId={myUserId}
                     />
                   </div>
-                  <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />
+                  <ChevronDown className="hidden sm:block size-4 text-white/70" strokeWidth={1.5} />
+
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem]">

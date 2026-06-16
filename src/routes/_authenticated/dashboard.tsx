@@ -18,6 +18,7 @@ import {
   Plus,
 } from "lucide-react";
 import tripImage from "@/assets/trip-alula.jpg";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { FinanceChart } from "@/components/dashboard/finance-chart";
 import { LiveClock } from "@/components/dashboard/live-clock";
@@ -399,29 +400,38 @@ function Dashboard() {
       <div className="space-y-6 sm:space-y-8">
         {/* Hero greeting with live clock */}
         <section className="relative py-8 sm:py-12 px-6 sm:px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">
-          <div className="absolute inset-0 bg-gradient-to-l from-gold-primary/20 via-gold-primary/5 to-transparent" />
-          <div className="absolute inset-0 bg-card ring-1 ring-gold-primary/20 rounded-2xl" />
-          <div className="absolute -top-10 -left-10 size-40 rounded-full bg-gold-primary/10 blur-3xl" />
-          <div className="absolute -bottom-12 left-1/3 size-32 rounded-full bg-gold-primary/5 blur-3xl" />
-          <div className="relative z-10 space-y-3">
-            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-              <p className="eyebrow">{arabicGreeting()}،</p>
-              <LiveClock />
-            </div>
-            <h2 className="text-2xl sm:text-3xl lg:text-5xl font-medium text-ivory leading-tight tracking-tight">
-              {profile.name}
-            </h2>
-            <p className="text-sm sm:text-base lg:text-lg text-gold-primary/80 max-w-[48ch] leading-relaxed">
-              نصل العائلة، نحفظ الإرث، نبني المجتمع.
-            </p>
-            {nextMeeting && meetingCountdown && (
-              <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-gold-primary/10 ring-1 ring-gold-primary/30 text-xs text-gold-primary">
-                <Sparkles className="size-3.5" strokeWidth={1.5} />
-                <span>الاجتماع القادم {meetingCountdown}</span>
+          <div className="absolute inset-0 bg-card ring-1 ring-border rounded-2xl shadow-sm" />
+          <div className="relative z-10 flex items-center gap-6 sm:gap-8">
+            <div className="flex-1 space-y-3">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                <p className="eyebrow">{arabicGreeting()}،</p>
+                <LiveClock />
               </div>
-            )}
+              <h2 className="text-2xl sm:text-3xl lg:text-5xl font-medium text-ivory leading-tight tracking-tight">
+                {profile.name}
+              </h2>
+              <p className="text-sm sm:text-base lg:text-lg text-foreground/70 max-w-[48ch] leading-relaxed">
+                نصل العائلة، نحفظ الإرث، نبني المجتمع.
+              </p>
+              {nextMeeting && meetingCountdown && (
+                <div className="inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full bg-gold-primary/10 ring-1 ring-gold-primary/30 text-xs text-gold-primary">
+                  <Sparkles className="size-3.5" strokeWidth={1.5} />
+                  <span>الاجتماع القادم {meetingCountdown}</span>
+                </div>
+              )}
+            </div>
+            <div className="hidden sm:flex items-center gap-5 shrink-0">
+              <div className="h-24 w-px bg-[#8B5E3C]/30" />
+              <img
+                src={alsaifMark.url}
+                alt="العلي"
+                className="size-24 lg:size-28 object-contain"
+                style={{ filter: "brightness(0) saturate(100%) invert(36%) sepia(34%) saturate(581%) hue-rotate(355deg) brightness(92%) contrast(86%)" }}
+              />
+            </div>
           </div>
         </section>
+
 
         {/* Quick Access Shortcuts */}
         <ShortcutsGrid
