@@ -235,6 +235,10 @@ export function NotificationsBell() {
   const iconFor = (k: NotifKind) =>
     k === "message" ? MessageCircle : k === "meeting" ? CalendarDays : k === "task" ? ListChecks : UserPlus;
 
+  const visibleItems = inChat ? items.filter((n) => n.kind !== "message") : items;
+  const visibleCount = visibleItems.length;
+
+
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
