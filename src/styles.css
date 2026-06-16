@@ -50,53 +50,54 @@
 }
 
 :root {
-  /* Premium light theme — white/gray + dark green (Saudi family dashboard) */
-  --navy-base: #FAFAFA;        /* page background */
-  --navy-card: #F8FBF8;        /* cards (subtle green tint) */
-  --navy-elev: #F1F5F2;        /* elevated surfaces */
-  --gold-primary: #165A3A;     /* primary dark green */
-  --gold-soft: #2E7D32;        /* secondary green */
-  --ivory: #111827;            /* primary text */
+  /* Premium light theme — white/gray + emerald green (Saudi family dashboard) */
+  --navy-base: #FAFAF8;
+  --navy-card: #FFFFFF;
+  --navy-elev: #F3F6F4;
+  --gold-primary: #0F6A4B;
+  --gold-soft: #0B4F43;
+  --brown-accent: #8B5E3C;
+  --ivory: #1A1A1A;
 
-  --background: #FAFAFA;
-  --foreground: #111827;
-  --card: #F8FBF8;
-  --card-foreground: #111827;
+  --background: #FAFAF8;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
   --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  --primary: #165A3A;
+  --popover-foreground: #1A1A1A;
+  --primary: #0F6A4B;
   --primary-foreground: #FFFFFF;
-  --secondary: #F1F5F2;
+  --secondary: #F3F6F4;
   --secondary-foreground: #374151;
   --muted: #F3F4F6;
   --muted-foreground: #6B7280;
-  --accent: #E8F0EA;
-  --accent-foreground: #165A3A;
+  --accent: #E6F2EC;
+  --accent-foreground: #0F6A4B;
   --destructive: #B91C1C;
   --destructive-foreground: #FFFFFF;
   --border: #E5E7EB;
   --input: #FFFFFF;
-  --ring: rgba(22, 90, 58, 0.45);
+  --ring: rgba(15, 106, 75, 0.45);
 }
 
 .light {
-  --background: #FAFAFA;
-  --foreground: #111827;
-  --card: #F8FBF8;
-  --card-foreground: #111827;
+  --background: #FAFAF8;
+  --foreground: #1A1A1A;
+  --card: #FFFFFF;
+  --card-foreground: #1A1A1A;
   --popover: #FFFFFF;
-  --popover-foreground: #111827;
-  --primary: #165A3A;
+  --popover-foreground: #1A1A1A;
+  --primary: #0F6A4B;
   --primary-foreground: #FFFFFF;
-  --secondary: #F1F5F2;
+  --secondary: #F3F6F4;
   --secondary-foreground: #374151;
   --muted: #F3F4F6;
   --muted-foreground: #6B7280;
-  --accent: #E8F0EA;
-  --accent-foreground: #165A3A;
+  --accent: #E6F2EC;
+  --accent-foreground: #0F6A4B;
   --border: #E5E7EB;
   --input: #FFFFFF;
-  --ring: rgba(22, 90, 58, 0.45);
+  --ring: rgba(15, 106, 75, 0.45);
 }
 
 
