@@ -25,11 +25,7 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
       .eq("id", data.id)
       .maybeSingle();
     if (reqErr || !req) throw new Error("الطلب غير موجود");
-    // Note: do NOT early-return on already-approved. We re-run creation so that
-    // requests that were marked approved but whose auth user creation failed
-    // (silently) can still be activated by re-approving from the admin panel.
-    if (!req.email || !req.desired_password)
-      throw new Error("الطلب يفتقد البريد أو كلمة المرور");
+    if (!req.email) throw new Error("الطلب يفتقد البريد الإلكتروني");
 
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
@@ -39,31 +35,32 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
       .filter(Boolean)
       .join(" ");
 
-    // Create the auth user (handle_new_user trigger creates profile + member role)
+    // Invite the user by email. Supabase sends an invite email; the user
+    // clicks the link and sets their own password — no plain-text password
+    // is ever stored by the app.
     let newUserId: string | null = null;
-    const { data: created, error: createErr } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: req.email,
-        password: req.desired_password,
-        email_confirm: true,
-        user_metadata: { full_name: fullName, arabic_name: fullName },
+    const { data: invited, error: inviteErr } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(req.email, {
+        data: { full_name: fullName, arabic_name: fullName },
       });
 
-    if (createErr) {
-      // If user already exists, try to find them by email
-      const msg = createErr.message?.toLowerCase() ?? "";
+    if (inviteErr) {
+      const msg = inviteErr.message?.toLowerCase() ?? "";
       if (msg.includes("already") || msg.includes("registered")) {
+        // User already exists — locate them and (re-)send a recovery email
         const { data: list } = await supabaseAdmin.auth.admin.listUsers();
         const existing = list?.users.find(
           (u) => u.email?.toLowerCase() === req.email!.toLowerCase(),
         );
         if (!existing) throw new Error("المستخدم موجود لكن تعذر تحديده");
         newUserId = existing.id;
+        // Best-effort password reset email; ignore failure (admin can resend)
+        await supabaseAdmin.auth.resetPasswordForEmail(req.email).catch(() => {});
       } else {
-        throw new Error(createErr.message || "تعذر إنشاء المستخدم");
+        throw new Error(inviteErr.message || "تعذر إنشاء المستخدم");
       }
     } else {
-      newUserId = created.user?.id ?? null;
+      newUserId = invited.user?.id ?? null;
     }
     if (!newUserId) throw new Error("تعذر إنشاء المستخدم");
 

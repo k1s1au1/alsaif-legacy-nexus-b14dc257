@@ -1,0 +1,1 @@
+ALTER TABLE public.account_requests DROP COLUMN IF EXISTS desired_password;
