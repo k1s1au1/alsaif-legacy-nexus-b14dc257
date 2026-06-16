@@ -43,6 +43,12 @@ export function ShortcutsGrid({
   const [favs, setFavs] = useState<string[]>([]);
   useEffect(() => setFavs(loadFavs()), []);
 
+  const badgeKeys = useMemo(() => Object.keys(badges), [badges]);
+  const seenMap = useSeenMap(badgeKeys);
+  useEffect(() => {
+    for (const k of badgeKeys) writeBadge(k, badges[k] ?? null);
+  }, [badges, badgeKeys]);
+
   const toggleFav = (key: string) => {
     setFavs((prev) => {
       const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
