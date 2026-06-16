@@ -31,7 +31,7 @@ export function MobileShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground" dir="rtl">
-      <div className="mx-auto w-full max-w-[420px] min-h-screen flex flex-col relative">
+      <div className="mx-auto w-full max-w-[420px] sm:max-w-2xl lg:max-w-5xl xl:max-w-6xl min-h-screen flex flex-col relative transition-[max-width] duration-300">
         {showHeader && (
           <header className="sticky top-0 z-30 bg-background/95 backdrop-blur-md px-5 pt-[max(env(safe-area-inset-top),12px)] pb-3">
             <div className="flex items-center justify-between gap-3">
