@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useSeenMap, writeBadge } from "@/hooks/use-shortcut-badges";
 
 export type Shortcut = {
   key: string;
