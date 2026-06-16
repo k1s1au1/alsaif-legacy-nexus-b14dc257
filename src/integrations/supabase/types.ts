@@ -17,6 +17,7 @@ export type Database = {
       account_requests: {
         Row: {
           created_at: string
+          desired_password: string | null
           email: string
           father_name: string
           first_name: string
@@ -32,6 +33,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          desired_password?: string | null
           email: string
           father_name: string
           first_name: string
@@ -47,6 +49,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          desired_password?: string | null
           email?: string
           father_name?: string
           first_name?: string
