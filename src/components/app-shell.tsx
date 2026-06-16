@@ -4,16 +4,7 @@ import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   LayoutDashboard,
-  MessageCircle,
-  CalendarDays,
-  Plane,
-  Wallet,
-  ListChecks,
-  Sparkles,
-  Megaphone,
-  Archive,
   Shield,
-  Bell,
   Menu,
   LogOut,
   User,
