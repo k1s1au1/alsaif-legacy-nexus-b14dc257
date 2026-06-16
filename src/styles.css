@@ -50,58 +50,57 @@
 }
 
 :root {
-  /* Brand raw values — White / Gray / Green family theme.
+  /* Brand raw values — White / Gray / Dark Green family theme.
    * Legacy token names (navy-*, gold-*, ivory) are preserved and remapped
-   * to the new palette so all existing components inherit the new theme
-   * without per-file edits. */
+   * so existing components inherit the new palette without per-file edits. */
   --navy-base: #ffffff;        /* page background */
-  --navy-card: #fafafa;        /* cards */
-  --navy-elev: #f5f5f5;        /* elevated / secondary surfaces */
-  --gold-primary: #2e7d32;     /* primary green */
-  --gold-soft: #4caf50;        /* secondary green */
-  --ivory: #212121;            /* primary text (dark on light) */
+  --navy-card: #ffffff;        /* cards */
+  --navy-elev: #f7f7f7;        /* elevated / secondary surfaces */
+  --gold-primary: #1b5e20;     /* primary dark green */
+  --gold-soft: #2e7d32;        /* secondary green */
+  --ivory: #111827;            /* primary text */
 
-  /* Semantic — light by default */
+  /* Semantic — light */
   --background: #ffffff;
-  --foreground: #212121;
-  --card: #fafafa;
-  --card-foreground: #212121;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #212121;
-  --primary: #2e7d32;
+  --popover-foreground: #111827;
+  --primary: #1b5e20;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #212121;
-  --muted: #f5f5f5;
-  --muted-foreground: #757575;
+  --secondary: #f7f7f7;
+  --secondary-foreground: #374151;
+  --muted: #f7f7f7;
+  --muted-foreground: #6b7280;
   --accent: #e8f5e9;
-  --accent-foreground: #2e7d32;
-  --destructive: #c62828;
+  --accent-foreground: #1b5e20;
+  --destructive: #b91c1c;
   --destructive-foreground: #ffffff;
-  --border: #e0e0e0;
-  --input: #f5f5f5;
-  --ring: rgba(46, 125, 50, 0.45);
+  --border: #d1d5db;
+  --input: #ffffff;
+  --ring: rgba(27, 94, 32, 0.45);
 }
 
 /* Light mode alias — same palette (kept for compatibility with the .light class) */
 .light {
   --background: #ffffff;
-  --foreground: #212121;
-  --card: #fafafa;
-  --card-foreground: #212121;
+  --foreground: #111827;
+  --card: #ffffff;
+  --card-foreground: #111827;
   --popover: #ffffff;
-  --popover-foreground: #212121;
-  --primary: #2e7d32;
+  --popover-foreground: #111827;
+  --primary: #1b5e20;
   --primary-foreground: #ffffff;
-  --secondary: #f5f5f5;
-  --secondary-foreground: #212121;
-  --muted: #f5f5f5;
-  --muted-foreground: #757575;
+  --secondary: #f7f7f7;
+  --secondary-foreground: #374151;
+  --muted: #f7f7f7;
+  --muted-foreground: #6b7280;
   --accent: #e8f5e9;
-  --accent-foreground: #2e7d32;
-  --border: #e0e0e0;
-  --input: #f5f5f5;
-  --ring: rgba(46, 125, 50, 0.45);
+  --accent-foreground: #1b5e20;
+  --border: #d1d5db;
+  --input: #ffffff;
+  --ring: rgba(27, 94, 32, 0.45);
 }
 
 
