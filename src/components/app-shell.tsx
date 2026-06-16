@@ -280,7 +280,21 @@ export function AppShell({
         <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
           <div className="palm-bg-layer" />
         </div>
-        <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between">
+        <header
+          className="h-20 border-b sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between transition-all duration-500"
+          style={{
+            backgroundImage: `linear-gradient(90deg,
+              color-mix(in oklab, var(--background) ${85 - scrollProgress * 10}%, transparent) 0%,
+              color-mix(in oklab, var(--gold-primary) ${3 + scrollProgress * 8}%, var(--background)) 50%,
+              color-mix(in oklab, var(--gold-primary) ${6 + scrollProgress * 14}%, var(--background)) 100%)`,
+            backdropFilter: `blur(${8 + scrollProgress * 8}px) saturate(140%)`,
+            WebkitBackdropFilter: `blur(${8 + scrollProgress * 8}px) saturate(140%)`,
+            borderBottomColor: `color-mix(in oklab, var(--gold-primary) ${15 + scrollProgress * 30}%, transparent)`,
+            boxShadow: scrollProgress > 0.05
+              ? `0 ${4 + scrollProgress * 12}px ${20 + scrollProgress * 24}px -12px color-mix(in oklab, var(--gold-primary) ${10 + scrollProgress * 20}%, transparent)`
+              : "none",
+          }}
+        >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen((v) => !v)}
