@@ -329,7 +329,7 @@ export function AppShell({
           </div>
         </header>
 
-        <div className="p-6 lg:p-10 max-w-7xl">{children}</div>
+        <div className="relative z-10 p-6 lg:p-10 max-w-7xl">{children}</div>
       </main>
     </div>
   );
