@@ -70,7 +70,7 @@ export function MobileShell({
           </header>
         )}
 
-        <main className="flex-1 px-5 pb-32">{children}</main>
+        <main className="flex-1 px-5 sm:px-6 lg:px-8 pb-32">{children}</main>
 
         {/* Bottom Navigation */}
         <nav
