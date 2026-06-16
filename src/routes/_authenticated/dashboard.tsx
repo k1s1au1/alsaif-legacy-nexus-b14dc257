@@ -378,19 +378,19 @@ function Dashboard() {
     {
       to: "/members", label: "أفراد العائلة", icon: Users,
       value: membersCount, suffix: "عضو", hint: "إجمالي الحسابات النشطة",
-      accent: "from-emerald-500/20 to-transparent",
+      accent: "from-gold-primary/10 to-transparent",
     },
     {
       to: "/meetings", label: "اجتماعات قادمة", icon: CalendarDays,
       value: meetingsCount, suffix: meetingsCount === 1 ? "اجتماع" : "اجتماعات",
       hint: nextMeeting ? `${nextMeeting.title}` : "لا توجد اجتماعات",
-      accent: "from-blue-500/20 to-transparent",
+      accent: "from-gold-primary/10 to-transparent",
     },
     {
       to: "/tasks", label: "مهام نشطة", icon: ListChecks,
       value: tasksOpenCount, suffix: "مهمة",
       hint: tasksOpenCount && tasksOpenCount > 0 ? "تحتاج إلى متابعة" : "لا توجد مهام معلقة",
-      accent: "from-purple-500/20 to-transparent",
+      accent: "from-gold-primary/10 to-transparent",
     },
   ];
 
