@@ -396,7 +396,26 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
-      <div className="space-y-6 sm:space-y-8">
+      <div className="relative">
+        {/* Palm tree watermarks (right & left sides) */}
+        <svg aria-hidden="true" className="pointer-events-none fixed top-24 right-0 h-[70vh] w-auto opacity-[0.06] text-gold-primary z-0" viewBox="0 0 200 400" fill="currentColor">
+          <path d="M100 380 C 100 280, 95 200, 90 140 L 110 140 C 105 200, 100 280, 100 380 Z" />
+          <path d="M100 140 C 60 110, 30 95, 10 100 C 25 80, 65 80, 100 110 Z" />
+          <path d="M100 140 C 140 110, 170 95, 190 100 C 175 80, 135 80, 100 110 Z" />
+          <path d="M100 130 C 70 90, 50 60, 40 40 C 70 55, 95 90, 100 120 Z" />
+          <path d="M100 130 C 130 90, 150 60, 160 40 C 130 55, 105 90, 100 120 Z" />
+          <path d="M100 120 C 85 70, 80 30, 85 5 C 95 35, 102 75, 100 115 Z" />
+        </svg>
+        <svg aria-hidden="true" className="pointer-events-none fixed top-32 left-0 h-[65vh] w-auto opacity-[0.05] text-gold-primary z-0 -scale-x-100" viewBox="0 0 200 400" fill="currentColor">
+          <path d="M100 380 C 100 280, 95 200, 90 140 L 110 140 C 105 200, 100 280, 100 380 Z" />
+          <path d="M100 140 C 60 110, 30 95, 10 100 C 25 80, 65 80, 100 110 Z" />
+          <path d="M100 140 C 140 110, 170 95, 190 100 C 175 80, 135 80, 100 110 Z" />
+          <path d="M100 130 C 70 90, 50 60, 40 40 C 70 55, 95 90, 100 120 Z" />
+          <path d="M100 130 C 130 90, 150 60, 160 40 C 130 55, 105 90, 100 120 Z" />
+          <path d="M100 120 C 85 70, 80 30, 85 5 C 95 35, 102 75, 100 115 Z" />
+        </svg>
+
+      <div className="relative z-10 space-y-6 sm:space-y-8">
         {/* Hero greeting with live clock */}
         <section className="relative py-8 sm:py-12 px-6 sm:px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">
           <div className="absolute inset-0 bg-gradient-to-l from-gold-primary/20 via-gold-primary/5 to-transparent" />
