@@ -771,6 +771,19 @@ function Dashboard() {
             )}
           </article>
         </div>
+
+        {/* Saudi-inspired decorative bottom border */}
+        <div className="relative z-10 mt-10 pt-6 flex items-center justify-center gap-2 text-gold-primary/40" aria-hidden="true">
+          <svg viewBox="0 0 600 24" className="w-full max-w-3xl h-6" fill="none" stroke="currentColor" strokeWidth="1.2">
+            {Array.from({ length: 25 }).map((_, i) => (
+              <g key={i} transform={`translate(${i * 24} 0)`}>
+                <path d="M0 12 L6 4 L12 12 L18 4 L24 12" />
+                <circle cx="12" cy="18" r="1.5" fill="currentColor" />
+              </g>
+            ))}
+          </svg>
+        </div>
+      </div>
       </div>
 
       {/* Floating quick-add FAB */}
