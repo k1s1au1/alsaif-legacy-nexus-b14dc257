@@ -51,7 +51,17 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [scrollY, setScrollY] = useState(0);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const onScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  // 0 at top → 1 after 240px of scroll
+  const scrollProgress = Math.min(scrollY / 240, 1);
 
   usePresenceHeartbeat();
 
@@ -197,9 +207,16 @@ export function AppShell({
       {/* Right Navigation Rail (RTL) */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 bg-card/60 border-l border-border backdrop-blur-xl z-50 flex flex-col transition-all duration-300",
+          "fixed inset-y-0 right-0 border-l border-border backdrop-blur-xl z-50 flex flex-col transition-all duration-500",
           sidebarOpen ? "w-20 lg:w-64" : "w-0 overflow-hidden border-l-0",
         )}
+        style={{
+          backgroundImage: `linear-gradient(180deg,
+            color-mix(in oklab, var(--card) ${92 - scrollProgress * 8}%, transparent) 0%,
+            color-mix(in oklab, var(--gold-primary) ${4 + scrollProgress * 10}%, var(--card)) 55%,
+            color-mix(in oklab, var(--gold-primary) ${8 + scrollProgress * 16}%, var(--card)) 100%)`,
+          boxShadow: `inset 1px 0 0 color-mix(in oklab, var(--gold-primary) ${10 + scrollProgress * 25}%, transparent)`,
+        }}
       >
         <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-border">
           <span className="hidden lg:block text-xl font-medium tracking-wide text-gold-primary">
@@ -263,7 +280,21 @@ export function AppShell({
         <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
           <div className="palm-bg-layer" />
         </div>
-        <header className="h-20 border-b border-border bg-background/80 backdrop-blur-md sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between">
+        <header
+          className="h-20 border-b sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between transition-all duration-500"
+          style={{
+            backgroundImage: `linear-gradient(90deg,
+              color-mix(in oklab, var(--background) ${85 - scrollProgress * 10}%, transparent) 0%,
+              color-mix(in oklab, var(--gold-primary) ${3 + scrollProgress * 8}%, var(--background)) 50%,
+              color-mix(in oklab, var(--gold-primary) ${6 + scrollProgress * 14}%, var(--background)) 100%)`,
+            backdropFilter: `blur(${8 + scrollProgress * 8}px) saturate(140%)`,
+            WebkitBackdropFilter: `blur(${8 + scrollProgress * 8}px) saturate(140%)`,
+            borderBottomColor: `color-mix(in oklab, var(--gold-primary) ${15 + scrollProgress * 30}%, transparent)`,
+            boxShadow: scrollProgress > 0.05
+              ? `0 ${4 + scrollProgress * 12}px ${20 + scrollProgress * 24}px -12px color-mix(in oklab, var(--gold-primary) ${10 + scrollProgress * 20}%, transparent)`
+              : "none",
+          }}
+        >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen((v) => !v)}
