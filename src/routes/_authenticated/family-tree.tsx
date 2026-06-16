@@ -206,11 +206,13 @@ function FamilyTreePage() {
           <div
             dir="rtl"
             onClick={toggleNode}
-            className={`group relative w-full h-full rounded-xl border ${
+            className={`group relative w-full h-full rounded-2xl border bg-card ${
               isSynthetic
-                ? "border-gold-primary/60 bg-gradient-to-br from-gold-primary/20 to-transparent"
-                : "border-border bg-card/80"
-            } backdrop-blur-sm shadow-lg hover:border-gold-primary/60 hover:shadow-gold-primary/20 transition-all duration-300 cursor-pointer p-2 flex items-center gap-2 animate-in fade-in zoom-in-95`}
+                ? "border-gold-primary/60 bg-gradient-to-br from-gold-primary/15 to-transparent"
+                : m && me && m.id === me.id
+                  ? "border-2 border-gold-primary ring-2 ring-gold-primary/30"
+                  : "border-border"
+            } shadow-sm hover:border-gold-primary/60 hover:shadow-md transition-all duration-300 cursor-pointer p-2 flex items-center gap-2 animate-in fade-in zoom-in-95`}
             style={{ animationDuration: "400ms" }}
           >
             {m ? (
@@ -417,16 +419,17 @@ function FamilyTreePage() {
       <style>{`
         .family-tree-link {
           fill: none;
-          stroke: hsl(var(--gold-primary, 43 74% 49%) / 0.55);
-          stroke-width: 1.5px;
+          stroke: #4caf50;
+          stroke-width: 2px;
           stroke-linecap: round;
           stroke-linejoin: round;
-          filter: drop-shadow(0 0 4px hsl(var(--gold-primary, 43 74% 49%) / 0.2));
+          filter: drop-shadow(0 1px 2px rgba(46, 125, 50, 0.25));
         }
         .rd3t-tree-container { width: 100%; height: 100%; }
         .rd3t-grabbable { cursor: grab; }
         .rd3t-grabbable:active { cursor: grabbing; }
       `}</style>
+
     </AppShell>
   );
 }
