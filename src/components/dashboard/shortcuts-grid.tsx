@@ -51,15 +51,15 @@ export function ShortcutsGrid({
   };
 
   const baseShortcuts: Shortcut[] = useMemo(() => [
-    { key: "chat", to: "/chat", title: "المحادثات", description: "تواصل مباشر مع العائلة", icon: MessageCircle, accent: "from-sky-500/20 to-transparent", cta: "افتح المحادثات", badge: badges.chat ?? null, stat: stats.chat ?? null },
-    { key: "meetings", to: "/meetings", title: "الاجتماعات", description: "جدول الاجتماعات والحضور", icon: CalendarDays, accent: "from-blue-500/20 to-transparent", cta: "عرض الاجتماعات", badge: badges.meetings ?? null, stat: stats.meetings ?? null },
-    { key: "trips", to: "/trips", title: "الرحلات", description: "رحلات العائلة القادمة", icon: Plane, accent: "from-cyan-500/20 to-transparent", cta: "تصفح الرحلات", badge: badges.trips ?? null, stat: stats.trips ?? null },
+    { key: "chat", to: "/chat", title: "المحادثات", description: "تواصل مباشر مع العائلة", icon: MessageCircle, accent: "from-gold-primary/10 to-transparent", cta: "افتح المحادثات", badge: badges.chat ?? null, stat: stats.chat ?? null },
+    { key: "meetings", to: "/meetings", title: "الاجتماعات", description: "جدول الاجتماعات والحضور", icon: CalendarDays, accent: "from-gold-primary/10 to-transparent", cta: "عرض الاجتماعات", badge: badges.meetings ?? null, stat: stats.meetings ?? null },
+    { key: "trips", to: "/trips", title: "الرحلات", description: "رحلات العائلة القادمة", icon: Plane, accent: "from-gold-primary/10 to-transparent", cta: "تصفح الرحلات", badge: badges.trips ?? null, stat: stats.trips ?? null },
     { key: "finance", to: "/finance", title: "الصندوق المالي", description: "الرصيد والمساهمات", icon: Wallet, accent: "from-gold-primary/25 to-transparent", cta: "إدارة الصندوق", badge: badges.finance ?? null, stat: stats.finance ?? null },
-    { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-purple-500/20 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
-    { key: "events", to: "/events", title: "المناسبات", description: "الأفراح والمناسبات الخاصة", icon: Sparkles, accent: "from-pink-500/15 to-transparent", cta: "تصفح المناسبات", badge: badges.events ?? null, stat: stats.events ?? null },
-    { key: "majlis", to: "/majlis", title: "المجلس", description: "الإعلانات والنقاشات الرسمية", icon: Megaphone, accent: "from-amber-500/20 to-transparent", cta: "ادخل المجلس", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
-    { key: "archive", to: "/archive", title: "الأرشيف", description: "صور ووثائق العائلة", icon: Archive, accent: "from-slate-500/20 to-transparent", cta: "افتح الأرشيف", badge: badges.archive ?? null, stat: stats.archive ?? null },
-    { key: "family-tree", to: "/family-tree", title: "شجرة العائلة", description: "نسب العائلة وفروعها", icon: TreePine, accent: "from-emerald-500/20 to-transparent", cta: "عرض الشجرة", badge: badges["family-tree"] ?? null, stat: stats["family-tree"] ?? null },
+    { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-gold-primary/10 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
+    { key: "events", to: "/events", title: "المناسبات", description: "الأفراح والمناسبات الخاصة", icon: Sparkles, accent: "from-gold-primary/10 to-transparent", cta: "تصفح المناسبات", badge: badges.events ?? null, stat: stats.events ?? null },
+    { key: "majlis", to: "/majlis", title: "المجلس", description: "الإعلانات والنقاشات الرسمية", icon: Megaphone, accent: "from-gold-primary/10 to-transparent", cta: "ادخل المجلس", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
+    { key: "archive", to: "/archive", title: "الأرشيف", description: "صور ووثائق العائلة", icon: Archive, accent: "from-gold-primary/10 to-transparent", cta: "افتح الأرشيف", badge: badges.archive ?? null, stat: stats.archive ?? null },
+    { key: "family-tree", to: "/family-tree", title: "شجرة العائلة", description: "نسب العائلة وفروعها", icon: TreePine, accent: "from-gold-primary/10 to-transparent", cta: "عرض الشجرة", badge: badges["family-tree"] ?? null, stat: stats["family-tree"] ?? null },
   ], [badges, stats]);
 
   const sorted = useMemo(() => {
