@@ -116,8 +116,8 @@ export function ShortcutsGrid({
 
               <Link to={s.to} className="relative z-10 flex flex-col gap-3 flex-1">
                 <div className="flex items-start justify-between">
-                  <span className="size-11 grid place-items-center rounded-xl bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 transition-transform group-hover:scale-110">
-                    <Icon className="size-5" strokeWidth={1.5} />
+                  <span className="icon-bubble size-12 transition-transform group-hover:scale-110">
+                    <Icon className="size-5" strokeWidth={1.6} />
                   </span>
                   {hasBadge && (
                     <span className="min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-navy-base text-[10px] font-bold grid place-items-center leading-none animate-pulse">
