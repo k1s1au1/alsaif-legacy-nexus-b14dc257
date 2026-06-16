@@ -207,9 +207,16 @@ export function AppShell({
       {/* Right Navigation Rail (RTL) */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 bg-card/60 border-l border-border backdrop-blur-xl z-50 flex flex-col transition-all duration-300",
+          "fixed inset-y-0 right-0 border-l border-border backdrop-blur-xl z-50 flex flex-col transition-all duration-500",
           sidebarOpen ? "w-20 lg:w-64" : "w-0 overflow-hidden border-l-0",
         )}
+        style={{
+          backgroundImage: `linear-gradient(180deg,
+            color-mix(in oklab, var(--card) ${92 - scrollProgress * 8}%, transparent) 0%,
+            color-mix(in oklab, var(--gold-primary) ${4 + scrollProgress * 10}%, var(--card)) 55%,
+            color-mix(in oklab, var(--gold-primary) ${8 + scrollProgress * 16}%, var(--card)) 100%)`,
+          boxShadow: `inset 1px 0 0 color-mix(in oklab, var(--gold-primary) ${10 + scrollProgress * 25}%, transparent)`,
+        }}
       >
         <div className="h-20 flex items-center justify-center lg:justify-start lg:px-8 border-b border-border">
           <span className="hidden lg:block text-xl font-medium tracking-wide text-gold-primary">
