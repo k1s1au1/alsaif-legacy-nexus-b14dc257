@@ -423,6 +423,24 @@ function Dashboard() {
           </div>
         </section>
 
+        {/* Quick Access Shortcuts */}
+        <ShortcutsGrid
+          badges={{
+            meetings: meetingsCount,
+            trips: tripsCount,
+            tasks: tasksOpenCount,
+            majlis: pinned.length,
+            chat: recentMsgs.length,
+          }}
+          stats={{
+            finance: fundBalance !== null ? `${fundBalance.toLocaleString("en-US")} ر.س` : null,
+            meetings: nextMeeting ? nextMeeting.title : null,
+            trips: featuredTrip ? featuredTrip.title : null,
+            tasks: tasksOpenCount ? `${tasksOpenCount} مهمة نشطة` : null,
+            "family-tree": membersCount ? `${membersCount} عضو` : null,
+          }}
+        />
+
         {/* Stat tiles */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           {stats.map((s, i) => (
