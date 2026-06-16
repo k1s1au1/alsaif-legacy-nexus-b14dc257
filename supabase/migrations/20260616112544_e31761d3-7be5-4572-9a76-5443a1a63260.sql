@@ -1,0 +1,1 @@
+ALTER TABLE public.account_requests ADD COLUMN IF NOT EXISTS desired_password TEXT;
