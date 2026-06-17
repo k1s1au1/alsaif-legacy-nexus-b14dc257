@@ -27,6 +27,11 @@ const DEFAULT_BORDER = "#E5E7EB";
 const DEFAULT_DARK = "#1F2937";
 const DEFAULT_MUTED = "#6B7280";
 const ERROR = "#C62828";
+// Aliases used by helper components below the main page component.
+const PRIMARY = DEFAULT_PRIMARY;
+const BORDER = DEFAULT_BORDER;
+const DARK = DEFAULT_DARK;
+const MUTED = DEFAULT_MUTED;
 
 const nameSchema = z.string().trim().min(2, "حرفان على الأقل").max(40, "طويل جداً");
 const phoneSchema = z
