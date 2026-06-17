@@ -2,15 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  LayoutDashboard,
-  Shield,
-  Menu,
-  LogOut,
-  User,
-  Users,
-  ChevronDown,
-} from "lucide-react";
+import { LayoutDashboard, Shield, Menu, LogOut, User, Users, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
@@ -111,9 +103,7 @@ export function AppShell({
       return;
     }
 
-    const readByConversation = new Map(
-      parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]),
-    );
+    const readByConversation = new Map(parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]));
 
     const { data: messages } = await supabase
       .from("messages")
@@ -165,11 +155,7 @@ export function AppShell({
       if (!u.user) return;
       setMyUserId(u.user.id);
       if (user.avatarPath === undefined) {
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("avatar_url")
-          .eq("id", u.user.id)
-          .maybeSingle();
+        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", u.user.id).maybeSingle();
         setMyAvatarPath(p?.avatar_url ?? null);
       }
     })();
@@ -180,33 +166,25 @@ export function AppShell({
         loadUnreadNotifications();
         loadBadges();
       })
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "conversation_participants" },
-        () => {
-          loadUnreadNotifications();
-          loadBadges();
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "profiles" },
-        async (payload) => {
-          const oldRow = payload.old as { avatar_url?: string | null } | null;
-          const newRow = payload.new as { id?: string; avatar_url?: string | null } | null;
-          // Invalidate any cached signed URL for both old and new paths so all
-          // visible <UserAvatar> instances refetch with the latest image.
-          if (oldRow?.avatar_url && oldRow.avatar_url !== newRow?.avatar_url) {
-            invalidateAvatar(oldRow.avatar_url);
-          }
-          if (newRow?.avatar_url) invalidateAvatar(newRow.avatar_url);
-          // Update own avatar in the header
-          const { data: u } = await supabase.auth.getUser();
-          if (u.user && newRow?.id === u.user.id) {
-            setMyAvatarPath(newRow.avatar_url ?? null);
-          }
-        },
-      )
+      .on("postgres_changes", { event: "*", schema: "public", table: "conversation_participants" }, () => {
+        loadUnreadNotifications();
+        loadBadges();
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "profiles" }, async (payload) => {
+        const oldRow = payload.old as { avatar_url?: string | null } | null;
+        const newRow = payload.new as { id?: string; avatar_url?: string | null } | null;
+        // Invalidate any cached signed URL for both old and new paths so all
+        // visible <UserAvatar> instances refetch with the latest image.
+        if (oldRow?.avatar_url && oldRow.avatar_url !== newRow?.avatar_url) {
+          invalidateAvatar(oldRow.avatar_url);
+        }
+        if (newRow?.avatar_url) invalidateAvatar(newRow.avatar_url);
+        // Update own avatar in the header
+        const { data: u } = await supabase.auth.getUser();
+        if (u.user && newRow?.id === u.user.id) {
+          setMyAvatarPath(newRow.avatar_url ?? null);
+        }
+      })
       .subscribe();
 
     const onVisibilityChange = () => {
@@ -254,36 +232,38 @@ export function AppShell({
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
-            const active = path === to || path.startsWith(to + "/");
-            const badgeCount = navBadges[to] ?? 0;
-            return (
-              <Link
-                key={to}
-                to={to}
-                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
-                  active
-                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
-                }`}
-              >
-                <div className="relative">
-                  <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+          {navItems
+            .filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager)
+            .map(({ to, label, icon: Icon }) => {
+              const active = path === to || path.startsWith(to + "/");
+              const badgeCount = navBadges[to] ?? 0;
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
+                    active
+                      ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                      : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
+                  }`}
+                >
+                  <div className="relative">
+                    <Icon className="size-4 shrink-0" strokeWidth={1.5} />
+                    {badgeCount > 0 && (
+                      <span className="absolute -top-1.5 -left-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-gold-primary text-navy-base text-[8px] font-bold grid place-items-center leading-none">
+                        {badgeCount > 99 ? "99+" : badgeCount}
+                      </span>
+                    )}
+                  </div>
+                  <span className="hidden lg:block mr-3 font-medium">{label}</span>
                   {badgeCount > 0 && (
-                    <span className="absolute -top-1.5 -left-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-gold-primary text-navy-base text-[8px] font-bold grid place-items-center leading-none">
+                    <span className="hidden lg:flex mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center">
                       {badgeCount > 99 ? "99+" : badgeCount}
                     </span>
                   )}
-                </div>
-                <span className="hidden lg:block mr-3 font-medium">{label}</span>
-                {badgeCount > 0 && (
-                  <span className="hidden lg:flex mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center">
-                    {badgeCount > 99 ? "99+" : badgeCount}
-                  </span>
-                )}
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })}
         </nav>
 
         <div className="p-4 border-t border-border">
@@ -308,9 +288,7 @@ export function AppShell({
         <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
           <div className="palm-bg-layer" />
         </div>
-        <header
-          className="h-20 sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between bg-gold-soft text-white shadow-md"
-        >
+        <header className="h-20 sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between bg-gold-soft text-white shadow-md">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen((v) => !v)}
@@ -332,9 +310,7 @@ export function AppShell({
                 >
                   <div className="text-left hidden sm:block">
                     <p className="text-sm font-medium text-white">{user.name}</p>
-                    <p className="text-[11px] text-white/70 uppercase tracking-wider">
-                      {user.role}
-                    </p>
+                    <p className="text-[11px] text-white/70 uppercase tracking-wider">{user.role}</p>
                   </div>
                   <div className="size-10 rounded-full bg-white/15 ring-1 ring-white/30 grid place-items-center text-white font-semibold">
                     <UserAvatar
@@ -357,4 +333,27 @@ export function AppShell({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link
+                <Link to="/profile" className="w-full">
+                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2">
+                    <User className="size-4" strokeWidth={1.5} />
+                    <span>ملفي الشخصي</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={signOut}
+                  className="cursor-pointer gap-2 px-3 py-2 text-destructive focus:text-destructive"
+                >
+                  <LogOut className="size-4" strokeWidth={1.5} />
+                  <span>تسجيل الخروج</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        <div className="relative z-10 p-6 lg:p-10 max-w-7xl">{children}</div>
+      </main>
+    </div>
+  );
+}
