@@ -7,6 +7,7 @@ import { Loader2, UserPlus, ArrowRight, Mail, Lock, Eye, EyeOff, LogIn } from "l
 import logoAsset from "@/assets/alsaif-logo.png.asset.json";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
 import { useAppBackground } from "@/hooks/use-app-background";
+import { paletteToCssVars } from "@/lib/bg-palette";
 import { BackgroundUploader } from "@/components/background-uploader";
 
 export const Route = createFileRoute("/auth")({
@@ -20,11 +21,11 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
-const PRIMARY = "#165A3A";
-const SECONDARY = "#2E7D32";
-const BORDER = "#E5E7EB";
-const DARK = "#1F2937";
-const MUTED = "#6B7280";
+const DEFAULT_PRIMARY = "#165A3A";
+const DEFAULT_SECONDARY = "#2E7D32";
+const DEFAULT_BORDER = "#E5E7EB";
+const DEFAULT_DARK = "#1F2937";
+const DEFAULT_MUTED = "#6B7280";
 const ERROR = "#C62828";
 
 const nameSchema = z.string().trim().min(2, "حرفان على الأقل").max(40, "طويل جداً");
@@ -157,7 +158,15 @@ function AuthPage() {
   const greenLogoFilter =
     "brightness(0) saturate(100%) invert(24%) sepia(45%) saturate(900%) hue-rotate(105deg) brightness(92%) contrast(92%)";
 
-  const customBg = useAppBackground("auth_bg");
+  const { url: customBg, palette } = useAppBackground("auth_bg");
+
+  // Adaptive colors derived from the uploaded background (fallback to defaults).
+  const PRIMARY = palette?.accent ?? DEFAULT_PRIMARY;
+  const SECONDARY = palette?.accent ?? DEFAULT_SECONDARY;
+  const DARK = palette?.fg ?? DEFAULT_DARK;
+  const MUTED = palette?.muted ?? DEFAULT_MUTED;
+  const BORDER = palette?.border ?? DEFAULT_BORDER;
+  const CARD_BG = palette?.card ?? "#FFFFFF";
 
   return (
     <div
