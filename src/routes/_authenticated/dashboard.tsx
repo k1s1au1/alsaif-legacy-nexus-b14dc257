@@ -23,6 +23,8 @@ import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { FinanceChart } from "@/components/dashboard/finance-chart";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { ShortcutsGrid } from "@/components/dashboard/shortcuts-grid";
+import { BackgroundUploader } from "@/components/background-uploader";
+import { useAppBackground } from "@/hooks/use-app-background";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -395,8 +397,18 @@ function Dashboard() {
     },
   ];
 
+  const dashboardBg = useAppBackground("dashboard_bg");
+
   return (
     <AppShell title="لوحة العائلة" user={profile}>
+      {dashboardBg && (
+        <div
+          aria-hidden
+          className="fixed inset-0 -z-10 pointer-events-none"
+          style={{ background: `url(${dashboardBg}) center/cover no-repeat` }}
+        />
+      )}
+      <BackgroundUploader settingKey="dashboard_bg" label="تغيير خلفية اللوحة" />
       <div className="space-y-6 sm:space-y-8">
         {/* Hero greeting with live clock */}
         <section className="relative py-8 sm:py-12 px-6 sm:px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">
