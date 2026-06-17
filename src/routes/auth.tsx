@@ -158,6 +158,7 @@ function AuthPage() {
     "brightness(0) saturate(100%) invert(24%) sepia(45%) saturate(900%) hue-rotate(105deg) brightness(92%) contrast(92%)";
 
   const customBg = useAppBackground("auth_bg");
+  const hasCustomBg = !!customBg;
 
   return (
     <div
