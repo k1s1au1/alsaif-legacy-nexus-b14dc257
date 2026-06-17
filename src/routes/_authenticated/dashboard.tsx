@@ -409,6 +409,7 @@ function Dashboard() {
         />
       )}
       <BackgroundUploader settingKey="dashboard_bg" label="تغيير خلفية اللوحة" />
+      <BackgroundUploader settingKey="auth_bg" label="تغيير خلفية صفحة الدخول" />
       <div className="space-y-6 sm:space-y-8">
         {/* Hero greeting with live clock */}
         <section className="relative py-8 sm:py-12 px-6 sm:px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">

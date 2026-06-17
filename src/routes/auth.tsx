@@ -169,7 +169,6 @@ function AuthPage() {
         fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif",
       }}
     >
-      <BackgroundUploader settingKey="auth_bg" label="تغيير خلفية الدخول" />
       {/* Palm tree watermark */}
       <svg
         aria-hidden="true"
