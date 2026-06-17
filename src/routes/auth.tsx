@@ -170,8 +170,10 @@ function AuthPage() {
         fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif",
       }}
     >
-      {/* Palm tree watermark */}
-      <svg
+      {!hasCustomBg && (
+        <>
+          {/* Palm tree watermark */}
+          <svg
         aria-hidden="true"
         className="absolute left-0 bottom-20 h-[60vh] w-auto opacity-[0.06] pointer-events-none"
         viewBox="0 0 200 400"
