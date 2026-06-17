@@ -213,6 +213,8 @@ function AuthPage() {
           opacity: 0.85,
         }}
       />
+        </>
+      )}
 
       <div className="relative w-full max-w-md">
         {/* Brand header */}
