@@ -6,6 +6,8 @@ import { toast } from "sonner";
 import { Loader2, UserPlus, ArrowRight, Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
 import logoAsset from "@/assets/alsaif-logo.png.asset.json";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
+import { useAppBackground } from "@/hooks/use-app-background";
+import { BackgroundUploader } from "@/components/background-uploader";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -155,12 +157,19 @@ function AuthPage() {
   const greenLogoFilter =
     "brightness(0) saturate(100%) invert(24%) sepia(45%) saturate(900%) hue-rotate(105deg) brightness(92%) contrast(92%)";
 
+  const customBg = useAppBackground("auth_bg");
+
   return (
     <div
       dir="rtl"
       className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10"
-      style={{ background: "#FFFFFF", color: DARK, fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif" }}
+      style={{
+        background: customBg ? `url(${customBg}) center/cover no-repeat` : "#FFFFFF",
+        color: DARK,
+        fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif",
+      }}
     >
+      <BackgroundUploader settingKey="auth_bg" label="تغيير خلفية الدخول" />
       {/* Palm tree watermark */}
       <svg
         aria-hidden="true"
