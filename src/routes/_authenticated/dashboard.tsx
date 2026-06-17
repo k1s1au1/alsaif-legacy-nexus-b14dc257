@@ -25,6 +25,7 @@ import { LiveClock } from "@/components/dashboard/live-clock";
 import { ShortcutsGrid } from "@/components/dashboard/shortcuts-grid";
 import { BackgroundUploader } from "@/components/background-uploader";
 import { useAppBackground } from "@/hooks/use-app-background";
+import { paletteToCssVars } from "@/lib/bg-palette";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -397,7 +398,8 @@ function Dashboard() {
     },
   ];
 
-  const dashboardBg = useAppBackground("dashboard_bg");
+  const { url: dashboardBg, palette: dashboardPalette } = useAppBackground("dashboard_bg");
+  const paletteVars = dashboardPalette ? paletteToCssVars(dashboardPalette) : undefined;
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
@@ -410,7 +412,7 @@ function Dashboard() {
       )}
       <BackgroundUploader settingKey="dashboard_bg" label="تغيير خلفية اللوحة" />
       <BackgroundUploader settingKey="auth_bg" label="تغيير خلفية صفحة الدخول" className="!bottom-20" />
-      <div className="space-y-6 sm:space-y-8">
+      <div className="space-y-6 sm:space-y-8" style={paletteVars}>
         {/* Hero greeting with live clock */}
         <section className="relative py-8 sm:py-12 px-6 sm:px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">
           <div className="absolute inset-0 bg-card ring-1 ring-border rounded-2xl shadow-sm" />
