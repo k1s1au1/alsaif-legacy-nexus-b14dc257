@@ -169,6 +169,48 @@ function AuthPage() {
         fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif",
       }}
     >
+      {/* Palm tree watermark */}
+      <svg
+        aria-hidden="true"
+        className="absolute left-0 bottom-20 h-[60vh] w-auto opacity-[0.06] pointer-events-none"
+        viewBox="0 0 200 400"
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth="1.5"
+      >
+        <path d="M100 400 L100 180" />
+        <path d="M100 180 Q60 140 30 150 Q60 160 100 180" />
+        <path d="M100 180 Q140 140 170 150 Q140 160 100 180" />
+        <path d="M100 180 Q70 110 40 100 Q75 130 100 180" />
+        <path d="M100 180 Q130 110 160 100 Q125 130 100 180" />
+        <path d="M100 180 Q95 120 80 80 Q98 130 100 180" />
+        <path d="M100 180 Q105 120 120 80 Q102 130 100 180" />
+        {[220, 260, 300, 340].map((y) => (
+          <path key={y} d={`M97 ${y} Q100 ${y - 4} 103 ${y}`} />
+        ))}
+      </svg>
+      {/* Skyline footer */}
+      <svg
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-10 w-full opacity-[0.07] pointer-events-none"
+        viewBox="0 0 1200 120"
+        fill="none"
+        stroke={PRIMARY}
+        strokeWidth="1.2"
+      >
+        <path d="M0 110 L60 110 L60 80 L80 80 L80 110 L120 110 L120 60 L140 60 L140 110 L200 110 L210 50 L220 110 L280 110 L280 70 L300 70 L300 40 L320 40 L320 70 L340 70 L340 110 L420 110 L420 30 L440 30 L440 10 L450 10 L450 30 L470 30 L470 110 L560 110 L560 50 L580 50 L580 20 L600 20 L600 50 L620 50 L620 110 L720 110 L720 60 L740 60 L740 110 L800 110 L810 40 L820 110 L900 110 L900 70 L920 70 L920 35 L940 35 L940 70 L960 70 L960 110 L1040 110 L1040 50 L1060 50 L1060 20 L1080 20 L1080 50 L1100 50 L1100 110 L1200 110" />
+      </svg>
+      {/* Decorative border at bottom */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-x-0 bottom-0 h-3 pointer-events-none"
+        style={{
+          background:
+            `repeating-linear-gradient(135deg, ${PRIMARY} 0 8px, transparent 8px 16px), repeating-linear-gradient(45deg, ${SECONDARY} 0 8px, transparent 8px 16px)`,
+          opacity: 0.85,
+        }}
+      />
+
       <div className="relative w-full max-w-md">
         {/* Brand header */}
         <div className="flex flex-col items-center text-center mb-7">
