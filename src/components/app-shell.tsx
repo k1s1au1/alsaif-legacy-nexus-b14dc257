@@ -17,6 +17,8 @@ import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
+import { PushNotifications } from "@capacitor/push-notifications";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -65,6 +67,32 @@ export function AppShell({
   const scrollProgress = Math.min(scrollY / 240, 1);
 
   usePresenceHeartbeat();
+
+  useEffect(() => {
+    async function setupPushNotifications() {
+      if (!Capacitor.isNativePlatform()) return;
+
+      const permission = await PushNotifications.requestPermissions();
+
+      if (permission.receive !== "granted") {
+        console.log("الإشعارات مرفوضة");
+        return;
+      }
+
+      await PushNotifications.register();
+
+      PushNotifications.addListener("registration", (token) => {
+        console.log("FCM TOKEN:", token.value);
+        toast.success("تم تفعيل إشعارات الجوال");
+      });
+
+      PushNotifications.addListener("registrationError", (err) => {
+        console.error("Push Error:", err);
+      });
+    }
+
+    setupPushNotifications();
+  }, []);
 
   const loadUnreadNotifications = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -225,8 +253,6 @@ export function AppShell({
           />
         </div>
 
-
-
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
@@ -271,7 +297,6 @@ export function AppShell({
         </div>
       </aside>
 
-
       {/* Main */}
       <main
         className={cn(
@@ -295,7 +320,6 @@ export function AppShell({
               <Menu className="size-5" strokeWidth={1.5} />
             </button>
             <h1 className="text-lg font-medium tracking-tight text-white">{title}</h1>
-
           </div>
           <div className="flex items-center gap-6">
             <NotificationsBell />
@@ -323,7 +347,6 @@ export function AppShell({
                     />
                   </div>
                   <ChevronDown className="hidden sm:block size-4 text-white/70" strokeWidth={1.5} />
-
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem]">
@@ -334,27 +357,4 @@ export function AppShell({
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <Link to="/profile" className="w-full">
-                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2">
-                    <User className="size-4" strokeWidth={1.5} />
-                    <span>ملفي الشخصي</span>
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={signOut}
-                  className="cursor-pointer gap-2 px-3 py-2 text-destructive focus:text-destructive"
-                >
-                  <LogOut className="size-4" strokeWidth={1.5} />
-                  <span>تسجيل الخروج</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
-
-        <div className="relative z-10 p-6 lg:p-10 max-w-7xl">{children}</div>
-      </main>
-    </div>
-  );
-}
+                <Link
