@@ -583,7 +583,8 @@ function ReqField({
         placeholder={placeholder}
         className="w-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
         style={{
-          background: "#FFFFFF",
+          background: "rgba(255,255,255,0.55)",
+          backdropFilter: "blur(8px)",
           border: `1px solid ${BORDER}`,
           borderRadius: 16,
           color: DARK,
