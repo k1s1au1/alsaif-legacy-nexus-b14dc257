@@ -450,7 +450,7 @@ function AuthPage() {
                     rows={2}
                     maxLength={400}
                     className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: "#FFFFFF", border: `1px solid ${BORDER}`, color: DARK }}
+                    style={{ background: "rgba(255,255,255,0.55)", backdropFilter: "blur(8px)", border: `1px solid ${BORDER}`, color: DARK }}
                     placeholder="صلة القرابة أو أي تفاصيل تساعد المشرفين"
                   />
                 </label>
