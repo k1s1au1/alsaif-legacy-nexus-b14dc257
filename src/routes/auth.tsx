@@ -328,7 +328,8 @@ function AuthPage() {
                   onClick={() => setMode("request")}
                   className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 hover:bg-[color:var(--primary-soft)] hover:-translate-y-[1px]"
                   style={{
-                    background: "#FFFFFF",
+                    background: "rgba(255,255,255,0.45)",
+                    backdropFilter: "blur(8px)",
                     border: `1.5px solid ${PRIMARY}`,
                     color: PRIMARY,
                     ['--primary-soft' as never]: "#F0F7F2",
