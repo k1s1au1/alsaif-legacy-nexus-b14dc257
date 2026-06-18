@@ -171,13 +171,22 @@ function AuthPage() {
   const DARK = palette?.fg ?? DEFAULT_DARK;
   const MUTED = palette?.muted ?? DEFAULT_MUTED;
   const BORDER = palette?.border ?? DEFAULT_BORDER;
-  const CARD_BG = palette?.card ?? "#FFFFFF";
+  const CARD_BG = palette?.card ?? "rgba(255,255,255,0.55)";
+  const paletteVars = palette ? paletteToCssVars(palette) : {};
+
+  // Glass tint derived from background accent
+  const glassTint = palette ? `${palette.accent}22` : "rgba(255,255,255,0.35)";
+  const glassBorder = palette?.border ?? "rgba(255,255,255,0.45)";
+  const glassShadow = palette?.isDark
+    ? "0 20px 60px -25px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12)"
+    : "0 20px 60px -25px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.45)";
 
   return (
     <div
       dir="rtl"
       className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10"
       style={{
+        ...paletteVars,
         background: customBg ? `url(${customBg}) center/cover no-repeat` : "#FFFFFF",
         color: DARK,
         fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif",
@@ -210,15 +219,15 @@ function AuthPage() {
           </p>
         </div>
 
-        {/* Card */}
+        {/* Glass card — tints with background palette */}
         <div
           className="p-7 sm:p-8 animate-fade-up"
           style={{
-            background: "#FFFFFF",
-            border: `1px solid ${BORDER}`,
+            background: `linear-gradient(135deg, ${glassTint}, rgba(255,255,255,0.18))`,
+            border: `1px solid ${glassBorder}`,
             borderRadius: 24,
-            boxShadow:
-              "0 20px 60px -25px rgba(22,90,58,0.18), 0 8px 20px -12px rgba(0,0,0,0.08)",
+            backdropFilter: "blur(22px) saturate(160%)",
+            boxShadow: glassShadow,
           }}
         >
           {mode === "login" ? (
