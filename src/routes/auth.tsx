@@ -544,7 +544,8 @@ function Field({
       <div
         className="flex items-center gap-3 px-4 py-2.5 transition-all focus-within:border-[color:var(--p)] focus-within:ring-2 focus-within:ring-[color:var(--pr)]"
         style={{
-          background: "#FFFFFF",
+          background: "rgba(255,255,255,0.55)",
+          backdropFilter: "blur(8px)",
           border: `1px solid ${BORDER}`,
           borderRadius: 16,
           ['--p' as never]: PRIMARY,
