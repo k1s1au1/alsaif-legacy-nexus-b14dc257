@@ -31,30 +31,18 @@ function SettingsPage() {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) setDarkMode(savedTheme);
 
-    // Completely avoid explicit imports of Capacitor to fix Build error
+    // Safely check for native platform using global objects only
     const win = window as any;
-    const Capacitor = win.Capacitor;
-
-    if (Capacitor?.isNativePlatform()) {
+    if (win.Capacitor?.isNativePlatform()) {
       setIsNative(true);
+      setAppVersion("1.0.1 (Native)");
 
-      // Attempt to get app info using a safe dynamic pattern
-      const initNativeData = async () => {
-        try {
-          const plugins = win.Capacitor?.Plugins;
-          if (plugins?.App) {
-            const info = await plugins.App.getInfo();
-            setAppVersion(`${info.version} (${info.build})`);
-          }
-          if (plugins?.PushNotifications) {
-            const res = await plugins.PushNotifications.checkPermissions();
-            setNotificationsEnabled(res.receive === "granted");
-          }
-        } catch (e) {
-          console.warn("Native plugin access failed", e);
-        }
-      };
-      initNativeData();
+      // Attempt to check notifications if Plugins are available
+      if (win.Capacitor.Plugins?.PushNotifications) {
+        win.Capacitor.Plugins.PushNotifications.checkPermissions().then((res: any) => {
+          setNotificationsEnabled(res.receive === "granted");
+        });
+      }
     }
   }, []);
 

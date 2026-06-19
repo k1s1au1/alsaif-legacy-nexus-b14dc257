@@ -66,32 +66,12 @@ export function AppShell({
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    const setupPushNotifications = async () => {
-      try {
-        const win = window as any;
-        const Capacitor = win.Capacitor;
-        if (!Capacitor?.isNativePlatform()) return;
-
-        // @ts-ignore
-        const { PushNotifications } = await import("@capacitor/push-notifications");
-        const permission = await PushNotifications.requestPermissions();
-
-        if (permission.receive === "granted") {
-          await PushNotifications.register();
-
-          PushNotifications.addListener("pushNotificationReceived", (notification: any) => {
-            toast.info(notification.title, {
-              description: notification.body,
-              duration: 5000,
-            });
-          });
-        }
-      } catch (err) {
-        console.warn("Push notification setup skipped", err);
-      }
-    };
-
-    setupPushNotifications();
+    // Safely check for native platform using global Capacitor object
+    const win = window as any;
+    if (win.Capacitor?.isNativePlatform()) {
+      // Future-proof: use win.Capacitor.Plugins for native features
+      console.log("App running in native mode");
+    }
   }, []);
 
   usePresenceHeartbeat();
@@ -158,7 +138,6 @@ export function AppShell({
           sidebarOpen ? "translate-x-0" : "translate-x-full",
         )}
       >
-        {/* Profile Head in Sidebar */}
         <div className="px-6 pt-14 pb-8 flex flex-col items-center text-center gap-4 bg-[#F8F7F2] rounded-tl-[32px] border-b border-[#E5E4E0]">
           <div className="relative">
             <div className="size-24 rounded-full ring-4 ring-white shadow-md overflow-hidden bg-white p-1">
