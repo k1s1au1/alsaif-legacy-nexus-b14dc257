@@ -307,8 +307,6 @@ export function AppShell({
 
       {/* Main */}
       <main className="relative min-h-screen pb-16">
-
-      >
         {/* Subtle moving palm pattern background */}
         <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
           <div className="palm-bg-layer" />
