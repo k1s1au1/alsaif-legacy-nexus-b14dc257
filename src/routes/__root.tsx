@@ -131,9 +131,11 @@ function RootComponent() {
   const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem("hasSeenWelcomeFinal");
-    if (!hasSeenWelcome) {
-      setShowWelcome(true);
+    if (typeof window !== "undefined") {
+      const hasSeenWelcome = localStorage.getItem("hasSeenWelcomeFinal");
+      if (!hasSeenWelcome) {
+        setShowWelcome(true);
+      }
     }
 
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
@@ -145,9 +147,37 @@ function RootComponent() {
   }, [router, queryClient]);
 
   const handleWelcomeComplete = () => {
-    localStorage.setItem("hasSeenWelcomeFinal", "true");
+    if (typeof window !== "undefined") {
+      localStorage.setItem("hasSeenWelcomeFinal", "true");
+    }
     setShowWelcome(false);
   };
+
+  // Auto-clear shortcut badges when entering the matching page
+  useEffect(() => {
+    const PATH_TO_KEY: Array<{ test: (p: string) => boolean; key: string }> = [
+      { test: (p) => p.startsWith("/meetings"), key: "meetings" },
+      { test: (p) => p.startsWith("/trips"), key: "trips" },
+      { test: (p) => p.startsWith("/tasks"), key: "tasks" },
+      { test: (p) => p.startsWith("/chat"), key: "chat" },
+      { test: (p) => p.startsWith("/majlis"), key: "majlis" },
+      { test: (p) => p.startsWith("/events"), key: "events" },
+      { test: (p) => p.startsWith("/archive"), key: "archive" },
+      { test: (p) => p.startsWith("/finance"), key: "finance" },
+      { test: (p) => p.startsWith("/family-tree"), key: "family-tree" },
+    ];
+    const apply = (path: string) => {
+      for (const m of PATH_TO_KEY) if (m.test(path)) {
+        markSeen(m.key);
+        setTimeout(() => markSeen(m.key), 1500);
+      }
+    };
+    apply(router.state.location.pathname);
+    const unsub = router.subscribe("onResolved", ({ toLocation }) => {
+      apply(toLocation.pathname);
+    });
+    return () => unsub();
+  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>

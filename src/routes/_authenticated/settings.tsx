@@ -27,8 +27,10 @@ function SettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
-    if (savedTheme) setDarkMode(savedTheme);
+    if (typeof window !== "undefined") {
+      const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
+      if (savedTheme) setDarkMode(savedTheme);
+    }
 
     const native = Capacitor.isNativePlatform();
     setIsNative(native);
@@ -53,15 +55,17 @@ function SettingsPage() {
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
     setDarkMode(theme);
-    localStorage.setItem("theme", theme);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("theme", theme);
 
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else if (theme === "light") {
-      document.documentElement.classList.remove("dark");
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.classList.toggle("dark", prefersDark);
+      if (theme === "dark") {
+        document.documentElement.classList.add("dark");
+      } else if (theme === "light") {
+        document.documentElement.classList.remove("dark");
+      } else {
+        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", prefersDark);
+      }
     }
     toast.success("تم تحديث المظهر بنجاح");
   };
@@ -69,7 +73,6 @@ function SettingsPage() {
   const openNativeSettings = async () => {
     if (Capacitor.isNativePlatform()) {
       toast.info("جاري فتح إعدادات النظام الخاص بالتطبيق...");
-      // In a real app, this would use a native settings plugin
     } else {
       toast.error("هذه الميزة متاحة فقط على تطبيق الجوال");
     }
