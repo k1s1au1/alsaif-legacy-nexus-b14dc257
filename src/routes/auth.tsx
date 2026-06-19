@@ -131,7 +131,7 @@ function AuthPage() {
                     onChange={(e) => setEmail(e.target.value)}
                     dir="ltr"
                     className="w-full bg-white border border-[#E0E0E0] rounded-xl pr-11 pl-4 py-4 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/10 focus:border-[#D4AF37] transition-all text-right shadow-sm"
-                    placeholder="name@alsaif.family"
+                    placeholder="TEST_ALSAIF_LOGIN"
                   />
                 </div>
               </div>
