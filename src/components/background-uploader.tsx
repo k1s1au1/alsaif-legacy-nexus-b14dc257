@@ -16,11 +16,14 @@ export function BackgroundUploader({
   settingKey,
   label,
   className,
+  inline = false,
 }: {
   settingKey: string;
   label: string;
   className?: string;
+  inline?: boolean;
 }) {
+
   const [canEdit, setCanEdit] = useState(false);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -95,9 +98,9 @@ export function BackgroundUploader({
         disabled={uploading}
         title={label}
         className={cn(
-          "fixed bottom-6 left-6 z-[60] inline-flex items-center gap-2 px-4 py-2.5 rounded-full",
-          "bg-gold-primary text-navy-base font-semibold text-xs shadow-lg ring-1 ring-black/10",
-          "hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-60",
+          inline
+            ? "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-sm font-medium transition disabled:opacity-60"
+            : "fixed bottom-6 left-6 z-[60] inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gold-primary text-navy-base font-semibold text-xs shadow-lg ring-1 ring-black/10 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-60",
           className,
         )}
       >
@@ -111,3 +114,4 @@ export function BackgroundUploader({
     </>
   );
 }
+
