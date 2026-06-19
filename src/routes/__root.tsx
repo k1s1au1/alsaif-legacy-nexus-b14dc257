@@ -7,13 +7,14 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { markSeen } from "@/hooks/use-shortcut-badges";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
+import { WelcomeScreen } from "@/components/welcome-screen";
 
 function NotFoundComponent() {
   return (
@@ -86,7 +87,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         content:
           "السيف — منصة العائلة الخاصة للتواصل والتنظيم وحفظ الإرث. Private family & community headquarters.",
       },
-      { name: "theme-color", content: "#050a18" },
+      { name: "theme-color", content: "#1B4332" },
       { property: "og:title", content: "السيف — Alsaif" },
       {
         property: "og:description",
@@ -127,8 +128,14 @@ function RootShell({ children }: { children: ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
+  const [showWelcome, setShowWelcome] = useState(false);
 
   useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem("hasSeenWelcomeFinal");
+    if (!hasSeenWelcome) {
+      setShowWelcome(true);
+    }
+
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
@@ -137,36 +144,14 @@ function RootComponent() {
     return () => sub.subscription.unsubscribe();
   }, [router, queryClient]);
 
-  // Auto-clear shortcut badges when entering the matching page
-  useEffect(() => {
-    const PATH_TO_KEY: Array<{ test: (p: string) => boolean; key: string }> = [
-      { test: (p) => p.startsWith("/meetings"), key: "meetings" },
-      { test: (p) => p.startsWith("/trips"), key: "trips" },
-      { test: (p) => p.startsWith("/tasks"), key: "tasks" },
-      { test: (p) => p.startsWith("/chat"), key: "chat" },
-      { test: (p) => p.startsWith("/majlis"), key: "majlis" },
-      { test: (p) => p.startsWith("/events"), key: "events" },
-      { test: (p) => p.startsWith("/archive"), key: "archive" },
-      { test: (p) => p.startsWith("/finance"), key: "finance" },
-      { test: (p) => p.startsWith("/family-tree"), key: "family-tree" },
-    ];
-    const apply = (path: string) => {
-      for (const m of PATH_TO_KEY) if (m.test(path)) {
-        markSeen(m.key);
-        setTimeout(() => markSeen(m.key), 1500);
-      }
-    };
-    apply(router.state.location.pathname);
-    const unsub = router.subscribe("onResolved", ({ toLocation }) => {
-      apply(toLocation.pathname);
-    });
-    return () => unsub();
-  }, [router]);
-
-
+  const handleWelcomeComplete = () => {
+    localStorage.setItem("hasSeenWelcomeFinal", "true");
+    setShowWelcome(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
+      {showWelcome && <WelcomeScreen onComplete={handleWelcomeComplete} />}
       <Outlet />
       <Toaster theme="dark" position="top-center" richColors />
     </QueryClientProvider>
