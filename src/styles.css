@@ -3,9 +3,8 @@
 @import "tw-animate-css";
 
 /*
- * Alsaif Design System — Private Club Midnight
- * Navy + Gold + Ivory, Arabic-first, RTL.
- * All tokens defined here. Never hardcode colors in components.
+ * Alsaif Design System — Royal Heritage Edition
+ * Clean, minimal, blurred surfaces, and rounded iconography.
  */
 
 @theme inline {
@@ -38,68 +37,79 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-arabic: "Cairo", "IBM Plex Sans Arabic", sans-serif;
+  /* Fonts */
+  --font-arabic: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, Helvetica, Arial, "Tajawal", "Cairo", sans-serif;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
-  --radius-xl: 22px;
+  /* Corner Radii */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
 
-  --shadow-gold: 0 0 0 1px color-mix(in oklab, var(--gold-primary) 25%, transparent),
-                 0 12px 40px -12px color-mix(in oklab, var(--gold-primary) 30%, transparent);
+  --shadow-gold: 0 4px 20px -2px rgba(212, 175, 55, 0.15);
 }
 
 :root {
-  /* Premium light theme — white/gray + emerald green (Saudi family dashboard) */
-  --navy-base: #FAFAF8;
-  --navy-card: #FFFFFF;
-  --navy-elev: #F3F6F4;
-  --gold-primary: #0F6A4B;
-  --gold-soft: #0B4F43;
-  --brown-accent: #8B5E3C;
-  --ivory: #1A1A1A;
+  /* Light Theme — Alabaster & Royal Emerald */
+  --background: #F5F5F0;
+  --foreground: #1A1C1E;
 
-  --background: #FAFAF8;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  --primary: #0F6A4B;
+  --navy-base: #F5F5F0;
+  --navy-card: #FAF9F6;
+  --navy-elev: #FFFFFF;
+
+  --gold-primary: #1B4332;
+  --gold-soft: #2D6A4F;
+  --ivory: #1A1C1E;
+
+  --primary: #1B4332;
   --primary-foreground: #FFFFFF;
-  --secondary: #F3F6F4;
-  --secondary-foreground: #374151;
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
-  --accent: #E6F2EC;
-  --accent-foreground: #0F6A4B;
-  --destructive: #B91C1C;
-  --destructive-foreground: #FFFFFF;
-  --border: #E5E7EB;
+
+  --secondary: #E5E4E0;
+  --secondary-foreground: #1A1C1E;
+
+  --muted: #E5E4E0;
+  --muted-foreground: #666666;
+
+  --accent: #E8F5E9;
+  --accent-foreground: #1B4332;
+
+  --border: #E5E4E0;
   --input: #FFFFFF;
-  --ring: rgba(15, 106, 75, 0.45);
+  --ring: rgba(27, 67, 50, 0.2);
+
+  --luxury-gold: #D4AF37;
+  --luxury-glow: rgba(212, 175, 55, 0.25);
 }
 
-.light {
-  --background: #FAFAF8;
-  --foreground: #1A1A1A;
-  --card: #FFFFFF;
-  --card-foreground: #1A1A1A;
-  --popover: #FFFFFF;
-  --popover-foreground: #1A1A1A;
-  --primary: #0F6A4B;
-  --primary-foreground: #FFFFFF;
-  --secondary: #F3F6F4;
-  --secondary-foreground: #374151;
-  --muted: #F3F4F6;
-  --muted-foreground: #6B7280;
-  --accent: #E6F2EC;
-  --accent-foreground: #0F6A4B;
-  --border: #E5E7EB;
-  --input: #FFFFFF;
-  --ring: rgba(15, 106, 75, 0.45);
-}
+.dark {
+  --background: #0C0D10;
+  --foreground: #F1F5F9;
 
+  --navy-base: #0C0D10;
+  --navy-card: #15171C;
+  --navy-elev: #1E2128;
+
+  --gold-primary: #D4AF37;
+  --gold-soft: #F9E29C;
+  --ivory: #F8FAFC;
+
+  --primary: #D4AF37;
+  --primary-foreground: #0C0D10;
+
+  --secondary: #1E2128;
+  --secondary-foreground: #F1F5F9;
+
+  --muted: #1E2128;
+  --muted-foreground: #94A3B8;
+
+  --accent: #262A33;
+  --accent-foreground: #D4AF37;
+
+  --border: #2D333D;
+  --input: #15171C;
+  --ring: rgba(212, 175, 55, 0.3);
+}
 
 @layer base {
   * { border-color: var(--color-border); }
@@ -109,97 +119,49 @@
     font-family: var(--font-arabic);
     -webkit-font-smoothing: antialiased;
   }
-  body { font-feature-settings: "ss01", "kern"; }
-  ::selection { background-color: color-mix(in oklab, var(--gold-primary) 30%, transparent); }
 }
 
 /* Custom utilities */
-@utility ring-gold {
-  box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold-primary) 20%, transparent);
-}
-
 @utility card-surface {
-  background-color: color-mix(in oklab, var(--card) 70%, transparent);
-  border: 1px solid color-mix(in oklab, var(--gold-primary) 12%, transparent);
-  border-radius: 16px;
-  backdrop-filter: blur(8px);
-}
-
-@utility eyebrow {
-  font-size: 11px;
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: color-mix(in oklab, var(--gold-primary) 60%, transparent);
-}
-
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.19, 1, 0.22, 1) both; }
-
-/* Subtle drifting palm-leaf pattern background */
-@keyframes palm-drift {
-  0%   { transform: translate3d(0, 0, 0); }
-  50%  { transform: translate3d(-40px, -20px, 0); }
-  100% { transform: translate3d(0, 0, 0); }
-}
-.palm-bg { opacity: 0.5; }
-.palm-bg-layer {
-  position: absolute;
-  inset: -80px;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240' viewBox='0 0 240 240'><g fill='none' stroke='%231B5E20' stroke-width='1' stroke-linecap='round' opacity='0.08'><path d='M120 200 C120 160 120 120 120 60'/><path d='M120 90 C100 80 80 78 60 82'/><path d='M120 90 C140 80 160 78 180 82'/><path d='M120 110 C95 105 75 108 55 118'/><path d='M120 110 C145 105 165 108 185 118'/><path d='M120 135 C95 135 70 142 50 155'/><path d='M120 135 C145 135 170 142 190 155'/><path d='M120 160 C100 165 80 175 65 188'/><path d='M120 160 C140 165 160 175 175 188'/></g></svg>");
-  background-size: 240px 240px;
-  background-repeat: repeat;
-  animation: palm-drift 40s ease-in-out infinite;
-  will-change: transform;
-}
-@media (prefers-reduced-motion: reduce) {
-  .palm-bg-layer { animation: none; }
-}
-
-/* Ripple effect for buttons (add class="btn-ripple") */
-.btn-ripple { position: relative; overflow: hidden; }
-.btn-ripple::after {
-  content: "";
-  position: absolute; inset: 0;
-  background: radial-gradient(circle, color-mix(in oklab, var(--gold-primary) 30%, transparent) 10%, transparent 70%);
-  opacity: 0; transform: scale(0);
-  transition: transform 0.5s ease-out, opacity 0.6s ease-out;
-  pointer-events: none;
-}
-.btn-ripple:active::after { transform: scale(2.5); opacity: 1; transition: 0s; }
-
-/* Responsive auth background object-position */
-.auth-bg-img {
-  object-position: center center;
-}
-@media (max-width: 640px) {
-  .auth-bg-img {
-    object-position: center top;
-  }
-}
-@media (min-width: 641px) and (max-width: 1024px) {
-  .auth-bg-img {
-    object-position: center 20%;
-  }
+  background-color: var(--navy-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.05);
 }
 
 @utility input-base {
   width: 100%;
-  padding: 0.625rem 0.875rem;
-  background-color: color-mix(in oklab, var(--background) 60%, transparent);
-  border: 1px solid color-mix(in oklab, var(--gold-primary) 15%, transparent);
-  border-radius: 8px;
-  color: var(--color-foreground);
-  font-size: 0.875rem;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: 0.75rem 1rem;
+  background-color: var(--input);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--foreground);
+  font-size: 16px;
+  transition: all 0.2s ease;
   &:focus {
     outline: none;
-    border-color: color-mix(in oklab, var(--gold-primary) 50%, transparent);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-primary) 12%, transparent);
+    border-color: #D4AF37;
+    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
   }
 }
 
+@utility btn-gold {
+  background: linear-gradient(to left, #996515, #D4AF37);
+  color: white;
+  font-weight: 700;
+  box-shadow: 0 8px 20px -6px rgba(212, 175, 55, 0.3);
+  transition: all 0.3s ease;
+  &:hover {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+  &:active {
+    transform: translateY(1px);
+  }
+}
 
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
