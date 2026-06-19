@@ -31,15 +31,30 @@ function SettingsPage() {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) setDarkMode(savedTheme);
 
-    // Safely check for Capacitor without top-level imports that break web builds
+    // Completely avoid explicit imports of Capacitor to fix Build error
     const win = window as any;
     const Capacitor = win.Capacitor;
 
     if (Capacitor?.isNativePlatform()) {
       setIsNative(true);
-      // We can access plugins via Capacitor.Plugins if they are registered
-      // Or just show placeholders for now to fix the Build error
-      setAppVersion("1.0.1 (Native)");
+
+      // Attempt to get app info using a safe dynamic pattern
+      const initNativeData = async () => {
+        try {
+          const plugins = win.Capacitor?.Plugins;
+          if (plugins?.App) {
+            const info = await plugins.App.getInfo();
+            setAppVersion(`${info.version} (${info.build})`);
+          }
+          if (plugins?.PushNotifications) {
+            const res = await plugins.PushNotifications.checkPermissions();
+            setNotificationsEnabled(res.receive === "granted");
+          }
+        } catch (e) {
+          console.warn("Native plugin access failed", e);
+        }
+      };
+      initNativeData();
     }
   }, []);
 
