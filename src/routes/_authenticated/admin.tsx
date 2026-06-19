@@ -417,8 +417,9 @@ function AdminPage() {
                   </ul>
                 )}
               </section>
-            ) : (
+            ) : section === "roles" ? (
               <section className="card-surface p-5 space-y-4">
+
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
                     <UserCog className="size-5 text-gold-primary" />
@@ -507,7 +508,50 @@ function AdminPage() {
                   </ul>
                 )}
               </section>
+            ) : (
+              <section className="card-surface p-5 space-y-5">
+                <div className="flex items-center gap-2">
+                  <Palette className="size-5 text-gold-primary" />
+                  <h3 className="text-base text-ivory">إعدادات الموقع</h3>
+                </div>
+                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+                  تحكّم في خلفيات الموقع وإنشاء الاجتماعات من مكان واحد.
+                </p>
+
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-ivory inline-flex items-center gap-1.5">
+                    <ImageIcon className="size-3.5 text-gold-primary" strokeWidth={1.8} />
+                    خلفيات الصفحات
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    <BackgroundUploader inline settingKey="auth_bg" label="تغيير خلفية صفحة الدخول" />
+                    <BackgroundUploader inline settingKey="dashboard_bg" label="تغيير خلفية لوحة التحكم" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    اختر صورة مناسبة (حد أقصى 8 ميجابايت). تتكيّف ألوان الواجهة تلقائياً مع الخلفية الجديدة.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-2 border-t border-border/60">
+                  <h4 className="text-xs font-semibold text-ivory inline-flex items-center gap-1.5">
+                    <CalendarPlus className="size-3.5 text-gold-primary" strokeWidth={1.8} />
+                    الاجتماعات
+                  </h4>
+                  <Link
+                    to="/meetings"
+                    hash="new"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-sm font-medium transition"
+                  >
+                    <CalendarPlus className="size-4" strokeWidth={1.8} />
+                    إنشاء اجتماع جديد
+                  </Link>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    سيتم فتح نموذج إنشاء اجتماع جديد في صفحة الاجتماعات.
+                  </p>
+                </div>
+              </section>
             )}
+
           </>
         )}
       </div>
