@@ -23,7 +23,7 @@ import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { FinanceChart } from "@/components/dashboard/finance-chart";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { ShortcutsGrid } from "@/components/dashboard/shortcuts-grid";
-import { BackgroundUploader } from "@/components/background-uploader";
+
 import { useAppBackground } from "@/hooks/use-app-background";
 import { paletteToCssVars } from "@/lib/bg-palette";
 import { cn } from "@/lib/utils";
@@ -410,8 +410,6 @@ function Dashboard() {
           style={{ background: `url(${dashboardBg}) center/cover no-repeat` }}
         />
       )}
-      <BackgroundUploader settingKey="dashboard_bg" label="تغيير خلفية اللوحة" />
-      <BackgroundUploader settingKey="auth_bg" label="تغيير خلفية صفحة الدخول" className="!bottom-20" />
       <div className="space-y-6 sm:space-y-8" style={paletteVars}>
         {/* Hero greeting with live clock */}
         <section className="relative py-8 sm:py-12 px-6 sm:px-8 lg:px-12 rounded-2xl overflow-hidden animate-fade-up">
