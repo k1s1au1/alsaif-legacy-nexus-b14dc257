@@ -18,9 +18,10 @@ import {
   Crown,
   Star,
   User as UserIcon,
-  ImageIcon,
+  Image as ImageIcon,
   CalendarPlus,
   Palette,
+
 } from "lucide-react";
 
 import { toast } from "sonner";
