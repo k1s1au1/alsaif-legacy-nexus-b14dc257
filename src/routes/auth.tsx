@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, UserPlus, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import logoAsset from "@/assets/alsaif-logo.png.asset.json";
+import { useAppBackground } from "@/hooks/use-app-background";
+import { paletteToCssVars } from "@/lib/bg-palette";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -23,6 +25,9 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const { url: authBg, palette: authPalette } = useAppBackground("auth_bg");
+  const paletteVars = authPalette ? paletteToCssVars(authPalette) : undefined;
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -44,15 +49,29 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden">
+    <div
+      className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-all duration-1000 overflow-hidden"
+      style={paletteVars}
+    >
+      {/* Dynamic Image Background */}
+      {authBg && (
+        <div
+          className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000"
+          style={{ backgroundImage: `url(${authBg})` }}
+        >
+          <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+        </div>
+      )}
 
-      {/* Dynamic Heritage Background Elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-gold-primary/5 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-luxury-gold/5 blur-[120px]" />
-      </div>
+      {/* Decorative Heritage Elements (Only show if no custom background) */}
+      {!authBg && (
+        <div className="absolute inset-0 pointer-events-none opacity-40">
+          <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-gold-primary/10 blur-[120px]" />
+          <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-luxury-gold/10 blur-[120px]" />
+        </div>
+      )}
 
-      <div className="relative w-full max-w-[440px] bg-card rounded-[40px] p-8 border border-border shadow-2xl animate-fade-up">
+      <div className="relative z-10 w-full max-w-[440px] bg-card/90 backdrop-blur-md rounded-[40px] p-8 border border-border shadow-2xl animate-fade-up">
 
         {/* Header Section */}
         <div className="flex flex-col items-center text-center mb-6">

@@ -10,6 +10,7 @@ import {
   User,
   Users,
   ChevronDown,
+  Settings,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -32,6 +33,7 @@ const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
   { to: "/members", label: "الأعضاء", icon: Users },
+  { to: "/settings", label: "الإعدادات", icon: Settings },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
 
@@ -73,17 +75,6 @@ export function AppShell({
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [sidebarOpen]);
-  const [scrollY, setScrollY] = useState(0);
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const onScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
-  // 0 at top → 1 after 240px of scroll
-  const scrollProgress = Math.min(scrollY / 240, 1);
 
   usePresenceHeartbeat();
 
@@ -187,13 +178,10 @@ export function AppShell({
         async (payload) => {
           const oldRow = payload.old as { avatar_url?: string | null } | null;
           const newRow = payload.new as { id?: string; avatar_url?: string | null } | null;
-          // Invalidate any cached signed URL for both old and new paths so all
-          // visible <UserAvatar> instances refetch with the latest image.
           if (oldRow?.avatar_url && oldRow.avatar_url !== newRow?.avatar_url) {
             invalidateAvatar(oldRow.avatar_url);
           }
           if (newRow?.avatar_url) invalidateAvatar(newRow.avatar_url);
-          // Update own avatar in the header
           const { data: u } = await supabase.auth.getUser();
           if (u.user && newRow?.id === u.user.id) {
             setMyAvatarPath(newRow.avatar_url ?? null);
@@ -225,7 +213,7 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
       {/* Backdrop overlay */}
       <div
         onClick={() => setSidebarOpen(false)}
@@ -245,17 +233,16 @@ export function AppShell({
         )}
         aria-hidden={!sidebarOpen}
       >
-        <div className="h-20 flex items-center justify-between px-6 gap-3 bg-gold-soft text-white">
+        <div className="h-20 flex items-center justify-between px-6 gap-3 bg-primary text-primary-foreground">
           <div className="flex items-center gap-3">
             <img
               src={alsaifMark.url}
               alt="العلي"
-              className="size-10 object-contain"
-              style={{ filter: "brightness(0) invert(1)" }}
+              className="size-10 object-contain brightness-0 invert"
             />
-            <div className="flex flex-col items-start leading-tight">
-              <span className="text-lg font-semibold tracking-wide">السيف</span>
-              <span className="text-[11px] text-white/70">لوحة العائلة</span>
+            <div className="flex flex-col items-start leading-tight text-right">
+              <span className="text-lg font-semibold tracking-wide">مجلس السيف</span>
+              <span className="text-[11px] opacity-70">لوحة العائلة</span>
             </div>
           </div>
           <button
@@ -267,7 +254,7 @@ export function AppShell({
           </button>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto text-right">
           {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             const badgeCount = navBadges[to] ?? 0;
@@ -276,16 +263,16 @@ export function AppShell({
                 key={to}
                 to={to}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center px-4 py-3 rounded-xl text-sm transition-colors relative ${
+                className={`flex flex-row-reverse items-center px-4 py-3 rounded-xl text-sm transition-colors relative ${
                   active
-                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    : "text-foreground/70 hover:text-gold-primary hover:bg-secondary/40"
+                    ? "bg-primary/10 text-primary ring-1 ring-primary/20"
+                    : "text-foreground/70 hover:text-primary hover:bg-secondary/40"
                 }`}
               >
                 <Icon className="size-5 shrink-0" strokeWidth={1.5} />
-                <span className="mr-3 font-medium">{label}</span>
+                <span className="mr-auto ml-3 font-medium">{label}</span>
                 {badgeCount > 0 && (
-                  <span className="mr-auto min-w-[20px] h-[20px] px-1.5 rounded-full bg-gold-primary/20 text-gold-primary text-[11px] font-semibold flex items-center justify-center">
+                  <span className="mr-3 min-w-[20px] h-[20px] px-1.5 rounded-full bg-primary/20 text-primary text-[11px] font-semibold flex items-center justify-center">
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
@@ -297,50 +284,46 @@ export function AppShell({
         <div className="p-4 border-t border-border">
           <button
             onClick={signOut}
-            className="w-full flex items-center px-3 py-2 text-sm text-muted-foreground hover:text-gold-primary transition-colors rounded-lg"
+            className="w-full flex flex-row-reverse items-center px-3 py-2 text-sm text-muted-foreground hover:text-destructive transition-colors rounded-lg"
           >
             <LogOut className="size-4" strokeWidth={1.5} />
-            <span className="mr-3">تسجيل الخروج</span>
+            <span className="mr-auto ml-3 font-medium">تسجيل الخروج</span>
           </button>
         </div>
       </aside>
 
-      {/* Main */}
-      <main className="relative min-h-screen pb-16">
-        {/* Subtle moving palm pattern background */}
-        <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
-          <div className="palm-bg-layer" />
-        </div>
+      {/* Main Content Area */}
+      <main className="relative min-h-screen pb-16 transition-all duration-700">
         <header
-          className="h-20 sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between bg-gold-soft text-white shadow-md"
+          className="h-20 sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between bg-background/80 backdrop-blur-md border-b border-border transition-colors duration-500"
         >
           <div className="flex items-center gap-4">
             <button
               onClick={() => setSidebarOpen((v) => !v)}
               aria-label={sidebarOpen ? "إخفاء القائمة" : "إظهار القائمة"}
-              className="size-10 grid place-items-center rounded-lg bg-white/10 ring-1 ring-white/20 text-white hover:bg-white/20 transition-colors"
+              className="size-10 grid place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20 text-primary hover:bg-primary/20 transition-colors"
             >
               <Menu className="size-5" strokeWidth={1.5} />
             </button>
-            <h1 className="text-lg font-medium tracking-tight text-white">{title}</h1>
-
+            <h1 className="text-lg font-bold tracking-tight text-primary">{title}</h1>
           </div>
+
           <div className="flex items-center gap-6">
             <NotificationsBell />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="flex items-center gap-3 pr-6 border-r border-white/20 hover:opacity-80 transition outline-none"
+                  className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition outline-none"
                   aria-label="الملف الشخصي"
                 >
-                  <div className="text-left hidden sm:block">
-                    <p className="text-sm font-medium text-white">{user.name}</p>
-                    <p className="text-[11px] text-white/70 uppercase tracking-wider">
+                  <div className="text-right hidden sm:block">
+                    <p className="text-sm font-bold text-foreground">{user.name}</p>
+                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
                       {user.role}
                     </p>
                   </div>
-                  <div className="size-10 rounded-full bg-white/15 ring-1 ring-white/30 grid place-items-center text-white font-semibold">
+                  <div className="size-10 rounded-full bg-primary/10 ring-1 ring-primary/20 grid place-items-center text-primary font-bold overflow-hidden">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
@@ -350,38 +333,45 @@ export function AppShell({
                       userId={myUserId}
                     />
                   </div>
-                  <ChevronDown className="hidden sm:block size-4 text-white/70" strokeWidth={1.5} />
-
+                  <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem]">
+              <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem] text-right">
                 <DropdownMenuLabel className="font-normal px-3 py-2">
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium text-foreground">{user.name}</span>
+                    <span className="text-sm font-bold text-foreground">{user.name}</span>
                     <span className="text-xs text-muted-foreground">{user.role}</span>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <Link to="/profile" className="w-full">
-                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2">
-                    <User className="size-4" strokeWidth={1.5} />
+                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2 justify-end">
                     <span>ملفي الشخصي</span>
+                    <User className="size-4" strokeWidth={1.5} />
+                  </DropdownMenuItem>
+                </Link>
+                <Link to="/settings" className="w-full">
+                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2 justify-end">
+                    <span>الإعدادات</span>
+                    <Settings className="size-4" strokeWidth={1.5} />
                   </DropdownMenuItem>
                 </Link>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={signOut}
-                  className="cursor-pointer gap-2 px-3 py-2 text-destructive focus:text-destructive"
+                  className="cursor-pointer gap-2 px-3 py-2 text-destructive focus:text-destructive justify-end"
                 >
-                  <LogOut className="size-4" strokeWidth={1.5} />
                   <span>تسجيل الخروج</span>
+                  <LogOut className="size-4" strokeWidth={1.5} />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <div className="relative z-10 p-6 lg:p-10 max-w-7xl">{children}</div>
+        <div className="relative z-10 p-6 lg:p-10 max-w-7xl mx-auto">
+          {children}
+        </div>
       </main>
     </div>
   );
