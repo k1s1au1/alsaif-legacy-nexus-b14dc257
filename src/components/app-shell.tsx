@@ -19,6 +19,7 @@ import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
+import { Capacitor } from "@capacitor/core";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -62,6 +63,28 @@ export function AppShell({
       return () => { document.body.style.overflow = "unset"; };
     }
   }, [sidebarOpen]);
+
+  useEffect(() => {
+    async function setupPushNotifications() {
+      if (!Capacitor.isNativePlatform()) return;
+
+      const { PushNotifications } = await import("@capacitor/push-notifications");
+      const permission = await PushNotifications.requestPermissions();
+
+      if (permission.receive === "granted") {
+        await PushNotifications.register();
+
+        PushNotifications.addListener("pushNotificationReceived", (notification) => {
+          toast.info(notification.title, {
+            description: notification.body,
+            duration: 5000,
+          });
+        });
+      }
+    }
+
+    setupPushNotifications();
+  }, []);
 
   usePresenceHeartbeat();
 
@@ -122,15 +145,15 @@ export function AppShell({
       {/* Modern High-Contrast Sidebar (RTL) */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-white border-l border-[#E5E4E0] shadow-[0_0_40px_rgba(0,0,0,0.15)] transition-transform duration-500",
+          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-white border-l border-[#E5E4E0] shadow-[0_0_50px_rgba(0,0,0,0.2)] transition-transform duration-500 ease-out",
           "w-[85vw] max-w-[320px] rounded-l-[32px]",
           sidebarOpen ? "translate-x-0" : "translate-x-full",
         )}
       >
         {/* Profile Head in Sidebar */}
-        <div className="px-6 pt-14 pb-8 flex flex-col items-center text-center gap-4 bg-[#F8F7F2] rounded-tl-[32px] border-b border-[#E5E4E0]">
+        <div className="px-6 pt-16 pb-8 flex flex-col items-center text-center gap-4 bg-[#F8F7F2] rounded-tl-[32px] border-b border-[#E5E4E0]">
           <div className="relative">
-            <div className="size-24 rounded-full ring-4 ring-white shadow-md overflow-hidden bg-white p-1">
+            <div className="size-24 rounded-full ring-4 ring-white shadow-xl overflow-hidden bg-white p-1">
               <UserAvatar
                 path={myAvatarPath}
                 name={user.name}
@@ -143,16 +166,16 @@ export function AppShell({
               onClick={() => setSidebarOpen(false)}
               className="absolute -top-4 -left-4 size-10 rounded-full bg-white shadow-lg ring-1 ring-black/5 flex items-center justify-center text-[#1B4332] hover:bg-[#F2F2F7] transition-all"
             >
-              <X size={20} strokeWidth={2.5} />
+              <X size={20} strokeWidth={3} />
             </button>
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-[#1B4332] tracking-tight">{user.name}</h3>
-            <p className="text-[12px] text-[#8E7745] font-bold uppercase tracking-[0.1em] mt-1">{user.role}</p>
+          <div className="mt-2">
+            <h3 className="text-xl font-black text-[#1B4332] tracking-tight">{user.name}</h3>
+            <p className="text-[12px] text-[#8E7745] font-black uppercase tracking-[0.15em] mt-1">{user.role}</p>
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto no-scrollbar">
+        <nav className="flex-1 px-4 py-8 space-y-3 overflow-y-auto no-scrollbar">
           {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             const badgeCount = navBadges[to] ?? 0;
@@ -162,16 +185,16 @@ export function AppShell({
                 to={to}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[16px] font-bold transition-all duration-200 gap-4",
+                  "flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[17px] font-black transition-all duration-200 gap-4",
                   active
-                    ? "bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20"
-                    : "text-[#4A4A4A] hover:bg-[#F2F2F7] hover:text-[#1B4332]"
+                    ? "bg-[#1B4332] text-white shadow-xl shadow-[#1B4332]/30"
+                    : "text-[#0A0A0B] hover:bg-[#F2F2F7] hover:text-[#1B4332]"
                 )}
               >
-                <Icon className={cn("size-5 shrink-0", active ? "text-white" : "text-[#8E7745]/70")} strokeWidth={active ? 2.5 : 2} />
+                <Icon className={cn("size-6 shrink-0", active ? "text-white" : "text-[#1B4332]/60")} strokeWidth={active ? 3 : 2} />
                 <span className="mr-auto">{label}</span>
                 {badgeCount > 0 && (
-                  <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold", active ? "bg-white text-[#1B4332]" : "bg-[#1B4332] text-white")}>
+                  <span className={cn("px-2.5 py-1 rounded-full text-[11px] font-black", active ? "bg-white text-[#1B4332]" : "bg-[#1B4332] text-white")}>
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
@@ -180,12 +203,12 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="p-6 border-t border-[#E5E4E0]">
+        <div className="p-6 border-t border-[#E5E4E0] bg-[#F8F7F2]">
           <button
             onClick={signOut}
-            className="w-full flex flex-row-reverse items-center justify-between px-6 py-4 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all font-bold border border-red-100"
+            className="w-full flex flex-row-reverse items-center justify-between px-6 py-4 rounded-2xl bg-white text-red-600 hover:bg-red-50 transition-all font-black border border-red-100 shadow-sm"
           >
-            <LogOut className="size-5" />
+            <LogOut className="size-5" strokeWidth={3} />
             <span className="text-[16px]">تسجيل الخروج</span>
           </button>
         </div>
@@ -194,16 +217,16 @@ export function AppShell({
       {/* Main Container */}
       <main className="relative min-h-screen pb-20">
         <header
-          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-white/95 backdrop-blur-md border-b border-[#E5E4E0] transition-all shadow-sm"
+          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-white/90 backdrop-blur-xl border-b border-[#E5E4E0] transition-all shadow-sm"
         >
           <div className="flex items-center gap-5">
             <button
               onClick={() => setSidebarOpen(true)}
               className="size-11 grid place-items-center rounded-xl bg-[#1B4332] text-white hover:brightness-110 transition-all active:scale-95 shadow-md"
             >
-              <Menu className="size-6" />
+              <Menu className="size-6" strokeWidth={2.5} />
             </button>
-            <h1 className="text-[19px] font-bold tracking-tight text-[#1B4332]">{title}</h1>
+            <h1 className="text-[20px] font-black tracking-tight text-[#1B4332]">{title}</h1>
           </div>
 
           <div className="flex items-center gap-4">
