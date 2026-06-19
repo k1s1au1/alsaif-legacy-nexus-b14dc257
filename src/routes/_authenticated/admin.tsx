@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { BackgroundUploader } from "@/components/background-uploader";
+
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import {
@@ -16,7 +18,11 @@ import {
   Crown,
   Star,
   User as UserIcon,
+  ImageIcon,
+  CalendarPlus,
+  Palette,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { approveAccountRequest } from "@/lib/api/account-requests.functions";
