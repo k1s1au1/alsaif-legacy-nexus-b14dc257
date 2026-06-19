@@ -226,27 +226,46 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      {/* Right Navigation Rail (RTL) */}
+      {/* Backdrop overlay */}
+      <div
+        onClick={() => setSidebarOpen(false)}
+        className={cn(
+          "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+        aria-hidden
+      />
+
+      {/* Right Navigation Drawer (RTL, full overlay) */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 border-l border-border bg-card z-50 flex flex-col transition-all duration-500",
-          sidebarOpen ? "w-20 lg:w-64" : "w-0 overflow-hidden border-l-0",
+          "fixed inset-y-0 right-0 z-50 flex flex-col bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-out",
+          "w-[85vw] max-w-sm",
+          sidebarOpen ? "translate-x-0" : "translate-x-full",
         )}
+        aria-hidden={!sidebarOpen}
       >
-        <div className="h-20 flex items-center justify-center lg:justify-end lg:px-6 gap-3 bg-gold-soft text-white">
-          <div className="hidden lg:flex flex-col items-end leading-tight">
-            <span className="text-lg font-semibold tracking-wide">السيف</span>
-            <span className="text-[11px] text-white/70">لوحة العائلة</span>
+        <div className="h-20 flex items-center justify-between px-6 gap-3 bg-gold-soft text-white">
+          <div className="flex items-center gap-3">
+            <img
+              src={alsaifMark.url}
+              alt="العلي"
+              className="size-10 object-contain"
+              style={{ filter: "brightness(0) invert(1)" }}
+            />
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-lg font-semibold tracking-wide">السيف</span>
+              <span className="text-[11px] text-white/70">لوحة العائلة</span>
+            </div>
           </div>
-          <img
-            src={alsaifMark.url}
-            alt="العلي"
-            className="size-10 object-contain invert brightness-0 contrast-200"
-            style={{ filter: "brightness(0) invert(1)" }}
-          />
+          <button
+            onClick={() => setSidebarOpen(false)}
+            aria-label="إغلاق القائمة"
+            className="size-9 grid place-items-center rounded-lg bg-white/10 ring-1 ring-white/20 text-white hover:bg-white/20 transition-colors"
+          >
+            <span className="text-xl leading-none">×</span>
+          </button>
         </div>
-
-
 
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
@@ -256,23 +275,17 @@ export function AppShell({
               <Link
                 key={to}
                 to={to}
-                className={`flex items-center justify-center lg:justify-start lg:px-4 py-3 rounded-xl text-sm transition-colors relative ${
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center px-4 py-3 rounded-xl text-sm transition-colors relative ${
                   active
                     ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    : "text-ivory/55 hover:text-gold-primary hover:bg-secondary/40"
+                    : "text-foreground/70 hover:text-gold-primary hover:bg-secondary/40"
                 }`}
               >
-                <div className="relative">
-                  <Icon className="size-4 shrink-0" strokeWidth={1.5} />
-                  {badgeCount > 0 && (
-                    <span className="absolute -top-1.5 -left-1.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-gold-primary text-navy-base text-[8px] font-bold grid place-items-center leading-none">
-                      {badgeCount > 99 ? "99+" : badgeCount}
-                    </span>
-                  )}
-                </div>
-                <span className="hidden lg:block mr-3 font-medium">{label}</span>
+                <Icon className="size-5 shrink-0" strokeWidth={1.5} />
+                <span className="mr-3 font-medium">{label}</span>
                 {badgeCount > 0 && (
-                  <span className="hidden lg:flex mr-auto min-w-[18px] h-[18px] px-1 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold items-center justify-center">
+                  <span className="mr-auto min-w-[20px] h-[20px] px-1.5 rounded-full bg-gold-primary/20 text-gold-primary text-[11px] font-semibold flex items-center justify-center">
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
@@ -284,21 +297,17 @@ export function AppShell({
         <div className="p-4 border-t border-border">
           <button
             onClick={signOut}
-            className="w-full flex items-center justify-center lg:justify-start lg:px-3 py-2 text-xs text-muted-foreground hover:text-gold-primary transition-colors rounded-lg"
+            className="w-full flex items-center px-3 py-2 text-sm text-muted-foreground hover:text-gold-primary transition-colors rounded-lg"
           >
             <LogOut className="size-4" strokeWidth={1.5} />
-            <span className="hidden lg:block mr-3">تسجيل الخروج</span>
+            <span className="mr-3">تسجيل الخروج</span>
           </button>
         </div>
       </aside>
 
-
       {/* Main */}
-      <main
-        className={cn(
-          "relative min-h-screen pb-16 transition-all duration-300",
-          sidebarOpen ? "mr-20 lg:mr-64" : "mr-0",
-        )}
+      <main className="relative min-h-screen pb-16">
+
       >
         {/* Subtle moving palm pattern background */}
         <div aria-hidden className="palm-bg pointer-events-none absolute inset-0 -z-0 overflow-hidden">
