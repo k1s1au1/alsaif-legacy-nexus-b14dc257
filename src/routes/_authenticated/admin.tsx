@@ -21,7 +21,6 @@ import {
   Image as ImageIcon,
   CalendarPlus,
   Palette,
-
 } from "lucide-react";
 
 import { toast } from "sonner";
