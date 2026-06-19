@@ -88,7 +88,7 @@ function AuthPage() {
           <div className="size-28 mb-4 flex items-center justify-center">
             <img src={logoAsset.url} alt="Logo" className="size-full object-contain" />
           </div>
-          <h1 className="text-4xl font-serif text-[#1B4332] mb-1 font-bold">السيف</h1>
+          <h1 className="text-4xl font-serif text-[#1B4332] mb-1 font-bold">مجلس السيف</h1>
           <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-[#8E7745] uppercase mt-2">
             <span>◆</span>
             <span>ALSAIF · PRIVATE ACCESS</span>
