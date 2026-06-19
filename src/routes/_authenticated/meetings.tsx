@@ -298,16 +298,8 @@ function MeetingsPage() {
               جدول اللقاءات القادمة وتأكيد الحضور.
             </p>
           </div>
-          {canManage && (
-            <button
-              onClick={openCreate}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition"
-            >
-              <Plus className="size-4" strokeWidth={2} />
-              اجتماع جديد
-            </button>
-          )}
         </div>
+
 
         {loading ? (
           <div className="text-center text-muted-foreground py-16">جاري التحميل...</div>
