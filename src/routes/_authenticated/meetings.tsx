@@ -7,7 +7,6 @@ import {
   MapPin,
   Clock,
   Users,
-  Plus,
   X,
   Trash2,
   Pencil,
@@ -15,6 +14,7 @@ import {
   XCircle,
   HelpCircle,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
@@ -198,6 +198,17 @@ function MeetingsPage() {
       supabase.removeChannel(channel);
     };
   }, []);
+
+  // Auto-open the create form when navigated with #new (from admin page).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!canManage) return;
+    if (window.location.hash === "#new") {
+      openCreate();
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, [canManage]);
+
 
   async function submitForm(e: FormEvent) {
     e.preventDefault();
