@@ -298,7 +298,7 @@ export interface FileRouteTypes {
     | '/_authenticated/chat/'
     | '/_authenticated/members/'
     | '/_authenticated/trips/'
-  fileRoutesById: FileRouteTypes['id']
+  fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute

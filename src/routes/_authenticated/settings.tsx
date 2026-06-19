@@ -12,6 +12,7 @@ import {
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Capacitor } from "@capacitor/core";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -31,28 +32,26 @@ function SettingsPage() {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) setDarkMode(savedTheme);
 
-    // Dynamic import to avoid SSR errors
-    import("@capacitor/core").then(({ Capacitor }) => {
-      const native = Capacitor.isNativePlatform();
-      setIsNative(native);
+    const native = Capacitor.isNativePlatform();
+    setIsNative(native);
 
-      if (native) {
-        Promise.all([
-          import("@capacitor/app"),
-          import("@capacitor/push-notifications")
-        ]).then(([{ App }, { PushNotifications }]) => {
-          App.getInfo().then(info => {
-            setAppVersion(`${info.version} (${info.build})`);
-          });
+    if (native) {
+      // Use dynamic imports with safe checks for Capacitor plugins
+      const loadPlugins = async () => {
+        try {
+          const [{ App }] = await Promise.all([import("@capacitor/app")]);
+          const info = await App.getInfo();
+          setAppVersion(`${info.version} (${info.build})`);
 
-          PushNotifications.checkPermissions().then(res => {
-            setNotificationsEnabled(res.receive === "granted");
-          });
-        }).catch(err => {
-          console.warn("Capacitor plugins could not be loaded", err);
-        });
-      }
-    });
+          const { PushNotifications } = await import("@capacitor/push-notifications");
+          const res = await PushNotifications.checkPermissions();
+          setNotificationsEnabled(res.receive === "granted");
+        } catch (err) {
+          console.warn("Capacitor plugins not available:", err);
+        }
+      };
+      loadPlugins();
+    }
   }, []);
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -81,16 +80,16 @@ function SettingsPage() {
 
         {/* Appearance Section */}
         <section className="space-y-4">
-          <h3 className="text-xs font-bold text-gold-primary uppercase tracking-[0.2em] px-2">المظهر العام</h3>
+          <h3 className="text-xs font-bold text-[#1B4332] uppercase tracking-[0.2em] px-2 opacity-70">المظهر العام</h3>
           <div className="card-surface overflow-hidden">
-            <div className="p-5 flex items-center justify-between border-b border-border/40">
+            <div className="p-5 flex items-center justify-between border-b border-border/60">
               <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                <div className="size-10 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332]">
                   {darkMode === "dark" ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
-                  <p className="text-[15px] font-bold text-ivory">الوضع الليلي</p>
-                  <p className="text-[12px] text-muted-foreground">اختر النمط المفضل لعينيك</p>
+                  <p className="text-[16px] font-bold text-[#0A0A0B]">الوضع الليلي</p>
+                  <p className="text-[12px] text-[#4B5563]">اختر النمط المفضل لعينيك</p>
                 </div>
               </div>
             </div>
@@ -99,19 +98,19 @@ function SettingsPage() {
                 active={darkMode === "light"}
                 label="فاتح"
                 onClick={() => handleThemeChange("light")}
-                icon={<Sun size={16} />}
+                icon={<Sun size={18} />}
               />
               <ThemeOption
                 active={darkMode === "dark"}
                 label="داكن"
                 onClick={() => handleThemeChange("dark")}
-                icon={<Moon size={16} />}
+                icon={<Moon size={18} />}
               />
               <ThemeOption
                 active={darkMode === "system"}
                 label="تلقائي"
                 onClick={() => handleThemeChange("system")}
-                icon={<Smartphone size={16} />}
+                icon={<Smartphone size={18} />}
               />
             </div>
           </div>
@@ -120,16 +119,16 @@ function SettingsPage() {
         {/* App Specific Settings - Only show on Native */}
         {isNative && (
           <section className="space-y-4 animate-fade-in">
-            <h3 className="text-xs font-bold text-gold-primary uppercase tracking-[0.2em] px-2">إعدادات الجوال</h3>
-            <div className="card-surface divide-y divide-border/40">
+            <h3 className="text-xs font-bold text-[#1B4332] uppercase tracking-[0.2em] px-2 opacity-70">إعدادات الجوال</h3>
+            <div className="card-surface divide-y divide-border/60">
               <div className="p-5 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                  <div className="size-10 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332]">
                     <Bell size={20} />
                   </div>
                   <div>
-                    <p className="text-[15px] font-bold text-ivory">إشعارات الجوال</p>
-                    <p className="text-[12px] text-muted-foreground">
+                    <p className="text-[16px] font-bold text-[#0A0A0B]">إشعارات الجوال</p>
+                    <p className="text-[12px] text-[#4B5563]">
                       {notificationsEnabled ? "مفعّلة وتعمل بنجاح" : "الإشعارات معطلة حالياً"}
                     </p>
                   </div>
@@ -137,7 +136,7 @@ function SettingsPage() {
                 {!notificationsEnabled && (
                   <button
                     onClick={openNativeSettings}
-                    className="text-[11px] bg-gold-primary text-white px-4 py-2 rounded-xl font-bold shadow-lg shadow-gold-primary/20 transition-transform active:scale-95"
+                    className="text-[12px] bg-[#1B4332] text-white px-4 py-2 rounded-xl font-bold shadow-lg shadow-[#1B4332]/20 transition-transform active:scale-95"
                   >
                     تفعيل
                   </button>
@@ -145,18 +144,18 @@ function SettingsPage() {
               </div>
               <button
                 onClick={openNativeSettings}
-                className="w-full p-5 hover:bg-gold-primary/5 transition-colors flex items-center justify-between group"
+                className="w-full p-5 hover:bg-[#F2F2F7] transition-colors flex items-center justify-between group text-right"
               >
                 <div className="flex items-center gap-4">
-                  <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                  <div className="size-10 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332]">
                     <Smartphone size={20} />
                   </div>
-                  <div className="text-right">
-                    <p className="text-[15px] font-bold text-ivory">إعدادات النظام</p>
-                    <p className="text-[12px] text-muted-foreground">إدارة الصلاحيات والخصوصية</p>
+                  <div>
+                    <p className="text-[16px] font-bold text-[#0A0A0B]">إعدادات النظام</p>
+                    <p className="text-[12px] text-[#4B5563]">إدارة الصلاحيات والخصوصية</p>
                   </div>
                 </div>
-                <ExternalLink size={16} className="text-muted-foreground group-hover:text-gold-primary transition-colors" />
+                <ExternalLink size={18} className="text-[#8E8E93] group-hover:text-[#1B4332] transition-colors" />
               </button>
             </div>
           </section>
@@ -164,18 +163,18 @@ function SettingsPage() {
 
         {/* Language Section */}
         <section className="space-y-4">
-          <h3 className="text-xs font-bold text-gold-primary uppercase tracking-[0.2em] px-2">اللغة</h3>
+          <h3 className="text-xs font-bold text-[#1B4332] uppercase tracking-[0.2em] px-2 opacity-70">اللغة</h3>
           <div className="card-surface p-5 flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+              <div className="size-10 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332]">
                 <Languages size={20} />
               </div>
               <div>
-                <p className="text-[15px] font-bold text-ivory">لغة التطبيق</p>
-                <p className="text-[12px] text-muted-foreground">التطبيق متوفر حالياً باللغة العربية</p>
+                <p className="text-[16px] font-bold text-[#0A0A0B]">لغة التطبيق</p>
+                <p className="text-[12px] text-[#4B5563]">التطبيق متوفر حالياً باللغة العربية</p>
               </div>
             </div>
-            <span className="text-[13px] font-bold text-gold-primary bg-gold-primary/5 px-4 py-2 rounded-xl border border-gold-primary/20">
+            <span className="text-[14px] font-bold text-[#1B4332] bg-[#1B4332]/5 px-5 py-2 rounded-xl border border-[#1B4332]/20">
               العربية
             </span>
           </div>
@@ -183,39 +182,39 @@ function SettingsPage() {
 
         {/* About Section */}
         <section className="space-y-4">
-          <h3 className="text-xs font-bold text-gold-primary uppercase tracking-[0.2em] px-2">حول {isNative ? "التطبيق" : "المنصة"}</h3>
-          <div className="card-surface divide-y divide-border/40">
+          <h3 className="text-xs font-bold text-[#1B4332] uppercase tracking-[0.2em] px-2 opacity-70">حول {isNative ? "التطبيق" : "المنصة"}</h3>
+          <div className="card-surface divide-y divide-border/60">
             <div className="p-5 flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                <div className="size-10 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332]">
                   <Info size={20} />
                 </div>
                 <div className="text-right">
-                  <p className="text-[15px] font-bold text-ivory">إصدار {isNative ? "التطبيق" : "الويب"}</p>
-                  <p className="text-[12px] text-muted-foreground">{appVersion}</p>
+                  <p className="text-[16px] font-bold text-[#0A0A0B]">إصدار {isNative ? "التطبيق" : "الويب"}</p>
+                  <p className="text-[12px] text-[#4B5563] font-medium">{appVersion}</p>
                 </div>
               </div>
             </div>
-            <button className="w-full p-5 hover:bg-gold-primary/5 transition-colors flex items-center justify-between group">
+            <button className="w-full p-5 hover:bg-[#F2F2F7] transition-colors flex items-center justify-between group text-right">
               <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                <div className="size-10 rounded-2xl bg-[#1B4332]/5 flex items-center justify-center text-[#1B4332]">
                   <ShieldCheck size={20} />
                 </div>
-                <div className="text-right">
-                  <p className="text-[15px] font-bold text-ivory">سياسة الخصوصية</p>
-                  <p className="text-[12px] text-muted-foreground">كيفية حماية بيانات العائلة</p>
+                <div>
+                  <p className="text-[16px] font-bold text-[#0A0A0B]">سياسة الخصوصية</p>
+                  <p className="text-[12px] text-[#4B5563]">كيفية حماية بيانات العائلة</p>
                 </div>
               </div>
-              <ExternalLink size={16} className="text-muted-foreground group-hover:text-gold-primary transition-colors" />
+              <ExternalLink size={18} className="text-[#8E8E93] group-hover:text-[#1B4332] transition-colors" />
             </button>
           </div>
         </section>
 
-        <div className="text-center space-y-2 mt-12">
-          <p className="text-[11px] text-muted-foreground uppercase tracking-[0.3em] font-bold opacity-60">
+        <div className="text-center space-y-3 mt-16 pb-8">
+          <p className="text-[12px] text-[#8E8E93] uppercase tracking-[0.4em] font-black opacity-40">
             Alsaif Family Hub
           </p>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-[11px] text-[#8E8E93] font-medium">
             جميع الحقوق محفوظة &copy; {new Date().getFullYear()}
           </p>
         </div>
@@ -229,16 +228,16 @@ function ThemeOption({ active, label, onClick, icon }: { active: boolean, label:
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center gap-2 py-4 rounded-[20px] border transition-all duration-300 active:scale-95",
+        "flex flex-col items-center justify-center gap-3 py-5 rounded-[24px] border transition-all duration-300 active:scale-95",
         active
-          ? "bg-gold-primary/10 border-gold-primary/40 text-gold-primary shadow-[0_8px_20px_-8px_rgba(212,175,55,0.4)]"
-          : "bg-background/40 border-border/50 text-muted-foreground hover:bg-background/60"
+          ? "bg-[#1B4332] border-[#1B4332] text-white shadow-xl shadow-[#1B4332]/20"
+          : "bg-white border-[#E5E4E0] text-[#4A4A4A] hover:bg-[#F2F2F7] hover:border-[#1B4332]/30"
       )}
     >
-      <div className={cn("size-8 rounded-full flex items-center justify-center transition-transform duration-500", active && "scale-110")}>
+      <div className={cn("size-8 flex items-center justify-center transition-transform duration-500", active && "scale-110")}>
         {icon}
       </div>
-      <span className="text-[12px] font-bold">{label}</span>
+      <span className="text-[14px] font-bold">{label}</span>
     </button>
   );
 }
