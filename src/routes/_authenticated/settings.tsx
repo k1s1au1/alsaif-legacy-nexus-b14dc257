@@ -12,7 +12,6 @@ import {
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Capacitor } from "@capacitor/core";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -32,26 +31,31 @@ function SettingsPage() {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) setDarkMode(savedTheme);
 
-    const native = Capacitor.isNativePlatform();
-    setIsNative(native);
+    // Dynamic import to avoid SSR errors
+    const initNative = async () => {
+      try {
+        // @ts-ignore
+        const { Capacitor } = await import("@capacitor/core");
+        const native = Capacitor.isNativePlatform();
+        setIsNative(native);
 
-    if (native) {
-      // Use dynamic imports with safe checks for Capacitor plugins
-      const loadPlugins = async () => {
-        try {
-          const [{ App }] = await Promise.all([import("@capacitor/app")]);
+        if (native) {
+          // @ts-ignore
+          const { App } = await import("@capacitor/app");
           const info = await App.getInfo();
           setAppVersion(`${info.version} (${info.build})`);
 
+          // @ts-ignore
           const { PushNotifications } = await import("@capacitor/push-notifications");
           const res = await PushNotifications.checkPermissions();
           setNotificationsEnabled(res.receive === "granted");
-        } catch (err) {
-          console.warn("Capacitor plugins not available:", err);
         }
-      };
-      loadPlugins();
-    }
+      } catch (err) {
+        console.warn("Capacitor detection skipped or failed", err);
+      }
+    };
+
+    initNative();
   }, []);
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
