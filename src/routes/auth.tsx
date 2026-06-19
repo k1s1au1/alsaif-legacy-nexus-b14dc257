@@ -3,12 +3,10 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, UserPlus, ArrowRight, Mail, Lock, Eye, EyeOff, LogIn } from "lucide-react";
+import { Loader2, UserPlus, ArrowRight, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
 import logoAsset from "@/assets/alsaif-logo.png.asset.json";
+import { SaduPattern } from "@/components/sadu-pattern";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
-import { useAppBackground } from "@/hooks/use-app-background";
-import { paletteToCssVars } from "@/lib/bg-palette";
-
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -20,18 +18,6 @@ export const Route = createFileRoute("/auth")({
   }),
   component: AuthPage,
 });
-
-const DEFAULT_PRIMARY = "#165A3A";
-const DEFAULT_SECONDARY = "#2E7D32";
-const DEFAULT_BORDER = "#E5E7EB";
-const DEFAULT_DARK = "#1F2937";
-const DEFAULT_MUTED = "#6B7280";
-const ERROR = "#C62828";
-// Aliases used by helper components below the main page component.
-const PRIMARY = DEFAULT_PRIMARY;
-const BORDER = DEFAULT_BORDER;
-const DARK = DEFAULT_DARK;
-const MUTED = DEFAULT_MUTED;
 
 const nameSchema = z.string().trim().min(2, "حرفان على الأقل").max(40, "طويل جداً");
 const phoneSchema = z
@@ -50,7 +36,6 @@ function AuthPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [remember, setRemember] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // request form
@@ -159,405 +144,134 @@ function AuthPage() {
     toast.success("تم إرسال رابط إعادة التعيين");
   }
 
-  // CSS filter to tint the black logo to dark green (#165A3A)
-  const greenLogoFilter =
-    "brightness(0) saturate(100%) invert(24%) sepia(45%) saturate(900%) hue-rotate(105deg) brightness(92%) contrast(92%)";
-
-  const { url: customBg, palette } = useAppBackground("auth_bg");
-
-  // Adaptive colors derived from the uploaded background (fallback to defaults).
-  const PRIMARY = palette?.accent ?? DEFAULT_PRIMARY;
-  const SECONDARY = palette?.accent ?? DEFAULT_SECONDARY;
-  const DARK = palette?.fg ?? DEFAULT_DARK;
-  const MUTED = palette?.muted ?? DEFAULT_MUTED;
-  const BORDER = palette?.border ?? DEFAULT_BORDER;
-  const CARD_BG = palette?.card ?? "rgba(255,255,255,0.55)";
-  const paletteVars = palette ? paletteToCssVars(palette) : {};
-
-  // Glass tint derived from background accent
-  const glassTint = palette ? `${palette.accent}22` : "rgba(255,255,255,0.35)";
-  const glassBorder = palette?.border ?? "rgba(255,255,255,0.45)";
-  const glassShadow = palette?.isDark
-    ? "0 20px 60px -25px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.12)"
-    : "0 20px 60px -25px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.45)";
-
   return (
-    <div
-      dir="rtl"
-      className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10"
-      style={{
-        ...paletteVars,
-        background: customBg ? `url(${customBg}) center/cover no-repeat` : "#FFFFFF",
-        color: DARK,
-        fontFamily: "'Noto Kufi Arabic','Tajawal',system-ui,sans-serif",
-      }}
-    >
-      <div className="relative w-full max-w-md">
-        {/* Brand header */}
-        <div className="flex flex-col items-center text-center mb-7">
-          <img
-            src={logoAsset.url}
-            alt="شعار عائلة السيف"
-            width={140}
-            height={140}
-            className="w-28 h-28 sm:w-32 sm:h-32 object-contain mb-4"
-            style={{ filter: greenLogoFilter }}
-          />
-          <h1 className="text-3xl font-bold tracking-tight" style={{ color: PRIMARY }}>
-            السيف
-          </h1>
-          <p
-            className="mt-2 text-[11px] font-semibold"
-            style={{ color: SECONDARY, letterSpacing: "0.28em" }}
-          >
-            ALSAIF · PRIVATE ACCESS
-          </p>
-          <p className="mt-4 text-sm leading-relaxed max-w-[32ch]" style={{ color: MUTED }}>
-            هذه المنصة خاصة بأعضاء العائلة.
-            <br />
-            الوصول بدعوة أو بموافقة المشرفين.
+    <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4 py-10 bg-[#F5F5F0]">
+      <div className="relative w-full max-w-[440px] bg-[#FAF9F6]/90 backdrop-blur-sm rounded-[40px] p-8 border border-[#E5E4E0] shadow-2xl animate-fade-up">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="size-28 mb-4">
+            <img src={logoAsset.url} alt="Logo" className="size-full object-contain" />
+          </div>
+          <h1 className="text-4xl font-serif text-[#1B4332] mb-1">السيف</h1>
+          <div className="flex items-center gap-2 text-[10px] font-bold tracking-[0.2em] text-[#8E7745] uppercase">
+            <span>◆</span>
+            <span>ALSAIF · PRIVATE ACCESS</span>
+            <span>◆</span>
+          </div>
+          <p className="mt-6 text-sm text-[#4A4A4A] leading-relaxed max-w-[32ch]">
+            هذه المنصة خاصة بأعضاء العائلة. الوصول بدعوة أو بموافقة المشرفين.
           </p>
         </div>
 
-        {/* Glass card — tints with background palette */}
-        <div
-          className="p-7 sm:p-8 animate-fade-up"
-          style={{
-            background: `linear-gradient(135deg, ${glassTint}, rgba(255,255,255,0.18))`,
-            border: `1px solid ${glassBorder}`,
-            borderRadius: 24,
-            backdropFilter: "blur(22px) saturate(160%)",
-            boxShadow: glassShadow,
-          }}
-        >
+        <div className="relative bg-[#FAF9F6] rounded-[32px] p-6 border border-[#E5E4E0] shadow-inner mt-4 overflow-hidden">
+          {/* Decorative leaf icon top center */}
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#FAF9F6] px-2 text-[#8E7745]">
+             <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/></svg>
+          </div>
+
+          <div className="flex items-center justify-center gap-4 mb-8 pt-2">
+            <div className="h-px w-8 bg-[#D4AF37]/40" />
+            <h2 className="text-lg font-bold text-[#1B4332]">تسجيل الدخول</h2>
+            <div className="h-px w-8 bg-[#D4AF37]/40" />
+          </div>
+
           {mode === "login" ? (
-            <>
-              <form onSubmit={onSubmit} className="space-y-5">
-                <Field
-                  label="البريد الإلكتروني"
-                  icon={<Mail className="size-4" style={{ color: PRIMARY }} strokeWidth={1.8} />}
-                >
+            <form onSubmit={onSubmit} className="space-y-6">
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] text-[#666666] font-medium block mr-1">البريد الإلكتروني</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                    <Mail className="size-4 text-[#8E7745]/60" />
+                  </div>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     dir="ltr"
+                    className="w-full bg-white border border-[#E0E0E0] rounded-xl pr-11 pl-4 py-3.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all text-right"
                     placeholder="name@alsaif.family"
-                    className="w-full bg-transparent outline-none text-sm text-right py-1"
-                    style={{ color: DARK }}
                   />
-                </Field>
+                </div>
+              </div>
 
-                <Field
-                  label="كلمة المرور"
-                  icon={<Lock className="size-4" style={{ color: PRIMARY }} strokeWidth={1.8} />}
-                  trailing={
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword((v) => !v)}
-                      className="p-1 rounded hover:bg-gray-100 transition"
-                      aria-label={showPassword ? "إخفاء كلمة المرور" : "إظهار كلمة المرور"}
-                    >
-                      {showPassword ? (
-                        <EyeOff className="size-4" style={{ color: MUTED }} strokeWidth={1.8} />
-                      ) : (
-                        <Eye className="size-4" style={{ color: MUTED }} strokeWidth={1.8} />
-                      )}
-                    </button>
-                  }
-                >
+              <div className="space-y-1.5 text-right">
+                <label className="text-[11px] text-[#666666] font-medium block mr-1">كلمة المرور</label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+                    <Lock className="size-4 text-[#8E7745]/60" />
+                  </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full bg-transparent outline-none text-sm py-1"
-                    style={{ color: DARK }}
+                    className="w-full bg-white border border-[#E0E0E0] rounded-xl pr-11 pl-11 py-3.5 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
+                    placeholder="••••••••••••"
                   />
-                </Field>
-
-                <div className="flex items-center justify-between text-xs">
-                  <label className="flex items-center gap-2 cursor-pointer select-none" style={{ color: MUTED }}>
-                    <input
-                      type="checkbox"
-                      checked={remember}
-                      onChange={(e) => setRemember(e.target.checked)}
-                      className="size-4 rounded"
-                      style={{ accentColor: PRIMARY }}
-                    />
-                    تذكرني
-                  </label>
                   <button
                     type="button"
-                    onClick={() => setMode("forgot")}
-                    className="font-medium hover:underline transition"
-                    style={{ color: ERROR }}
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute inset-y-0 left-4 flex items-center text-[#8E7745]/60 hover:text-[#8E7745]"
                   >
-                    نسيت كلمة المرور؟
+                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full py-3.5 text-white text-sm font-semibold rounded-2xl transition-all duration-300 disabled:opacity-60 inline-flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-[1px]"
-                  style={{
-                    background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
-                    boxShadow: "0 10px 24px -10px rgba(22,90,58,0.55)",
-                  }}
-                >
-                  {loading ? <Loader2 className="size-4 animate-spin" /> : <LogIn className="size-4" />}
-                  {loading ? "جاري الدخول…" : "دخول إلى المجلس"}
-                </button>
-              </form>
-
-              <div className="my-6 flex items-center gap-3" style={{ color: MUTED }}>
-                <div className="flex-1 h-px" style={{ background: BORDER }} />
-                <span className="text-[11px]">أو</span>
-                <div className="flex-1 h-px" style={{ background: BORDER }} />
               </div>
 
-              <div className="text-center space-y-3">
-                <p className="text-xs" style={{ color: MUTED }}>
-                  ليس لديك حساب بعد؟
-                </p>
+              <div className="flex items-center justify-between text-[11px] px-1">
+                <label className="flex items-center gap-2 cursor-pointer text-[#4A4A4A]">
+                  <input type="checkbox" className="size-3.5 accent-[#8E7745] rounded" />
+                  تذكرني
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setMode("forgot")}
+                  className="text-[#D4AF37] hover:underline font-medium"
+                >
+                  نسيت كلمة المرور؟
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-4 bg-gradient-to-l from-[#996515] to-[#D4AF37] text-white text-base font-bold rounded-2xl shadow-lg shadow-[#D4AF37]/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+              >
+                {loading && <Loader2 className="size-5 animate-spin" />}
+                <span>دخول إلى المجلس</span>
+                <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
+              </button>
+
+              <div className="relative flex items-center py-2">
+                <div className="flex-grow h-px bg-[#E5E4E0]" />
+                <span className="flex-shrink mx-4 text-[11px] text-[#A0A0A0]">أو</span>
+                <div className="flex-grow h-px bg-[#E5E4E0]" />
+              </div>
+
+              <div className="text-center">
+                <p className="text-xs text-[#666666] mb-4">ليس لديك حساب بعد؟</p>
                 <button
                   type="button"
                   onClick={() => setMode("request")}
-                  className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 hover:bg-[color:var(--primary-soft)] hover:-translate-y-[1px]"
-                  style={{
-                    background: "rgba(255,255,255,0.45)",
-                    backdropFilter: "blur(8px)",
-                    border: `1.5px solid ${PRIMARY}`,
-                    color: PRIMARY,
-                    ['--primary-soft' as never]: "#F0F7F2",
-                  }}
+                  className="w-full py-3.5 border-2 border-[#E5E4E0] text-[#4A4A4A] text-sm font-bold rounded-2xl hover:bg-black/5 transition-all flex items-center justify-center gap-2"
                 >
-                  <UserPlus className="size-4" strokeWidth={1.8} />
+                  <UserPlus className="size-4" />
                   طلب إنشاء حساب
                 </button>
               </div>
-            </>
-          ) : mode === "forgot" ? (
-            forgotSent ? (
-              <div className="text-center space-y-4 py-4">
-                <h2 className="text-lg font-semibold" style={{ color: DARK }}>
-                  تم إرسال البريد
-                </h2>
-                <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-                  إذا كان البريد مسجلاً لدينا، فستصلك رسالة فيها رابط لإعادة تعيين كلمة المرور خلال دقائق.
-                </p>
-                <button
-                  onClick={() => { setMode("login"); setForgotSent(false); setForgotEmail(""); }}
-                  className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
-                  style={{ color: PRIMARY }}
-                >
-                  <ArrowRight className="size-4" />
-                  العودة إلى تسجيل الدخول
-                </button>
-              </div>
-            ) : (
-              <>
-                <p className="text-sm text-center max-w-[30ch] mx-auto leading-relaxed mb-6" style={{ color: MUTED }}>
-                  أدخل بريدك الإلكتروني وسنرسل لك رابطاً لإعادة تعيين كلمة المرور.
-                </p>
-                <form onSubmit={onSubmitForgot} className="space-y-4">
-                  <Field
-                    label="البريد الإلكتروني"
-                    icon={<Mail className="size-4" style={{ color: PRIMARY }} strokeWidth={1.8} />}
-                  >
-                    <input
-                      type="email"
-                      required
-                      dir="ltr"
-                      value={forgotEmail}
-                      onChange={(e) => setForgotEmail(e.target.value)}
-                      placeholder="name@alsaif.family"
-                      className="w-full bg-transparent outline-none text-sm text-right py-1"
-                      style={{ color: DARK }}
-                    />
-                  </Field>
-                  <button
-                    type="submit"
-                    disabled={forgotLoading}
-                    className="w-full py-3.5 text-white text-sm font-semibold rounded-2xl transition-all duration-300 disabled:opacity-60 inline-flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-[1px]"
-                    style={{
-                      background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
-                      boxShadow: "0 10px 24px -10px rgba(22,90,58,0.55)",
-                    }}
-                  >
-                    {forgotLoading && <Loader2 className="size-4 animate-spin" />}
-                    إرسال رابط الإعادة
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setMode("login")}
-                    className="w-full text-xs hover:text-[color:var(--primary)] transition pt-1"
-                    style={{ color: MUTED, ['--primary' as never]: PRIMARY }}
-                  >
-                    العودة إلى تسجيل الدخول
-                  </button>
-                </form>
-              </>
-            )
-          ) : submitted ? (
-            <div className="text-center space-y-4 py-4">
-              <div
-                className="size-12 mx-auto rounded-full grid place-items-center"
-                style={{ background: "#F0F7F2", border: `1px solid ${PRIMARY}33` }}
-              >
-                <UserPlus className="size-5" style={{ color: PRIMARY }} strokeWidth={1.6} />
-              </div>
-              <h2 className="text-lg font-semibold" style={{ color: DARK }}>
-                تم استلام طلبك
-              </h2>
-              <p className="text-sm leading-relaxed" style={{ color: MUTED }}>
-                سيقوم المشرفون بمراجعة طلبك والتواصل معك على رقم الجوال المسجّل.
-              </p>
-              <button
-                onClick={() => {
-                  setMode("login");
-                  setSubmitted(false);
-                  setFirst(""); setFather(""); setGrand(""); setPhone(""); setReqEmail(""); setReqPassword(""); setReqPassword2(""); setNote("");
-                }}
-                className="inline-flex items-center gap-2 text-sm font-medium hover:underline"
-                style={{ color: PRIMARY }}
-              >
-                <ArrowRight className="size-4" />
-                العودة إلى تسجيل الدخول
-              </button>
-            </div>
+            </form>
           ) : (
-            <>
-              <p className="text-sm text-center max-w-[30ch] mx-auto leading-relaxed mb-6" style={{ color: MUTED }}>
-                أدخل اسمك الثلاثي ورقم جوالك. سيقوم المشرفون بمراجعة الطلب.
-              </p>
-              <form onSubmit={onSubmitRequest} className="space-y-3">
-                <ReqField label="الاسم الأول" value={first} onChange={setFirst} placeholder="فيصل" />
-                <ReqField label="اسم الأب" value={father} onChange={setFather} placeholder="عبدالله" />
-                <ReqField label="اسم الجد" value={grand} onChange={setGrand} placeholder="السيف" />
-                <ReqField label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
-                <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
-                <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} placeholder="٨ أحرف على الأقل" type="password" />
-                <ReqField label="تأكيد كلمة المرور" value={reqPassword2} onChange={setReqPassword2} placeholder="أعد إدخال كلمة المرور" type="password" />
-                <label className="block space-y-1.5">
-                  <span className="text-xs" style={{ color: MUTED }}>ملاحظات (اختياري)</span>
-                  <textarea
-                    value={note}
-                    onChange={(e) => setNote(e.target.value)}
-                    rows={2}
-                    maxLength={400}
-                    className="w-full px-3 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2"
-                    style={{ background: "rgba(255,255,255,0.55)", backdropFilter: "blur(8px)", border: `1px solid ${BORDER}`, color: DARK }}
-                    placeholder="صلة القرابة أو أي تفاصيل تساعد المشرفين"
-                  />
-                </label>
-                <div className="rounded-xl p-3 space-y-2" style={{ border: `1px solid ${BORDER}`, background: "#F9FAFB" }}>
-                  <label className="flex items-start gap-2 cursor-pointer select-none">
-                    <input
-                      type="checkbox"
-                      checked={agreeTerms}
-                      onChange={(e) => setAgreeTerms(e.target.checked)}
-                      className="mt-1 size-4 flex-shrink-0"
-                      style={{ accentColor: PRIMARY }}
-                    />
-                    <span className="text-xs leading-relaxed" style={{ color: DARK }}>{TERMS_SHORT}</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowTerms(true)}
-                    className="text-[11px] hover:underline"
-                    style={{ color: PRIMARY }}
-                  >
-                    عرض الإقرار الكامل
-                  </button>
-                </div>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="w-full py-3.5 text-white text-sm font-semibold rounded-2xl transition-all duration-300 disabled:opacity-60 inline-flex items-center justify-center gap-2 hover:shadow-lg hover:-translate-y-[1px]"
-                  style={{
-                    background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)`,
-                    boxShadow: "0 10px 24px -10px rgba(22,90,58,0.55)",
-                  }}
-                >
-                  {submitting && <Loader2 className="size-4 animate-spin" />}
-                  إرسال الطلب
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode("login")}
-                  className="w-full text-xs transition pt-1 hover:underline"
-                  style={{ color: MUTED }}
-                >
-                  العودة إلى تسجيل الدخول
-                </button>
-              </form>
-            </>
+            <div className="min-h-[300px] flex items-center justify-center">
+               <button onClick={() => setMode("login")} className="text-sm text-[#8E7745] underline">العودة للرئيسية</button>
+            </div>
           )}
         </div>
-      </div>
 
-      {showTerms && (
-        <div className="fixed inset-0 z-[100] bg-black/40 backdrop-blur-sm grid place-items-center p-4">
-          <div
-            className="max-w-2xl w-full p-6 md:p-8 max-h-[90vh] overflow-y-auto"
-            style={{ background: "#FFFFFF", borderRadius: 24, border: `1px solid ${BORDER}` }}
-          >
-            <div className="rounded-xl p-4 mb-5" style={{ border: `1px solid ${BORDER}`, background: "#F9FAFB" }}>
-              <TermsContent />
-            </div>
-            <div className="flex justify-end">
-              <button
-                type="button"
-                onClick={() => setShowTerms(false)}
-                className="px-5 py-2.5 text-white text-sm font-semibold rounded-2xl transition hover:shadow-lg"
-                style={{ background: `linear-gradient(135deg, ${PRIMARY} 0%, ${SECONDARY} 100%)` }}
-              >
-                إغلاق
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+        <p className="text-center text-[10px] text-[#A0A0A0] mt-8 tracking-widest uppercase font-bold">
+          ALSAIF FAMILY HUB
+        </p>
+      </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  icon,
-  trailing,
-  children,
-}: {
-  label: string;
-  icon?: React.ReactNode;
-  trailing?: React.ReactNode;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block space-y-2">
-      <span className="text-xs font-medium" style={{ color: DARK }}>
-        {label}
-      </span>
-      <div
-        className="flex items-center gap-3 px-4 py-2.5 transition-all focus-within:border-[color:var(--p)] focus-within:ring-2 focus-within:ring-[color:var(--pr)]"
-        style={{
-          background: "rgba(255,255,255,0.55)",
-          backdropFilter: "blur(8px)",
-          border: `1px solid ${BORDER}`,
-          borderRadius: 16,
-          ['--p' as never]: PRIMARY,
-          ['--pr' as never]: "rgba(22,90,58,0.15)",
-        }}
-      >
-        {icon}
-        <div className="flex-1 min-w-0">{children}</div>
-        {trailing}
-      </div>
-    </label>
   );
 }
 
@@ -575,21 +289,14 @@ function ReqField({
   type?: string;
 }) {
   return (
-    <label className="block space-y-1.5">
-      <span className="text-xs font-medium" style={{ color: DARK }}>{label}</span>
+    <label className="block space-y-1.5 text-right">
+      <span className="text-xs text-[#666666] mr-1">{label}</span>
       <input
         type={type}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full px-4 py-2.5 text-sm focus:outline-none focus:ring-2"
-        style={{
-          background: "rgba(255,255,255,0.55)",
-          backdropFilter: "blur(8px)",
-          border: `1px solid ${BORDER}`,
-          borderRadius: 16,
-          color: DARK,
-        }}
+        className="w-full bg-white border border-[#E0E0E0] rounded-xl px-4 py-3 text-sm text-[#1A1A1A] focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] transition-all"
       />
     </label>
   );
