@@ -44,65 +44,71 @@
 }
 
 :root {
-  /* High Contrast Light Theme */
-  --background: #F4F4F1;
-  --foreground: #0A0A0B; /* Deep Black for clear reading */
+  /* High Contrast Royal Light Theme */
+  --background: #FDFCF7;
+  --foreground: #1A1C1E;
 
-  --navy-base: #F4F4F1;
+  --navy-base: #FDFCF7;
   --navy-card: #FFFFFF;
-  --navy-elev: #E8E8E3;
+  --navy-elev: #F2F1EA;
 
-  --gold-primary: #15402E; /* Darker Green for better contrast */
-  --gold-soft: #1B4332;
-  --ivory: #0A0A0B;
+  --gold-primary: #1B4332; /* Deep Emerald */
+  --gold-soft: rgba(27, 67, 50, 0.1);
+  --ivory: #1A1C1E;
 
-  --primary: #15402E;
+  --primary: #1B4332;
   --primary-foreground: #FFFFFF;
 
-  --secondary: #E8E8E3;
-  --secondary-foreground: #0A0A0B;
+  --card: #FFFFFF;
+  --card-foreground: #1A1C1E;
 
-  --muted: #6B7280;
-  --muted-foreground: #4B5563; /* Darker muted text */
+  --secondary: #F2F1EA;
+  --secondary-foreground: #1B4332;
 
-  --accent: rgba(21, 64, 46, 0.08);
-  --accent-foreground: #15402E;
+  --muted: #64748B;
+  --muted-foreground: #475569;
 
-  --border: rgba(0, 0, 0, 0.12); /* More visible borders */
+  --accent: rgba(197, 160, 89, 0.15); /* Soft Gold Accent */
+  --accent-foreground: #8B6B23;
+
+  --border: rgba(27, 67, 50, 0.12);
   --input: #FFFFFF;
-  --ring: rgba(212, 175, 55, 0.4);
+  --ring: rgba(197, 160, 89, 0.4);
 
-  --luxury-gold: #B8972E; /* More readable gold (bronze-ish) */
-  --luxury-glow: rgba(184, 151, 46, 0.2);
+  --luxury-gold: #C5A059;
+  --luxury-glow: rgba(197, 160, 89, 0.2);
 }
 
 .dark {
-  /* High Contrast Dark Theme */
-  --background: #050505;
-  --foreground: #FFFFFF;
+  /* High Contrast Royal Dark Theme */
+  --background: #080A0C;
+  --foreground: #F8FAFC;
 
-  --navy-base: #050505;
-  --navy-card: #121214;
-  --navy-elev: #1C1C1E;
+  --navy-base: #080A0C;
+  --navy-card: #12151A;
+  --navy-elev: #1C2128;
 
-  --gold-primary: #D4AF37;
+  --gold-primary: #D4AF37; /* Royal Gold */
   --gold-soft: #F9E29C;
-  --ivory: #FFFFFF;
+  --ivory: #F8FAFC;
 
   --primary: #D4AF37;
-  --primary-foreground: #000000;
+  --primary-foreground: #080A0C;
 
-  --secondary: #1C1C1E;
-  --secondary-foreground: #FFFFFF;
+  --card: #12151A;
+  --card-foreground: #F8FAFC;
 
-  --muted: #3A3A3C;
-  --muted-foreground: #A1A1AA;
+  --secondary: #1C2128;
+  --secondary-foreground: #F8FAFC;
 
-  --accent: rgba(212, 175, 55, 0.2);
+  --muted: #334155;
+  --muted-foreground: #94A3B8;
+
+  --accent: rgba(212, 175, 55, 0.15);
   --accent-foreground: #D4AF37;
 
-  --border: rgba(255, 255, 255, 0.15);
-  --input: #121214;
+  --border: rgba(255, 255, 255, 0.1);
+  --input: #12151A;
   --ring: rgba(212, 175, 55, 0.5);
 }
 
@@ -112,21 +118,31 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-arabic);
-    font-weight: 500; /* Slightly bolder baseline for Arabic */
+    font-weight: 500;
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
+    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
   h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 }
 
 /* Glass Surface with Higher Opacity for Readability */
 @utility card-surface {
-  background-color: color-mix(in oklab, var(--navy-card) 98%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background-color: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-premium);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(10px);
+}
+
+@utility eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--primary);
+  opacity: 0.8;
 }
 
 /* Solid Input for contrast */

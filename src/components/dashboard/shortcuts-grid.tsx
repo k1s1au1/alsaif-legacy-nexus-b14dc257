@@ -113,91 +113,69 @@ export function ShortcutsGrid({
                 hidden: { opacity: 0, y: 12 },
                 show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.19, 1, 0.22, 1] } },
               }}
-              whileHover={{ y: -6, scale: 1.03 }}
+              whileHover={{ y: -6 }}
               whileTap={{ scale: 0.98 }}
-              transition={{ type: "spring", stiffness: 320, damping: 22 }}
               className={cn(
-                "group relative overflow-hidden rounded-2xl bg-card ring-1 ring-border p-4 sm:p-5",
-                "shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-[0_20px_45px_-15px_color-mix(in_oklab,var(--gold-primary)_35%,transparent)]",
-                "hover:ring-gold-primary/40 transition-[box-shadow,border-color] duration-300 flex flex-col",
+                "group relative overflow-hidden rounded-[28px] bg-card p-5 sm:p-6",
+                "border border-border hover:border-gold-primary/30 transition-all duration-300",
+                "shadow-sm hover:shadow-xl hover:shadow-gold-primary/5",
+                "flex flex-col gap-4",
               )}
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-30 transition-opacity duration-300 group-hover:opacity-90 pointer-events-none", s.accent)} />
-              <motion.div
-                aria-hidden
-                className="absolute -inset-px rounded-2xl pointer-events-none"
-                initial={{ opacity: 0 }}
-                whileHover={{ opacity: 1 }}
-                style={{
-                  background:
-                    "radial-gradient(120px circle at 50% 0%, color-mix(in oklab, var(--gold-primary) 22%, transparent), transparent 70%)",
-                }}
-              />
+              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none", s.accent)} />
 
               <button
                 type="button"
                 onClick={(e) => { e.preventDefault(); toggleFav(s.key); }}
                 aria-label={isFav ? "إلغاء التثبيت" : "تثبيت كمفضل"}
                 className={cn(
-                  "absolute top-2 left-2 z-20 size-7 grid place-items-center rounded-full transition-all duration-300",
+                  "absolute top-4 left-4 z-20 size-8 grid place-items-center rounded-full transition-all duration-300",
                   isFav
-                    ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/40"
-                    : "bg-background/60 text-muted-foreground hover:text-gold-primary opacity-0 group-hover:opacity-100",
+                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
+                    : "bg-muted/30 text-muted-foreground hover:text-gold-primary opacity-0 group-hover:opacity-100",
                 )}
               >
-                <Star className={cn("size-3.5 transition-transform", isFav && "fill-gold-primary")} strokeWidth={1.5} />
+                <Star className={cn("size-4 transition-transform", isFav && "fill-gold-primary")} strokeWidth={2} />
               </button>
 
-              <Link to={s.to} className="relative z-10 flex flex-col gap-3 flex-1">
+              <Link to={s.to} className="relative z-10 flex flex-col gap-4 flex-1">
                 <div className="flex items-start justify-between">
                   <motion.span
-                    className="size-11 grid place-items-center rounded-xl bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    whileHover={{ rotate: [0, -8, 8, -4, 0], scale: 1.1 }}
-                    transition={{ duration: 0.6, ease: "easeInOut" }}
+                    className="size-14 grid place-items-center rounded-2xl bg-primary/5 text-primary ring-1 ring-primary/10 group-hover:bg-primary group-hover:text-primary-foreground transition-colors duration-300"
+                    whileHover={{ scale: 1.05 }}
                   >
-                    <Icon className="size-5" strokeWidth={1.5} />
+                    <Icon className="size-6" strokeWidth={1.5} />
                   </motion.span>
                   {hasBadge && (
                     <motion.span
                       key={displayBadge}
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 18 }}
-                      className="relative min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-primary-foreground text-[10px] font-bold grid place-items-center leading-none"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="size-6 rounded-full bg-primary text-primary-foreground text-[10px] font-bold grid place-items-center shadow-lg shadow-primary/20"
                     >
-                      <motion.span
-                        aria-hidden
-                        className="absolute inset-0 rounded-full bg-gold-primary"
-                        animate={{ scale: [1, 1.6], opacity: [0.5, 0] }}
-                        transition={{ duration: 1.4, repeat: Infinity, ease: "easeOut" }}
-                      />
-                      <span className="relative">{displayBadge > 99 ? "99+" : displayBadge}</span>
+                      {displayBadge > 99 ? "99+" : displayBadge}
                     </motion.span>
                   )}
                 </div>
 
-                <div className="space-y-1">
-                  <h4 className="text-sm sm:text-base font-medium text-foreground group-hover:text-gold-primary transition-colors duration-300">
+                <div className="space-y-1.5">
+                  <h4 className="text-[17px] font-bold text-foreground group-hover:text-primary transition-colors duration-300">
                     {s.title}
                   </h4>
-                  <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2">
+                  <p className="text-[12px] text-muted-foreground leading-relaxed font-medium">
                     {s.description}
                   </p>
                 </div>
 
                 {s.stat && (
-                  <p className="text-[10px] text-gold-primary/80 truncate">{s.stat}</p>
+                  <p className="text-[11px] font-bold text-primary/80 bg-primary/5 px-2 py-1 rounded-md self-start">
+                    {s.stat}
+                  </p>
                 )}
 
-                <div className="mt-auto pt-2 flex items-center justify-between text-[11px] text-gold-primary/80 group-hover:text-gold-primary transition">
+                <div className="mt-auto pt-2 flex items-center justify-between text-[12px] font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                   <span>{s.cta}</span>
-                  <motion.span
-                    className="inline-block"
-                    initial={{ x: 0 }}
-                    whileHover={{ x: -4 }}
-                  >
-                    <ArrowLeft className="size-3.5" strokeWidth={1.5} />
-                  </motion.span>
+                  <ArrowLeft className="size-4" strokeWidth={2.5} />
                 </div>
               </Link>
             </motion.div>

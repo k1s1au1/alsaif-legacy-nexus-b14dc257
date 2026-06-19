@@ -131,6 +131,18 @@ function RootComponent() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
+      // Initialize Theme
+      const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      if (savedTheme === "dark" || (!savedTheme && prefersDark)) {
+        document.documentElement.classList.add("dark");
+      } else if (savedTheme === "light") {
+        document.documentElement.classList.remove("dark");
+      } else if (savedTheme === "system") {
+        document.documentElement.classList.toggle("dark", prefersDark);
+      }
+
       const hasSeenWelcome = localStorage.getItem("hasSeenWelcomeFinalV3");
       if (!hasSeenWelcome) {
         setShowWelcome(true);
