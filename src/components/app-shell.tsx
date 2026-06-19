@@ -12,7 +12,6 @@ import {
   ChevronDown,
   Settings,
   X,
-  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -50,7 +49,6 @@ export function AppShell({
 }) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
@@ -58,7 +56,6 @@ export function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  // Lock body scroll when overlay sidebar is open
   useEffect(() => {
     if (sidebarOpen) {
       document.body.style.overflow = "hidden";
@@ -112,51 +109,49 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-gold-primary/20">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Backdrop overlay */}
       <div
         onClick={() => setSidebarOpen(false)}
         className={cn(
-          "fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-500",
+          "fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm transition-opacity duration-500",
           sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
       />
 
-      {/* Modern iOS-style Navigation Drawer (RTL) */}
+      {/* Modern High-Contrast Sidebar (RTL) */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card/90 backdrop-blur-2xl border-l border-border/40 shadow-premium transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)",
-          "w-[85vw] max-w-[340px] rounded-l-[40px]",
+          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border/80 shadow-premium transition-transform duration-500",
+          "w-[85vw] max-w-[320px] rounded-l-[32px]",
           sidebarOpen ? "translate-x-0" : "translate-x-full",
         )}
       >
-        {/* User Profile Area in Sidebar */}
-        <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4">
+        <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-primary/5 rounded-tl-[32px]">
           <div className="relative">
-            <div className="size-20 rounded-[28px] bg-gradient-to-br from-gold-primary/20 to-gold-primary/5 ring-1 ring-gold-primary/20 p-1">
+            <div className="size-20 rounded-full ring-2 ring-primary/20 p-1">
               <UserAvatar
                 path={myAvatarPath}
                 name={user.name}
                 initial={user.initial}
-                className="size-full rounded-[24px]"
+                className="size-full rounded-full"
                 userId={myUserId}
               />
             </div>
             <button
               onClick={() => setSidebarOpen(false)}
-              className="absolute -top-2 -left-2 size-8 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center text-ivory/60 hover:text-ivory transition-colors"
+              className="absolute -top-2 -left-2 size-8 rounded-full bg-background ring-1 ring-border flex items-center justify-center text-foreground hover:bg-secondary transition-colors shadow-sm"
             >
               <X size={16} />
             </button>
           </div>
           <div>
-            <h3 className="text-lg font-bold text-ivory tracking-tight">{user.name}</h3>
-            <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-0.5">{user.role}</p>
+            <h3 className="text-lg font-bold text-foreground tracking-tight">{user.name}</h3>
+            <p className="text-[11px] text-muted-foreground font-bold uppercase tracking-widest mt-0.5">{user.role}</p>
           </div>
         </div>
 
-        <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto no-scrollbar">
-          <div className="h-px bg-border/40 mx-4 mb-4" />
+        <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto no-scrollbar">
           {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             const badgeCount = navBadges[to] ?? 0;
@@ -166,16 +161,16 @@ export function AppShell({
                 to={to}
                 onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "flex flex-row-reverse items-center px-4 py-3.5 rounded-2xl text-[15px] font-medium transition-all duration-300 gap-4",
+                  "flex flex-row-reverse items-center px-4 py-4 rounded-2xl text-[16px] font-bold transition-all duration-200 gap-4",
                   active
-                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 shadow-sm"
-                    : "text-ivory/60 hover:text-gold-primary hover:bg-gold-primary/5"
+                    ? "bg-primary text-primary-foreground shadow-md"
+                    : "text-foreground hover:bg-primary/10 hover:text-primary"
                 )}
               >
-                <Icon className={cn("size-5 shrink-0", active ? "text-gold-primary" : "text-muted-foreground")} strokeWidth={active ? 2 : 1.5} />
+                <Icon className="size-5 shrink-0" strokeWidth={active ? 2.5 : 2} />
                 <span className="mr-auto">{label}</span>
                 {badgeCount > 0 && (
-                  <span className="px-2 py-0.5 rounded-full bg-gold-primary text-white text-[10px] font-bold">
+                  <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold", active ? "bg-white text-primary" : "bg-primary text-white")}>
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
@@ -184,36 +179,30 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="p-6 border-t border-border/40">
+        <div className="p-6 border-t border-border">
           <button
             onClick={signOut}
-            className="w-full flex flex-row-reverse items-center justify-between px-5 py-4 rounded-2xl bg-destructive/5 text-destructive hover:bg-destructive/10 transition-colors group"
+            className="w-full flex flex-row-reverse items-center justify-between px-5 py-4 rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-all font-bold"
           >
             <LogOut className="size-5" />
-            <span className="text-[15px] font-bold">تسجيل الخروج</span>
+            <span>تسجيل الخروج</span>
           </button>
         </div>
       </aside>
 
       {/* Main Container */}
       <main className="relative min-h-screen pb-20">
-
-        {/* Sticky Premium Header */}
         <header
-          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-background/70 backdrop-blur-2xl border-b border-border/40 transition-colors duration-500"
+          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-card/95 backdrop-blur-md border-b border-border transition-all shadow-sm"
         >
           <div className="flex items-center gap-5">
             <button
               onClick={() => setSidebarOpen(true)}
-              aria-label="القائمة"
-              className="size-11 grid place-items-center rounded-2xl bg-gold-primary/5 ring-1 ring-gold-primary/10 text-gold-primary hover:bg-gold-primary/10 transition-all active:scale-95"
+              className="size-11 grid place-items-center rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all active:scale-95 shadow-sm"
             >
-              <Menu className="size-5" />
+              <Menu className="size-6" />
             </button>
-            <div>
-              <h1 className="text-[17px] font-bold tracking-tight text-ivory">{title}</h1>
-              <p className="text-[10px] text-muted-foreground uppercase tracking-widest hidden sm:block">Alsaif Family Hub</p>
-            </div>
+            <h1 className="text-[18px] font-bold tracking-tight text-foreground">{title}</h1>
           </div>
 
           <div className="flex items-center gap-4">
@@ -221,41 +210,40 @@ export function AppShell({
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-3 pl-1 pr-1 py-1 rounded-2xl hover:bg-gold-primary/5 transition-all outline-none group">
-                  <div className="size-10 rounded-[14px] bg-gradient-to-br from-gold-primary/10 to-transparent p-0.5 ring-1 ring-gold-primary/10 overflow-hidden">
+                <button className="flex items-center gap-2 outline-none group">
+                  <div className="size-10 rounded-full ring-2 ring-primary/10 overflow-hidden group-hover:ring-primary transition-all">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
                       initial={user.initial}
-                      className="size-full rounded-[12px]"
+                      className="size-full"
                       userId={myUserId}
                     />
                   </div>
-                  <ChevronDown className="size-4 text-muted-foreground group-hover:text-gold-primary transition-colors" />
+                  <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={12} className="min-w-[200px] rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl p-2 text-right">
-                <DropdownMenuLabel className="px-3 py-3">
-                  <p className="text-sm font-bold text-ivory">{user.name}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase mt-0.5">{user.role}</p>
+              <DropdownMenuContent align="end" sideOffset={12} className="min-w-[200px] rounded-xl border-border bg-card p-2 text-right">
+                <DropdownMenuLabel className="px-3 py-3 border-b border-border mb-1">
+                  <p className="text-sm font-bold text-foreground">{user.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold">{user.role}</p>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-border/40" />
                 <Link to="/profile">
-                  <DropdownMenuItem className="rounded-xl px-3 py-2.5 flex flex-row-reverse justify-between gap-3 text-[14px] focus:bg-gold-primary/10 focus:text-gold-primary cursor-pointer">
+                  <DropdownMenuItem className="rounded-lg px-3 py-3 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold cursor-pointer">
                     <User size={18} />
                     <span>ملفي الشخصي</span>
                   </DropdownMenuItem>
                 </Link>
                 <Link to="/settings">
-                  <DropdownMenuItem className="rounded-xl px-3 py-2.5 flex flex-row-reverse justify-between gap-3 text-[14px] focus:bg-gold-primary/10 focus:text-gold-primary cursor-pointer">
+                  <DropdownMenuItem className="rounded-lg px-3 py-3 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold cursor-pointer">
                     <Settings size={18} />
                     <span>الإعدادات</span>
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuSeparator className="bg-border/40" />
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={signOut}
-                  className="rounded-xl px-3 py-2.5 flex flex-row-reverse justify-between gap-3 text-[14px] text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
+                  className="rounded-lg px-3 py-3 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-destructive cursor-pointer"
                 >
                   <LogOut size={18} />
                   <span>تسجيل الخروج</span>
@@ -265,8 +253,7 @@ export function AppShell({
           </div>
         </header>
 
-        {/* Content View Area */}
-        <div className="relative z-10 p-6 lg:p-10 max-w-7xl mx-auto animate-fade-up">
+        <div className="p-6 lg:p-10 max-w-7xl mx-auto">
           {children}
         </div>
       </main>

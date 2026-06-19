@@ -3,8 +3,8 @@
 @import "tw-animate-css";
 
 /*
- * Alsaif Design System — unified Royal Heritage Edition
- * iOS-inspired Glassmorphism + Saudi Heritage Accents.
+ * Alsaif Design System — High Contrast Royal Edition
+ * Optimized for maximum legibility and premium feel.
  */
 
 @theme inline {
@@ -32,57 +32,58 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-arabic: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, "Cairo", "Tajawal", sans-serif;
+  /* Font: Prioritizing Tajawal for its superior legibility in Arabic */
+  --font-arabic: "Tajawal", "Cairo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   --radius-sm: 10px;
   --radius-md: 14px;
   --radius-lg: 24px;
   --radius-xl: 44px;
 
-  --shadow-premium: 0 20px 50px -12px rgba(0, 0, 0, 0.12), 0 10px 20px -10px rgba(0, 0, 0, 0.08);
+  --shadow-premium: 0 20px 50px -12px rgba(0, 0, 0, 0.15), 0 10px 20px -10px rgba(0, 0, 0, 0.1);
 }
 
 :root {
-  /* Premium Light Theme */
-  --background: #F8F8F4;
-  --foreground: #1C1C1E;
+  /* High Contrast Light Theme */
+  --background: #F4F4F1;
+  --foreground: #0A0A0B; /* Deep Black for clear reading */
 
-  --navy-base: #F8F8F4;
+  --navy-base: #F4F4F1;
   --navy-card: #FFFFFF;
-  --navy-elev: #F2F2F7;
+  --navy-elev: #E8E8E3;
 
-  --gold-primary: #1B4332;
-  --gold-soft: #2D6A4F;
-  --ivory: #1C1C1E;
+  --gold-primary: #15402E; /* Darker Green for better contrast */
+  --gold-soft: #1B4332;
+  --ivory: #0A0A0B;
 
-  --primary: #1B4332;
+  --primary: #15402E;
   --primary-foreground: #FFFFFF;
 
-  --secondary: #F2F2F7;
-  --secondary-foreground: #1C1C1E;
+  --secondary: #E8E8E3;
+  --secondary-foreground: #0A0A0B;
 
-  --muted: #8E8E93;
-  --muted-foreground: #636366;
+  --muted: #6B7280;
+  --muted-foreground: #4B5563; /* Darker muted text */
 
-  --accent: rgba(27, 67, 50, 0.05);
-  --accent-foreground: #1B4332;
+  --accent: rgba(21, 64, 46, 0.08);
+  --accent-foreground: #15402E;
 
-  --border: rgba(0, 0, 0, 0.06);
+  --border: rgba(0, 0, 0, 0.12); /* More visible borders */
   --input: #FFFFFF;
-  --ring: rgba(212, 175, 55, 0.3);
+  --ring: rgba(212, 175, 55, 0.4);
 
-  --luxury-gold: #D4AF37;
-  --luxury-glow: rgba(212, 175, 55, 0.3);
+  --luxury-gold: #B8972E; /* More readable gold (bronze-ish) */
+  --luxury-glow: rgba(184, 151, 46, 0.2);
 }
 
 .dark {
-  /* Premium Dark Theme */
-  --background: #000000;
-  --foreground: #F2F2F7;
+  /* High Contrast Dark Theme */
+  --background: #050505;
+  --foreground: #FFFFFF;
 
-  --navy-base: #000000;
-  --navy-card: #1C1C1E;
-  --navy-elev: #2C2C2E;
+  --navy-base: #050505;
+  --navy-card: #121214;
+  --navy-elev: #1C1C1E;
 
   --gold-primary: #D4AF37;
   --gold-soft: #F9E29C;
@@ -91,18 +92,18 @@
   --primary: #D4AF37;
   --primary-foreground: #000000;
 
-  --secondary: #2C2C2E;
-  --secondary-foreground: #F2F2F7;
+  --secondary: #1C1C1E;
+  --secondary-foreground: #FFFFFF;
 
   --muted: #3A3A3C;
-  --muted-foreground: #8E8E93;
+  --muted-foreground: #A1A1AA;
 
-  --accent: rgba(212, 175, 55, 0.15);
+  --accent: rgba(212, 175, 55, 0.2);
   --accent-foreground: #D4AF37;
 
-  --border: rgba(255, 255, 255, 0.1);
-  --input: #1C1C1E;
-  --ring: rgba(212, 175, 55, 0.4);
+  --border: rgba(255, 255, 255, 0.15);
+  --input: #121214;
+  --ring: rgba(212, 175, 55, 0.5);
 }
 
 @layer base {
@@ -111,63 +112,61 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-arabic);
+    font-weight: 500; /* Slightly bolder baseline for Arabic */
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
   }
+  h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 }
 
-/* Glass Surface Utility */
+/* Glass Surface with Higher Opacity for Readability */
 @utility card-surface {
-  background-color: color-mix(in oklab, var(--navy-card) 94%, transparent);
-  backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  background-color: color-mix(in oklab, var(--navy-card) 98%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-premium);
 }
 
-/* Premium Inputs */
+/* Solid Input for contrast */
 @utility input-base {
   width: 100%;
   padding: 0.875rem 1.125rem;
-  background-color: var(--navy-elev);
-  border: 1px solid transparent;
-  border-radius: 18px;
+  background-color: var(--navy-card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
   color: var(--foreground);
   font-size: 16px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  transition: all 0.2s ease;
   &:focus {
     outline: none;
-    background-color: var(--navy-card);
-    border-color: var(--luxury-gold);
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--luxury-gold) 12%, transparent);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 10%, transparent);
   }
 }
 
-/* Luxury Royal Buttons */
+/* High Visibility Gold Buttons */
 @utility btn-gold {
-  background: linear-gradient(135deg, #996515 0%, #D4AF37 100%);
+  background: linear-gradient(135deg, #8B6B23 0%, #B8972E 100%);
   color: white;
   font-weight: 700;
-  border-radius: 20px;
-  box-shadow: 0 10px 25px -5px rgba(153, 101, 21, 0.3);
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px -6px rgba(139, 107, 35, 0.4);
+  transition: all 0.3s ease;
   &:hover {
-    transform: translateY(-3px) scale(1.02);
-    box-shadow: 0 15px 30px -8px rgba(153, 101, 21, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px -8px rgba(139, 107, 35, 0.5);
     filter: brightness(1.1);
   }
   &:active {
-    transform: translateY(1px) scale(0.98);
+    transform: translateY(1px);
   }
 }
 
-.animate-fade-up { animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(24px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-/* Hide scrollbars but keep functionality */
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
