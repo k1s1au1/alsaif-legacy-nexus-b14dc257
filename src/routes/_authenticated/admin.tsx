@@ -76,7 +76,7 @@ const REQ_TABS: { key: ReqRow["status"]; label: string }[] = [
   { key: "rejected", label: "مرفوضة" },
 ];
 
-type Section = "requests" | "roles";
+type Section = "requests" | "roles" | "site";
 
 function AdminPage() {
   const [profile, setProfile] = useState({
@@ -304,7 +304,19 @@ function AdminPage() {
                   تعيين المسؤولين والمشرفين
                 </button>
               )}
+              <button
+                onClick={() => setSection("site")}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
+                  section === "site"
+                    ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
+                    : "bg-card/40 border-border text-muted-foreground hover:text-ivory"
+                }`}
+              >
+                <Palette className="size-4" strokeWidth={1.6} />
+                إعدادات الموقع
+              </button>
             </div>
+
 
             {loading ? (
               <div className="grid place-items-center py-16 text-muted-foreground">
