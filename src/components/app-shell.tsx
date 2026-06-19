@@ -11,6 +11,8 @@ import {
   Users,
   ChevronDown,
   Settings,
+  X,
+  Bell,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -54,66 +56,17 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   // Lock body scroll when overlay sidebar is open
   useEffect(() => {
     if (sidebarOpen) {
-      const prev = document.body.style.overflow;
       document.body.style.overflow = "hidden";
-      return () => {
-        document.body.style.overflow = prev;
-      };
+      return () => { document.body.style.overflow = "unset"; };
     }
-  }, [sidebarOpen]);
-
-  // Close on Escape
-  useEffect(() => {
-    if (!sidebarOpen) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setSidebarOpen(false);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
   }, [sidebarOpen]);
 
   usePresenceHeartbeat();
-
-  const loadUnreadNotifications = useCallback(async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) {
-      setUnreadNotifications(0);
-      return;
-    }
-
-    const { data: parts } = await supabase
-      .from("conversation_participants")
-      .select("conversation_id,last_read_at")
-      .eq("user_id", u.user.id);
-
-    if (!parts?.length) {
-      setUnreadNotifications(0);
-      return;
-    }
-
-    const readByConversation = new Map(
-      parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]),
-    );
-
-    const { data: messages } = await supabase
-      .from("messages")
-      .select("conversation_id,created_at,sender_id")
-      .in("conversation_id", [...readByConversation.keys()])
-      .neq("sender_id", u.user.id)
-      .order("created_at", { ascending: false })
-      .limit(1000);
-
-    const unread = (messages ?? []).filter((message) => {
-      const lastReadAt = readByConversation.get(message.conversation_id) ?? 0;
-      return new Date(message.created_at).getTime() > lastReadAt;
-    }).length;
-
-    setUnreadNotifications(unread);
-  }, []);
 
   const loadBadges = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -131,78 +84,24 @@ export function AppShell({
         try {
           const count = await item.badge({ userId: u.user.id, isAdmin, isManager });
           if (count > 0) next[item.to] = count;
-        } catch {
-          // ignore badge errors
-        }
+        } catch {}
       }),
     );
     setNavBadges(next);
   }, []);
 
   useEffect(() => {
-    loadUnreadNotifications();
     loadBadges();
-
-    // Load my own avatar path (if not provided) and subscribe to profile changes
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setMyUserId(u.user.id);
       if (user.avatarPath === undefined) {
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("avatar_url")
-          .eq("id", u.user.id)
-          .maybeSingle();
+        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", u.user.id).maybeSingle();
         setMyAvatarPath(p?.avatar_url ?? null);
       }
     })();
-
-    const channel = supabase
-      .channel("app-shell-notifications")
-      .on("postgres_changes", { event: "*", schema: "public", table: "messages" }, () => {
-        loadUnreadNotifications();
-        loadBadges();
-      })
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "conversation_participants" },
-        () => {
-          loadUnreadNotifications();
-          loadBadges();
-        },
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "profiles" },
-        async (payload) => {
-          const oldRow = payload.old as { avatar_url?: string | null } | null;
-          const newRow = payload.new as { id?: string; avatar_url?: string | null } | null;
-          if (oldRow?.avatar_url && oldRow.avatar_url !== newRow?.avatar_url) {
-            invalidateAvatar(oldRow.avatar_url);
-          }
-          if (newRow?.avatar_url) invalidateAvatar(newRow.avatar_url);
-          const { data: u } = await supabase.auth.getUser();
-          if (u.user && newRow?.id === u.user.id) {
-            setMyAvatarPath(newRow.avatar_url ?? null);
-          }
-        },
-      )
-      .subscribe();
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        loadUnreadNotifications();
-        loadBadges();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange);
-
-    return () => {
-      supabase.removeChannel(channel);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
-  }, [loadUnreadNotifications, loadBadges, user.avatarPath]);
+  }, [loadBadges, user.avatarPath]);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -213,48 +112,51 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
+    <div className="min-h-screen bg-background text-foreground selection:bg-gold-primary/20">
       {/* Backdrop overlay */}
       <div
         onClick={() => setSidebarOpen(false)}
         className={cn(
-          "fixed inset-0 z-40 bg-black/50 backdrop-blur-sm transition-opacity duration-300",
+          "fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm transition-opacity duration-500",
           sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
         )}
-        aria-hidden
       />
 
-      {/* Right Navigation Drawer (RTL, full overlay) */}
+      {/* Modern iOS-style Navigation Drawer (RTL) */}
       <aside
         className={cn(
-          "fixed inset-y-0 right-0 z-50 flex flex-col bg-card border-l border-border shadow-2xl transition-transform duration-300 ease-out",
-          "w-[85vw] max-w-sm",
+          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card/90 backdrop-blur-2xl border-l border-border/40 shadow-premium transition-transform duration-500 cubic-bezier(0.4, 0, 0.2, 1)",
+          "w-[85vw] max-w-[340px] rounded-l-[40px]",
           sidebarOpen ? "translate-x-0" : "translate-x-full",
         )}
-        aria-hidden={!sidebarOpen}
       >
-        <div className="h-20 flex items-center justify-between px-6 gap-3 bg-primary text-primary-foreground">
-          <div className="flex items-center gap-3">
-            <img
-              src={alsaifMark.url}
-              alt="العلي"
-              className="size-10 object-contain brightness-0 invert"
-            />
-            <div className="flex flex-col items-start leading-tight text-right">
-              <span className="text-lg font-semibold tracking-wide">مجلس السيف</span>
-              <span className="text-[11px] opacity-70">لوحة العائلة</span>
+        {/* User Profile Area in Sidebar */}
+        <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4">
+          <div className="relative">
+            <div className="size-20 rounded-[28px] bg-gradient-to-br from-gold-primary/20 to-gold-primary/5 ring-1 ring-gold-primary/20 p-1">
+              <UserAvatar
+                path={myAvatarPath}
+                name={user.name}
+                initial={user.initial}
+                className="size-full rounded-[24px]"
+                userId={myUserId}
+              />
             </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="absolute -top-2 -left-2 size-8 rounded-full bg-white/10 backdrop-blur-md ring-1 ring-white/20 flex items-center justify-center text-ivory/60 hover:text-ivory transition-colors"
+            >
+              <X size={16} />
+            </button>
           </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            aria-label="إغلاق القائمة"
-            className="size-9 grid place-items-center rounded-lg bg-white/10 ring-1 ring-white/20 text-white hover:bg-white/20 transition-colors"
-          >
-            <span className="text-xl leading-none">×</span>
-          </button>
+          <div>
+            <h3 className="text-lg font-bold text-ivory tracking-tight">{user.name}</h3>
+            <p className="text-[11px] text-muted-foreground uppercase tracking-[0.1em] mt-0.5">{user.role}</p>
+          </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto text-right">
+        <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto no-scrollbar">
+          <div className="h-px bg-border/40 mx-4 mb-4" />
           {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             const badgeCount = navBadges[to] ?? 0;
@@ -263,16 +165,17 @@ export function AppShell({
                 key={to}
                 to={to}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex flex-row-reverse items-center px-4 py-3 rounded-xl text-sm transition-colors relative ${
+                className={cn(
+                  "flex flex-row-reverse items-center px-4 py-3.5 rounded-2xl text-[15px] font-medium transition-all duration-300 gap-4",
                   active
-                    ? "bg-primary/10 text-primary ring-1 ring-primary/20"
-                    : "text-foreground/70 hover:text-primary hover:bg-secondary/40"
-                }`}
+                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 shadow-sm"
+                    : "text-ivory/60 hover:text-gold-primary hover:bg-gold-primary/5"
+                )}
               >
-                <Icon className="size-5 shrink-0" strokeWidth={1.5} />
-                <span className="mr-auto ml-3 font-medium">{label}</span>
+                <Icon className={cn("size-5 shrink-0", active ? "text-gold-primary" : "text-muted-foreground")} strokeWidth={active ? 2 : 1.5} />
+                <span className="mr-auto">{label}</span>
                 {badgeCount > 0 && (
-                  <span className="mr-3 min-w-[20px] h-[20px] px-1.5 rounded-full bg-primary/20 text-primary text-[11px] font-semibold flex items-center justify-center">
+                  <span className="px-2 py-0.5 rounded-full bg-gold-primary text-white text-[10px] font-bold">
                     {badgeCount > 99 ? "99+" : badgeCount}
                   </span>
                 )}
@@ -281,95 +184,89 @@ export function AppShell({
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
+        <div className="p-6 border-t border-border/40">
           <button
             onClick={signOut}
-            className="w-full flex flex-row-reverse items-center px-3 py-2 text-sm text-muted-foreground hover:text-destructive transition-colors rounded-lg"
+            className="w-full flex flex-row-reverse items-center justify-between px-5 py-4 rounded-2xl bg-destructive/5 text-destructive hover:bg-destructive/10 transition-colors group"
           >
-            <LogOut className="size-4" strokeWidth={1.5} />
-            <span className="mr-auto ml-3 font-medium">تسجيل الخروج</span>
+            <LogOut className="size-5" />
+            <span className="text-[15px] font-bold">تسجيل الخروج</span>
           </button>
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="relative min-h-screen pb-16 transition-all duration-700">
+      {/* Main Container */}
+      <main className="relative min-h-screen pb-20">
+
+        {/* Sticky Premium Header */}
         <header
-          className="h-20 sticky top-0 z-40 px-6 lg:px-10 flex items-center justify-between bg-background/80 backdrop-blur-md border-b border-border transition-colors duration-500"
+          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-background/70 backdrop-blur-2xl border-b border-border/40 transition-colors duration-500"
         >
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <button
-              onClick={() => setSidebarOpen((v) => !v)}
-              aria-label={sidebarOpen ? "إخفاء القائمة" : "إظهار القائمة"}
-              className="size-10 grid place-items-center rounded-lg bg-primary/10 ring-1 ring-primary/20 text-primary hover:bg-primary/20 transition-colors"
+              onClick={() => setSidebarOpen(true)}
+              aria-label="القائمة"
+              className="size-11 grid place-items-center rounded-2xl bg-gold-primary/5 ring-1 ring-gold-primary/10 text-gold-primary hover:bg-gold-primary/10 transition-all active:scale-95"
             >
-              <Menu className="size-5" strokeWidth={1.5} />
+              <Menu className="size-5" />
             </button>
-            <h1 className="text-lg font-bold tracking-tight text-primary">{title}</h1>
+            <div>
+              <h1 className="text-[17px] font-bold tracking-tight text-ivory">{title}</h1>
+              <p className="text-[10px] text-muted-foreground uppercase tracking-widest hidden sm:block">Alsaif Family Hub</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4">
             <NotificationsBell />
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button
-                  className="flex items-center gap-3 pr-6 border-r border-border hover:opacity-80 transition outline-none"
-                  aria-label="الملف الشخصي"
-                >
-                  <div className="text-right hidden sm:block">
-                    <p className="text-sm font-bold text-foreground">{user.name}</p>
-                    <p className="text-[11px] text-muted-foreground uppercase tracking-wider">
-                      {user.role}
-                    </p>
-                  </div>
-                  <div className="size-10 rounded-full bg-primary/10 ring-1 ring-primary/20 grid place-items-center text-primary font-bold overflow-hidden">
+                <button className="flex items-center gap-3 pl-1 pr-1 py-1 rounded-2xl hover:bg-gold-primary/5 transition-all outline-none group">
+                  <div className="size-10 rounded-[14px] bg-gradient-to-br from-gold-primary/10 to-transparent p-0.5 ring-1 ring-gold-primary/10 overflow-hidden">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
                       initial={user.initial}
-                      className="size-full rounded-full"
-                      fallbackClassName="grid place-items-center size-full"
+                      className="size-full rounded-[12px]"
                       userId={myUserId}
                     />
                   </div>
-                  <ChevronDown className="hidden sm:block size-4 text-muted-foreground" strokeWidth={1.5} />
+                  <ChevronDown className="size-4 text-muted-foreground group-hover:text-gold-primary transition-colors" />
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={8} className="min-w-[12rem] text-right">
-                <DropdownMenuLabel className="font-normal px-3 py-2">
-                  <div className="flex flex-col">
-                    <span className="text-sm font-bold text-foreground">{user.name}</span>
-                    <span className="text-xs text-muted-foreground">{user.role}</span>
-                  </div>
+              <DropdownMenuContent align="end" sideOffset={12} className="min-w-[200px] rounded-2xl border-border/40 bg-card/95 backdrop-blur-xl p-2 text-right">
+                <DropdownMenuLabel className="px-3 py-3">
+                  <p className="text-sm font-bold text-ivory">{user.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase mt-0.5">{user.role}</p>
                 </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <Link to="/profile" className="w-full">
-                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2 justify-end">
+                <DropdownMenuSeparator className="bg-border/40" />
+                <Link to="/profile">
+                  <DropdownMenuItem className="rounded-xl px-3 py-2.5 flex flex-row-reverse justify-between gap-3 text-[14px] focus:bg-gold-primary/10 focus:text-gold-primary cursor-pointer">
+                    <User size={18} />
                     <span>ملفي الشخصي</span>
-                    <User className="size-4" strokeWidth={1.5} />
                   </DropdownMenuItem>
                 </Link>
-                <Link to="/settings" className="w-full">
-                  <DropdownMenuItem className="cursor-pointer gap-2 px-3 py-2 justify-end">
+                <Link to="/settings">
+                  <DropdownMenuItem className="rounded-xl px-3 py-2.5 flex flex-row-reverse justify-between gap-3 text-[14px] focus:bg-gold-primary/10 focus:text-gold-primary cursor-pointer">
+                    <Settings size={18} />
                     <span>الإعدادات</span>
-                    <Settings className="size-4" strokeWidth={1.5} />
                   </DropdownMenuItem>
                 </Link>
-                <DropdownMenuSeparator />
+                <DropdownMenuSeparator className="bg-border/40" />
                 <DropdownMenuItem
                   onClick={signOut}
-                  className="cursor-pointer gap-2 px-3 py-2 text-destructive focus:text-destructive justify-end"
+                  className="rounded-xl px-3 py-2.5 flex flex-row-reverse justify-between gap-3 text-[14px] text-destructive focus:bg-destructive/10 focus:text-destructive cursor-pointer"
                 >
+                  <LogOut size={18} />
                   <span>تسجيل الخروج</span>
-                  <LogOut className="size-4" strokeWidth={1.5} />
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
         </header>
 
-        <div className="relative z-10 p-6 lg:p-10 max-w-7xl mx-auto">
+        {/* Content View Area */}
+        <div className="relative z-10 p-6 lg:p-10 max-w-7xl mx-auto animate-fade-up">
           {children}
         </div>
       </main>
