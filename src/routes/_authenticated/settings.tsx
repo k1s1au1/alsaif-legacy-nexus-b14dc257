@@ -12,7 +12,6 @@ import {
   ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Capacitor } from "@capacitor/core";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -28,29 +27,32 @@ function SettingsPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
+    // Check for theme
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) setDarkMode(savedTheme);
 
-    const native = Capacitor.isNativePlatform();
-    setIsNative(native);
+    // Dynamic import to avoid SSR errors
+    import("@capacitor/core").then(({ Capacitor }) => {
+      const native = Capacitor.isNativePlatform();
+      setIsNative(native);
 
-    if (native) {
-      // Lazy load Capacitor plugins to avoid SSR issues
-      Promise.all([
-        import("@capacitor/app"),
-        import("@capacitor/push-notifications")
-      ]).then(([{ App }, { PushNotifications }]) => {
-        App.getInfo().then(info => {
-          setAppVersion(`${info.version} (${info.build})`);
-        });
+      if (native) {
+        Promise.all([
+          import("@capacitor/app"),
+          import("@capacitor/push-notifications")
+        ]).then(([{ App }, { PushNotifications }]) => {
+          App.getInfo().then(info => {
+            setAppVersion(`${info.version} (${info.build})`);
+          });
 
-        PushNotifications.checkPermissions().then(res => {
-          setNotificationsEnabled(res.receive === "granted");
+          PushNotifications.checkPermissions().then(res => {
+            setNotificationsEnabled(res.receive === "granted");
+          });
+        }).catch(err => {
+          console.warn("Capacitor plugins could not be loaded", err);
         });
-      }).catch(err => {
-        console.warn("Capacitor plugins could not be loaded", err);
-      });
-    }
+      }
+    });
   }, []);
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -70,12 +72,7 @@ function SettingsPage() {
   };
 
   const openNativeSettings = async () => {
-    if (Capacitor.isNativePlatform()) {
-      toast.info("جاري فتح إعدادات النظام الخاص بالتطبيق...");
-      // In a real app, this would use a native settings plugin
-    } else {
-      toast.error("هذه الميزة متاحة فقط على تطبيق الجوال");
-    }
+    toast.info("جاري فتح إعدادات النظام الخاص بالتطبيق...");
   };
 
   return (

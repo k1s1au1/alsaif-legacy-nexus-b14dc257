@@ -49,66 +49,66 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#F2F2F7] overflow-hidden">
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#F4F4F1] transition-colors duration-700 overflow-hidden">
 
-      {/* Heritage Watermarks for the page background */}
+      {/* Background Watermarks - Kept subtle */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-[#1B4332]/5 blur-[120px]" />
+        <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-[#15402E]/5 blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-[#D4AF37]/5 blur-[120px]" />
       </div>
 
       <div
-        className="relative w-full max-w-[460px] bg-white rounded-[44px] shadow-premium animate-fade-up overflow-hidden border border-black/5"
+        className="relative w-full max-w-[460px] bg-white rounded-[44px] shadow-[0_32px_80px_-16px_rgba(0,0,0,0.18)] animate-fade-up overflow-hidden border border-black/5"
         style={paletteVars}
       >
-        {/* BACKGROUND IMAGE - CONFINED TO THIS CARD ONLY */}
+        {/* BACKGROUND IMAGE - Strictly confined to this card */}
         {authBg && (
           <div
-            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-40 transition-opacity duration-1000"
+            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
             style={{ backgroundImage: `url(${authBg})` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-white/40 to-white/90" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/95 via-white/40 to-white/95" />
           </div>
         )}
 
         <div className="relative z-10 p-8 sm:p-10">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="size-24 mb-6 flex items-center justify-center p-2 bg-white rounded-3xl shadow-sm ring-1 ring-black/5">
+            <div className="size-24 mb-6 flex items-center justify-center p-3 bg-white rounded-[32px] shadow-sm ring-1 ring-black/5">
               <img src={logoAsset.url} alt="Logo" className="size-full object-contain" />
             </div>
-            <h1 className="text-4xl font-serif text-[#1B4332] mb-1 font-bold">مجلس السيف</h1>
+            <h1 className="text-4xl font-serif text-[#15402E] mb-1 font-bold tracking-tight">مجلس السيف</h1>
             <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.3em] text-[#8E7745] uppercase mt-2">
               <span>◆</span>
               <span>ALSAIF · PRIVATE ACCESS</span>
               <span>◆</span>
             </div>
-            <p className="mt-8 text-[15px] text-[#636366] leading-relaxed max-w-[30ch]">
+            <p className="mt-8 text-[15px] text-[#4B5563] font-medium leading-relaxed max-w-[30ch]">
               هذه المنصة خاصة بأعضاء العائلة. الوصول بدعوة أو بموافقة المشرفين.
             </p>
           </div>
 
           {/* Inner Login Form Container */}
-          <div className="relative bg-[#F2F2F7]/80 backdrop-blur-xl rounded-[36px] p-6 sm:p-8 border border-white shadow-inner">
+          <div className="relative bg-[#F9F9F7] rounded-[36px] p-6 sm:p-8 border border-[#E5E4E0] shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]">
 
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 py-1 rounded-full shadow-sm text-[#D4AF37]">
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-5 py-1.5 rounded-full shadow-md text-[#D4AF37] border border-[#F2F2F7]">
                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                  <path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/>
                </svg>
             </div>
 
             <div className="flex items-center justify-center gap-4 mb-8 pt-3">
-              <div className="h-[1px] w-10 bg-[#D4AF37]/20" />
-              <h2 className="text-[17px] font-bold text-[#1B4332] tracking-tight">تسجيل الدخول</h2>
-              <div className="h-[1px] w-10 bg-[#D4AF37]/20" />
+              <div className="h-[1.5px] w-10 bg-[#D4AF37]/30" />
+              <h2 className="text-[18px] font-bold text-[#15402E] tracking-tight">تسجيل الدخول</h2>
+              <div className="h-[1.5px] w-10 bg-[#D4AF37]/30" />
             </div>
 
             <form onSubmit={onSubmit} className="space-y-6">
               <div className="space-y-2 text-right">
-                <label className="text-[12px] text-[#8E8E93] font-semibold mr-2 block">البريد الإلكتروني</label>
+                <label className="text-[12px] text-[#4B5563] font-bold mr-2 block uppercase tracking-wider">البريد الإلكتروني</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <Mail className="size-[18px] text-[#D4AF37]/40" />
+                  <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
+                    <Mail className="size-5 text-[#8E7745]/60" />
                   </div>
                   <input
                     type="email"
@@ -116,44 +116,44 @@ function AuthPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     dir="ltr"
-                    className="input-base text-right pr-12"
+                    className="w-full bg-white border border-[#D1D1D6] rounded-2xl pr-14 pl-5 py-4 text-[16px] font-medium text-[#1A1A1A] focus:outline-none focus:ring-4 focus:ring-[#15402E]/5 focus:border-[#15402E] transition-all text-right shadow-sm"
                     placeholder="name@alsaif.family"
                   />
                 </div>
               </div>
 
               <div className="space-y-2 text-right">
-                <label className="text-[12px] text-[#8E8E93] font-semibold mr-2 block">كلمة المرور</label>
+                <label className="text-[12px] text-[#4B5563] font-bold mr-2 block uppercase tracking-wider">كلمة المرور</label>
                 <div className="relative">
-                  <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                    <Lock className="size-[18px] text-[#D4AF37]/40" />
+                  <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
+                    <Lock className="size-5 text-[#8E7745]/60" />
                   </div>
                   <input
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="input-base pr-12 pl-12"
+                    className="w-full bg-white border border-[#D1D1D6] rounded-2xl pr-14 pl-14 py-4 text-[16px] font-medium text-[#1A1A1A] focus:outline-none focus:ring-4 focus:ring-[#15402E]/5 focus:border-[#15402E] transition-all shadow-sm"
                     placeholder="••••••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 left-4 flex items-center text-[#8E8E93]/50 hover:text-[#D4AF37] transition-colors"
+                    className="absolute inset-y-0 left-5 flex items-center text-[#8E8E93] hover:text-[#15402E] transition-colors"
                   >
-                    {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                   </button>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-[13px] px-1 font-medium">
-                <label className="flex items-center gap-2 cursor-pointer text-[#636366]">
-                  <input type="checkbox" className="size-4 accent-[#1B4332] rounded-lg border-[#D1D1D6]" />
+              <div className="flex items-center justify-between text-[14px] px-1 font-bold">
+                <label className="flex items-center gap-2.5 cursor-pointer text-[#4B5563]">
+                  <input type="checkbox" className="size-4.5 accent-[#15402E] rounded-lg border-[#D1D1D6]" />
                   تذكرني
                 </label>
                 <button
                   type="button"
-                  className="text-[#D4AF37] hover:text-[#996515] transition-colors"
+                  className="text-[#B8972E] hover:text-[#8B6B23] transition-colors"
                 >
                   نسيت كلمة المرور؟
                 </button>
@@ -162,17 +162,17 @@ function AuthPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 btn-gold flex items-center justify-center gap-3 group text-[17px]"
+                className="w-full py-4.5 bg-gradient-to-l from-[#8B6B23] to-[#B8972E] text-white text-[17px] font-bold rounded-2xl shadow-xl shadow-[#B8972E]/30 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
               >
                 {loading && <Loader2 className="size-5 animate-spin" />}
                 <span>دخول إلى المجلس</span>
-                <ArrowLeft className="size-4 group-hover:-translate-x-1 transition-transform" />
+                <ArrowLeft className="size-5 group-hover:-translate-x-1 transition-transform" />
               </button>
 
               <div className="text-center pt-2">
                 <button
                   type="button"
-                  className="text-[13px] text-[#1B4332] hover:underline font-bold opacity-80"
+                  className="text-[14px] text-[#15402E] hover:underline font-bold opacity-90"
                 >
                   طلب إنشاء حساب جديد
                 </button>
@@ -180,7 +180,7 @@ function AuthPage() {
             </form>
           </div>
 
-          <p className="text-center text-[10px] text-[#8E8E93] mt-12 tracking-[0.3em] uppercase font-bold">
+          <p className="text-center text-[10px] text-[#8E8E93] mt-12 tracking-[0.4em] uppercase font-black opacity-60">
             ALSAIF FAMILY HUB
           </p>
         </div>

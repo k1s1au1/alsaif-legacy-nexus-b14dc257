@@ -8,7 +8,6 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, useState, type ReactNode } from "react";
-import { markSeen } from "@/hooks/use-shortcut-badges";
 
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
@@ -101,7 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
       {
         rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700&display=swap",
+        href: "https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&family=Cairo:wght@400;500;600;700&display=swap",
       },
     ],
   }),
@@ -132,7 +131,7 @@ function RootComponent() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const hasSeenWelcome = localStorage.getItem("hasSeenWelcomeFinal");
+      const hasSeenWelcome = localStorage.getItem("hasSeenWelcomeFinalV3");
       if (!hasSeenWelcome) {
         setShowWelcome(true);
       }
@@ -148,36 +147,10 @@ function RootComponent() {
 
   const handleWelcomeComplete = () => {
     if (typeof window !== "undefined") {
-      localStorage.setItem("hasSeenWelcomeFinal", "true");
+      localStorage.setItem("hasSeenWelcomeFinalV3", "true");
     }
     setShowWelcome(false);
   };
-
-  // Auto-clear shortcut badges when entering the matching page
-  useEffect(() => {
-    const PATH_TO_KEY: Array<{ test: (p: string) => boolean; key: string }> = [
-      { test: (p) => p.startsWith("/meetings"), key: "meetings" },
-      { test: (p) => p.startsWith("/trips"), key: "trips" },
-      { test: (p) => p.startsWith("/tasks"), key: "tasks" },
-      { test: (p) => p.startsWith("/chat"), key: "chat" },
-      { test: (p) => p.startsWith("/majlis"), key: "majlis" },
-      { test: (p) => p.startsWith("/events"), key: "events" },
-      { test: (p) => p.startsWith("/archive"), key: "archive" },
-      { test: (p) => p.startsWith("/finance"), key: "finance" },
-      { test: (p) => p.startsWith("/family-tree"), key: "family-tree" },
-    ];
-    const apply = (path: string) => {
-      for (const m of PATH_TO_KEY) if (m.test(path)) {
-        markSeen(m.key);
-        setTimeout(() => markSeen(m.key), 1500);
-      }
-    };
-    apply(router.state.location.pathname);
-    const unsub = router.subscribe("onResolved", ({ toLocation }) => {
-      apply(toLocation.pathname);
-    });
-    return () => unsub();
-  }, [router]);
 
   return (
     <QueryClientProvider client={queryClient}>
