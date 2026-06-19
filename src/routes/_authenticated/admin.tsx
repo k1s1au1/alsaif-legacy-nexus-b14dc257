@@ -1,6 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { BackgroundUploader } from "@/components/background-uploader";
+
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import {
@@ -16,7 +18,11 @@ import {
   Crown,
   Star,
   User as UserIcon,
+  Image as ImageIcon,
+  CalendarPlus,
+  Palette,
 } from "lucide-react";
+
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { approveAccountRequest } from "@/lib/api/account-requests.functions";
@@ -70,7 +76,7 @@ const REQ_TABS: { key: ReqRow["status"]; label: string }[] = [
   { key: "rejected", label: "مرفوضة" },
 ];
 
-type Section = "requests" | "roles";
+type Section = "requests" | "roles" | "site";
 
 function AdminPage() {
   const [profile, setProfile] = useState({
@@ -298,7 +304,19 @@ function AdminPage() {
                   تعيين المسؤولين والمشرفين
                 </button>
               )}
+              <button
+                onClick={() => setSection("site")}
+                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
+                  section === "site"
+                    ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
+                    : "bg-card/40 border-border text-muted-foreground hover:text-ivory"
+                }`}
+              >
+                <Palette className="size-4" strokeWidth={1.6} />
+                إعدادات الموقع
+              </button>
             </div>
+
 
             {loading ? (
               <div className="grid place-items-center py-16 text-muted-foreground">
@@ -399,8 +417,9 @@ function AdminPage() {
                   </ul>
                 )}
               </section>
-            ) : (
+            ) : section === "roles" ? (
               <section className="card-surface p-5 space-y-4">
+
                 <div className="flex items-center justify-between gap-3 flex-wrap">
                   <div className="flex items-center gap-2">
                     <UserCog className="size-5 text-gold-primary" />
@@ -489,7 +508,50 @@ function AdminPage() {
                   </ul>
                 )}
               </section>
+            ) : (
+              <section className="card-surface p-5 space-y-5">
+                <div className="flex items-center gap-2">
+                  <Palette className="size-5 text-gold-primary" />
+                  <h3 className="text-base text-ivory">إعدادات الموقع</h3>
+                </div>
+                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
+                  تحكّم في خلفيات الموقع وإنشاء الاجتماعات من مكان واحد.
+                </p>
+
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold text-ivory inline-flex items-center gap-1.5">
+                    <ImageIcon className="size-3.5 text-gold-primary" strokeWidth={1.8} />
+                    خلفيات الصفحات
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    <BackgroundUploader inline settingKey="auth_bg" label="تغيير خلفية صفحة الدخول" />
+                    <BackgroundUploader inline settingKey="dashboard_bg" label="تغيير خلفية لوحة التحكم" />
+                  </div>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    اختر صورة مناسبة (حد أقصى 8 ميجابايت). تتكيّف ألوان الواجهة تلقائياً مع الخلفية الجديدة.
+                  </p>
+                </div>
+
+                <div className="space-y-3 pt-2 border-t border-border/60">
+                  <h4 className="text-xs font-semibold text-ivory inline-flex items-center gap-1.5">
+                    <CalendarPlus className="size-3.5 text-gold-primary" strokeWidth={1.8} />
+                    الاجتماعات
+                  </h4>
+                  <Link
+                    to="/meetings"
+                    hash="new"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-sm font-medium transition"
+                  >
+                    <CalendarPlus className="size-4" strokeWidth={1.8} />
+                    إنشاء اجتماع جديد
+                  </Link>
+                  <p className="text-[11px] text-muted-foreground/70">
+                    سيتم فتح نموذج إنشاء اجتماع جديد في صفحة الاجتماعات.
+                  </p>
+                </div>
+              </section>
             )}
+
           </>
         )}
       </div>

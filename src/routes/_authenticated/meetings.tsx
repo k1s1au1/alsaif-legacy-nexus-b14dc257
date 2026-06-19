@@ -7,7 +7,6 @@ import {
   MapPin,
   Clock,
   Users,
-  Plus,
   X,
   Trash2,
   Pencil,
@@ -15,6 +14,7 @@ import {
   XCircle,
   HelpCircle,
 } from "lucide-react";
+
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
@@ -199,6 +199,17 @@ function MeetingsPage() {
     };
   }, []);
 
+  // Auto-open the create form when navigated with #new (from admin page).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!canManage) return;
+    if (window.location.hash === "#new") {
+      openCreate();
+      history.replaceState(null, "", window.location.pathname + window.location.search);
+    }
+  }, [canManage]);
+
+
   async function submitForm(e: FormEvent) {
     e.preventDefault();
     if (!userId) return;
@@ -298,16 +309,8 @@ function MeetingsPage() {
               جدول اللقاءات القادمة وتأكيد الحضور.
             </p>
           </div>
-          {canManage && (
-            <button
-              onClick={openCreate}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition"
-            >
-              <Plus className="size-4" strokeWidth={2} />
-              اجتماع جديد
-            </button>
-          )}
         </div>
+
 
         {loading ? (
           <div className="text-center text-muted-foreground py-16">جاري التحميل...</div>

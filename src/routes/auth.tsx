@@ -8,7 +8,7 @@ import logoAsset from "@/assets/alsaif-logo.png.asset.json";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { paletteToCssVars } from "@/lib/bg-palette";
-import { BackgroundUploader } from "@/components/background-uploader";
+
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
