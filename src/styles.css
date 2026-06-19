@@ -3,20 +3,17 @@
 @import "tw-animate-css";
 
 /*
- * Alsaif Design System — Royal Heritage Edition
- * Clean, minimal, blurred surfaces, and rounded iconography.
+ * Alsaif Design System — unified Royal Heritage Edition
+ * Designed for both Web and Android/iOS.
  */
 
 @theme inline {
-  /* Brand palette */
   --color-navy-base: var(--navy-base);
   --color-navy-card: var(--navy-card);
-  --color-navy-elev: var(--navy-elev);
   --color-gold-primary: var(--gold-primary);
   --color-gold-soft: var(--gold-soft);
   --color-ivory: var(--ivory);
 
-  /* Semantic shadcn-style tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -31,26 +28,22 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Fonts */
-  --font-arabic: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, Helvetica, Arial, "Tajawal", "Cairo", sans-serif;
+  --font-arabic: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Arabic", "Segoe UI", Roboto, "Cairo", "Tajawal", sans-serif;
 
-  /* Corner Radii */
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 20px;
-  --radius-xl: 32px;
+  --radius-lg: 24px;
+  --radius-xl: 40px;
 
-  --shadow-gold: 0 4px 20px -2px rgba(212, 175, 55, 0.15);
+  --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
 :root {
-  /* Light Theme — Alabaster & Royal Emerald */
+  /* Premium Light Theme */
   --background: #F5F5F0;
   --foreground: #1A1C1E;
 
@@ -58,7 +51,7 @@
   --navy-card: #FAF9F6;
   --navy-elev: #FFFFFF;
 
-  --gold-primary: #1B4332;
+  --gold-primary: #1B4332; /* Deep Royal Green */
   --gold-soft: #2D6A4F;
   --ivory: #1A1C1E;
 
@@ -76,13 +69,14 @@
 
   --border: #E5E4E0;
   --input: #FFFFFF;
-  --ring: rgba(27, 67, 50, 0.2);
+  --ring: rgba(212, 175, 55, 0.2);
 
   --luxury-gold: #D4AF37;
   --luxury-glow: rgba(212, 175, 55, 0.25);
 }
 
 .dark {
+  /* Premium Dark Theme */
   --background: #0C0D10;
   --foreground: #F1F5F9;
 
@@ -90,7 +84,7 @@
   --navy-card: #15171C;
   --navy-elev: #1E2128;
 
-  --gold-primary: #D4AF37;
+  --gold-primary: #D4AF37; /* Royal Gold */
   --gold-soft: #F9E29C;
   --ivory: #F8FAFC;
 
@@ -112,56 +106,63 @@
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
+  * { border-color: var(--color-border); transition: background-color 0.3s ease, border-color 0.3s ease; }
   html, body {
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-arabic);
     -webkit-font-smoothing: antialiased;
+    margin: 0; padding: 0;
   }
 }
 
-/* Custom utilities */
+/* Premium Card with Glassmorphism support */
 @utility card-surface {
   background-color: var(--navy-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.05);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-premium);
+  backdrop-filter: blur(10px);
 }
 
+/* iOS Style Inputs */
 @utility input-base {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 1rem;
   background-color: var(--input);
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 16px;
   color: var(--foreground);
   font-size: 16px;
   transition: all 0.2s ease;
   &:focus {
     outline: none;
-    border-color: #D4AF37;
-    box-shadow: 0 0 0 4px rgba(212, 175, 55, 0.1);
+    border-color: var(--luxury-gold);
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--luxury-gold) 15%, transparent);
   }
 }
 
+/* Royal Gold Buttons */
 @utility btn-gold {
   background: linear-gradient(to left, #996515, #D4AF37);
   color: white;
   font-weight: 700;
-  box-shadow: 0 8px 20px -6px rgba(212, 175, 55, 0.3);
-  transition: all 0.3s ease;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px -8px rgba(212, 175, 55, 0.4);
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   &:hover {
     filter: brightness(1.1);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px -10px rgba(212, 175, 55, 0.5);
   }
   &:active {
     transform: translateY(1px);
+    filter: brightness(0.9);
   }
 }
 
+.animate-fade-up { animation: fade-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both; }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-up { animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both; }
