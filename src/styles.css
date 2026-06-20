@@ -3,17 +3,23 @@
 @import "tw-animate-css";
 
 /*
- * Alsaif Design System — High Contrast Royal Edition
- * Optimized for maximum legibility and premium feel.
+ * Alsaif Design System — Private Club Midnight
+ * Navy + Gold + Ivory, Arabic-first, RTL.
+ * All tokens defined here. Never hardcode colors in components.
  */
 
 @theme inline {
+  /* Brand palette */
   --color-navy-base: var(--navy-base);
   --color-navy-card: var(--navy-card);
+  --color-navy-elev: var(--navy-elev);
   --color-gold-primary: var(--gold-primary);
   --color-gold-soft: var(--gold-soft);
   --color-ivory: var(--ivory);
+  --color-saudi-red: var(--saudi-red);
+  --color-saudi-red-soft: var(--saudi-red-soft);
 
+  /* Semantic shadcn-style tokens */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -28,87 +34,123 @@
   --color-muted-foreground: var(--muted-foreground);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Font: Prioritizing Tajawal for its superior legibility in Arabic */
-  --font-arabic: "Tajawal", "Cairo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arabic: "Tajawal", "Cairo", "IBM Plex Sans Arabic", sans-serif;
 
-  --radius-sm: 10px;
-  --radius-md: 14px;
-  --radius-lg: 24px;
-  --radius-xl: 44px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
 
-  --shadow-premium: 0 20px 50px -12px rgba(0, 0, 0, 0.15), 0 10px 20px -10px rgba(0, 0, 0, 0.1);
+  --shadow-gold: 0 0 0 1px color-mix(in oklab, var(--gold-primary) 25%, transparent),
+                 0 12px 40px -12px color-mix(in oklab, var(--gold-primary) 30%, transparent);
 }
 
 :root {
-  /* High Contrast Royal Light Theme */
-  --background: #FDFCF7;
-  --foreground: #1A1C1E;
+  /* Dynamic Time-based theme variables */
+  --time-gradient: linear-gradient(to bottom, #F5F5F5, #EAEAEA);
 
-  --navy-base: #FDFCF7;
-  --navy-card: #FFFFFF;
-  --navy-elev: #F2F1EA;
+  /* Brand raw values — Saudi heritage palette (STRICT) */
+  --navy-base: #F5F5F5;     /* page bg */
+  --navy-card: #FFFFFF;     /* card bg */
+  --navy-elev: #EAEAEA;     /* elevated surface */
+  --gold-primary: #0F5A3A;  /* primary Saudi green (kept var name for compat) */
+  --gold-soft: #0B472D;     /* dark green */
+  --ivory: #1A1A1A;         /* primary text */
 
-  --gold-primary: #1B4332; /* Deep Emerald */
-  --gold-soft: rgba(27, 67, 50, 0.1);
-  --ivory: #1A1C1E;
+  /* Saudi red accent */
+  --saudi-red: #C62828;
+  --saudi-red-soft: #E23A4F;
 
-  --primary: #1B4332;
-  --primary-foreground: #FFFFFF;
+  /* Legacy "luxury" tokens mapped to heritage green for backward compat */
+  --luxury-gold: #0F5A3A;
+  --luxury-gold-light: #1F7A48;
+  --luxury-gold-dark: #0B472D;
+  --luxury-glow: rgba(15, 90, 58, 0.25);
 
+  /* Semantic — light heritage theme */
+  --background: #F5F5F5;
+  --foreground: #1A1A1A;
   --card: #FFFFFF;
-  --card-foreground: #1A1C1E;
-
-  --secondary: #F2F1EA;
-  --secondary-foreground: #1B4332;
-
-  --muted: #64748B;
-  --muted-foreground: #475569;
-
-  --accent: rgba(197, 160, 89, 0.15); /* Soft Gold Accent */
-  --accent-foreground: #8B6B23;
-
-  --border: rgba(27, 67, 50, 0.12);
+  --card-foreground: #1A1A1A;
+  --popover: #FFFFFF;
+  --popover-foreground: #1A1A1A;
+  --primary: #0F5A3A;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EAEAEA;
+  --secondary-foreground: #1A1A1A;
+  --muted: #EAEAEA;
+  --muted-foreground: #666666;
+  --accent: #FDECEF;
+  --accent-foreground: #C62828;
+  --destructive: #C62828;
+  --destructive-foreground: #FFFFFF;
+  --border: #EAEAEA;
   --input: #FFFFFF;
-  --ring: rgba(197, 160, 89, 0.4);
-
-  --luxury-gold: #C5A059;
-  --luxury-glow: rgba(197, 160, 89, 0.2);
+  --ring: rgba(15, 90, 58, 0.35);
 }
 
+
+/* Light mode — ivory paper + navy ink */
+.light {
+  --background: #faf8f2;
+  --foreground: #050a18;
+  --card: #ffffff;
+  --card-foreground: #050a18;
+  --popover: #ffffff;
+  --popover-foreground: #050a18;
+  --primary: #8e7745;
+  --primary-foreground: #faf8f2;
+  --secondary: #f0ebdc;
+  --secondary-foreground: #050a18;
+  --muted: #f0ebdc;
+  --muted-foreground: rgba(5, 10, 24, 0.6);
+  --accent: #f0ebdc;
+  --accent-foreground: #8e7745;
+  --border: rgba(5, 10, 24, 0.1);
+  --input: rgba(5, 10, 24, 0.06);
+  --ring: rgba(142, 119, 69, 0.5);
+}
+
+/* Dark mode — deep navy + soft gold */
 .dark {
-  /* High Contrast Royal Dark Theme */
-  --background: #080A0C;
-  --foreground: #F8FAFC;
+  --navy-base: #0a0e1a;
+  --navy-card: #12172a;
+  --navy-elev: #1a2035;
+  --gold-primary: #d4af37;
+  --gold-soft: #e8c96a;
+  --ivory: #f0e6d2;
 
-  --navy-base: #080A0C;
-  --navy-card: #12151A;
-  --navy-elev: #1C2128;
+  /* Luxury gold — brighter for dark backgrounds */
+  --luxury-gold: #d4af37;
+  --luxury-gold-light: #f0d878;
+  --luxury-gold-dark: #b8972e;
+  --luxury-glow: rgba(212, 175, 55, 0.45);
 
-  --gold-primary: #D4AF37; /* Royal Gold */
-  --gold-soft: #F9E29C;
-  --ivory: #F8FAFC;
-
-  --primary: #D4AF37;
-  --primary-foreground: #080A0C;
-
-  --card: #12151A;
-  --card-foreground: #F8FAFC;
-
-  --secondary: #1C2128;
-  --secondary-foreground: #F8FAFC;
-
-  --muted: #334155;
-  --muted-foreground: #94A3B8;
-
-  --accent: rgba(212, 175, 55, 0.15);
-  --accent-foreground: #D4AF37;
-
-  --border: rgba(255, 255, 255, 0.1);
-  --input: #12151A;
+  /* Semantic — dark theme */
+  --background: #0a0e1a;
+  --foreground: #f0e6d2;
+  --card: #12172a;
+  --card-foreground: #f0e6d2;
+  --popover: #12172a;
+  --popover-foreground: #f0e6d2;
+  --primary: #d4af37;
+  --primary-foreground: #0a0e1a;
+  --secondary: #1a2035;
+  --secondary-foreground: #e8c96a;
+  --muted: #1a2035;
+  --muted-foreground: rgba(240, 230, 210, 0.55);
+  --accent: #1a2035;
+  --accent-foreground: #d4af37;
+  --destructive: #e23a4f;
+  --destructive-foreground: #f0e6d2;
+  --border: rgba(212, 175, 55, 0.12);
+  --input: rgba(240, 230, 210, 0.08);
   --ring: rgba(212, 175, 55, 0.5);
 }
 
@@ -118,71 +160,94 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-arabic);
-    font-weight: 500;
     -webkit-font-smoothing: antialiased;
-    scroll-behavior: smooth;
-    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   }
-  h1, h2, h3, h4, h5, h6 { font-weight: 700; }
+  body { font-feature-settings: "ss01", "kern"; }
+  ::selection { background-color: color-mix(in oklab, var(--gold-primary) 30%, transparent); }
 }
 
-/* Glass Surface with Higher Opacity for Readability */
+/* Custom utilities */
+@utility ring-gold {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold-primary) 20%, transparent);
+}
+
 @utility card-surface {
-  background-color: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
+  background-color: color-mix(in oklab, var(--card) 70%, transparent);
+  border: 1px solid color-mix(in oklab, var(--gold-primary) 12%, transparent);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
 }
 
 @utility eyebrow {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--primary);
-  opacity: 0.8;
+  letter-spacing: 0.2em;
+  color: color-mix(in oklab, var(--gold-primary) 60%, transparent);
 }
 
-/* Solid Input for contrast */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.19, 1, 0.22, 1) both; }
+
+/* Responsive auth background object-position */
+.auth-bg-img {
+  object-position: center center;
+}
+@media (max-width: 640px) {
+  .auth-bg-img {
+    object-position: center top;
+  }
+}
+@media (min-width: 641px) and (max-width: 1024px) {
+  .auth-bg-img {
+    object-position: center 20%;
+  }
+}
+
 @utility input-base {
   width: 100%;
-  padding: 0.875rem 1.125rem;
-  background-color: var(--navy-card);
-  border: 1.5px solid var(--border);
-  border-radius: 14px;
-  color: var(--foreground);
-  font-size: 16px;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  padding: 0.625rem 0.875rem;
+  background-color: color-mix(in oklab, var(--background) 60%, transparent);
+  border: 1px solid color-mix(in oklab, var(--gold-primary) 15%, transparent);
+  border-radius: 8px;
+  color: var(--color-foreground);
+  font-size: 0.875rem;
+  transition: border-color 0.15s, box-shadow 0.15s;
   &:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--primary) 10%, transparent);
+    border-color: color-mix(in oklab, var(--gold-primary) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--gold-primary) 12%, transparent);
   }
 }
 
-/* High Visibility Gold Buttons */
+/* Luxury gold gradients & effects */
 @utility btn-gold {
-  background: linear-gradient(135deg, #8B6B23 0%, #B8972E 100%);
-  color: white;
-  font-weight: 700;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px -6px rgba(139, 107, 35, 0.4);
-  transition: all 0.3s ease;
+  background: linear-gradient(135deg, var(--luxury-gold) 0%, var(--luxury-gold-dark) 100%);
+  color: #1a1a1a;
+  box-shadow: 0 4px 16px -4px var(--luxury-glow), inset 0 1px 0 rgba(255,255,255,0.25);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 25px -8px rgba(139, 107, 35, 0.5);
-    filter: brightness(1.1);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px -4px var(--luxury-glow), inset 0 1px 0 rgba(255,255,255,0.35);
   }
   &:active {
-    transform: translateY(1px);
+    transform: translateY(0);
+    box-shadow: 0 2px 8px -2px var(--luxury-glow);
   }
 }
 
-.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-@keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+@utility gold-icon-glow {
+  background: linear-gradient(135deg, var(--luxury-gold-light) 0%, var(--luxury-gold) 60%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  filter: drop-shadow(0 0 4px var(--luxury-glow));
+}
+
+@utility ring-gold-luxury {
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--luxury-gold) 30%, transparent),
+              0 0 20px -4px color-mix(in oklab, var(--luxury-gold) 25%, transparent);
 }
