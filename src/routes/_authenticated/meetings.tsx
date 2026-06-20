@@ -233,6 +233,7 @@ function MeetingsPage() {
         toast.success("تم تحديث الاجتماع");
         setShowForm(false);
         resetForm();
+        loadAll(); // Force reload after update
       }
     } else {
       const { error } = await supabase
@@ -243,6 +244,7 @@ function MeetingsPage() {
         toast.success("تم إنشاء الاجتماع");
         setShowForm(false);
         resetForm();
+        loadAll(); // Force reload after creation
       }
     }
     setSubmitting(false);
@@ -252,20 +254,18 @@ function MeetingsPage() {
     if (!confirm("هل تريد حذف هذا الاجتماع؟")) return;
     const { error } = await supabase.from("meetings").delete().eq("id", id);
     if (error) toast.error("تعذر الحذف");
-    else toast.success("تم الحذف");
+    else {
+      toast.success("تم الحذف");
+      loadAll();
+    }
   }
 
   async function setRsvp(meetingId: string, rsvp: Rsvp) {
     if (!userId) return;
     const existing = attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId);
-    if (existing && existing.rsvp === rsvp) {
-      // toggle off
-      const { error } = await supabase
-        .from("meeting_attendees")
-        .delete()
-        .eq("meeting_id", meetingId)
         .eq("user_id", userId);
       if (error) toast.error("تعذر التحديث");
+      else loadAll();
       return;
     }
     const { error } = await supabase
@@ -275,6 +275,7 @@ function MeetingsPage() {
         { onConflict: "meeting_id,user_id" },
       );
     if (error) toast.error("تعذر التحديث");
+    else loadAll();
   }
 
   function countsFor(meetingId: string) {
@@ -633,7 +634,7 @@ function MeetingCard({
             active={myRsvp === "not_going"}
             onClick={() => onRsvp(meeting.id, "not_going")}
             icon={<XCircle className="size-4" strokeWidth={1.5} />}
-            label="معتذر"
+            label="أعتذر"
             activeClass="bg-rose-500/15 text-rose-400 ring-rose-500/30"
           />
         </div>
