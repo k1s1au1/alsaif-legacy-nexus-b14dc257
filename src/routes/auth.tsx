@@ -5,7 +5,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, UserPlus, ArrowRight } from "lucide-react";
 import logoAsset from "@/assets/alsaif-logo.png.asset.json";
-import { SaduPattern } from "@/components/sadu-pattern";
 import { TermsContent, TERMS_SHORT } from "@/components/terms-content";
 
 
@@ -378,8 +377,6 @@ function AuthPage() {
           </>
         )}
         </div>
-        {/* Sadu ribbon at the bottom edge of the card */}
-        <SaduPattern height={24} />
       </div>
       {showTerms && (
         <div className="fixed inset-0 z-[100] bg-background/90 backdrop-blur-sm grid place-items-center p-4">
