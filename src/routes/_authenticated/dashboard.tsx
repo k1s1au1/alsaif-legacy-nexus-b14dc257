@@ -19,7 +19,8 @@ import {
   ArrowUpRight,
   Search,
   LayoutGrid,
-  User
+  User,
+  History
 } from "lucide-react";
 import tripImage from "@/assets/trip-alula.jpg";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -92,6 +93,18 @@ function Dashboard() {
     return "طاب مساؤك";
   };
 
+  const quickActions = [
+    { to: "/chat", label: "محادثة", icon: <MessageCircle size={22} />, color: "bg-blue-500" },
+    { to: "/trips", label: "رحلات", icon: <Plane size={22} />, color: "bg-indigo-500" },
+    { to: "/meetings", label: "اجتماعات", icon: <CalendarDays size={22} />, color: "bg-amber-500" },
+    { to: "/tasks", label: "مهام", icon: <ListChecks size={22} />, color: "bg-rose-500" },
+    { to: "/majlis", label: "إعلان", icon: <Megaphone size={22} />, color: "bg-emerald-500" },
+    { to: "/family-tree", label: "الشجرة", icon: <Users size={22} />, color: "bg-teal-500" },
+    { to: "/finance", label: "الصندوق", icon: <Wallet size={22} />, color: "bg-green-600" },
+    { to: "/archive", label: "الأرشيف", icon: <History size={22} />, color: "bg-stone-600" },
+    { to: "/profile", label: "ملفي", icon: <User size={22} />, color: "bg-slate-500" },
+  ];
+
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-10 pb-20">
@@ -118,8 +131,40 @@ function Dashboard() {
            </div>
         </section>
 
+        {/* NEW: Animated Horizontal Quick Actions (Above Stats) */}
+        <section className="space-y-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
+           <div className="flex items-center justify-between px-2">
+             <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em] opacity-60">إجراءات سريعة</h3>
+             <div className="flex gap-1">
+                <div className="size-1.5 rounded-full bg-primary/20" />
+                <div className="size-1.5 rounded-full bg-primary/40 animate-pulse" />
+             </div>
+           </div>
+
+           <div className="flex overflow-x-auto gap-4 pb-6 pt-2 no-scrollbar snap-x snap-mandatory">
+              {quickActions.map((action, i) => (
+                <Link
+                  key={action.to}
+                  to={action.to}
+                  className="flex-none w-[110px] snap-center group"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <div className={cn(
+                      "size-20 rounded-[32px] flex items-center justify-center text-white shadow-xl transition-all duration-500",
+                      "group-hover:scale-110 group-hover:-translate-y-2 group-active:scale-95",
+                      action.color
+                    )}>
+                      {action.icon}
+                    </div>
+                    <span className="text-[13px] font-black text-[#4A4A4A] group-hover:text-primary transition-colors">{action.label}</span>
+                  </div>
+                </Link>
+              ))}
+           </div>
+        </section>
+
         {/* Stats Grid - High Contrast */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
            <StatCard label="رصيد الصندوق" value={fundBalance?.toLocaleString() || "0"} suffix="ر.س" icon={<Wallet />} color="bg-emerald-600" />
            <StatCard label="أفراد العائلة" value={membersCount} suffix="عضو" icon={<Users />} color="bg-primary" />
            <StatCard label="الرحلات المجدولة" value={tripsCount} suffix="رحلة" icon={<Plane />} color="bg-[#8E7745]" />
@@ -127,10 +172,10 @@ function Dashboard() {
         </div>
 
         {/* Main Dashboard Bento */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 animate-fade-up" style={{ animationDelay: "300ms" }}>
 
            {/* Next Meeting Spotlight */}
-           <article className="lg:col-span-8 card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl">
+           <article className="lg:col-span-12 card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl">
               <div className="flex-1 p-10 space-y-8">
                  <div className="space-y-3">
                    <div className="flex items-center gap-2">
@@ -186,33 +231,19 @@ function Dashboard() {
               </div>
            </article>
 
-           {/* Quick Access Sidebar */}
-           <article className="lg:col-span-4 space-y-6">
-              <div className="card-surface p-8">
-                 <h3 className="text-lg font-black text-primary mb-6 border-b border-border/50 pb-4">إجراءات سريعة</h3>
-                 <div className="grid grid-cols-2 gap-4">
-                    <QuickAction to="/chat" label="محادثة" icon={<MessageCircle size={20} />} />
-                    <QuickAction to="/trips" label="رحلة" icon={<Plane size={20} />} />
-                    <QuickAction to="/meetings" label="الاجتماعات" icon={<CalendarDays size={20} />} />
-                    <QuickAction to="/tasks" label="مهمة" icon={<ListChecks size={20} />} />
-                    <QuickAction to="/majlis" label="إعلان" icon={<Megaphone size={20} />} />
-                    <QuickAction to="/family-tree" label="شجرة العائلة" icon={<Users size={20} />} />
-                    <QuickAction to="/finance" label="صندوق العائلة" icon={<Wallet size={20} />} />
-                    <QuickAction to="/profile" label="ملفي الشخصي" icon={<User size={20} />} />
-                 </div>
+           {/* Archive spotlight moved here to fill the grid nicely */}
+           <article className="lg:col-span-12 card-surface p-10 bg-[#1B4332] border-none text-white relative overflow-hidden group">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform duration-700 scale-150">
+                 <Sparkles size={120} />
               </div>
-
-              <div className="card-surface p-8 bg-[#1B4332] border-none text-white relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:rotate-12 transition-transform duration-500">
-                    <Sparkles size={80} />
-                 </div>
-                 <h3 className="text-lg font-bold mb-2">أرشيف العائلة</h3>
-                 <p className="text-sm opacity-70 mb-6 font-medium leading-relaxed">
-                   استكشف صور ووثائق عائلة آل سيف التاريخية.
-                 </p>
-                 <Link to="/archive" className="inline-flex items-center gap-2 text-sm font-black text-[#D4AF37] hover:gap-4 transition-all">
-                    فتح الأرشيف <ChevronLeft size={16} />
-                 </Link>
+              <div className="relative z-10 max-w-2xl">
+                <h3 className="text-3xl font-black mb-4 tracking-tight">أرشيف العائلة التاريخي</h3>
+                <p className="text-lg opacity-70 mb-8 font-medium leading-relaxed">
+                  استكشف كنزاً من الصور والوثائق النادرة التي تروي قصة عائلة آل سيف عبر الأجيال.
+                </p>
+                <Link to="/archive" className="btn-gold px-12 py-4 text-base inline-flex items-center gap-3">
+                   دخول الأرشيف <ChevronLeft size={20} />
+                </Link>
               </div>
            </article>
 
@@ -240,16 +271,5 @@ function StatCard({ label, value, suffix, icon, color }: { label: string, value:
           {icon}
        </div>
     </div>
-  );
-}
-
-function QuickAction({ to, label, icon }: { to: string, label: string, icon: React.ReactNode }) {
-  return (
-    <Link to={to} className="flex flex-col items-center justify-center gap-3 p-5 rounded-[24px] bg-[#F2F2F7] border border-transparent hover:border-primary/20 hover:bg-white hover:shadow-xl transition-all group">
-       <div className="text-[#8E7745] group-hover:text-primary group-hover:scale-110 transition-all duration-300">
-          {icon}
-       </div>
-       <span className="text-xs font-black text-[#4A4A4A]">{label}</span>
-    </Link>
   );
 }
