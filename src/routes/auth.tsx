@@ -74,8 +74,9 @@ function AuthPage() {
         <div className="relative z-10 p-8 sm:p-10">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="size-24 mb-6 flex items-center justify-center p-3 bg-card rounded-[32px] shadow-sm ring-1 ring-border relative group">
-              <div className="absolute inset-0 bg-gold-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="size-28 mb-6 flex items-center justify-center p-4 bg-gradient-to-b from-card to-muted rounded-[36px] shadow-lg ring-1 ring-border relative group overflow-hidden">
+              <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               <img src={logoAsset?.url || ""} alt="Logo" className="size-full object-contain relative z-10 logo-royal" />
             </div>
             <h1 className="text-4xl font-serif text-primary mb-1 font-bold tracking-tight">مجلس السيف</h1>

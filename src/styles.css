@@ -91,7 +91,13 @@
 
 .dark .logo-royal {
   mix-blend-mode: screen;
-  filter: invert(1) brightness(1.1) sepia(1) saturate(6) hue-rotate(355deg) drop-shadow(0 0 12px rgba(234, 179, 8, 0.5));
+  filter: invert(1) brightness(1.2) sepia(1) saturate(8) hue-rotate(345deg) drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
+  animation: royal-pulse 4s infinite alternate ease-in-out;
+}
+
+@keyframes royal-pulse {
+  0% { filter: invert(1) brightness(1.1) sepia(1) saturate(6) hue-rotate(345deg) drop-shadow(0 0 8px rgba(212, 175, 55, 0.4)); }
+  100% { filter: invert(1) brightness(1.3) sepia(1) saturate(10) hue-rotate(345deg) drop-shadow(0 0 20px rgba(212, 175, 55, 0.7)); }
 }
 
 @utility shimmer-gold {
