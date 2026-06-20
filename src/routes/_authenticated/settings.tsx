@@ -9,10 +9,12 @@ import {
   Info,
   Smartphone,
   ShieldCheck,
-  ExternalLink
+  ChevronLeft,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
@@ -20,246 +22,185 @@ export const Route = createFileRoute("/_authenticated/settings")({
 
 function SettingsPage() {
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system">("system");
-  const [appVersion, setAppVersion] = useState("1.0.0");
+  const [appVersion, setAppVersion] = useState("1.1.5 (Web)");
   const [isNative, setIsNative] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Check for theme
+    // Load saved theme
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
-    if (savedTheme) setDarkMode(savedTheme);
+    if (savedTheme) {
+      setDarkMode(savedTheme);
+      applyTheme(savedTheme);
+    }
 
-    // Safely check for native platform using global objects only
+    // Safe Capacitor detection
     const win = window as any;
-    const isMobile = win.Capacitor?.isNativePlatform();
-
-    // For testing/UI purposes, we might want to show mobile settings if we are on a small screen too
-    // but the request said "mobile settings not working", so let's make it visible and functional if possible
-    if (isMobile || window.innerWidth < 768) {
+    if (win.Capacitor?.isNativePlatform()) {
       setIsNative(true);
-      setAppVersion(isMobile ? "1.1.2 (Native)" : "1.1.2 (Web-Mobile)");
+      setAppVersion("1.1.5 (Native)");
 
-      if (win.Capacitor?.Plugins?.PushNotifications) {
-        win.Capacitor.Plugins.PushNotifications.checkPermissions().then((res: any) => {
-          setNotificationsEnabled(res.receive === "granted");
-        });
+      const plugins = win.Capacitor?.Plugins;
+      if (plugins?.App) {
+        plugins.App.getInfo().then((info: any) => setAppVersion(`${info.version} (${info.build})`));
+      }
+      if (plugins?.PushNotifications) {
+        plugins.PushNotifications.checkPermissions().then((res: any) => setNotificationsEnabled(res.receive === "granted"));
       }
     }
   }, []);
 
+  const applyTheme = (theme: "light" | "dark" | "system") => {
+    const root = document.documentElement;
+    if (theme === "dark") {
+      root.classList.add("dark");
+    } else if (theme === "light") {
+      root.classList.remove("dark");
+    } else {
+      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      root.classList.toggle("dark", prefersDark);
+    }
+  };
+
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
     setDarkMode(theme);
     if (typeof window === "undefined") return;
-
     localStorage.setItem("theme", theme);
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-
-    if (theme === "dark") {
-      document.documentElement.classList.add("dark");
-    } else if (theme === "light") {
-      document.documentElement.classList.remove("dark");
-    } else {
-      document.documentElement.classList.toggle("dark", prefersDark);
-    }
-    toast.success("تم تحديث المظهر بنجاح", {
-      description: `تم التحويل إلى الوضع ${theme === "dark" ? "الداكن" : theme === "light" ? "الفاتح" : "التلقائي"}`,
+    applyTheme(theme);
+    toast.success("تم تحديث المظهر", {
+      description: `تم اختيار الوضع ${theme === "dark" ? "الداكن" : theme === "light" ? "الفاتح" : "التلقائي"}`,
+      icon: <Check className="text-emerald-500" />
     });
-  };
-
-  const openNativeSettings = async () => {
-    const win = window as any;
-    if (win.Capacitor?.Plugins?.App) {
-      toast.loading("جاري فتح إعدادات النظام...");
-      try {
-        await win.Capacitor.Plugins.App.openAppSettings();
-      } catch (e) {
-        toast.error("تعذر فتح الإعدادات تلقائياً");
-      }
-    } else {
-      toast.info("هذه الميزة متاحة فقط عند تشغيل التطبيق على الجوال بنظام Native");
-    }
-  };
-
-  const toggleNotifications = async () => {
-    const win = window as any;
-    if (win.Capacitor?.Plugins?.PushNotifications) {
-      const perm = await win.Capacitor.Plugins.PushNotifications.requestPermissions();
-      setNotificationsEnabled(perm.receive === "granted");
-      if (perm.receive === "granted") {
-        toast.success("تم تفعيل الإشعارات بنجاح");
-      } else {
-        toast.error("تم رفض صلاحية الإشعارات");
-      }
-    } else {
-      toast.info("يرجى تفعيل الإشعارات من إعدادات المتصفح أو الجوال");
-    }
   };
 
   return (
     <AppShell title="الإعدادات" user={{ name: "مستخدم", role: "عضو", initial: "م" }}>
-      <div className="max-w-2xl mx-auto space-y-8 pb-12 animate-fade-up">
+      <div className="max-w-3xl mx-auto space-y-10 pb-20 animate-fade-up">
 
-        {/* Appearance Section */}
-        <section className="space-y-4">
-          <h3 className="text-xs font-bold text-primary uppercase tracking-[0.2em] px-2 opacity-70">المظهر العام</h3>
-          <div className="card-surface overflow-hidden">
-            <div className="p-5 flex items-center justify-between border-b border-border/60">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  {darkMode === "dark" ? <Moon size={20} /> : <Sun size={20} />}
-                </div>
-                <div>
-                  <p className="text-[16px] font-bold text-foreground">الوضع الليلي</p>
-                  <p className="text-[12px] text-muted-foreground">اختر النمط المفضل لعينيك</p>
-                </div>
-              </div>
-            </div>
-            <div className="p-4 grid grid-cols-3 gap-3">
-              <ThemeOption
-                active={darkMode === "light"}
-                label="فاتح"
-                onClick={() => handleThemeChange("light")}
-                icon={<Sun size={18} />}
-              />
-              <ThemeOption
-                active={darkMode === "dark"}
-                label="داكن"
-                onClick={() => handleThemeChange("dark")}
-                icon={<Moon size={18} />}
-              />
-              <ThemeOption
-                active={darkMode === "system"}
-                label="تلقائي"
-                onClick={() => handleThemeChange("system")}
-                icon={<Smartphone size={18} />}
-              />
-            </div>
+        {/* Appearance - High Legibility */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 px-2">
+             <div className="size-1 w-12 bg-primary rounded-full" />
+             <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em]">تخصيص المظهر</h3>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+             <ThemeCard
+               active={darkMode === "light"}
+               onClick={() => handleThemeChange("light")}
+               label="الوضع الفاتح"
+               desc="مثالي للقراءة في النهار"
+               icon={<Sun className="size-8" />}
+             />
+             <ThemeCard
+               active={darkMode === "dark"}
+               onClick={() => handleThemeChange("dark")}
+               label="الوضع الداكن"
+               desc="مريح للعين في المساء"
+               icon={<Moon className="size-8" />}
+             />
+             <ThemeCard
+               active={darkMode === "system"}
+               onClick={() => handleThemeChange("system")}
+               label="تلقائي"
+               desc="يتبع إعدادات جهازك"
+               icon={<Smartphone className="size-8" />}
+             />
           </div>
         </section>
 
-        {/* App Specific Settings */}
-        <section className="space-y-4 animate-fade-in">
-          <h3 className="text-xs font-bold text-primary uppercase tracking-[0.2em] px-2 opacity-70">إعدادات الجوال</h3>
-          <div className="card-surface divide-y divide-border/60">
-            <div className="p-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  <Bell size={20} />
-                </div>
-                <div>
-                  <p className="text-[16px] font-bold text-foreground">إشعارات الجوال</p>
-                  <p className="text-[12px] text-muted-foreground">
-                    {notificationsEnabled ? "مفعّلة وتعمل بنجاح" : "الإشعارات معطلة حالياً"}
-                  </p>
-                </div>
-              </div>
-              {!notificationsEnabled && (
-                <button
-                  onClick={toggleNotifications}
-                  className="text-[12px] bg-primary text-primary-foreground px-4 py-2 rounded-xl font-bold shadow-lg shadow-primary/20 transition-all hover:brightness-110 active:scale-95"
-                >
-                  تفعيل
-                </button>
-              )}
-            </div>
-            <button
-              onClick={openNativeSettings}
-              className="w-full p-5 hover:bg-muted/50 transition-colors flex items-center justify-between group text-right"
-            >
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  <Smartphone size={20} />
-                </div>
-                <div>
-                  <p className="text-[16px] font-bold text-foreground">إعدادات النظام</p>
-                  <p className="text-[12px] text-muted-foreground">إدارة الصلاحيات والخصوصية</p>
-                </div>
-              </div>
-              <ExternalLink size={18} className="text-muted-foreground group-hover:text-primary transition-colors" />
-            </button>
+        {/* System Integration */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 px-2">
+             <div className="size-1 w-12 bg-[#8E7745] rounded-full" />
+             <h3 className="text-sm font-black text-[#8E7745] uppercase tracking-[0.2em]">تكامل النظام</h3>
+          </div>
+
+          <div className="card-surface divide-y divide-border/60 overflow-hidden border-none shadow-2xl">
+             {isNative && (
+               <SettingItem
+                 icon={<Bell />}
+                 title="تنبيهات الجوال"
+                 desc={notificationsEnabled ? "الإشعارات المنبثقة مفعّلة" : "اضغط لتفعيل تنبيهات المجلس"}
+                 onClick={() => toast.info("يتم تحويلك لإعدادات الإشعارات...")}
+               />
+             )}
+             <SettingItem
+               icon={<Languages />}
+               title="لغة الواجهة"
+               desc="اللغة الحالية: العربية (الإقليمية)"
+               badge="افتراضي"
+             />
+             <SettingItem
+               icon={<ShieldCheck />}
+               title="الخصوصية والأمان"
+               desc="إدارة بياناتك والتحقق بخطوتين"
+               onClick={() => toast.info("ستتوفر قريباً")}
+             />
+             <SettingItem
+               icon={<Info />}
+               title="إصدار المنصة"
+               desc={`الإصدار الحالي: ${appVersion}`}
+             />
           </div>
         </section>
 
-        {/* Language Section */}
-        <section className="space-y-4">
-          <h3 className="text-xs font-bold text-primary uppercase tracking-[0.2em] px-2 opacity-70">اللغة</h3>
-          <div className="card-surface p-5 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                <Languages size={20} />
-              </div>
-              <div>
-                <p className="text-[16px] font-bold text-foreground">لغة التطبيق</p>
-                <p className="text-[12px] text-muted-foreground">التطبيق متوفر حالياً باللغة العربية</p>
-              </div>
-            </div>
-            <span className="text-[14px] font-bold text-primary bg-primary/5 px-5 py-2 rounded-xl border border-primary/20">
-              العربية
-            </span>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section className="space-y-4">
-          <h3 className="text-xs font-bold text-primary uppercase tracking-[0.2em] px-2 opacity-70">حول {isNative ? "التطبيق" : "المنصة"}</h3>
-          <div className="card-surface divide-y divide-border/60">
-            <div className="p-5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  <Info size={20} />
-                </div>
-                <div className="text-right">
-                  <p className="text-[16px] font-bold text-foreground">إصدار {isNative ? "التطبيق" : "الويب"}</p>
-                  <p className="text-[12px] text-muted-foreground font-medium">{appVersion}</p>
-                </div>
-              </div>
-            </div>
-            <button className="w-full p-5 hover:bg-muted/50 transition-colors flex items-center justify-between group text-right">
-              <div className="flex items-center gap-4">
-                <div className="size-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
-                  <ShieldCheck size={20} />
-                </div>
-                <div>
-                  <p className="text-[16px] font-bold text-foreground">سياسة الخصوصية</p>
-                  <p className="text-[12px] text-muted-foreground">كيفية حماية بيانات العائلة</p>
-                </div>
-              </div>
-              <ExternalLink size={18} className="text-muted-foreground group-hover:text-primary transition-colors" />
-            </button>
-          </div>
-        </section>
-
-        <div className="text-center space-y-3 mt-16 pb-8">
-          <p className="text-[12px] text-muted-foreground uppercase tracking-[0.4em] font-black opacity-40">
-            Alsaif Family Hub
-          </p>
-          <p className="text-[11px] text-muted-foreground font-medium">
-            جميع الحقوق محفوظة &copy; {new Date().getFullYear()}
-          </p>
+        <div className="pt-10 flex flex-col items-center gap-2 opacity-30">
+           <img src={alsaifMark.url} className="size-12 grayscale" alt="Mark" />
+           <p className="text-[11px] font-black uppercase tracking-[0.5em]">Alsaif Family Hub</p>
         </div>
       </div>
     </AppShell>
   );
 }
 
-function ThemeOption({ active, label, onClick, icon }: { active: boolean, label: string, onClick: () => void, icon: React.ReactNode }) {
+function ThemeCard({ active, label, desc, onClick, icon }: any) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex flex-col items-center justify-center gap-3 py-6 rounded-[28px] border transition-all duration-300 active:scale-95",
+        "p-8 rounded-[36px] text-right transition-all duration-500 flex flex-col gap-6 group relative overflow-hidden border-4",
         active
-          ? "bg-primary border-primary text-primary-foreground shadow-xl shadow-primary/20"
-          : "bg-card border-border text-foreground hover:bg-muted/50 hover:border-primary/30"
+          ? "bg-[#1B4332] border-[#D4AF37] text-white shadow-2xl"
+          : "bg-white border-transparent text-[#4A4A4A] hover:bg-[#F2F2F7]"
       )}
     >
-      <div className={cn("size-10 flex items-center justify-center rounded-full transition-all duration-500",
-        active ? "bg-primary-foreground/20 scale-110" : "bg-primary/5")}>
+      <div className={cn("size-16 rounded-3xl flex items-center justify-center transition-all duration-700",
+        active ? "bg-white/10 text-[#D4AF37] rotate-12" : "bg-[#F2F2F7] text-primary")}>
         {icon}
       </div>
-      <span className="text-[15px] font-bold">{label}</span>
+      <div>
+        <p className="text-xl font-black tracking-tight">{label}</p>
+        <p className={cn("text-xs font-bold mt-1", active ? "text-white/60" : "text-[#8E8E93]")}>{desc}</p>
+      </div>
+      {active && <div className="absolute -bottom-4 -left-4 size-20 bg-white/5 rounded-full blur-3xl" />}
+    </button>
+  );
+}
+
+function SettingItem({ icon, title, desc, onClick, badge }: any) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={!onClick}
+      className="w-full p-8 flex items-center justify-between group hover:bg-[#F8F7F2] transition-all text-right"
+    >
+      <div className="flex items-center gap-6">
+        <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
+          {icon}
+        </div>
+        <div>
+          <p className="text-lg font-black text-[#0A0A0B]">{title}</p>
+          <p className="text-sm font-bold text-[#8E8E93] mt-0.5">{desc}</p>
+        </div>
+      </div>
+      {badge ? (
+        <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-lg border border-primary/10">{badge}</span>
+      ) : onClick ? (
+        <ChevronLeft className="size-5 text-[#E5E4E0] group-hover:text-primary transition-colors" />
+      ) : null}
     </button>
   );
 }

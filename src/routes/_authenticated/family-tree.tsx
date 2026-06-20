@@ -7,8 +7,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { setMemberParent } from "@/lib/api/family-tree.functions";
-import { Loader2, Pencil, Check, X, Users, ZoomIn, ZoomOut, Maximize2 } from "lucide-react";
+import { Loader2, Pencil, Check, X, Users, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck, UserCircle } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/family-tree")({
   ssr: false,
@@ -34,30 +35,21 @@ type Member = {
   parent_id: string | null;
 };
 
-type NodeAttrs = {
-  member: Member;
-};
-
-const NODE_W = 180;
-const NODE_H = 90;
+const NODE_W = 200;
+const NODE_H = 100;
 
 function FamilyTreePage() {
   const router = useRouter();
-  const [me, setMe] = useState<{
-    id: string;
-    name: string;
-    role: string;
-    initial: string;
-    avatarPath?: string | null;
-  } | null>(null);
+  const [me, setMe] = useState<any>(null);
   const [isPriv, setIsPriv] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [draftParent, setDraftParent] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [zoom, setZoom] = useState(0.8);
-  const [translate, setTranslate] = useState({ x: 400, y: 80 });
+  const [translate, setTranslate] = useState({ x: 400, y: 100 });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const setParentFn = useServerFn(setMemberParent);
 
@@ -66,57 +58,28 @@ function FamilyTreePage() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       const [{ data: profile }, { data: roles }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, full_name, arabic_name, avatar_url, first_name")
-          .eq("id", u.user.id)
-          .maybeSingle(),
+        supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.user.id),
       ]);
       const rs = (roles ?? []).map((r) => r.role);
-      const role = rs.includes("admin")
-        ? "مسؤول النظام"
-        : rs.includes("manager")
-          ? "مشرف"
-          : "عضو";
-      const name =
-        profile?.arabic_name ||
-        profile?.full_name ||
-        profile?.first_name ||
-        u.user.email ||
-        "";
-      setMe({
-        id: u.user.id,
-        name,
-        role,
-        initial: name.charAt(0) || "ع",
-        avatarPath: profile?.avatar_url ?? null,
-      });
-      setIsPriv(rs.includes("admin") || rs.includes("manager"));
+      const isAdmin = rs.includes("admin") || rs.includes("manager");
+      setMe({ ...profile, role: rs.includes("admin") ? "مسؤول النظام" : "عضو", initial: (profile?.arabic_name || "ع")[0] });
+      setIsPriv(isAdmin);
       await load();
     })();
   }, []);
 
-  useEffect(() => {
-    if (!containerRef.current) return;
-    const w = containerRef.current.clientWidth;
-    setTranslate((t) => ({ ...t, x: w / 2 }));
-  }, [members.length]);
-
   async function load() {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("profiles")
-      .select(
-        "id, first_name, father_name, grandfather_name, full_name, avatar_url, parent_id" as any,
-      )
-      .order("first_name", { ascending: true });
-    if (error) {
-      toast.error("تعذّر تحميل الأعضاء", { description: error.message });
-    } else {
-      setMembers((data ?? []) as unknown as Member[]);
+    try {
+      const { data, error } = await supabase.from("profiles").select("*").order("first_name", { ascending: true });
+      if (error) throw error;
+      setMembers((data ?? []) as any);
+    } catch (e) {
+      toast.error("حدث خطأ أثناء تحميل البيانات");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }
 
   const treeData = useMemo<RawNodeDatum[]>(() => {
@@ -129,39 +92,23 @@ function FamilyTreePage() {
       arr.push(m);
       byParent.set(key, arr);
     }
-    for (const arr of byParent.values()) {
-      arr.sort((a, b) =>
-        (a.first_name ?? "").localeCompare(b.first_name ?? "", "ar"),
-      );
-    }
 
     const build = (m: Member): RawNodeDatum => {
       const kids = byParent.get(m.id) ?? [];
       return {
-        name: m.first_name || m.full_name || "—",
-        attributes: { memberId: m.id } as unknown as Record<string, string>,
+        name: m.first_name || "—",
+        attributes: { memberId: m.id } as any,
         children: kids.map(build),
-        // stash member via name + attributes; we'll resolve from members list in renderer
       };
     };
 
     const roots = byParent.get(null) ?? [];
-    if (roots.length === 0) return [];
-    if (roots.length === 1) return [build(roots[0])];
-    // multiple roots: wrap in synthetic root to keep one tree
-    return [
-      {
-        name: "آل السيف",
-        attributes: { memberId: "__root__" } as unknown as Record<string, string>,
-        children: roots.map(build),
-      },
-    ];
-  }, [members]);
-
-  const memberById = useMemo(() => {
-    const map = new Map<string, Member>();
-    for (const m of members) map.set(m.id, m);
-    return map;
+    if (!roots.length) return [];
+    return [{
+      name: "مجلس آل سيف",
+      attributes: { memberId: "__root__" } as any,
+      children: roots.map(build),
+    }];
   }, [members]);
 
   async function saveParent(userId: string) {
@@ -172,72 +119,60 @@ function FamilyTreePage() {
       setEditing(null);
       await load();
       router.invalidate();
-    } catch (e) {
-      toast.error("تعذّر الحفظ", { description: (e as Error).message });
+    } catch (e: any) {
+      toast.error("فشل الحفظ", { description: e.message });
     } finally {
       setSaving(false);
     }
   }
 
-  function displayName(m: Member) {
-    return (
-      [m.first_name, m.father_name, m.grandfather_name]
-        .filter(Boolean)
-        .join(" ") ||
-      m.full_name ||
-      "بدون اسم"
-    );
-  }
-
   const renderNode = ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
-    const memberId = (nodeDatum.attributes?.memberId as string) ?? "";
-    const m = memberById.get(memberId);
-    const isSynthetic = memberId === "__root__";
+    const memberId = (nodeDatum.attributes?.memberId as string);
+    const m = members.find(mem => mem.id === memberId);
+    const isRoot = memberId === "__root__";
+    const isMe = me && m && m.id === me.id;
+    const isSearchMatch = search && m && (
+      (m.first_name || "").includes(search) ||
+      (m.father_name || "").includes(search)
+    );
+    // In this logic, if they exist in profiles table, they have an account
+    const hasAccount = m && !!m.id && !isRoot;
 
     return (
       <g>
-        <foreignObject
-          width={NODE_W}
-          height={NODE_H}
-          x={-NODE_W / 2}
-          y={-NODE_H / 2}
-          style={{ overflow: "visible" }}
-        >
+        <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2} style={{ overflow: "visible" }}>
           <div
-            dir="rtl"
             onClick={toggleNode}
             className={cn(
-              "group relative w-full h-full rounded-[24px] border p-3 flex items-center gap-3 transition-all duration-500 cursor-pointer shadow-sm hover:shadow-xl hover:-translate-y-1",
-              isSynthetic
-                ? "bg-primary border-primary text-primary-foreground"
-                : m && me && m.id === me.id
-                  ? "bg-primary/5 border-primary ring-4 ring-primary/20"
-                  : "bg-card border-border hover:border-primary/40"
+              "relative w-full h-full rounded-full border-4 p-2 flex items-center justify-center gap-3 transition-all duration-500 cursor-pointer shadow-xl",
+              isRoot ? "bg-[#1B4332] border-[#D4AF37] text-white" :
+              isMe ? "bg-[#1B4332] border-[#D4AF37] ring-8 ring-[#1B4332]/10" :
+              isSearchMatch ? "bg-[#D4AF37] border-white ring-8 ring-[#D4AF37]/20 scale-110" :
+              "bg-white border-[#E5E4E0] hover:border-[#1B4332]"
             )}
           >
-            {m ? (
+            {isRoot ? (
+              <div className="flex flex-col items-center">
+                 <Users className="size-6 text-[#D4AF37] mb-1" />
+                 <span className="text-[14px] font-black uppercase tracking-tighter">{nodeDatum.name}</span>
+              </div>
+            ) : m ? (
               <>
-                <div className="relative shrink-0">
-                  <UserAvatar
-                    name={displayName(m)}
-                    path={m.avatar_url}
-                    className="size-12 rounded-2xl ring-2 ring-primary/10 group-hover:ring-primary/40 transition-all shadow-inner"
-                  />
-                  {m.id === me.id && (
-                    <div className="absolute -top-1 -right-1 size-4 bg-primary text-primary-foreground rounded-full flex items-center justify-center border-2 border-white">
-                      <Check className="size-2.5" />
+                <div className="relative size-16 rounded-full overflow-hidden border-2 border-[#D4AF37]/30 shadow-inner">
+                  <UserAvatar name={m.first_name || "ع"} path={m.avatar_url} className="size-full" userId={m.id} />
+                  {hasAccount && (
+                    <div className="absolute top-0 right-0 bg-white rounded-full p-0.5 shadow-sm border border-border translate-x-1/4 -translate-y-1/4">
+                       <ShieldCheck className="size-3 text-emerald-600" />
                     </div>
                   )}
                 </div>
-                <div className="flex-1 min-w-0 text-right space-y-0.5">
-                  <div className={cn("text-[15px] font-bold truncate", isSynthetic ? "text-primary-foreground" : "text-foreground")}>
-                    {m.first_name || "—"}
-                  </div>
-                  {(m.father_name || m.grandfather_name) && (
-                    <div className={cn("text-[10px] font-medium truncate opacity-70", isSynthetic ? "text-primary-foreground/80" : "text-muted-foreground")}>
-                      {[m.father_name, m.grandfather_name].filter(Boolean).join(" • ")}
-                    </div>
-                  )}
+                <div className="flex-1 text-right overflow-hidden">
+                  <p className={cn("text-[16px] font-black truncate leading-tight", (isMe || isRoot) ? "text-white" : "text-[#1B4332]")}>
+                    {m.first_name}
+                  </p>
+                  <p className={cn("text-[10px] font-bold opacity-60 truncate", (isMe || isRoot) ? "text-white" : "text-[#8E7745]")}>
+                    {[m.father_name, m.grandfather_name].filter(Boolean).join(" • ")}
+                  </p>
                 </div>
                 {isPriv && (
                   <button
@@ -246,177 +181,118 @@ function FamilyTreePage() {
                       setEditing(m.id);
                       setDraftParent(m.parent_id);
                     }}
-                    className={cn(
-                      "opacity-0 group-hover:opacity-100 transition p-2 rounded-xl",
-                      isSynthetic ? "bg-white/10 hover:bg-white/20 text-white" : "bg-primary/5 hover:bg-primary/10 text-primary"
+                    className={cn("p-1.5 rounded-lg opacity-0 hover:bg-gold-primary/10 transition-all",
+                      (isMe || isRoot) ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-gold-primary",
+                      "group-hover:opacity-100"
                     )}
-                    aria-label="تعديل الأب"
                   >
                     <Pencil className="size-3.5" />
                   </button>
                 )}
               </>
-            ) : (
-              <div className="w-full text-center text-base font-black tracking-widest uppercase">
-                {nodeDatum.name}
-              </div>
-            )}
+            ) : null}
           </div>
         </foreignObject>
       </g>
     );
   };
 
-  if (!me) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="size-6 animate-spin text-gold-primary" />
-      </div>
-    );
-  }
-
-  const editingMember = editing ? memberById.get(editing) : null;
+  const editingMember = editing ? members.find(m => m.id === editing) : null;
 
   return (
-    <AppShell user={me} title="شجرة العائلة">
-      <div className="space-y-4">
-        <header className="flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <div className="size-10 rounded-xl bg-gold-primary/10 border border-gold-primary/30 flex items-center justify-center">
-              <Users className="size-5 text-gold-primary" />
+    <AppShell title="شجرة العائلة" user={me}>
+      <div className="space-y-6">
+        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[32px] shadow-sm border border-border">
+          <div className="flex items-center gap-4">
+            <div className="size-14 rounded-2xl bg-[#1B4332] flex items-center justify-center shadow-lg shadow-[#1B4332]/20">
+              <Users className="size-8 text-[#D4AF37]" />
             </div>
             <div>
-              <h1 className="text-lg font-semibold text-ivory">شجرة العائلة</h1>
-              <p className="text-xs text-muted-foreground">
-                اسحب للتنقل • استخدم العجلة أو الأزرار للتكبير
-                {isPriv ? " • يمكنك تعديل أي ارتباط" : ""}
-              </p>
+              <h1 className="text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>
+              <p className="text-sm font-bold text-[#8E8E93]">استكشف تفرعات وجذور عائلة آل سيف العريقة</p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setZoom((z) => Math.min(2, z + 0.15))}
-              className="p-2 rounded-lg border border-border bg-card/60 hover:border-gold-primary/40 text-ivory transition"
-              aria-label="تكبير"
-            >
-              <ZoomIn className="size-4" />
-            </button>
-            <button
-              onClick={() => setZoom((z) => Math.max(0.3, z - 0.15))}
-              className="p-2 rounded-lg border border-border bg-card/60 hover:border-gold-primary/40 text-ivory transition"
-              aria-label="تصغير"
-            >
-              <ZoomOut className="size-4" />
-            </button>
-            <button
-              onClick={() => {
-                setZoom(0.8);
-                if (containerRef.current) {
-                  setTranslate({ x: containerRef.current.clientWidth / 2, y: 80 });
-                }
-              }}
-              className="p-2 rounded-lg border border-border bg-card/60 hover:border-gold-primary/40 text-ivory transition"
-              aria-label="إعادة التوسيط"
-            >
-              <Maximize2 className="size-4" />
-            </button>
+
+          <div className="flex items-center gap-3">
+             <div className="relative">
+               <Search className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-[#8E8E93]" />
+               <input
+                 type="text"
+                 placeholder="ابحث عن فرد..."
+                 value={search}
+                 onChange={(e) => setSearch(e.target.value)}
+                 className="pr-11 pl-4 py-3 bg-[#F2F2F7] border-none rounded-2xl text-sm font-bold w-64 focus:ring-2 focus:ring-[#1B4332]/10 transition-all"
+               />
+             </div>
+             <div className="h-10 w-px bg-border mx-2 hidden md:block" />
+             <div className="flex gap-2">
+                <ControlBtn onClick={() => setZoom(z => Math.min(2, z + 0.2))} icon={<ZoomIn size={20} />} />
+                <ControlBtn onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} icon={<ZoomOut size={20} />} />
+                <ControlBtn onClick={() => { setZoom(0.8); setTranslate({ x: containerRef.current?.clientWidth! / 2, y: 100 }); }} icon={<Maximize2 size={20} />} />
+             </div>
           </div>
         </header>
 
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 className="size-6 animate-spin text-gold-primary" />
-          </div>
-        ) : treeData.length === 0 ? (
-          <div className="text-center text-sm text-muted-foreground py-16">
-            لا توجد بيانات لعرضها بعد.
-          </div>
-        ) : (
-          <div
-            ref={containerRef}
-            className="relative w-full rounded-2xl border border-border bg-gradient-to-b from-navy-base/40 to-background/40 overflow-hidden"
-            style={{ height: "calc(100vh - 220px)", minHeight: 520 }}
-          >
+        <div
+          ref={containerRef}
+          className="w-full rounded-[44px] bg-white border border-[#E5E4E0] overflow-hidden shadow-2xl relative"
+          style={{ height: "calc(100vh - 280px)", minHeight: 600 }}
+        >
+          {loading ? (
+             <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
+               <Loader2 className="size-10 animate-spin text-gold-primary" />
+             </div>
+          ) : treeData.length > 0 ? (
             <Tree
               data={treeData[0]}
               orientation="vertical"
               translate={translate}
               zoom={zoom}
-              onUpdate={(state) => {
-                // keep local zoom/translate in sync with user pan/zoom
-                if (
-                  state.zoom !== zoom ||
-                  state.translate.x !== translate.x ||
-                  state.translate.y !== translate.y
-                ) {
-                  setZoom(state.zoom);
-                  setTranslate(state.translate);
-                }
-              }}
               pathFunc="step"
-              pathClassFunc={() => "family-tree-link"}
-              separation={{ siblings: 1.2, nonSiblings: 1.6 }}
-              nodeSize={{ x: NODE_W + 40, y: NODE_H + 70 }}
+              pathClassFunc={() => "tree-link"}
+              nodeSize={{ x: NODE_W + 100, y: NODE_H + 120 }}
               renderCustomNodeElement={renderNode}
               collapsible={false}
               zoomable
               draggable
-              enableLegacyTransitions
-              transitionDuration={500}
+              transitionDuration={800}
             />
-          </div>
-        )}
+          ) : null}
+        </div>
 
         {editingMember && (
-          <div
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-            onClick={() => setEditing(null)}
-          >
-            <div
-              dir="rtl"
-              className="w-full max-w-md rounded-2xl border border-gold-primary/30 bg-card p-5 space-y-4 shadow-2xl"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div>
-                <h3 className="text-base font-semibold text-ivory">
-                  تعديل والد {displayName(editingMember)}
-                </h3>
-                <p className="text-xs text-muted-foreground mt-1">
-                  اختر الوالد الجديد من قائمة الأعضاء
-                </p>
+          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setEditing(null)}>
+            <div dir="rtl" className="w-full max-w-md rounded-[32px] border border-[#D4AF37]/30 bg-white p-8 space-y-6 shadow-2xl animate-fade-up" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-4">
+                 <div className="size-16 rounded-full overflow-hidden ring-4 ring-gold-primary/10">
+                    <UserAvatar name={editingMember.first_name || "ع"} path={editingMember.avatar_url} className="size-full" />
+                 </div>
+                 <div>
+                    <h3 className="text-xl font-black text-[#1B4332]">تعديل ارتباط {editingMember.first_name}</h3>
+                    <p className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
+                       <ShieldCheck size={14} /> حساب معتمد ومرتبط بالنظام
+                    </p>
+                 </div>
               </div>
-              <select
-                value={draftParent ?? ""}
-                onChange={(e) => setDraftParent(e.target.value || null)}
-                className="w-full px-3 py-2 rounded-lg bg-input/60 border border-border text-sm text-ivory"
-              >
-                <option value="">— لا أب (جذر) —</option>
-                {members
-                  .filter((x) => x.id !== editingMember.id)
-                  .map((x) => (
-                    <option key={x.id} value={x.id}>
-                      {displayName(x)}
-                    </option>
+
+              <div className="space-y-2">
+                 <label className="text-[12px] font-black text-primary uppercase tracking-widest px-1">والد العضو (الارتباط الهرمي)</label>
+                 <select
+                  value={draftParent ?? ""}
+                  onChange={(e) => setDraftParent(e.target.value || null)}
+                  className="w-full px-4 py-3 rounded-2xl bg-[#F2F2F7] border-none text-sm font-bold text-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                >
+                  <option value="">— لا أب (رأس شجرة) —</option>
+                  {members.filter((x) => x.id !== editingMember.id).map((x) => (
+                    <option key={x.id} value={x.id}>{x.full_name || x.first_name}</option>
                   ))}
-              </select>
-              <div className="flex items-center justify-end gap-2">
-                <button
-                  onClick={() => setEditing(null)}
-                  className="px-3 py-1.5 rounded-lg border border-border text-sm text-muted-foreground hover:text-ivory"
-                >
-                  <X className="size-4 inline" /> إلغاء
-                </button>
-                <button
-                  onClick={() => saveParent(editingMember.id)}
-                  disabled={saving}
-                  className="px-3 py-1.5 rounded-lg bg-gold-primary text-navy-base text-sm font-medium disabled:opacity-50"
-                >
-                  {saving ? (
-                    <Loader2 className="size-4 inline animate-spin" />
-                  ) : (
-                    <Check className="size-4 inline" />
-                  )}{" "}
-                  حفظ
+                </select>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button onClick={() => setEditing(null)} className="px-6 py-3 rounded-xl text-sm font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all">إلغاء</button>
+                <button onClick={() => saveParent(editingMember.id)} disabled={saving} className="btn-gold px-8 py-3 text-sm font-bold flex items-center gap-2">
+                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />} حفظ التغييرات
                 </button>
               </div>
             </div>
@@ -425,30 +301,24 @@ function FamilyTreePage() {
       </div>
 
       <style>{`
-        .family-tree-link {
+        .tree-link {
           fill: none;
-          stroke: var(--primary);
-          stroke-width: 2.5px;
-          stroke-linecap: round;
-          stroke-linejoin: round;
-          opacity: 0.4;
-          transition: all 0.3s ease;
+          stroke: #1B4332;
+          stroke-width: 4px;
+          stroke-dasharray: 8;
+          opacity: 0.2;
+          transition: all 0.5s ease;
         }
-        .rd3t-tree-container { width: 100%; height: 100%; }
-        .rd3t-grabbable { cursor: grab; }
-        .rd3t-grabbable:active { cursor: grabbing; }
-
-        /* Animation for drawing links */
-        @keyframes dash {
-          to { stroke-dashoffset: 0; }
-        }
-        .family-tree-link {
-          stroke-dasharray: 1000;
-          stroke-dashoffset: 1000;
-          animation: dash 1.5s ease forwards;
-        }
+        .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 30px 30px; }
       `}</style>
-
     </AppShell>
+  );
+}
+
+function ControlBtn({ onClick, icon }: { onClick: () => void, icon: React.ReactNode }) {
+  return (
+    <button onClick={onClick} className="size-12 rounded-xl bg-[#F2F2F7] text-[#1B4332] flex items-center justify-center hover:bg-[#1B4332] hover:text-white transition-all shadow-sm">
+      {icon}
+    </button>
   );
 }

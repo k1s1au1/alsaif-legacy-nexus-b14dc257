@@ -11,6 +11,7 @@ import {
   Users,
   ChevronDown,
   Settings,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -52,7 +53,15 @@ export function AppShell({
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.style.overflow = "hidden";
+      return () => { document.body.style.overflow = "unset"; };
+    }
+  }, [sidebarOpen]);
 
   usePresenceHeartbeat();
 
@@ -100,141 +109,155 @@ export function AppShell({
   }
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-300">
-      <header className="h-16 sticky top-0 z-40 px-4 md:px-6 flex items-center justify-between border-b border-border bg-card/80 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="size-8 overflow-hidden rounded-lg bg-navy-base p-1">
-            <img src={alsaifMark.url} alt="" className="size-full object-contain" />
+    <div className="min-h-screen bg-[#F5F5F2] text-[#0A0A0B]">
+      {/* Backdrop overlay */}
+      <div
+        onClick={() => setSidebarOpen(false)}
+        className={cn(
+          "fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-500",
+          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+        )}
+      />
+
+      {/* Modern High-Contrast Sidebar (RTL) */}
+      <aside
+        className={cn(
+          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-white border-l border-[#E5E4E0] shadow-[0_0_40px_rgba(0,0,0,0.15)] transition-transform duration-500",
+          "w-[85vw] max-w-[320px] rounded-l-[32px]",
+          sidebarOpen ? "translate-x-0" : "translate-x-full",
+        )}
+      >
+        {/* Profile Head in Sidebar */}
+        <div className="px-6 pt-14 pb-8 flex flex-col items-center text-center gap-4 bg-[#F8F7F2] rounded-tl-[32px] border-b border-[#E5E4E0]">
+          <div className="relative">
+            <div className="size-24 rounded-full ring-4 ring-white shadow-md overflow-hidden bg-white p-1">
+              <UserAvatar
+                path={myAvatarPath}
+                name={user.name}
+                initial={user.initial}
+                className="size-full rounded-full"
+                userId={myUserId}
+              />
+            </div>
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="absolute -top-4 -left-4 size-10 rounded-full bg-white shadow-lg ring-1 ring-black/5 flex items-center justify-center text-[#1B4332] hover:bg-[#F2F2F7] transition-all"
+            >
+              <X size={20} strokeWidth={2.5} />
+            </button>
           </div>
-          <h1 className="text-lg font-bold tracking-tight text-foreground">{title}</h1>
+          <div>
+            <h3 className="text-xl font-bold text-[#1B4332] tracking-tight">{user.name}</h3>
+            <p className="text-[12px] text-[#8E7745] font-bold uppercase tracking-[0.1em] mt-1">{user.role}</p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          <NotificationsBell />
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className="flex items-center gap-2 outline-none">
-                <div className="size-8 rounded-full border border-border overflow-hidden bg-muted p-0.5">
-                  <UserAvatar
-                    path={myAvatarPath}
-                    name={user.name}
-                    initial={user.initial}
-                    className="size-full rounded-full"
-                    userId={myUserId}
-                  />
-                </div>
-                <ChevronDown className="size-4 text-muted-foreground" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" sideOffset={12} className="min-w-[200px] text-right">
-              <DropdownMenuLabel className="px-3 py-2">
-                <p className="text-sm font-medium">{user.name}</p>
-                <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">{user.role}</p>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <Link to="/profile">
-                <DropdownMenuItem className="cursor-pointer gap-2 py-2 flex flex-row-reverse text-right">
-                  <User className="size-4" />
-                  <span>ملفي الشخصي</span>
-                </DropdownMenuItem>
-              </Link>
-              <Link to="/settings">
-                <DropdownMenuItem className="cursor-pointer gap-2 py-2 flex flex-row-reverse text-right">
-                  <Settings className="size-4" />
-                  <span>الإعدادات</span>
-                </DropdownMenuItem>
-              </Link>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="cursor-pointer gap-2 py-2 flex flex-row-reverse text-red-600 text-right">
-                <LogOut className="size-4" />
-                <span>تسجيل الخروج</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </header>
-
-      <div className="flex">
-        <aside className="hidden md:flex w-64 flex-col border-l border-border h-[calc(100vh-64px)] sticky top-16 bg-card/50">
-          <nav className="flex-1 p-4 space-y-1">
-            {navItems
-              .filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager)
-              .map(({ to, label, icon: Icon }) => {
-                const active = path === to || path.startsWith(to + "/");
-                const badgeCount = navBadges[to] ?? 0;
-                return (
-                  <Link
-                    key={to}
-                    to={to}
-                    className={cn(
-                      "group flex items-center justify-between px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
-                      active
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                    )}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className={cn("size-4", active ? "text-primary-foreground" : "text-muted-foreground")} />
-                      <span>{label}</span>
-                    </div>
-                    {badgeCount > 0 && (
-                      <span
-                        className={cn(
-                          "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
-                          active ? "bg-primary-foreground text-primary" : "bg-primary text-primary-foreground",
-                        )}
-                      >
-                        {badgeCount > 99 ? "99+" : badgeCount}
-                      </span>
-                    )}
-                  </Link>
-                );
-              })}
-          </nav>
-        </aside>
-
-        <main className="flex-1 p-4 md:p-8 max-w-5xl mx-auto">{children}</main>
-      </div>
-
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-border bg-card/90 backdrop-blur-md px-2 py-3 md:hidden">
-        {navItems
-          .filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager)
-          .map(({ to, label, icon: Icon }) => {
+        <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto no-scrollbar">
+          {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
             const badgeCount = navBadges[to] ?? 0;
             return (
               <Link
                 key={to}
                 to={to}
+                onClick={() => setSidebarOpen(false)}
                 className={cn(
-                  "relative flex flex-col items-center gap-1 transition-colors duration-200",
-                  active ? "text-primary scale-110" : "text-muted-foreground hover:text-foreground",
+                  "flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[16px] font-bold transition-all duration-200 gap-4",
+                  active
+                    ? "bg-[#1B4332] text-white shadow-lg shadow-[#1B4332]/20"
+                    : "text-[#4A4A4A] hover:bg-[#F2F2F7] hover:text-[#1B4332]"
                 )}
               >
-                <div className="relative">
-                  <Icon className="size-5" />
-                  {badgeCount > 0 && (
-                    <span className="absolute -top-1.5 -right-1.5 size-4 flex items-center justify-center rounded-full bg-saudi-red text-[8px] font-bold text-white ring-2 ring-card">
-                      {badgeCount > 9 ? "9+" : badgeCount}
-                    </span>
-                  )}
-                </div>
-                <span className="text-[10px] font-medium leading-none">{label}</span>
-                {active && (
-                  <span className="absolute -bottom-1 size-1 rounded-full bg-primary animate-in fade-in zoom-in duration-300" />
+                <Icon className={cn("size-5 shrink-0", active ? "text-white" : "text-[#8E7745]/70")} strokeWidth={active ? 2.5 : 2} />
+                <span className="mr-auto">{label}</span>
+                {badgeCount > 0 && (
+                  <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold", active ? "bg-white text-[#1B4332]" : "bg-[#1B4332] text-white")}>
+                    {badgeCount > 99 ? "99+" : badgeCount}
+                  </span>
                 )}
               </Link>
             );
           })}
-        <button
-          onClick={() => setNavBadges({})}
-          className="flex flex-col items-center gap-1 text-muted-foreground hover:text-foreground"
+        </nav>
+
+        <div className="p-6 border-t border-[#E5E4E0]">
+          <button
+            onClick={signOut}
+            className="w-full flex flex-row-reverse items-center justify-between px-6 py-4 rounded-2xl bg-red-50 text-red-600 hover:bg-red-100 transition-all font-bold border border-red-100"
+          >
+            <LogOut className="size-5" />
+            <span className="text-[16px]">تسجيل الخروج</span>
+          </button>
+        </div>
+      </aside>
+
+      {/* Main Container */}
+      <main className="relative min-h-screen pb-20">
+        <header
+          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-white/95 backdrop-blur-md border-b border-[#E5E4E0] transition-all shadow-sm"
         >
-          <Menu className="size-5" />
-          <span className="text-[10px] font-medium leading-none">المزيد</span>
-        </button>
-      </nav>
+          <div className="flex items-center gap-5">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="size-11 grid place-items-center rounded-xl bg-[#1B4332] text-white hover:brightness-110 transition-all active:scale-95 shadow-md"
+            >
+              <Menu className="size-6" />
+            </button>
+            <h1 className="text-[19px] font-bold tracking-tight text-[#1B4332]">{title}</h1>
+          </div>
+
+          <div className="flex items-center gap-4">
+            <NotificationsBell />
+
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 outline-none group">
+                  <div className="size-10 rounded-full ring-2 ring-[#1B4332]/10 overflow-hidden group-hover:ring-[#1B4332] transition-all bg-white p-0.5">
+                    <UserAvatar
+                      path={myAvatarPath}
+                      name={user.name}
+                      initial={user.initial}
+                      className="size-full rounded-full"
+                      userId={myUserId}
+                    />
+                  </div>
+                  <ChevronDown className="size-4 text-[#8E8E93] group-hover:text-[#1B4332] transition-colors" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={12} className="min-w-[220px] rounded-2xl border-[#E5E4E0] bg-white p-2 text-right shadow-xl">
+                <DropdownMenuLabel className="px-4 py-4 border-b border-[#F2F2F7] mb-1">
+                  <p className="text-[15px] font-bold text-[#1B4332]">{user.name}</p>
+                  <p className="text-[10px] text-[#8E7745] uppercase font-bold tracking-widest">{user.role}</p>
+                </DropdownMenuLabel>
+                <Link to="/profile">
+                  <DropdownMenuItem className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-[#4A4A4A] focus:bg-[#F2F2F7] focus:text-[#1B4332] cursor-pointer">
+                    <User size={18} />
+                    <span>ملفي الشخصي</span>
+                  </DropdownMenuItem>
+                </Link>
+                <Link to="/settings">
+                  <DropdownMenuItem className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-[#4A4A4A] focus:bg-[#F2F2F7] focus:text-[#1B4332] cursor-pointer">
+                    <Settings size={18} />
+                    <span>الإعدادات</span>
+                  </DropdownMenuItem>
+                </Link>
+                <DropdownMenuSeparator className="bg-[#F2F2F7]" />
+                <DropdownMenuItem
+                  onClick={signOut}
+                  className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-red-600 focus:bg-red-50 cursor-pointer"
+                >
+                  <LogOut size={18} />
+                  <span>تسجيل الخروج</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+
+        <div className="p-6 lg:p-10 max-w-7xl mx-auto">
+          {children}
+        </div>
+      </main>
     </div>
   );
 }

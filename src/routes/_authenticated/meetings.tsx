@@ -304,11 +304,20 @@ function MeetingsPage() {
         {/* Header */}
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">اجتماعات العائلة</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="text-2xl font-black text-[#1B4332] tracking-tight">اجتماعات العائلة</h2>
+            <p className="text-sm text-[#8E8E93] font-bold mt-1">
               جدول اللقاءات القادمة وتأكيد الحضور.
             </p>
           </div>
+          {canManage && (
+            <button
+              onClick={openCreate}
+              className="btn-gold px-6 py-3 text-sm font-black flex items-center gap-2 shadow-xl shadow-[#B8972E]/20"
+            >
+              <CalendarDays className="size-4" />
+              <span>إضافة اجتماع</span>
+            </button>
+          )}
         </div>
 
 
