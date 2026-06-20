@@ -24,6 +24,14 @@ const FONTS = [
   { id: "Amiri", name: "الأميري", family: "'Amiri', serif" },
 ];
 
+const THEME_COLORS = [
+  { id: "emerald", name: "الأخضر الملكي", primary: "#1B4332", secondary: "#D4AF37", darkPrimary: "#D4AF37" },
+  { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA" },
+  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185" },
+  { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9" },
+  { id: "earth", name: "اللون الترابي", primary: "#78350F", secondary: "#FCD34D", darkPrimary: "#FCD34D" },
+];
+
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
@@ -31,6 +39,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsPage() {
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system">("system");
   const [font, setFont] = useState("Tajawal");
+  const [themeColor, setThemeColor] = useState("emerald");
   const [appVersion, setAppVersion] = useState("1.1.5 (Web)");
   const [isNative, setIsNative] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -51,6 +60,14 @@ function SettingsPage() {
       setFont(savedFont);
       const fontObj = FONTS.find(f => f.id === savedFont);
       if (fontObj) applyFont(fontObj.family);
+    }
+
+    // Load saved theme color
+    const savedColor = localStorage.getItem("app-theme-color-id");
+    if (savedColor) {
+      setThemeColor(savedColor);
+      const colorObj = THEME_COLORS.find(c => c.id === savedColor);
+      if (colorObj) applyThemeColors(colorObj);
     }
 
     // Safe Capacitor detection
@@ -99,6 +116,31 @@ function SettingsPage() {
     });
   };
 
+  const applyThemeColors = (colors: typeof THEME_COLORS[0]) => {
+    const root = document.documentElement;
+    root.style.setProperty("--primary", colors.primary);
+    root.style.setProperty("--gold-primary", colors.secondary);
+
+    // Check if we need to update dark mode primary too
+    if (root.classList.contains("dark")) {
+      root.style.setProperty("--primary", colors.darkPrimary);
+    }
+  };
+
+  const handleThemeColorChange = (colorId: string) => {
+    const selected = THEME_COLORS.find(c => c.id === colorId);
+    if (!selected) return;
+
+    setThemeColor(colorId);
+    localStorage.setItem("app-theme-color-id", colorId);
+    applyThemeColors(selected);
+
+    toast.success("تم تغيير ألوان السمة", {
+      description: `تم تطبيق ${selected.name} بنجاح`,
+      icon: <div className="size-3 rounded-full" style={{ backgroundColor: selected.primary }} />
+    });
+  };
+
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
     setDarkMode(theme);
     if (typeof window === "undefined") return;
@@ -143,6 +185,35 @@ function SettingsPage() {
                desc="يتبع إعدادات جهازك"
                icon={<Smartphone className="size-8" />}
              />
+          </div>
+        </section>
+
+        {/* Theme Colors Selection */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 px-2">
+             <div className="size-1 w-12 bg-primary rounded-full" />
+             <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em]">ألوان الهوية</h3>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+            {THEME_COLORS.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => handleThemeColorChange(c.id)}
+                className={cn(
+                  "p-4 rounded-[24px] transition-all duration-300 border-2 flex flex-col items-center gap-3",
+                  themeColor === c.id
+                    ? "bg-white border-primary shadow-xl scale-105"
+                    : "bg-white/50 border-transparent hover:bg-white"
+                )}
+              >
+                <div
+                  className="size-12 rounded-2xl shadow-inner border border-black/5"
+                  style={{ background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)` }}
+                />
+                <span className="text-[12px] font-black text-[#4A4A4A]">{c.name}</span>
+              </button>
+            ))}
           </div>
         </section>
 
