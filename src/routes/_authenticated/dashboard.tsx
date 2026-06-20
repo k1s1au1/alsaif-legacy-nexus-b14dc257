@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -17,7 +17,9 @@ import {
   Plus,
   History,
   Timer,
-  ArrowUpRight
+  ArrowUpRight,
+  TrendingUp,
+  ChevronRight
 } from "lucide-react";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
@@ -49,6 +51,7 @@ function Dashboard() {
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
   const [countdown, setCountdown] = useState({ days: 0, hours: 0 });
+  const [activeStatIndex, setActiveStatIndex] = useState(0);
 
   const loadData = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -111,6 +114,14 @@ function Dashboard() {
     return () => { supabase.removeChannel(channel); };
   }, [loadData, fetchBalance]);
 
+  // Auto-sliding logic for stats carousel
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveStatIndex((prev) => (prev + 1) % 4);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
+
   const arabicGreeting = () => {
     const h = new Date().getHours();
     if (h < 12) return "صباح الخير";
@@ -127,6 +138,13 @@ function Dashboard() {
     { to: "/family-tree", label: "الشجرة", icon: <Users size={22} />, color: "bg-teal-500" },
     { to: "/finance", label: "الصندوق", icon: <Wallet size={22} />, color: "bg-green-600" },
     { to: "/archive", label: "الأرشيف", icon: <History size={22} />, color: "bg-stone-600" },
+  ];
+
+  const statsCarousel = [
+    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", icon: <Wallet className="size-12" />, color: "bg-emerald-600", link: "/finance" },
+    { label: "أفراد العائلة", value: membersCount, suffix: "عضو", icon: <Users className="size-12" />, color: "bg-[#1B4332]", link: "/members" },
+    { label: "رحلات مجدولة", value: tripsCount, suffix: "رحلة", icon: <Plane className="size-12" />, color: "bg-[#8E7745]", link: "/trips" },
+    { label: "مهام جارية", value: tasksCount, suffix: "مهمة", icon: <ListChecks className="size-12" />, color: "bg-rose-700", link: "/tasks" },
   ];
 
   return (
@@ -180,61 +198,72 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* NEW: Unified Bento Stats Hub (The "One Square" Hub) */}
+        {/* NEW: Stats Auto-Slider (Banner Style) */}
         <section className="animate-fade-up" style={{ animationDelay: "200ms" }}>
-           <div className="card-surface p-8 relative overflow-hidden group">
-              <div className="absolute top-0 left-0 p-8 opacity-[0.03] grayscale transition-opacity group-hover:opacity-5">
-                 <img src={alsaifMark.url} className="size-40 rotate-[-15deg]" />
+           <div className="relative overflow-hidden rounded-[44px] h-[220px] md:h-[260px] shadow-2xl group">
+              {statsCarousel.map((stat, i) => (
+                <div
+                  key={i}
+                  className={cn(
+                    "absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out flex items-center p-10 md:p-16",
+                    stat.color,
+                    activeStatIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+                  )}
+                >
+                   {/* Background Pattern */}
+                   <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 rotate-12">
+                      <img src={alsaifMark.url} className="size-full object-contain brightness-0 invert" />
+                   </div>
+
+                   <div className="relative z-10 flex items-center justify-between w-full text-white">
+                      <div className="space-y-4">
+                         <div className="flex items-center gap-3 opacity-80 font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">
+                            <Sparkles className="size-4" />
+                            {stat.label}
+                         </div>
+                         <div className="text-5xl md:text-7xl font-black tracking-tighter leading-none flex items-baseline gap-3">
+                            <AnimatedCounter value={stat.value} />
+                            <span className="text-xl md:text-2xl opacity-60 font-bold">{stat.suffix}</span>
+                         </div>
+                         <Link to={stat.link} className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-full text-sm font-black transition-all">
+                            التفاصيل <ChevronLeft size={18} />
+                         </Link>
+                      </div>
+
+                      <div className="hidden md:flex size-32 rounded-[40px] bg-white/10 backdrop-blur-md items-center justify-center border border-white/20 shadow-2xl">
+                         {stat.icon}
+                      </div>
+                   </div>
+                </div>
+              ))}
+
+              {/* Progress Indicators */}
+              <div className="absolute bottom-8 right-10 flex gap-2 z-20">
+                 {statsCarousel.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setActiveStatIndex(i)}
+                      className={cn(
+                        "h-1.5 rounded-full transition-all duration-500",
+                        activeStatIndex === i ? "w-8 bg-white" : "w-2 bg-white/30"
+                      )}
+                    />
+                 ))}
               </div>
 
-              <div className="grid grid-cols-2 gap-8 md:gap-12 relative z-10">
-                 <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-emerald-500 mb-2">
-                       <Wallet size={16} />
-                       <p className="text-[10px] font-black uppercase tracking-widest">رصيد الصندوق</p>
-                    </div>
-                    <div className="text-3xl font-black text-foreground tabular-nums">
-                       <AnimatedCounter value={fundBalance} /> <span className="text-xs opacity-30">ر.س</span>
-                    </div>
-                 </div>
-
-                 <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-primary mb-2">
-                       <Users size={16} />
-                       <p className="text-[10px] font-black uppercase tracking-widest">أفراد العائلة</p>
-                    </div>
-                    <div className="text-3xl font-black text-foreground tabular-nums">
-                       <AnimatedCounter value={membersCount} /> <span className="text-xs opacity-30">عضو</span>
-                    </div>
-                 </div>
-
-                 <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-amber-600 mb-2">
-                       <Plane size={16} />
-                       <p className="text-[10px] font-black uppercase tracking-widest">رحلات مجدولة</p>
-                    </div>
-                    <div className="text-3xl font-black text-foreground tabular-nums">
-                       <AnimatedCounter value={tripsCount} /> <span className="text-xs opacity-30">رحلة</span>
-                    </div>
-                 </div>
-
-                 <div className="space-y-1">
-                    <div className="flex items-center gap-2 text-rose-600 mb-2">
-                       <ListChecks size={16} />
-                       <p className="text-[10px] font-black uppercase tracking-widest">مهام جارية</p>
-                    </div>
-                    <div className="text-3xl font-black text-foreground tabular-nums">
-                       <AnimatedCounter value={tasksCount} /> <span className="text-xs opacity-30">مهمة</span>
-                    </div>
-                 </div>
-              </div>
-
-              <div className="mt-8 pt-6 border-t border-border/40 flex justify-between items-center">
-                 <p className="text-[10px] font-bold text-muted-foreground italic">تحديث مباشر من قاعدة بيانات آل سيف</p>
-                 <Link to="/finance" className="size-8 rounded-full bg-primary/5 flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all">
-                    <ArrowUpRight size={16} />
-                 </Link>
-              </div>
+              {/* Navigation Arrows */}
+              <button
+                onClick={() => setActiveStatIndex((prev) => (prev - 1 + 4) % 4)}
+                className="absolute left-4 top-1/2 -translate-y-1/2 size-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronRight size={24} />
+              </button>
+              <button
+                onClick={() => setActiveStatIndex((prev) => (prev + 1) % 4)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 size-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
+              >
+                <ChevronLeft size={24} />
+              </button>
            </div>
         </section>
 
