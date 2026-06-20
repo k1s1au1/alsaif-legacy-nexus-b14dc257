@@ -235,7 +235,7 @@ export function AppShell({
                     <span>ملفي الشخصي</span>
                   </DropdownMenuItem>
                 </Link>
-                <Link to="/settings" onClick={() => {}}>
+                <Link to="/settings">
                   <DropdownMenuItem className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-foreground focus:bg-muted focus:text-primary cursor-pointer">
                     <Settings size={18} />
                     <span>الإعدادات</span>
