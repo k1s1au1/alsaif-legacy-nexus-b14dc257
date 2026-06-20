@@ -52,21 +52,25 @@
   --border: rgba(27, 67, 50, 0.12);
   --muted: #F2F1EA;
   --muted-foreground: #64748B;
+  --gold-primary: #8E7745;
+  --gold-soft: #AF9867;
 }
 
 .dark {
-  /* Comprehensive Dark Theme */
-  --background: #0F1115;
+  /* Comprehensive Dark Theme - Luxury Edition */
+  --background: #0A0C10;
   --foreground: #F1F5F9;
-  --card: #181A1F;
-  --popover: #181A1F;
-  --primary: #EAB308;
-  --primary-foreground: #0F1115;
-  --secondary: #242933;
+  --card: #12141C;
+  --popover: #12141C;
+  --primary: #D4AF37; /* Metallic Royal Gold */
+  --primary-foreground: #0A0C10;
+  --secondary: #1E2229;
   --secondary-foreground: #F1F5F9;
-  --muted: #1E2229;
+  --muted: #161920;
   --muted-foreground: #94A3B8;
-  --border: rgba(255, 255, 255, 0.08);
+  --border: rgba(212, 175, 55, 0.15); /* Subtle Gold border */
+  --gold-primary: #D4AF37;
+  --gold-soft: #F9E29C;
 }
 
 @layer base {
@@ -87,7 +91,24 @@
 
 .dark .logo-royal {
   mix-blend-mode: screen;
-  filter: invert(1) brightness(1.2) sepia(1) saturate(4) hue-rotate(350deg); /* High-end Gold */
+  filter: invert(1) brightness(1.1) sepia(1) saturate(6) hue-rotate(355deg) drop-shadow(0 0 12px rgba(234, 179, 8, 0.5));
+}
+
+@utility shimmer-gold {
+  position: relative;
+  overflow: hidden;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transform: translateX(-100%);
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
 }
 
 @utility card-surface {

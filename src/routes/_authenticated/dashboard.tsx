@@ -96,8 +96,8 @@ function Dashboard() {
              <LiveClock />
            </div>
            <div className="relative inline-block group">
-             <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-1000" />
-             <img src={alsaifMark.url} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 logo-royal" />
+             <div className="absolute inset-0 bg-gold-primary/25 blur-[120px] rounded-full group-hover:bg-gold-primary/40 transition-all duration-1000 animate-pulse" />
+             <img src={alsaifMark.url} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 logo-royal hover:scale-105 transition-transform duration-700" />
            </div>
            <div className="space-y-2">
              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
