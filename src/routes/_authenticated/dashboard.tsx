@@ -18,7 +18,8 @@ import {
   History,
   Timer,
   ArrowUpRight,
-  ChevronRight
+  ChevronRight,
+  User
 } from "lucide-react";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
@@ -97,11 +98,11 @@ function Dashboard() {
            </div>
            <div className="relative inline-block group">
              <div className="absolute inset-0 bg-gold-primary/25 blur-[120px] rounded-full group-hover:bg-gold-primary/40 transition-all duration-1000 animate-pulse" />
-             <img src={alsaifMark.url} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 logo-royal hover:scale-105 transition-transform duration-700" />
+             <img src={alsaifMark?.url || ""} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 logo-royal hover:scale-105 transition-transform duration-700" />
            </div>
            <div className="space-y-2">
              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
-               خالد عبد العزيز
+               {profile.name}
              </h2>
              <p className="text-xl text-muted-foreground font-bold opacity-60">نصل العائلة، نحفظ الإرث، ونبني المستقبل.</p>
            </div>
@@ -136,7 +137,7 @@ function Dashboard() {
                   statIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
                 )}>
                    <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 rotate-12">
-                      <img src={alsaifMark.url} className="size-full object-contain brightness-0 invert" />
+                      <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" />
                    </div>
                    <div className="relative z-10 flex items-center justify-between w-full text-white">
                       <div className="space-y-6">
@@ -184,7 +185,7 @@ function Dashboard() {
               <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block">تأكيد الحضور</Link>
            </div>
            <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden">
-              <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark.url} className="size-full object-contain brightness-0 invert" /></div>
+              <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" /></div>
               <div className="relative z-10 space-y-6">
                 <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 animate-pulse" /></div>
                 <div>

@@ -76,7 +76,7 @@ function AuthPage() {
           <div className="flex flex-col items-center text-center mb-8">
             <div className="size-24 mb-6 flex items-center justify-center p-3 bg-card rounded-[32px] shadow-sm ring-1 ring-border relative group">
               <div className="absolute inset-0 bg-gold-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              <img src={logoAsset.url} alt="Logo" className="size-full object-contain relative z-10 logo-royal" />
+              <img src={logoAsset?.url || ""} alt="Logo" className="size-full object-contain relative z-10 logo-royal" />
             </div>
             <h1 className="text-4xl font-serif text-primary mb-1 font-bold tracking-tight">مجلس السيف</h1>
             <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.3em] text-gold-primary uppercase mt-2">
