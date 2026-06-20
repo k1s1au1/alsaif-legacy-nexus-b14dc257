@@ -55,17 +55,21 @@ function FamilyTreePage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      const [{ data: profile }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
-      ]);
-      const rs = (roles ?? []).map((r) => r.role);
-      const isAdmin = rs.includes("admin") || rs.includes("manager");
-      setMe({ ...profile, role: rs.includes("admin") ? "مسؤول النظام" : "عضو", initial: (profile?.arabic_name || "ع")[0] });
-      setIsPriv(isAdmin);
-      await load();
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) return;
+        const [{ data: profile }, { data: roles }] = await Promise.all([
+          supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+        ]);
+        const rs = (roles ?? []).map((r) => r.role);
+        const isAdmin = rs.includes("admin") || rs.includes("manager");
+        setMe({ ...profile, role: rs.includes("admin") ? "مسؤول النظام" : "عضو", initial: (profile?.arabic_name || "ع")[0] });
+        setIsPriv(isAdmin);
+        await load();
+      } catch (err) {
+        console.error("Initialization failed", err);
+      }
     })();
   }, []);
 
@@ -83,6 +87,8 @@ function FamilyTreePage() {
   }
 
   const treeData = useMemo<RawNodeDatum[]>(() => {
+    if (members.length === 0) return [];
+
     const byId = new Map<string, Member>();
     const byParent = new Map<string | null, Member[]>();
     for (const m of members) byId.set(m.id, m);
@@ -228,7 +234,12 @@ function FamilyTreePage() {
              <div className="flex gap-2">
                 <ControlBtn onClick={() => setZoom(z => Math.min(2, z + 0.2))} icon={<ZoomIn size={20} />} />
                 <ControlBtn onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} icon={<ZoomOut size={20} />} />
-                <ControlBtn onClick={() => { setZoom(0.8); setTranslate({ x: containerRef.current?.clientWidth! / 2, y: 100 }); }} icon={<Maximize2 size={20} />} />
+                <ControlBtn onClick={() => {
+                  setZoom(0.8);
+                  if (containerRef.current) {
+                    setTranslate({ x: containerRef.current.clientWidth / 2, y: 100 });
+                  }
+                }} icon={<Maximize2 size={20} />} />
              </div>
           </div>
         </header>
@@ -248,6 +259,10 @@ function FamilyTreePage() {
               orientation="vertical"
               translate={translate}
               zoom={zoom}
+              onUpdate={(state) => {
+                if (state.zoom !== zoom) setZoom(state.zoom);
+                if (state.translate.x !== translate.x || state.translate.y !== translate.y) setTranslate(state.translate);
+              }}
               pathFunc="step"
               pathClassFunc={() => "tree-link"}
               nodeSize={{ x: NODE_W + 100, y: NODE_H + 120 }}
@@ -257,7 +272,11 @@ function FamilyTreePage() {
               draggable
               transitionDuration={800}
             />
-          ) : null}
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold">
+               لا توجد بيانات لعرضها في الشجرة
+            </div>
+          )}
         </div>
 
         {editingMember && (
