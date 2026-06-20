@@ -25,6 +25,8 @@ import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
+import useEmblaCarousel from "embla-carousel-react";
+import Autoplay from "embla-carousel-autoplay";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -43,11 +45,13 @@ function Dashboard() {
   });
 
   const [fundBalance, setFundBalance] = useState<number>(0);
-  const [nextMeeting, setNextMeeting] = useState<any>(null);
+  const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
   const [tripsCount, setTripsCount] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
   const [statIndex, setStatIndex] = useState(0);
+
+  const [emblaRef] = useEmblaCarousel({ loop: true, direction: 'rtl' }, [Autoplay({ delay: 5000 })]);
 
   const loadData = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
@@ -66,8 +70,8 @@ function Dashboard() {
     setMembersCount(mc || 0);
     setTasksCount(tskc || 0);
 
-    const { data: meet } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(1).maybeSingle();
-    setNextMeeting(meet);
+    const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
+    setUpcomingMeetings(meets || []);
 
     const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
     const bal = txs?.reduce((acc, t) => Number(t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount)), 0) || 0;
@@ -167,36 +171,80 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* Event Card */}
-        <article className="mx-4 card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl animate-fade-up" style={{ animationDelay: "300ms" }}>
-           <div className="flex-1 p-12 space-y-8">
-              <div className="space-y-3">
-                <span className="text-xs font-black text-gold-primary uppercase tracking-[0.3em] opacity-60">الحدث القادم</span>
-                <h3 className="text-4xl font-black text-foreground">{nextMeeting?.title || "لا توجد اجتماعات حالياً"}</h3>
-              </div>
-              <div className="flex flex-wrap gap-12">
-                 <div className="flex items-center gap-4">
-                    <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner"><CalendarDays size={28} /></div>
+        {/* Upcoming Meetings Carousel */}
+        <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
+          {upcomingMeetings.length === 0 ? (
+            <article className="card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl">
+               <div className="flex-1 p-12 space-y-8">
+                  <div className="space-y-3">
+                    <span className="text-xs font-black text-gold-primary uppercase tracking-[0.3em] opacity-60">الحدث القادم</span>
+                    <h3 className="text-4xl font-black text-foreground">لا توجد اجتماعات حالياً</h3>
+                  </div>
+                  <div className="flex flex-wrap gap-12">
+                     <div className="flex items-center gap-4">
+                        <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner"><CalendarDays size={28} /></div>
+                        <div>
+                           <p className="text-[10px] font-black uppercase tracking-widest opacity-40">الموعد</p>
+                           <p className="text-lg font-black">—</p>
+                        </div>
+                     </div>
+                  </div>
+                  <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block opacity-50 cursor-not-allowed pointer-events-none">تأكيد الحضور</Link>
+               </div>
+               <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden">
+                  <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" /></div>
+                  <div className="relative z-10 space-y-6">
+                    <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 opacity-30" /></div>
                     <div>
-                       <p className="text-[10px] font-black uppercase tracking-widest opacity-40">الموعد</p>
-                       <p className="text-lg font-black">{nextMeeting ? new Date(nextMeeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' }) : "—"}</p>
+                      <p className="text-[13px] font-black uppercase tracking-widest opacity-60 mb-2">الوقت المتبقي</p>
+                      <div className="text-4xl font-black tracking-tighter">—</div>
                     </div>
-                 </div>
+                  </div>
+               </div>
+            </article>
+          ) : (
+            <div className="overflow-hidden" ref={emblaRef}>
+              <div className="flex">
+                {upcomingMeetings.map((meeting, index) => {
+                  const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                  return (
+                    <div key={meeting.id} className="flex-[0_0_100%] min-w-0">
+                      <article className="card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl mx-1">
+                         <div className="flex-1 p-10 md:p-12 space-y-8">
+                            <div className="space-y-3">
+                              <span className="text-xs font-black text-gold-primary uppercase tracking-[0.3em] opacity-60">الحدث القادم ({index + 1}/{upcomingMeetings.length})</span>
+                              <h3 className="text-3xl md:text-4xl font-black text-foreground line-clamp-1">{meeting.title}</h3>
+                            </div>
+                            <div className="flex flex-wrap gap-12">
+                               <div className="flex items-center gap-4">
+                                  <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner"><CalendarDays size={28} /></div>
+                                  <div>
+                                     <p className="text-[10px] font-black uppercase tracking-widest opacity-40">الموعد</p>
+                                     <p className="text-lg font-black">{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                                  </div>
+                               </div>
+                            </div>
+                            <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block">تأكيد الحضور</Link>
+                         </div>
+                         <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden shrink-0">
+                            <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" /></div>
+                            <div className="relative z-10 space-y-6">
+                              <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 animate-pulse" /></div>
+                              <div>
+                                <p className="text-[13px] font-black uppercase tracking-widest opacity-60 mb-2">الوقت المتبقي</p>
+                                <div className="text-7xl font-black tracking-tighter">{daysLeft > 0 ? daysLeft : 0}</div>
+                                <p className="text-2xl font-black opacity-80">أيام</p>
+                              </div>
+                            </div>
+                         </div>
+                      </article>
+                    </div>
+                  );
+                })}
               </div>
-              <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block">تأكيد الحضور</Link>
-           </div>
-           <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden">
-              <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" /></div>
-              <div className="relative z-10 space-y-6">
-                <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 animate-pulse" /></div>
-                <div>
-                  <p className="text-[13px] font-black uppercase tracking-widest opacity-60 mb-2">الوقت المتبقي</p>
-                  <div className="text-7xl font-black tracking-tighter">4</div>
-                  <p className="text-2xl font-black opacity-80">أيام</p>
-                </div>
-              </div>
-           </div>
-        </article>
+            </div>
+          )}
+        </section>
 
       </div>
       <Link to="/majlis" className="fixed bottom-10 left-10 size-20 rounded-[32px] bg-primary text-primary-foreground flex items-center justify-center shadow-2xl z-50 border-4 border-white/10"><Plus size={36} strokeWidth={3} /></Link>
