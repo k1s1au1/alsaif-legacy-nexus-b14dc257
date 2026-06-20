@@ -66,7 +66,7 @@
   --secondary-foreground: #F1F5F9;
   --muted: #1E2229;
   --muted-foreground: #94A3B8;
-  --border: rgba(255, 255, 255, 0.1);
+  --border: rgba(255, 255, 255, 0.08);
 }
 
 @layer base {
@@ -75,8 +75,19 @@
     background-color: var(--color-background) !important;
     color: var(--color-foreground);
     font-family: var(--font-arabic);
-    transition: all 0.3s ease;
+    transition: all 0.4s ease;
   }
+}
+
+/* Beautiful Royal Logo Transition */
+@utility logo-royal {
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  mix-blend-mode: multiply;
+}
+
+.dark .logo-royal {
+  mix-blend-mode: screen;
+  filter: invert(1) brightness(1.2) sepia(1) saturate(4) hue-rotate(350deg); /* High-end Gold */
 }
 
 @utility card-surface {
@@ -94,3 +105,12 @@
   border-radius: 16px;
   box-shadow: 0 8px 20px -6px rgba(139, 107, 35, 0.4);
 }
+
+.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }

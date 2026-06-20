@@ -97,7 +97,7 @@ function Dashboard() {
            </div>
            <div className="relative inline-block group">
              <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-1000" />
-             <img src={alsaifMark.url} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 transition-all duration-700 dark:invert" />
+             <img src={alsaifMark.url} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 logo-royal" />
            </div>
            <div className="space-y-2">
              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
@@ -126,7 +126,7 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* Animated Stats Banner (Banner Style) */}
+        {/* Animated Stats Banner */}
         <section className="px-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
            <div className="relative overflow-hidden rounded-[48px] h-[280px] shadow-2xl group border-4 border-white dark:border-border">
               {stats.map((stat, i) => (
@@ -157,7 +157,6 @@ function Dashboard() {
                    </div>
                 </div>
               ))}
-              {/* Slider Dots */}
               <div className="absolute bottom-10 right-14 flex gap-3 z-20">
                  {stats.map((_, i) => (
                     <button key={i} onClick={() => setStatIndex(i)} className={cn("h-2 rounded-full transition-all duration-500", statIndex === i ? "w-12 bg-white" : "w-2 bg-white/30")} />
