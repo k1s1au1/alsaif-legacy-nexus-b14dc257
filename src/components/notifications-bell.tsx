@@ -19,6 +19,7 @@ type Notif = {
   description: string;
   href: string;
   at: string;
+  refId?: string; // Original ID from DB
 };
 
 function timeAgo(iso: string) {
@@ -34,98 +35,116 @@ function timeAgo(iso: string) {
 
 export function NotificationsBell() {
   const [items, setItems] = useState<Notif[]>([]);
-  const [count, setCount] = useState(0);
   const [open, setOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const inChat = pathname.startsWith("/chat");
 
   const load = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
-    const userId = u.user.id;
+    const uid = u.user.id;
+    setUserId(uid);
 
     const out: Notif[] = [];
 
-    // 1) Meetings (Unread/Upcoming)
-    const { data: meetings } = await supabase.from("meetings")
-      .select("id,title,scheduled_at")
-      .gte("scheduled_at", new Date().toISOString())
-      .order("scheduled_at")
-      .limit(10);
+    // Get "Dismissed" notifications from localStorage to hide them immediately
+    const dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
 
-    (meetings ?? []).forEach(m => {
-        out.push({
-          id: `meet-${m.id}`,
-          kind: "meeting",
-          title: m.title,
-          description: "اجتماع عائلي مجدول",
-          href: "/meetings",
-          at: m.scheduled_at
-        });
-    });
+    // 1) Unread messages
+    const { data: parts } = await supabase.from("conversation_participants").select("conversation_id,last_read_at").eq("user_id", uid);
+    if (parts?.length) {
+      const readMap = new Map(parts.map(p => [p.conversation_id, new Date(p.last_read_at).getTime()]));
+      const { data: msgs } = await supabase.from("messages").select("id,conversation_id,body,created_at,sender_id").in("conversation_id", [...readMap.keys()]).neq("sender_id", uid).order("created_at", { ascending: false }).limit(50);
 
-    // 2) Tasks (Assigned to me)
-    const { data: myTasks } = await supabase.from("tasks")
-      .select("id,title,created_at")
-      .eq("assignee_id", userId)
-      .neq("status", "done")
-      .limit(5);
-
-    (myTasks ?? []).forEach(t => {
-      out.push({
-        id: `task-${t.id}`,
-        kind: "task",
-        title: "مهمة جديدة",
-        description: t.title,
-        href: "/tasks",
-        at: t.created_at
-      });
-    });
-
-    // 3) Admin/Manager: Pending Requests
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const isPriv = (roles ?? []).some(r => r.role === "admin" || r.role === "manager");
-
-    if (isPriv) {
-      const { data: reqs } = await supabase.from("account_requests")
-        .select("id,first_name,created_at")
-        .eq("status", "pending")
-        .limit(5);
-      (reqs ?? []).forEach(req => {
-        out.push({
-          id: `req-${req.id}`,
-          kind: "account_request",
-          title: "طلب انضمام",
-          description: `من: ${req.first_name}`,
-          href: "/admin",
-          at: req.created_at
-        });
+      const unreadConvs = new Set<string>();
+      (msgs ?? []).forEach(m => {
+        const notifId = `msg-${m.conversation_id}`;
+        if (new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0) && !dismissed.includes(notifId)) {
+          if (!unreadConvs.has(m.conversation_id)) {
+             unreadConvs.add(m.conversation_id);
+             out.push({
+               id: notifId,
+               kind: "message",
+               title: "رسالة جديدة",
+               description: m.body?.slice(0, 40) || "وصلتك رسالة جديدة",
+               href: `/chat/${m.conversation_id}`,
+               at: m.created_at,
+               refId: m.conversation_id
+             });
+          }
+        }
       });
     }
 
-    const sorted = out.sort((a,b) => new Date(b.at).getTime() - new Date(a.at).getTime());
-    setItems(sorted);
-    setCount(sorted.length);
+    // 2) Upcoming Meetings
+    const { data: meetings } = await supabase.from("meetings").select("id,title,scheduled_at").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
+    (meetings ?? []).forEach(m => {
+        const notifId = `meet-${m.id}`;
+        if (!dismissed.includes(notifId)) {
+          out.push({ id: notifId, kind: "meeting", title: m.title, description: "موعد اجتماع عائلي مرتقب", href: "/meetings", at: m.scheduled_at, refId: m.id });
+        }
+    });
+
+    // 3) Admin Requests
+    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+    const isPriv = (roles ?? []).some(r => r.role === "admin" || r.role === "manager");
+    if (isPriv) {
+      const { data: reqs } = await supabase.from("account_requests").select("id,first_name,created_at").eq("status", "pending").limit(5);
+      (reqs ?? []).forEach(req => {
+        const notifId = `req-${req.id}`;
+        if (!dismissed.includes(notifId)) {
+          out.push({ id: notifId, kind: "account_request", title: "طلب انضمام جديد", description: `المتقدم: ${req.first_name}`, href: "/admin", at: req.created_at, refId: req.id });
+        }
+      });
+    }
+
+    setItems(out.sort((a,b) => new Date(b.at).getTime() - new Date(a.at).getTime()));
   }, []);
+
+  const handleNotifClick = async (notif: Notif) => {
+    setOpen(false);
+
+    // 1. Remove from local state immediately
+    setItems(prev => prev.filter(item => item.id !== notif.id));
+
+    // 2. Persist dismissal locally so it doesn't reappear on reload
+    const dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
+    if (!dismissed.includes(notif.id)) {
+      dismissed.push(notif.id);
+      localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50))); // Keep last 50
+    }
+
+    // 3. Special handling: If it's a message, mark as read in DB too
+    if (notif.kind === "message" && userId && notif.refId) {
+      await supabase.from("conversation_participants")
+        .update({ last_read_at: new Date().toISOString() })
+        .eq("user_id", userId)
+        .eq("conversation_id", notif.refId);
+    }
+  };
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 30000); // Check every 30s
-    return () => clearInterval(interval);
+    const interval = setInterval(load, 30000);
+    const channel = supabase.channel("realtime-notifications").on("postgres_changes", { event: "*", schema: "public" }, () => load()).subscribe();
+    return () => {
+      clearInterval(interval);
+      supabase.removeChannel(channel);
+    };
   }, [load]);
 
   const visibleItems = inChat ? items.filter(n => n.kind !== "message") : items;
-  const displayCount = visibleItems.length;
+  const count = visibleItems.length;
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
         <button className="relative size-12 flex items-center justify-center rounded-2xl hover:bg-primary/5 transition-all outline-none group active:scale-95">
           <Bell className={cn("size-6 transition-all", open ? "text-primary scale-110" : "text-muted-foreground group-hover:text-primary")} strokeWidth={1.8} />
-
-          {displayCount > 0 && (
+          {count > 0 && (
             <div className="absolute top-1.5 right-1.5 flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-red-600 text-white text-[10px] font-black border-2 border-background shadow-lg animate-in zoom-in duration-300">
-               {displayCount > 99 ? "99+" : displayCount}
+               {count > 99 ? "99+" : count}
             </div>
           )}
         </button>
@@ -139,9 +158,9 @@ export function NotificationsBell() {
              </div>
              <span className="text-base font-black text-primary">التنبيهات</span>
           </div>
-          {displayCount > 0 && (
+          {count > 0 && (
             <span className="px-2 py-0.5 rounded-md bg-red-600/10 text-red-600 text-[10px] font-black uppercase tracking-widest">
-               {displayCount} جديد
+               {count} جديد
             </span>
           )}
         </div>
@@ -159,16 +178,18 @@ export function NotificationsBell() {
               <Link
                 key={n.id}
                 to={n.href}
-                onClick={() => setOpen(false)}
+                onClick={() => handleNotifClick(n)}
                 className="flex items-start gap-4 px-6 py-5 hover:bg-primary/5 transition-all border-b border-border/40 last:border-b-0 group"
               >
                 <div className={cn(
                   "size-11 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:rotate-6",
                   n.kind === "meeting" ? "bg-amber-500/10 text-amber-600" :
                   n.kind === "task" ? "bg-rose-500/10 text-rose-600" :
+                  n.kind === "message" ? "bg-blue-500/10 text-blue-600" :
                   "bg-primary/10 text-primary"
                 )}>
                   {n.kind === "meeting" ? <CalendarDays size={20} /> :
+                   n.kind === "message" ? <MessageCircle size={20} /> :
                    n.kind === "task" ? <ListChecks size={20} /> : <UserPlus size={20} />}
                 </div>
                 <div className="flex-1 min-w-0 space-y-1">
