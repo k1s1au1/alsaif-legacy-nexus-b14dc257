@@ -18,7 +18,8 @@ import {
   Plus,
   ArrowUpRight,
   Search,
-  LayoutGrid
+  LayoutGrid,
+  User
 } from "lucide-react";
 import tripImage from "@/assets/trip-alula.jpg";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -192,8 +193,12 @@ function Dashboard() {
                  <div className="grid grid-cols-2 gap-4">
                     <QuickAction to="/chat" label="محادثة" icon={<MessageCircle size={20} />} />
                     <QuickAction to="/trips" label="رحلة" icon={<Plane size={20} />} />
+                    <QuickAction to="/meetings" label="الاجتماعات" icon={<CalendarDays size={20} />} />
                     <QuickAction to="/tasks" label="مهمة" icon={<ListChecks size={20} />} />
                     <QuickAction to="/majlis" label="إعلان" icon={<Megaphone size={20} />} />
+                    <QuickAction to="/family-tree" label="شجرة العائلة" icon={<Users size={20} />} />
+                    <QuickAction to="/finance" label="صندوق العائلة" icon={<Wallet size={20} />} />
+                    <QuickAction to="/profile" label="ملفي الشخصي" icon={<User size={20} />} />
                  </div>
               </div>
 
