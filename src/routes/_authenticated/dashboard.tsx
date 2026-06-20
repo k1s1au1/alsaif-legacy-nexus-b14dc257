@@ -116,7 +116,7 @@ function Dashboard() {
              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إجراءات سريعة</h3>
              <div className="h-px w-12 bg-border" />
            </div>
-           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 px-4">
+           <div className="flex overflow-x-auto no-scrollbar gap-6 px-6 pb-2 sm:grid sm:grid-cols-4 lg:grid-cols-8 sm:overflow-visible sm:justify-items-center">
               <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-blue-500" />
               <QuickAction to="/trips" label="رحلات" icon={<Plane />} color="bg-indigo-500" />
               <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-amber-500" />
@@ -206,7 +206,7 @@ function Dashboard() {
 
 function QuickAction({ to, label, icon, color }: any) {
   return (
-    <Link to={to} className="group flex flex-col items-center gap-3">
+    <Link to={to} className="group flex flex-col items-center gap-3 shrink-0">
        <div className={cn("size-14 md:size-16 rounded-[22px] flex items-center justify-center text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1", color)}>
           {icon}
        </div>
