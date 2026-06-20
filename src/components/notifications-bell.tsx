@@ -43,62 +43,21 @@ export function NotificationsBell() {
     if (!u.user) return;
     const userId = u.user.id;
 
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-    const r = (roles ?? []).map((x) => x.role);
-    const isPriv = r.includes("admin") || r.includes("manager");
-
     const out: Notif[] = [];
 
-    // 1) Unread messages from Database
-    const { data: parts } = await supabase.from("conversation_participants").select("conversation_id,last_read_at").eq("user_id", userId);
-    if (parts?.length) {
-      const readMap = new Map(parts.map(p => [p.conversation_id, new Date(p.last_read_at).getTime()]));
-      const { data: msgs } = await supabase.from("messages").select("id,conversation_id,body,created_at,sender_id").in("conversation_id", [...readMap.keys()]).neq("sender_id", userId).order("created_at", { ascending: false }).limit(50);
-
-      const unreadConvs = new Set<string>();
-      (msgs ?? []).forEach(m => {
-        if (new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0)) {
-          if (!unreadConvs.has(m.conversation_id)) {
-             unreadConvs.add(m.conversation_id);
-             out.push({
-               id: `msg-${m.id}`,
-               kind: "message",
-               title: "رسالة جديدة",
-               description: m.body?.slice(0, 40) || "وصلتك رسالة جديدة",
-               href: `/chat/${m.conversation_id}`,
-               at: m.created_at
-             });
-          }
-        }
-      });
-    }
-
-    // 2) Upcoming Meetings
-    const { data: meetings } = await supabase.from("meetings").select("id,title,scheduled_at").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
+    // Meetings
+    const { data: meetings } = await supabase.from("meetings").select("id,title,scheduled_at").gte("scheduled_at", new Date().toISOString()).limit(5);
     (meetings ?? []).forEach(m => {
         out.push({ id: `meet-${m.id}`, kind: "meeting", title: m.title, description: "موعد اجتماع عائلي مرتقب", href: "/meetings", at: m.scheduled_at });
     });
-
-    // 3) Admin Requests
-    if (isPriv) {
-      const { data: reqs } = await supabase.from("account_requests").select("id,first_name,created_at").eq("status", "pending").limit(5);
-      (reqs ?? []).forEach(req => {
-        out.push({ id: `req-${req.id}`, kind: "account_request", title: "طلب انضمام جديد", description: `المتقدم: ${req.first_name}`, href: "/admin", at: req.created_at });
-      });
-    }
 
     setItems(out.sort((a,b) => new Date(b.at).getTime() - new Date(a.at).getTime()));
   }, []);
 
   useEffect(() => {
     load();
-    // Refresh every minute and listen for changes
     const interval = setInterval(load, 60000);
-    const channel = supabase.channel("realtime-notifications").on("postgres_changes", { event: "*", schema: "public" }, () => load()).subscribe();
-    return () => {
-      clearInterval(interval);
-      supabase.removeChannel(channel);
-    };
+    return () => clearInterval(interval);
   }, [load]);
 
   const visibleItems = inChat ? items.filter(n => n.kind !== "message") : items;
@@ -107,71 +66,44 @@ export function NotificationsBell() {
   return (
     <DropdownMenu open={open} onOpenChange={setOpen}>
       <DropdownMenuTrigger asChild>
-        <button className="relative size-11 flex items-center justify-center rounded-2xl hover:bg-primary/5 transition-all outline-none group active:scale-90">
+        <button className="relative flex items-center justify-center bg-transparent border-none outline-none group">
           <Bell className={cn("size-6 transition-all", open ? "text-primary scale-110" : "text-muted-foreground group-hover:text-primary")} strokeWidth={1.5} />
           {count > 0 && (
-            <span className="absolute top-2 right-2 size-5 flex items-center justify-center rounded-full bg-saudi-red text-white text-[10px] font-black border-2 border-background animate-pulse shadow-sm">
+            <span className="absolute -top-1 -right-1 size-4 flex items-center justify-center rounded-full bg-saudi-red text-white text-[9px] font-black shadow-sm">
               {count}
             </span>
           )}
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" sideOffset={12} className="w-[340px] p-0 rounded-3xl border-border bg-card/95 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.2)] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <DropdownMenuContent align="end" sideOffset={12} className="w-[320px] p-0 rounded-3xl border-border bg-card/95 backdrop-blur-2xl shadow-2xl overflow-hidden">
         <div className="px-6 py-5 flex items-center justify-between bg-primary/5">
-          <div className="flex items-center gap-2">
-            <span className="text-base font-black text-primary">التنبيهات</span>
-            {count > 0 && <span className="size-2 rounded-full bg-saudi-red animate-pulse" />}
-          </div>
-          <span className="text-[10px] font-black uppercase tracking-widest opacity-40">{count} جديد</span>
+          <span className="text-base font-black text-primary">التنبيهات</span>
+          <span className="text-[10px] font-black uppercase opacity-40">{count} جديد</span>
         </div>
-
         <DropdownMenuSeparator className="m-0 bg-border/40" />
-
-        <div className="max-h-[420px] overflow-y-auto no-scrollbar">
+        <div className="max-h-[380px] overflow-y-auto no-scrollbar">
           {visibleItems.length === 0 ? (
-            <div className="py-16 flex flex-col items-center justify-center gap-4 opacity-30">
-              <Inbox size={48} strokeWidth={1} />
-              <p className="text-sm font-bold">لا توجد تنبيهات حالياً</p>
+            <div className="py-12 flex flex-col items-center justify-center gap-3 opacity-30">
+              <Inbox size={40} strokeWidth={1} />
+              <p className="text-sm font-bold">لا توجد تنبيهات</p>
             </div>
           ) : (
             visibleItems.map((n) => (
-              <Link
-                key={n.id}
-                to={n.href}
-                onClick={() => setOpen(false)}
-                className="flex items-start gap-4 px-6 py-5 hover:bg-primary/5 transition-all border-b border-border/40 last:border-b-0 group"
-              >
-                <div className={cn(
-                  "size-10 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all group-hover:scale-110 group-hover:rotate-6",
-                  n.kind === "meeting" ? "bg-amber-500/10 text-amber-600" :
-                  n.kind === "message" ? "bg-blue-500/10 text-blue-600" :
-                  "bg-primary/10 text-primary"
-                )}>
-                  {n.kind === "meeting" ? <CalendarDays size={18} /> :
-                   n.kind === "message" ? <MessageCircle size={18} /> :
-                   n.kind === "task" ? <ListChecks size={18} /> : <UserPlus size={18} />}
+              <Link key={n.id} to={n.href} onClick={() => setOpen(false)} className="flex items-start gap-4 px-6 py-5 hover:bg-primary/5 transition-all border-b border-border/40 last:border-b-0">
+                <div className="size-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+                  <CalendarDays size={18} />
                 </div>
-                <div className="flex-1 min-w-0 space-y-1.5">
+                <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-[14px] font-black text-foreground truncate group-hover:text-primary transition-colors">{n.title}</p>
-                    <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap bg-muted/50 px-2 py-0.5 rounded-full">{timeAgo(n.at)}</span>
+                    <p className="text-[14px] font-black text-foreground truncate">{n.title}</p>
+                    <span className="text-[10px] font-bold text-muted-foreground">{timeAgo(n.at)}</span>
                   </div>
-                  <p className="text-[12px] font-medium text-muted-foreground line-clamp-2 leading-relaxed">{n.description}</p>
+                  <p className="text-[12px] font-medium text-muted-foreground line-clamp-1">{n.description}</p>
                 </div>
               </Link>
             ))
           )}
         </div>
-
-        <DropdownMenuSeparator className="m-0 bg-border/40" />
-
-        <Link
-          to="/majlis"
-          onClick={() => setOpen(false)}
-          className="flex items-center justify-center gap-2 py-5 bg-primary/5 hover:bg-primary/10 transition-colors text-[13px] font-black text-primary"
-        >
-          فتح مركز الإشعارات <ChevronLeft size={16} />
-        </Link>
       </DropdownMenuContent>
     </DropdownMenu>
   );

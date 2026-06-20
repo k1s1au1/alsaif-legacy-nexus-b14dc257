@@ -92,7 +92,11 @@ function Dashboard() {
 
   const fetchBalance = useCallback(async () => {
     const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
-    const bal = txs?.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0) || 0;
+    const bal = txs?.reduce((acc, t) => {
+      const amt = Number(t.amount);
+      if (isNaN(amt)) return acc;
+      return t.type === "contribution" ? acc + amt : acc - amt;
+    }, 0) ?? 0;
     setFundBalance(bal);
   }, []);
 
