@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -18,15 +18,11 @@ import {
   History,
   Timer,
   ArrowUpRight,
-  TrendingUp,
   ChevronRight
 } from "lucide-react";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
-
-import { useAppBackground } from "@/hooks/use-app-background";
-import { paletteToCssVars } from "@/lib/bg-palette";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -50,19 +46,16 @@ function Dashboard() {
   const [tripsCount, setTripsCount] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
-  const [countdown, setCountdown] = useState({ days: 0, hours: 0 });
-  const [activeStatIndex, setActiveStatIndex] = useState(0);
+  const [statIndex, setStatIndex] = useState(0);
 
   const loadData = useCallback(async () => {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
 
-    // Load Profile
     const { data: p } = await supabase.from("profiles").select("arabic_name, full_name").eq("id", u.user.id).maybeSingle();
     const name = p?.arabic_name || p?.full_name || "عضو العائلة";
     setProfile({ name, role: "مسؤول النظام", initial: name[0] || "س" });
 
-    // Load Counts
     const [ { count: tc }, { count: mc }, { count: tskc } ] = await Promise.all([
       supabase.from("trips").select("*", { count: "exact", head: true }),
       supabase.from("profiles").select("*", { count: "exact", head: true }),
@@ -72,265 +65,151 @@ function Dashboard() {
     setMembersCount(mc || 0);
     setTasksCount(tskc || 0);
 
-    // Load Next Meeting
-    const { data: meet } = await supabase.from("meetings")
-      .select("*")
-      .gte("scheduled_at", new Date().toISOString())
-      .eq("status", "scheduled")
-      .order("scheduled_at")
-      .limit(1)
-      .maybeSingle();
-
+    const { data: meet } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(1).maybeSingle();
     setNextMeeting(meet);
 
-    if (meet) {
-      const target = new Date(meet.scheduled_at).getTime();
-      const now = new Date().getTime();
-      const diff = target - now;
-      setCountdown({
-        days: Math.floor(diff / (1000 * 60 * 60 * 24)),
-        hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60))
-      });
-    }
-  }, []);
-
-  const fetchBalance = useCallback(async () => {
     const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
-    const bal = txs?.reduce((acc, t) => {
-      const amt = Number(t.amount);
-      if (isNaN(amt)) return acc;
-      return t.type === "contribution" ? acc + amt : acc - amt;
-    }, 0) || 0;
+    const bal = txs?.reduce((acc, t) => Number(t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount)), 0) || 0;
     setFundBalance(bal);
   }, []);
 
   useEffect(() => {
     loadData();
-    fetchBalance();
-    const channel = supabase.channel("realtime-dashboard").on("postgres_changes", { event: "*", schema: "public" }, () => {
-      loadData();
-      fetchBalance();
-    }).subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [loadData, fetchBalance]);
-
-  // Auto-sliding logic for stats carousel
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveStatIndex((prev) => (prev + 1) % 4);
-    }, 5000);
+    const timer = setInterval(() => setStatIndex(prev => (prev + 1) % 4), 6000);
     return () => clearInterval(timer);
-  }, []);
+  }, [loadData]);
 
-  const arabicGreeting = () => {
-    const h = new Date().getHours();
-    if (h < 12) return "صباح الخير";
-    if (h < 17) return "مساء النور";
-    return "طاب مساؤك";
-  };
-
-  const quickActions = [
-    { to: "/chat", label: "محادثة", icon: <MessageCircle size={22} />, color: "bg-blue-500" },
-    { to: "/trips", label: "رحلات", icon: <Plane size={22} />, color: "bg-indigo-500" },
-    { to: "/meetings", label: "اجتماعات", icon: <CalendarDays size={22} />, color: "bg-amber-500" },
-    { to: "/tasks", label: "مهام", icon: <ListChecks size={22} />, color: "bg-rose-500" },
-    { to: "/majlis", label: "إعلان", icon: <Megaphone size={22} />, color: "bg-emerald-500" },
-    { to: "/family-tree", label: "الشجرة", icon: <Users size={22} />, color: "bg-teal-500" },
-    { to: "/finance", label: "الصندوق", icon: <Wallet size={22} />, color: "bg-green-600" },
-    { to: "/archive", label: "الأرشيف", icon: <History size={22} />, color: "bg-stone-600" },
-  ];
-
-  const statsCarousel = [
-    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", icon: <Wallet className="size-12" />, color: "bg-emerald-600", link: "/finance" },
-    { label: "أفراد العائلة", value: membersCount, suffix: "عضو", icon: <Users className="size-12" />, color: "bg-[#1B4332]", link: "/members" },
-    { label: "رحلات مجدولة", value: tripsCount, suffix: "رحلة", icon: <Plane className="size-12" />, color: "bg-[#8E7745]", link: "/trips" },
-    { label: "مهام جارية", value: tasksCount, suffix: "مهمة", icon: <ListChecks className="size-12" />, color: "bg-rose-700", link: "/tasks" },
+  const stats = [
+    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-emerald-600", icon: <Wallet className="size-16" />, link: "/finance" },
+    { label: "أفراد العائلة", value: membersCount, suffix: "عضو", color: "bg-primary", icon: <Users className="size-16" />, link: "/members" },
+    { label: "الرحلات المجدولة", value: tripsCount, suffix: "رحلة", color: "bg-[#8E7745]", icon: <Plane className="size-16" />, link: "/trips" },
+    { label: "مهام قيد التنفيذ", value: tasksCount, suffix: "مهمة", color: "bg-rose-700", icon: <ListChecks className="size-16" />, link: "/tasks" },
   ];
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
-      <div className="max-w-6xl mx-auto space-y-8 pb-20 px-2 md:px-0">
+      <div className="max-w-6xl mx-auto space-y-12 pb-20">
 
-        {/* Welcome Section */}
-        <section className="flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-up">
-           <div className="text-center md:text-right space-y-3">
-             <div className="flex items-center justify-center md:justify-start gap-4">
-               <span className="text-2xl font-black text-primary opacity-80">{arabicGreeting()}،</span>
-               <div className="px-4 py-1 bg-primary/5 rounded-full border border-primary/10 shadow-sm backdrop-blur-sm">
-                 <LiveClock />
-               </div>
-             </div>
-             <h2 className="text-4xl md:text-6xl font-black text-foreground tracking-tight leading-[1.1]">
-               {profile.name}
+        {/* Centered Hero Greeting */}
+        <section className="text-center space-y-6 animate-fade-up">
+           <div className="inline-block px-6 py-2 bg-primary/5 rounded-full border border-primary/10 backdrop-blur-sm">
+             <LiveClock />
+           </div>
+           <div className="relative inline-block group">
+             <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-1000" />
+             <img src={alsaifMark.url} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 transition-all duration-700 dark:invert" />
+           </div>
+           <div className="space-y-2">
+             <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
+               خالد عبد العزيز
              </h2>
-           </div>
-           <div className="shrink-0 relative">
-             <div className="absolute inset-0 bg-gold-primary/20 blur-[80px] rounded-full" />
-             <img
-               src={alsaifMark.url}
-               alt="Logo"
-               className="size-32 md:size-44 object-contain relative z-10 transition-all duration-700 dark:brightness-0 dark:invert"
-             />
+             <p className="text-xl text-muted-foreground font-bold opacity-60">نصل العائلة، نحفظ الإرث، ونبني المستقبل.</p>
            </div>
         </section>
 
-        {/* Quick Actions Carousel */}
-        <section className="space-y-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
-           <div className="flex items-center justify-between px-2">
-             <h3 className="text-xs font-black text-primary uppercase tracking-[0.2em] opacity-60">إجراءات سريعة</h3>
-             <div className="flex gap-1.5">
-                <div className="size-1 rounded-full bg-primary/20" />
-                <div className="size-1 rounded-full bg-primary/40 animate-pulse" />
-             </div>
+        {/* Quick Actions Grid (Centered) */}
+        <section className="animate-fade-up" style={{ animationDelay: "100ms" }}>
+           <div className="flex items-center justify-center gap-4 mb-8">
+             <div className="h-px w-12 bg-border" />
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إجراءات سريعة</h3>
+             <div className="h-px w-12 bg-border" />
            </div>
-
-           <div className="flex overflow-x-auto gap-4 pb-4 no-scrollbar snap-x snap-mandatory">
-              {quickActions.map((action) => (
-                <Link key={action.to} to={action.to} className="flex-none w-[90px] snap-center group">
-                  <div className="flex flex-col items-center gap-2">
-                    <div className={cn(
-                      "size-16 rounded-[24px] flex items-center justify-center text-white shadow-lg transition-all duration-300",
-                      "group-hover:scale-110 group-hover:-translate-y-1",
-                      action.color
-                    )}>
-                      {action.icon}
-                    </div>
-                    <span className="text-[11px] font-black text-foreground/70 group-hover:text-primary transition-colors">{action.label}</span>
-                  </div>
-                </Link>
-              ))}
+           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4 px-4">
+              <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-blue-500" />
+              <QuickAction to="/trips" label="رحلات" icon={<Plane />} color="bg-indigo-500" />
+              <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-amber-500" />
+              <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-rose-500" />
+              <QuickAction to="/majlis" label="إعلان" icon={<Megaphone />} color="bg-emerald-500" />
+              <QuickAction to="/family-tree" label="الشجرة" icon={<Users />} color="bg-teal-500" />
+              <QuickAction to="/finance" label="الصندوق" icon={<Wallet />} color="bg-green-600" />
+              <QuickAction to="/profile" label="ملفي" icon={<User />} color="bg-slate-500" />
            </div>
         </section>
 
-        {/* NEW: Stats Auto-Slider (Banner Style) */}
-        <section className="animate-fade-up" style={{ animationDelay: "200ms" }}>
-           <div className="relative overflow-hidden rounded-[44px] h-[220px] md:h-[260px] shadow-2xl group">
-              {statsCarousel.map((stat, i) => (
-                <div
-                  key={i}
-                  className={cn(
-                    "absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out flex items-center p-10 md:p-16",
-                    stat.color,
-                    activeStatIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
-                  )}
-                >
-                   {/* Background Pattern */}
+        {/* Animated Stats Banner (Banner Style) */}
+        <section className="px-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
+           <div className="relative overflow-hidden rounded-[48px] h-[280px] shadow-2xl group border-4 border-white dark:border-border">
+              {stats.map((stat, i) => (
+                <div key={i} className={cn(
+                  "absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out flex items-center p-12 md:p-20",
+                  stat.color,
+                  statIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
+                )}>
                    <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 rotate-12">
                       <img src={alsaifMark.url} className="size-full object-contain brightness-0 invert" />
                    </div>
-
                    <div className="relative z-10 flex items-center justify-between w-full text-white">
-                      <div className="space-y-4">
-                         <div className="flex items-center gap-3 opacity-80 font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">
-                            <Sparkles className="size-4" />
-                            {stat.label}
+                      <div className="space-y-6">
+                         <div className="flex items-center gap-3 font-black uppercase tracking-[0.4em] text-xs opacity-70">
+                            <Sparkles className="size-5" /> {stat.label}
                          </div>
-                         <div className="text-5xl md:text-7xl font-black tracking-tighter leading-none flex items-baseline gap-3">
+                         <div className="text-6xl md:text-8xl font-black tracking-tighter leading-none flex items-baseline gap-4">
                             <AnimatedCounter value={stat.value} />
-                            <span className="text-xl md:text-2xl opacity-60 font-bold">{stat.suffix}</span>
+                            <span className="text-2xl opacity-50">{stat.suffix}</span>
                          </div>
-                         <Link to={stat.link} className="inline-flex items-center gap-2 bg-white/20 hover:bg-white/30 backdrop-blur-md px-6 py-2.5 rounded-full text-sm font-black transition-all">
-                            التفاصيل <ChevronLeft size={18} />
+                         <Link to={stat.link} className="inline-flex items-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-xl px-8 py-3 rounded-full text-sm font-black transition-all">
+                            التفاصيل <ChevronLeft size={20} />
                          </Link>
                       </div>
-
-                      <div className="hidden md:flex size-32 rounded-[40px] bg-white/10 backdrop-blur-md items-center justify-center border border-white/20 shadow-2xl">
+                      <div className="hidden lg:flex size-44 rounded-[50px] bg-white/10 backdrop-blur-md items-center justify-center border border-white/20 shadow-inner">
                          {stat.icon}
                       </div>
                    </div>
                 </div>
               ))}
-
-              {/* Progress Indicators */}
-              <div className="absolute bottom-8 right-10 flex gap-2 z-20">
-                 {statsCarousel.map((_, i) => (
-                    <button
-                      key={i}
-                      onClick={() => setActiveStatIndex(i)}
-                      className={cn(
-                        "h-1.5 rounded-full transition-all duration-500",
-                        activeStatIndex === i ? "w-8 bg-white" : "w-2 bg-white/30"
-                      )}
-                    />
+              {/* Slider Dots */}
+              <div className="absolute bottom-10 right-14 flex gap-3 z-20">
+                 {stats.map((_, i) => (
+                    <button key={i} onClick={() => setStatIndex(i)} className={cn("h-2 rounded-full transition-all duration-500", statIndex === i ? "w-12 bg-white" : "w-2 bg-white/30")} />
                  ))}
               </div>
-
-              {/* Navigation Arrows */}
-              <button
-                onClick={() => setActiveStatIndex((prev) => (prev - 1 + 4) % 4)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 size-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <ChevronRight size={24} />
-              </button>
-              <button
-                onClick={() => setActiveStatIndex((prev) => (prev + 1) % 4)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 size-10 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity"
-              >
-                <ChevronLeft size={24} />
-              </button>
            </div>
         </section>
 
-        {/* Meeting Spotlight */}
-        <article className="card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl animate-fade-up" style={{ animationDelay: "300ms" }}>
-           <div className="flex-1 p-10 space-y-8">
+        {/* Event Card */}
+        <article className="mx-4 card-surface overflow-hidden flex flex-col md:flex-row border-none shadow-2xl animate-fade-up" style={{ animationDelay: "300ms" }}>
+           <div className="flex-1 p-12 space-y-8">
               <div className="space-y-3">
-                <div className="flex items-center gap-2">
-                  <div className="size-2 rounded-full bg-gold-primary animate-pulse" />
-                  <span className="text-xs font-black text-gold-primary uppercase tracking-[0.2em]">الحدث القادم</span>
-                </div>
-                <h3 className="text-3xl font-black text-foreground leading-tight">
-                  {nextMeeting?.title || "لا توجد اجتماعات معلنة حالياً"}
-                </h3>
+                <span className="text-xs font-black text-gold-primary uppercase tracking-[0.3em] opacity-60">الحدث القادم</span>
+                <h3 className="text-4xl font-black text-foreground">{nextMeeting?.title || "لا توجد اجتماعات حالياً"}</h3>
               </div>
-
-              <div className="flex flex-wrap gap-10">
+              <div className="flex flex-wrap gap-12">
                  <div className="flex items-center gap-4">
-                    <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
-                       <CalendarDays size={24} />
-                    </div>
+                    <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner"><CalendarDays size={28} /></div>
                     <div>
-                       <p className="text-[11px] font-black text-muted-foreground uppercase tracking-widest">الموعد</p>
-                       <p className="text-base font-black text-foreground">
-                         {nextMeeting ? new Date(nextMeeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' }) : "—"}
-                       </p>
+                       <p className="text-[10px] font-black uppercase tracking-widest opacity-40">الموعد</p>
+                       <p className="text-lg font-black">{nextMeeting ? new Date(nextMeeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' }) : "—"}</p>
                     </div>
                  </div>
               </div>
-
-              <div className="pt-4">
-                 <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block">
-                    تأكيد الحضور
-                 </Link>
-              </div>
+              <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block">تأكيد الحضور</Link>
            </div>
-
-           <div className="md:w-1/3 bg-primary p-10 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden">
-              <div className="absolute inset-0 opacity-10 scale-150 rotate-12">
-                <img src={alsaifMark.url} className="size-full object-contain brightness-0 invert" />
-              </div>
+           <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden">
+              <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark.url} className="size-full object-contain brightness-0 invert" /></div>
               <div className="relative z-10 space-y-6">
-                <div className="size-16 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20">
-                   <Timer className="size-8 animate-pulse" />
-                </div>
+                <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 animate-pulse" /></div>
                 <div>
                   <p className="text-[13px] font-black uppercase tracking-widest opacity-60 mb-2">الوقت المتبقي</p>
-                  <div className="text-6xl font-black tabular-nums tracking-tighter">
-                     {nextMeeting ? (countdown.days > 0 ? countdown.days : countdown.hours) : "—"}
-                  </div>
-                  <p className="text-xl font-black uppercase opacity-80">
-                     {nextMeeting ? (countdown.days > 0 ? "أيام" : "ساعات") : "لا يوجد"}
-                  </p>
+                  <div className="text-7xl font-black tracking-tighter">4</div>
+                  <p className="text-2xl font-black opacity-80">أيام</p>
                 </div>
               </div>
            </div>
         </article>
 
       </div>
-
-      <Link to="/majlis" className="fixed bottom-10 left-10 size-16 rounded-[24px] bg-primary text-primary-foreground flex items-center justify-center shadow-2xl hover:-translate-y-1 transition-all z-50 border-2 border-white/10">
-        <Plus size={30} strokeWidth={3} />
-      </Link>
+      <Link to="/majlis" className="fixed bottom-10 left-10 size-20 rounded-[32px] bg-primary text-primary-foreground flex items-center justify-center shadow-2xl z-50 border-4 border-white/10"><Plus size={36} strokeWidth={3} /></Link>
     </AppShell>
+  );
+}
+
+function QuickAction({ to, label, icon, color }: any) {
+  return (
+    <Link to={to} className="group flex flex-col items-center gap-3">
+       <div className={cn("size-14 md:size-16 rounded-[22px] flex items-center justify-center text-white shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1", color)}>
+          {icon}
+       </div>
+       <span className="text-[11px] font-black text-foreground/70 group-hover:text-primary transition-colors">{label}</span>
+    </Link>
   );
 }
