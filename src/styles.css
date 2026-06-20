@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&family=Almarai:wght@400;700;800&family=El+Messiri:wght@400;600;700&family=Amiri:wght@400;700&display=swap');
 
 /*
  * Alsaif Design System — Royal Obsidian Edition
@@ -32,7 +33,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-arabic: "Tajawal", "Cairo", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-arabic: var(--app-font, "Tajawal", "Cairo", sans-serif);
 
   --radius-sm: 10px;
   --radius-md: 14px;

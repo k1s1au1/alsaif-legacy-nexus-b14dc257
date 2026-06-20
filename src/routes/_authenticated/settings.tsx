@@ -16,12 +16,21 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
+const FONTS = [
+  { id: "Tajawal", name: "تجوال", family: "'Tajawal', sans-serif" },
+  { id: "Cairo", name: "كايـرو", family: "'Cairo', sans-serif" },
+  { id: "Almarai", name: "المراعي", family: "'Almarai', sans-serif" },
+  { id: "ElMessiri", name: "المسيري", family: "'El Messiri', sans-serif" },
+  { id: "Amiri", name: "الأميري", family: "'Amiri', serif" },
+];
+
 export const Route = createFileRoute("/_authenticated/settings")({
   component: SettingsPage,
 });
 
 function SettingsPage() {
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system">("system");
+  const [font, setFont] = useState("Tajawal");
   const [appVersion, setAppVersion] = useState("1.1.5 (Web)");
   const [isNative, setIsNative] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
@@ -34,6 +43,14 @@ function SettingsPage() {
     if (savedTheme) {
       setDarkMode(savedTheme);
       applyTheme(savedTheme);
+    }
+
+    // Load saved font
+    const savedFont = localStorage.getItem("app-font-id");
+    if (savedFont) {
+      setFont(savedFont);
+      const fontObj = FONTS.find(f => f.id === savedFont);
+      if (fontObj) applyFont(fontObj.family);
     }
 
     // Safe Capacitor detection
@@ -62,6 +79,24 @@ function SettingsPage() {
       const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
       root.classList.toggle("dark", prefersDark);
     }
+  };
+
+  const applyFont = (fontFamily: string) => {
+    document.documentElement.style.setProperty("--app-font", fontFamily);
+  };
+
+  const handleFontChange = (fontId: string) => {
+    const selected = FONTS.find(f => f.id === fontId);
+    if (!selected) return;
+
+    setFont(fontId);
+    localStorage.setItem("app-font-id", fontId);
+    applyFont(selected.family);
+
+    toast.success("تم تحديث الخط", {
+      description: `تم تغيير خط المنصة إلى ${selected.name}`,
+      icon: <Check className="text-emerald-500" />
+    });
   };
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -108,6 +143,33 @@ function SettingsPage() {
                desc="يتبع إعدادات جهازك"
                icon={<Smartphone className="size-8" />}
              />
+          </div>
+        </section>
+
+        {/* Font Selection */}
+        <section className="space-y-6">
+          <div className="flex items-center gap-3 px-2">
+             <div className="size-1 w-12 bg-gold-primary rounded-full" />
+             <h3 className="text-sm font-black text-gold-primary uppercase tracking-[0.2em]">تخصيص الخط</h3>
+          </div>
+
+          <div className="flex overflow-x-auto no-scrollbar gap-4 pb-4 px-2">
+            {FONTS.map((f) => (
+              <button
+                key={f.id}
+                onClick={() => handleFontChange(f.id)}
+                className={cn(
+                  "px-8 py-6 rounded-[28px] shrink-0 transition-all duration-300 border-2 flex flex-col items-center gap-2",
+                  font === f.id
+                    ? "bg-primary border-gold-primary text-white shadow-xl scale-105"
+                    : "bg-white border-transparent text-[#4A4A4A] hover:bg-muted"
+                )}
+                style={{ fontFamily: f.family }}
+              >
+                <span className="text-2xl font-bold">أبج</span>
+                <span className="text-sm font-black tracking-tight">{f.name}</span>
+              </button>
+            ))}
           </div>
         </section>
 
