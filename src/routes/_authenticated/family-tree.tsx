@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { setMemberParent } from "@/lib/api/family-tree.functions";
-import { Loader2, Pencil, Check, X, Users, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck, UserCircle } from "lucide-react";
+import { Loader2, Pencil, Check, X, Users, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -56,15 +56,25 @@ function FamilyTreePage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data: u } = await supabase.auth.getUser();
-        if (!u.user) return;
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
         const [{ data: profile }, { data: roles }] = await Promise.all([
-          supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle(),
-          supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+          supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", user.id),
         ]);
+
         const rs = (roles ?? []).map((r) => r.role);
         const isAdmin = rs.includes("admin") || rs.includes("manager");
-        setMe({ ...profile, role: rs.includes("admin") ? "مسؤول النظام" : "عضو", initial: (profile?.arabic_name || "ع")[0] });
+
+        const name = profile?.arabic_name || profile?.full_name || "عضو";
+        setMe({
+          ...profile,
+          name,
+          role: rs.includes("admin") ? "مسؤول النظام" : "عضو",
+          initial: name[0],
+          avatarPath: profile?.avatar_url
+        });
         setIsPriv(isAdmin);
         await load();
       } catch (err) {
@@ -141,7 +151,6 @@ function FamilyTreePage() {
       (m.first_name || "").includes(search) ||
       (m.father_name || "").includes(search)
     );
-    // In this logic, if they exist in profiles table, they have an account
     const hasAccount = m && !!m.id && !isRoot;
 
     return (
@@ -203,6 +212,14 @@ function FamilyTreePage() {
     );
   };
 
+  if (!me) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="size-10 animate-spin text-gold-primary" />
+      </div>
+    );
+  }
+
   const editingMember = editing ? members.find(m => m.id === editing) : null;
 
   return (
@@ -260,8 +277,11 @@ function FamilyTreePage() {
               translate={translate}
               zoom={zoom}
               onUpdate={(state) => {
-                if (state.zoom !== zoom) setZoom(state.zoom);
-                if (state.translate.x !== translate.x || state.translate.y !== translate.y) setTranslate(state.translate);
+                // Avoid infinite loops by only updating if values significantly change
+                if (Math.abs(state.zoom - zoom) > 0.01) setZoom(state.zoom);
+                if (Math.abs(state.translate.x - translate.x) > 1 || Math.abs(state.translate.y - translate.y) > 1) {
+                   setTranslate(state.translate);
+                }
               }}
               pathFunc="step"
               pathClassFunc={() => "tree-link"}
