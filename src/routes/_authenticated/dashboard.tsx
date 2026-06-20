@@ -166,7 +166,11 @@ function Dashboard() {
            </div>
            <div className="shrink-0 relative">
              <div className="absolute inset-0 bg-gold-primary/20 blur-[80px] rounded-full" />
-             <img src={alsaifMark.url} alt="Logo" className="size-32 md:size-44 object-contain relative z-10" />
+             <img
+               src={alsaifMark.url}
+               alt="Logo"
+               className="size-32 md:size-44 object-contain relative z-10 transition-all duration-700 dark:brightness-0 dark:invert"
+             />
            </div>
         </section>
 
