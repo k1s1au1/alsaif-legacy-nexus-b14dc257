@@ -18,7 +18,6 @@ import {
   History,
   Timer
 } from "lucide-react";
-import tripImage from "@/assets/trip-alula.jpg";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
@@ -59,11 +58,6 @@ function Dashboard() {
     const name = p?.arabic_name || p?.full_name || "عضو العائلة";
     setProfile({ name, role: "مسؤول النظام", initial: name[0] || "س" });
 
-    // Load Fund Balance
-    const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
-    const bal = txs?.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0) || 0;
-    setFundBalance(bal);
-
     // Load Counts
     const [ { count: tc }, { count: mc }, { count: tskc } ] = await Promise.all([
       supabase.from("trips").select("*", { count: "exact", head: true }),
@@ -96,7 +90,25 @@ function Dashboard() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  const fetchBalance = useCallback(async () => {
+    const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
+    const bal = txs?.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0) || 0;
+    setFundBalance(bal);
+  }, []);
+
+  useEffect(() => {
+    loadData();
+    fetchBalance();
+
+    // REAL-TIME SYNC for Balance
+    const channel = supabase.channel("dashboard-balance")
+      .on("postgres_changes", { event: "*", schema: "public", table: "fund_transactions" }, () => {
+        fetchBalance();
+      })
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
+  }, [loadData, fetchBalance]);
 
   const arabicGreeting = () => {
     const h = new Date().getHours();
