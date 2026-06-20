@@ -35,8 +35,9 @@ type Member = {
   parent_id: string | null;
 };
 
-const NODE_W = 200;
-const NODE_H = 100;
+// Smaller node size for mobile compatibility
+const NODE_W = 160;
+const NODE_H = 80;
 
 function FamilyTreePage() {
   const router = useRouter();
@@ -48,8 +49,8 @@ function FamilyTreePage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draftParent, setDraftParent] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [zoom, setZoom] = useState(0.8);
-  const [translate, setTranslate] = useState({ x: 400, y: 100 });
+  const [zoom, setZoom] = useState(0.6); // Slightly zoomed out by default for mobile
+  const [translate, setTranslate] = useState({ x: 200, y: 100 });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const setParentFn = useServerFn(setMemberParent);
 
@@ -82,6 +83,12 @@ function FamilyTreePage() {
       }
     })();
   }, []);
+
+  useEffect(() => {
+    if (containerRef.current) {
+      setTranslate({ x: containerRef.current.clientWidth / 2, y: 80 });
+    }
+  }, [members.length]);
 
   async function load() {
     setLoading(true);
@@ -131,7 +138,7 @@ function FamilyTreePage() {
     setSaving(true);
     try {
       await setParentFn({ data: { userId, parentId: draftParent } });
-      toast.success("تم تحديث موقع العضو في الشجرة");
+      toast.success("تم التحديث بنجاح");
       setEditing(null);
       await load();
       router.invalidate();
@@ -159,34 +166,34 @@ function FamilyTreePage() {
           <div
             onClick={toggleNode}
             className={cn(
-              "relative w-full h-full rounded-full border-4 p-2 flex items-center justify-center gap-3 transition-all duration-500 cursor-pointer shadow-xl",
+              "relative w-full h-full rounded-full border-[3px] p-1.5 flex items-center justify-center gap-2 transition-all duration-500 cursor-pointer shadow-lg",
               isRoot ? "bg-[#1B4332] border-[#D4AF37] text-white" :
-              isMe ? "bg-[#1B4332] border-[#D4AF37] ring-8 ring-[#1B4332]/10" :
-              isSearchMatch ? "bg-[#D4AF37] border-white ring-8 ring-[#D4AF37]/20 scale-110" :
+              isMe ? "bg-[#1B4332] border-[#D4AF37] ring-4 ring-[#1B4332]/10" :
+              isSearchMatch ? "bg-[#D4AF37] border-white ring-4 ring-[#D4AF37]/20 scale-110" :
               "bg-white border-[#E5E4E0] hover:border-[#1B4332]"
             )}
           >
             {isRoot ? (
               <div className="flex flex-col items-center">
-                 <Users className="size-6 text-[#D4AF37] mb-1" />
-                 <span className="text-[14px] font-black uppercase tracking-tighter">{nodeDatum.name}</span>
+                 <Users className="size-4 text-[#D4AF37] mb-0.5" />
+                 <span className="text-[11px] font-black uppercase tracking-tighter">{nodeDatum.name}</span>
               </div>
             ) : m ? (
               <>
-                <div className="relative size-16 rounded-full overflow-hidden border-2 border-[#D4AF37]/30 shadow-inner">
+                <div className="relative size-10 rounded-full overflow-hidden border border-[#D4AF37]/30 shadow-inner shrink-0">
                   <UserAvatar name={m.first_name || "ع"} path={m.avatar_url} className="size-full" userId={m.id} />
                   {hasAccount && (
                     <div className="absolute top-0 right-0 bg-white rounded-full p-0.5 shadow-sm border border-border translate-x-1/4 -translate-y-1/4">
-                       <ShieldCheck className="size-3 text-emerald-600" />
+                       <ShieldCheck className="size-2.5 text-emerald-600" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1 text-right overflow-hidden">
-                  <p className={cn("text-[16px] font-black truncate leading-tight", (isMe || isRoot) ? "text-white" : "text-[#1B4332]")}>
+                  <p className={cn("text-[13px] font-black truncate leading-tight", (isMe || isRoot) ? "text-white" : "text-[#1B4332]")}>
                     {m.first_name}
                   </p>
-                  <p className={cn("text-[10px] font-bold opacity-60 truncate", (isMe || isRoot) ? "text-white" : "text-[#8E7745]")}>
-                    {[m.father_name, m.grandfather_name].filter(Boolean).join(" • ")}
+                  <p className={cn("text-[8px] font-bold opacity-60 truncate", (isMe || isRoot) ? "text-white" : "text-[#8E7745]")}>
+                    {m.father_name || "آل سيف"}
                   </p>
                 </div>
                 {isPriv && (
@@ -196,12 +203,12 @@ function FamilyTreePage() {
                       setEditing(m.id);
                       setDraftParent(m.parent_id);
                     }}
-                    className={cn("p-1.5 rounded-lg opacity-0 hover:bg-gold-primary/10 transition-all",
+                    className={cn("p-1 rounded-lg opacity-0 hover:bg-gold-primary/10 transition-all",
                       (isMe || isRoot) ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-gold-primary",
                       "group-hover:opacity-100"
                     )}
                   >
-                    <Pencil className="size-3.5" />
+                    <Pencil className="size-3" />
                   </button>
                 )}
               </>
@@ -224,47 +231,50 @@ function FamilyTreePage() {
 
   return (
     <AppShell title="شجرة العائلة" user={me}>
-      <div className="space-y-6">
-        <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-6 rounded-[32px] shadow-sm border border-border">
-          <div className="flex items-center gap-4">
-            <div className="size-14 rounded-2xl bg-[#1B4332] flex items-center justify-center shadow-lg shadow-[#1B4332]/20">
-              <Users className="size-8 text-[#D4AF37]" />
+      <div className="space-y-4 px-1 md:px-0">
+
+        {/* Responsive Mobile Header */}
+        <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
+          <div className="flex items-center gap-3">
+            <div className="size-10 md:size-14 rounded-2xl bg-[#1B4332] flex items-center justify-center shadow-lg shadow-[#1B4332]/20 shrink-0">
+              <Users className="size-5 md:size-8 text-[#D4AF37]" />
             </div>
             <div>
-              <h1 className="text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>
-              <p className="text-sm font-bold text-[#8E8E93]">استكشف تفرعات وجذور عائلة آل سيف العريقة</p>
+              <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>
+              <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">استكشف تفرعات وجذور عائلة آل سيف العريقة</p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-             <div className="relative">
+          <div className="flex flex-col md:flex-row items-center gap-3 w-full">
+             <div className="relative w-full md:w-auto flex-1">
                <Search className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-[#8E8E93]" />
                <input
                  type="text"
                  placeholder="ابحث عن فرد..."
                  value={search}
                  onChange={(e) => setSearch(e.target.value)}
-                 className="pr-11 pl-4 py-3 bg-[#F2F2F7] border-none rounded-2xl text-sm font-bold w-64 focus:ring-2 focus:ring-[#1B4332]/10 transition-all"
+                 className="w-full pr-11 pl-4 py-3 bg-[#F2F2F7] border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#1B4332]/10 transition-all"
                />
              </div>
-             <div className="h-10 w-px bg-border mx-2 hidden md:block" />
-             <div className="flex gap-2">
-                <ControlBtn onClick={() => setZoom(z => Math.min(2, z + 0.2))} icon={<ZoomIn size={20} />} />
-                <ControlBtn onClick={() => setZoom(z => Math.max(0.2, z - 0.2))} icon={<ZoomOut size={20} />} />
+
+             <div className="flex gap-2 w-full md:w-auto justify-center">
+                <ControlBtn onClick={() => setZoom(z => Math.min(2, z + 0.15))} icon={<ZoomIn size={18} />} />
+                <ControlBtn onClick={() => setZoom(z => Math.max(0.1, z - 0.15))} icon={<ZoomOut size={18} />} />
                 <ControlBtn onClick={() => {
-                  setZoom(0.8);
+                  setZoom(0.6);
                   if (containerRef.current) {
-                    setTranslate({ x: containerRef.current.clientWidth / 2, y: 100 });
+                    setTranslate({ x: containerRef.current.clientWidth / 2, y: 80 });
                   }
-                }} icon={<Maximize2 size={20} />} />
+                }} icon={<Maximize2 size={18} />} />
              </div>
           </div>
         </header>
 
+        {/* Optimized Tree Container for Mobile */}
         <div
           ref={containerRef}
-          className="w-full rounded-[44px] bg-white border border-[#E5E4E0] overflow-hidden shadow-2xl relative"
-          style={{ height: "calc(100vh - 280px)", minHeight: 600 }}
+          className="w-full rounded-[32px] md:rounded-[44px] bg-white border border-[#E5E4E0] overflow-hidden shadow-2xl relative"
+          style={{ height: "calc(100vh - 240px)", minHeight: 500 }}
         >
           {loading ? (
              <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
@@ -277,7 +287,6 @@ function FamilyTreePage() {
               translate={translate}
               zoom={zoom}
               onUpdate={(state) => {
-                // Avoid infinite loops by only updating if values significantly change
                 if (Math.abs(state.zoom - zoom) > 0.01) setZoom(state.zoom);
                 if (Math.abs(state.translate.x - translate.x) > 1 || Math.abs(state.translate.y - translate.y) > 1) {
                    setTranslate(state.translate);
@@ -285,7 +294,7 @@ function FamilyTreePage() {
               }}
               pathFunc="step"
               pathClassFunc={() => "tree-link"}
-              nodeSize={{ x: NODE_W + 100, y: NODE_H + 120 }}
+              nodeSize={{ x: NODE_W + 40, y: NODE_H + 60 }}
               renderCustomNodeElement={renderNode}
               collapsible={false}
               zoomable
@@ -301,25 +310,25 @@ function FamilyTreePage() {
 
         {editingMember && (
           <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-            <div dir="rtl" className="w-full max-w-md rounded-[32px] border border-[#D4AF37]/30 bg-white p-8 space-y-6 shadow-2xl animate-fade-up" onClick={(e) => e.stopPropagation()}>
-              <div className="flex items-center gap-4">
-                 <div className="size-16 rounded-full overflow-hidden ring-4 ring-gold-primary/10">
+            <div dir="rtl" className="w-full max-w-sm rounded-[28px] border border-[#D4AF37]/30 bg-white p-6 space-y-5 shadow-2xl animate-fade-up" onClick={(e) => e.stopPropagation()}>
+              <div className="flex items-center gap-3">
+                 <div className="size-12 rounded-full overflow-hidden ring-2 ring-gold-primary/10">
                     <UserAvatar name={editingMember.first_name || "ع"} path={editingMember.avatar_url} className="size-full" />
                  </div>
                  <div>
-                    <h3 className="text-xl font-black text-[#1B4332]">تعديل ارتباط {editingMember.first_name}</h3>
-                    <p className="text-xs font-bold text-emerald-600 flex items-center gap-1.5 mt-1">
-                       <ShieldCheck size={14} /> حساب معتمد ومرتبط بالنظام
+                    <h3 className="text-lg font-black text-[#1B4332]">تعديل ارتباط {editingMember.first_name}</h3>
+                    <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                       <ShieldCheck size={12} /> حساب معتمد ومرتبط بالنظام
                     </p>
                  </div>
               </div>
 
-              <div className="space-y-2">
-                 <label className="text-[12px] font-black text-primary uppercase tracking-widest px-1">والد العضو (الارتباط الهرمي)</label>
+              <div className="space-y-1.5">
+                 <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">والد العضو</label>
                  <select
                   value={draftParent ?? ""}
                   onChange={(e) => setDraftParent(e.target.value || null)}
-                  className="w-full px-4 py-3 rounded-2xl bg-[#F2F2F7] border-none text-sm font-bold text-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary focus:ring-2 focus:ring-primary/10 transition-all"
                 >
                   <option value="">— لا أب (رأس شجرة) —</option>
                   {members.filter((x) => x.id !== editingMember.id).map((x) => (
@@ -328,10 +337,10 @@ function FamilyTreePage() {
                 </select>
               </div>
 
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button onClick={() => setEditing(null)} className="px-6 py-3 rounded-xl text-sm font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all">إلغاء</button>
-                <button onClick={() => saveParent(editingMember.id)} disabled={saving} className="btn-gold px-8 py-3 text-sm font-bold flex items-center gap-2">
-                  {saving ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />} حفظ التغييرات
+              <div className="flex items-center justify-end gap-2 pt-1">
+                <button onClick={() => setEditing(null)} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all">إلغاء</button>
+                <button onClick={() => saveParent(editingMember.id)} disabled={saving} className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2">
+                  {saving ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />} حفظ
                 </button>
               </div>
             </div>
@@ -343,12 +352,12 @@ function FamilyTreePage() {
         .tree-link {
           fill: none;
           stroke: #1B4332;
-          stroke-width: 4px;
-          stroke-dasharray: 8;
-          opacity: 0.2;
+          stroke-width: 2px;
+          stroke-dasharray: 6;
+          opacity: 0.15;
           transition: all 0.5s ease;
         }
-        .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 30px 30px; }
+        .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 20px 20px; }
       `}</style>
     </AppShell>
   );
@@ -356,7 +365,7 @@ function FamilyTreePage() {
 
 function ControlBtn({ onClick, icon }: { onClick: () => void, icon: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="size-12 rounded-xl bg-[#F2F2F7] text-[#1B4332] flex items-center justify-center hover:bg-[#1B4332] hover:text-white transition-all shadow-sm">
+    <button onClick={onClick} className="size-10 md:size-12 rounded-xl bg-[#F2F2F7] text-[#1B4332] flex items-center justify-center hover:bg-[#1B4332] hover:text-white transition-all shadow-sm shrink-0">
       {icon}
     </button>
   );
