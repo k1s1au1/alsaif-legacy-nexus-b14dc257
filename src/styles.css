@@ -3,8 +3,8 @@
 @import "tw-animate-css";
 
 /*
- * Alsaif Design System — High Contrast Royal Edition
- * Optimized for maximum legibility and premium feel.
+ * Alsaif Design System — Royal Edition
+ * Optimized for maximum legibility, eye comfort, and premium feel.
  */
 
 @theme inline {
@@ -80,36 +80,41 @@
 }
 
 .dark {
-  /* High Contrast Royal Dark Theme */
-  --background: #080A0C;
-  --foreground: #F8FAFC;
+  /* Comfort-first Royal Dark Theme */
+  --background: #0F1115; /* Deep Obsidian */
+  --foreground: #F1F5F9;
 
-  --navy-base: #080A0C;
-  --navy-card: #12151A;
-  --navy-elev: #1C2128;
+  --navy-base: #0F1115;
+  --navy-card: #1C1F26; /* Softer card color */
+  --navy-elev: #242933;
 
-  --gold-primary: #D4AF37; /* Royal Gold */
-  --gold-soft: #F9E29C;
+  --gold-primary: #EAB308; /* Brighter Gold for Dark Mode */
+  --gold-soft: rgba(234, 179, 8, 0.15);
   --ivory: #F8FAFC;
 
-  --primary: #D4AF37;
-  --primary-foreground: #080A0C;
+  --primary: #EAB308;
+  --primary-foreground: #0F1115;
 
-  --card: #12151A;
-  --card-foreground: #F8FAFC;
+  --card: #1C1F26;
+  --card-foreground: #F1F5F9;
 
-  --secondary: #1C2128;
-  --secondary-foreground: #F8FAFC;
+  --popover: #1C1F26;
+  --popover-foreground: #F1F5F9;
+
+  --secondary: #242933;
+  --secondary-foreground: #F1F5F9;
 
   --muted: #334155;
   --muted-foreground: #94A3B8;
 
-  --accent: rgba(212, 175, 55, 0.15);
-  --accent-foreground: #D4AF37;
+  --accent: rgba(234, 179, 8, 0.2);
+  --accent-foreground: #EAB308;
 
-  --border: rgba(255, 255, 255, 0.1);
-  --input: #12151A;
-  --ring: rgba(212, 175, 55, 0.5);
+  --border: rgba(255, 255, 255, 0.08);
+  --input: #1C1F26;
+  --ring: rgba(234, 179, 8, 0.5);
+
+  --luxury-gold: #EAB308;
 }
 
 @layer base {
@@ -121,7 +126,7 @@
     font-weight: 500;
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
-    transition: background-color 0.5s cubic-bezier(0.4, 0, 0.2, 1), color 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   }
   h1, h2, h3, h4, h5, h6 { font-weight: 700; }
 }
@@ -133,7 +138,8 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
 @utility eyebrow {
@@ -186,3 +192,6 @@
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
