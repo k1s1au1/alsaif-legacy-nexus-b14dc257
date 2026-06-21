@@ -133,13 +133,14 @@ export function AppShell({
             style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
           />
           <div className="relative">
-            <div className="size-24 rounded-full ring-4 ring-background shadow-md overflow-hidden bg-background p-1">
+            <div className="size-24 rounded-full ring-4 ring-background shadow-md overflow-hidden bg-background p-1 relative group/avatar">
               <UserAvatar
                 path={myAvatarPath}
                 name={user.name}
                 initial={user.initial}
                 className="size-full rounded-full"
                 userId={myUserId}
+                presenceDotClassName="absolute bottom-1 left-1 size-5 ring-4 ring-card"
               />
             </div>
             <button
@@ -215,13 +216,14 @@ export function AppShell({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 outline-none group">
-                  <div className="size-10 rounded-full ring-2 ring-primary/10 overflow-hidden group-hover:ring-primary transition-all bg-background p-0.5">
+                  <div className="size-10 rounded-full ring-2 ring-primary/10 overflow-hidden group-hover:ring-primary transition-all bg-background p-0.5 relative">
                     <UserAvatar
                       path={myAvatarPath}
                       name={user.name}
                       initial={user.initial}
                       className="size-full rounded-full"
                       userId={myUserId}
+                      presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-3 ring-2 ring-card"
                     />
                   </div>
                   <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />

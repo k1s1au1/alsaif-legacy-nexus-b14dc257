@@ -128,13 +128,13 @@ function TasksPage() {
       const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
       setProfile({
         name,
-        role: roleLabel(r[0] ?? null),
-        initial: (name[0] ?? "س").toUpperCase(),
+        role: roleLabel(r[0] || null),
+        initial: (name[0] || "ع").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
       });
-      await Promise.all([loadMembers(), loadTasks()]);
+      await Promise.all([loadMembers(), loadTasks()]).catch(e => console.error("Data load failed", e));
     })();
-  }, []);
+  }, [loadMembers, loadTasks]);
 
   const loadMembers = useCallback(async () => {
     const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
