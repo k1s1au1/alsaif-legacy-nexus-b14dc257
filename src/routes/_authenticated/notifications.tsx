@@ -62,12 +62,12 @@ function NotificationsPage() {
 
     const { data: prof } = await supabase
       .from("profiles")
-      .select("first_name,last_name,avatar_path")
-      .eq("user_id", uid)
+      .select("first_name,father_name,full_name,avatar_url")
+      .eq("id", uid)
       .maybeSingle();
     if (prof) {
-      const name = `${prof.first_name ?? ""} ${prof.last_name ?? ""}`.trim() || "عضو";
-      setProfile({ name, role: "عضو", initial: name.charAt(0) || "؟", avatarPath: prof.avatar_path });
+      const name = (prof.full_name || `${prof.first_name ?? ""} ${prof.father_name ?? ""}`.trim()) || "عضو";
+      setProfile({ name, role: "عضو", initial: name.charAt(0) || "؟", avatarPath: prof.avatar_url });
     }
 
     const dismissed: string[] = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
