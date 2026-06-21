@@ -21,6 +21,7 @@ import {
   File as FileIcon,
   Image as ImageIcon,
   Info,
+  Lock,
   Mic,
   MoreVertical,
   Paperclip,
@@ -927,12 +928,12 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
   }
 
   const sorted = [...participants].sort((a, b) => {
-    const order = { owner: 0, admin: 1, member: 2 };
+    const order: Record<string, number> = { owner: 0, admin: 1, member: 2 };
     if (order[a.role] !== order[b.role]) return order[a.role] - order[b.role];
     return displayName(profiles[a.user_id]).localeCompare(displayName(profiles[b.user_id]), "ar");
   });
 
-  const otherUser = useMemo(() => participants.find(p => p.user_id !== meId), [participants, meId]);
+  const otherUser = useMemo(() => participants.find((p: Participant) => p.user_id !== meId), [participants, meId]);
 
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex justify-end">
