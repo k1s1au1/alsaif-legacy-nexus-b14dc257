@@ -63,12 +63,13 @@ function Dashboard() {
   const loadData = useCallback(async () => {
     try {
       const { data: authData } = await supabase.auth.getUser();
-      if (!authData?.user) return;
+      const u = authData?.user;
+      if (!u) return;
 
-      const uid = authData.user.id;
+      const uid = u.id;
       const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", uid).maybeSingle();
 
-      const name = p?.arabic_name || p?.full_name || authData.user.email?.split('@')[0] || "عضو العائلة";
+      const name = p?.arabic_name || p?.full_name || u.email?.split('@')[0] || "عضو العائلة";
 
       setProfile({
         name,
@@ -78,9 +79,11 @@ function Dashboard() {
         userId: uid
       });
 
-      const tripsRes = await supabase.from("trips").select("*", { count: "exact", head: true });
-      const membersRes = await supabase.from("profiles").select("*", { count: "exact", head: true });
-      const tasksRes = await supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done");
+      const [tripsRes, membersRes, tasksRes] = await Promise.all([
+        supabase.from("trips").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done")
+      ]);
 
       setTripsCount(tripsRes.count || 0);
       setMembersCount(membersRes.count || 0);
@@ -171,60 +174,61 @@ function Dashboard() {
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 group/trips"
-                ref={tripsEmblaRef}
+                className="rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 overflow-hidden"
               >
-                <div className="flex">
-                  {upcomingTrips.map((trip) => (
-                    <div key={trip.id} className="flex-[0_0_100%] min-w-0">
-                      <article className="relative h-[340px] flex flex-col md:flex-row bg-[#2C1810] text-white overflow-hidden">
-                         {/* Rich Background with Pattern */}
-                         <div className="absolute inset-0 opacity-20 pointer-events-none scale-150 rotate-12">
-                            <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
-                         </div>
-                         <div className="absolute inset-0 bg-gradient-to-r from-[#2C1810] via-[#2C1810]/80 to-transparent z-0" />
+                <div className="overflow-hidden" ref={tripsEmblaRef}>
+                  <div className="flex">
+                    {upcomingTrips.map((trip) => (
+                      <div key={trip.id} className="flex-[0_0_100%] min-w-0">
+                        <article className="relative h-[340px] flex flex-col md:flex-row bg-[#2C1810] text-white overflow-hidden">
+                           {/* Rich Background with Pattern */}
+                           <div className="absolute inset-0 opacity-20 pointer-events-none scale-150 rotate-12">
+                              <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
+                           </div>
+                           <div className="absolute inset-0 bg-gradient-to-r from-[#2C1810] via-[#2C1810]/80 to-transparent z-0" />
 
-                         <div className="flex-1 p-10 md:p-14 space-y-8 relative z-10">
-                            <div className="flex items-center gap-4">
-                               <div className="size-12 rounded-2xl bg-gold-primary flex items-center justify-center shadow-lg shadow-gold-primary/20">
-                                  <Plane className="size-6 text-[#2C1810]" strokeWidth={2.5} />
-                               </div>
-                               <div className="space-y-0.5">
-                                  <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">وجهة عائلية قادمة</p>
-                                  <h3 className="text-3xl md:text-5xl font-black tracking-tight">{trip.title}</h3>
-                               </div>
-                            </div>
+                           <div className="flex-1 p-10 md:p-14 space-y-8 relative z-10">
+                              <div className="flex items-center gap-4">
+                                 <div className="size-12 rounded-2xl bg-gold-primary flex items-center justify-center shadow-lg shadow-gold-primary/20">
+                                    <Plane className="size-6 text-[#2C1810]" strokeWidth={2.5} />
+                                 </div>
+                                 <div className="space-y-0.5">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">وجهة عائلية قادمة</p>
+                                    <h3 className="text-3xl md:text-5xl font-black tracking-tight">{trip.title}</h3>
+                                 </div>
+                              </div>
 
-                            <div className="flex flex-wrap items-center gap-8 py-4 border-y border-white/10">
-                               <div className="flex items-center gap-3">
-                                  <MapPinned className="size-5 text-gold-primary" />
-                                  <span className="text-lg font-bold">{trip.location || "لم يحدد الموقع بعد"}</span>
-                               </div>
-                               <div className="flex items-center gap-3">
-                                  <Clock className="size-5 text-gold-primary" />
-                                  <span className="text-lg font-bold">{new Date(trip.start_date).toLocaleDateString("ar-SA", { month: 'long', day: 'numeric' })}</span>
-                               </div>
-                            </div>
+                              <div className="flex flex-wrap items-center gap-8 py-4 border-y border-white/10">
+                                 <div className="flex items-center gap-3">
+                                    <MapPinned className="size-5 text-gold-primary" />
+                                    <span className="text-lg font-bold">{trip.location || "لم يحدد الموقع بعد"}</span>
+                                 </div>
+                                 <div className="flex items-center gap-3">
+                                    <Clock className="size-5 text-gold-primary" />
+                                    <span className="text-lg font-bold">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { month: 'long', day: 'numeric' }) : "—"}</span>
+                                 </div>
+                              </div>
 
-                            <Link to="/trips" className="inline-flex items-center gap-4 bg-gold-primary text-[#2C1810] px-12 py-4 rounded-2xl text-lg font-black transition-all hover:scale-105 hover:shadow-[0_20px_50px_rgba(212,175,55,0.3)]">
-                               تفاصيل الرحلة <Compass size={24} />
-                            </Link>
-                         </div>
+                              <Link to="/trips" className="inline-flex items-center gap-4 bg-gold-primary text-[#2C1810] px-12 py-4 rounded-2xl text-lg font-black transition-all hover:scale-105 hover:shadow-[0_20px_50px_rgba(212,175,55,0.3)]">
+                                 تفاصيل الرحلة <Compass size={24} />
+                              </Link>
+                           </div>
 
-                         {/* Artistic Icon Side */}
-                         <div className="hidden lg:flex md:w-1/3 items-center justify-center p-10 relative bg-white/5 backdrop-blur-sm border-l border-white/10">
-                            <div className="relative group/icon">
-                               <div className="absolute inset-0 bg-gold-primary/20 blur-3xl rounded-full group-hover/icon:bg-gold-primary/40 transition-all duration-700" />
-                               <div className="size-48 rounded-[60px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 flex items-center justify-center shadow-inner relative z-10">
-                                  <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
-                                     <Plane className="size-24 text-gold-primary opacity-60" strokeWidth={1} />
-                                  </motion.div>
-                               </div>
-                            </div>
-                         </div>
-                      </article>
-                    </div>
-                  ))}
+                           {/* Artistic Icon Side */}
+                           <div className="hidden lg:flex md:w-1/3 items-center justify-center p-10 relative bg-white/5 backdrop-blur-sm border-l border-white/10">
+                              <div className="relative group/icon">
+                                 <div className="absolute inset-0 bg-gold-primary/20 blur-3xl rounded-full group-hover/icon:bg-gold-primary/40 transition-all duration-700" />
+                                 <div className="size-48 rounded-[60px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 flex items-center justify-center shadow-inner relative z-10">
+                                    <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
+                                       <Plane className="size-24 text-gold-primary opacity-60" strokeWidth={1} />
+                                    </motion.div>
+                                 </div>
+                              </div>
+                           </div>
+                        </article>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </motion.div>
             )}

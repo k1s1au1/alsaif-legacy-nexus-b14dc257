@@ -67,7 +67,8 @@ export function AppShell({
 
   const loadBadges = useCallback(async () => {
     try {
-      const { data: { user: u } } = await supabase.auth.getUser();
+      const { data } = await supabase.auth.getUser();
+      const u = data?.user;
       if (!u) return;
 
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
@@ -96,7 +97,8 @@ export function AppShell({
     loadBadges();
     (async () => {
       try {
-        const { data: { user: u } } = await supabase.auth.getUser();
+        const { data } = await supabase.auth.getUser();
+        const u = data?.user;
         if (!u) return;
         setMyUserId(u.id);
 
