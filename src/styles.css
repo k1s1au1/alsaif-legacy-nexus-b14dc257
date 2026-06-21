@@ -87,13 +87,12 @@
 /* Beautiful Royal Logo Transition - Synchronized with Theme Colors */
 @utility logo-royal {
   transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-  /* Use mask-image to make the logo take the current primary color */
   mask-image: var(--logo-url);
   mask-size: contain;
   mask-repeat: no-repeat;
   mask-position: center;
   background-color: var(--primary);
-  filter: drop-shadow(0 0 10px rgba(var(--primary), 0.2));
+  display: inline-block;
 }
 
 .dark .logo-royal {

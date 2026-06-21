@@ -128,9 +128,10 @@ export function AppShell({
         )}
       >
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
-          <div className="absolute top-4 right-4 z-10">
-             <img src={alsaifMark?.url || ""} alt="Mark" className="size-8 object-contain logo-royal opacity-40 hover:opacity-100 transition-opacity" />
-          </div>
+          <div
+            className="absolute top-4 right-4 size-8 z-10 logo-royal opacity-40 hover:opacity-100 transition-opacity"
+            style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
+          />
           <div className="relative">
             <div className="size-24 rounded-full ring-4 ring-background shadow-md overflow-hidden bg-background p-1">
               <UserAvatar

@@ -236,9 +236,10 @@ function FamilyTreePage() {
         {/* Responsive Mobile Header */}
         <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
           <div className="flex items-center gap-3">
-            <div className="size-10 md:size-14 rounded-2xl bg-[#1B4332] flex items-center justify-center shadow-lg shadow-[#1B4332]/20 shrink-0">
-              <Trees className="size-5 md:size-8 text-[#D4AF37]" />
-            </div>
+            <div
+              className="size-10 md:size-14 rounded-2xl logo-royal shadow-lg shadow-[#1B4332]/20 shrink-0"
+              style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
+            />
             <div>
               <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>
               <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">استكشف تفرعات وجذور عائلة آل سيف العريقة</p>

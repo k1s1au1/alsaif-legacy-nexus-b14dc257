@@ -33,6 +33,7 @@ import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -422,8 +423,11 @@ function AdminPage() {
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
                   className="grid grid-cols-1 md:grid-cols-2 gap-8"
                 >
-                  {/* Page Backgrounds Card */}
                   <div className="card-surface p-8 sm:p-10 space-y-8 relative overflow-hidden">
+                    <div
+                      className="absolute top-0 left-0 size-64 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-royal"
+                      style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
+                    />
                     <div className="space-y-2 relative z-10">
                       <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-4 shadow-inner">
                         <ImagePlus className="size-6" />
