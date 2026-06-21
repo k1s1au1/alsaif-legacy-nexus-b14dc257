@@ -10,18 +10,24 @@ import {
   Smartphone,
   ShieldCheck,
   ChevronLeft,
-  Check
+  Check,
+  Palette,
+  Type,
+  X,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { motion, AnimatePresence } from "framer-motion";
 
 const FONTS = [
-  { id: "Tajawal", name: "تجوال", family: "'Tajawal', sans-serif" },
-  { id: "Cairo", name: "كايـرو", family: "'Cairo', sans-serif" },
-  { id: "Almarai", name: "المراعي", family: "'Almarai', sans-serif" },
-  { id: "ElMessiri", name: "المسيري", family: "'El Messiri', sans-serif" },
-  { id: "Amiri", name: "الأميري", family: "'Amiri', serif" },
+  { id: "Tajawal", name: "تجوال", family: "'Tajawal', sans-serif", desc: "خط عصري وأنيق" },
+  { id: "Cairo", name: "كايـرو", family: "'Cairo', sans-serif", desc: "وضوح عالي للقراءة" },
+  { id: "Almarai", name: "المراعي", family: "'Almarai', sans-serif", desc: "بساطة وجمالية" },
+  { id: "ElMessiri", name: "المسيري", family: "'El Messiri', sans-serif", desc: "لمسة فنية مميزة" },
+  { id: "Amiri", name: "الأميري", family: "'Amiri', serif", desc: "طابع كلاسيكي فاخر" },
+  { id: "Hussen", name: "ديواني", family: "'Amiri', serif", desc: "زخرفة عربية أصيلة" },
 ];
 
 const THEME_COLORS = [
@@ -29,7 +35,10 @@ const THEME_COLORS = [
   { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA" },
   { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185" },
   { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9" },
-  { id: "earth", name: "اللون الترابي", primary: "#78350F", secondary: "#FCD34D", darkPrimary: "#FCD34D" },
+  { id: "ruby", name: "الياقوت الأحمر", primary: "#991B1B", secondary: "#FCA5A5", darkPrimary: "#F87171" },
+  { id: "forest", name: "الغابة العميقة", primary: "#064E3B", secondary: "#6EE7B7", darkPrimary: "#34D399" },
+  { id: "royal-purple", name: "الأرجوان الملكي", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC" },
+  { id: "chocolate", name: "البني الفاخر", primary: "#451A03", secondary: "#FCD34D", darkPrimary: "#FBBF24" },
 ];
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -37,12 +46,14 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  const [darkMode, setDarkMode] = useState<"light" | "dark" | "system">("system");
+  const [darkMode, setDarkMode] = useState<"light" | "dark" | "system" | null>(null);
   const [font, setFont] = useState("Tajawal");
   const [themeColor, setThemeColor] = useState("emerald");
-  const [appVersion, setAppVersion] = useState("1.1.5 (Web)");
+  const [appVersion, setAppVersion] = useState("1.1.8 (Web)");
   const [isNative, setIsNative] = useState(false);
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [showFontPicker, setShowFontPicker] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -52,6 +63,8 @@ function SettingsPage() {
     if (savedTheme) {
       setDarkMode(savedTheme);
       applyTheme(savedTheme);
+    } else {
+      setDarkMode("system");
     }
 
     // Load saved font
@@ -74,14 +87,9 @@ function SettingsPage() {
     const win = window as any;
     if (win.Capacitor?.isNativePlatform()) {
       setIsNative(true);
-      setAppVersion("1.1.5 (Native)");
-
       const plugins = win.Capacitor?.Plugins;
       if (plugins?.App) {
-        plugins.App.getInfo().then((info: any) => setAppVersion(`${info.version} (${info.build})`));
-      }
-      if (plugins?.PushNotifications) {
-        plugins.PushNotifications.checkPermissions().then((res: any) => setNotificationsEnabled(res.receive === "granted"));
+        plugins.App.getInfo().then((info: any) => setAppVersion(`${info.version} (Native)`));
       }
     }
   }, []);
@@ -105,23 +113,17 @@ function SettingsPage() {
   const handleFontChange = (fontId: string) => {
     const selected = FONTS.find(f => f.id === fontId);
     if (!selected) return;
-
     setFont(fontId);
     localStorage.setItem("app-font-id", fontId);
     applyFont(selected.family);
-
-    toast.success("تم تحديث الخط", {
-      description: `تم تغيير خط المنصة إلى ${selected.name}`,
-      icon: <Check className="text-emerald-500" />
-    });
+    toast.success(`تم تفعيل خط ${selected.name}`);
+    setShowFontPicker(false);
   };
 
   const applyThemeColors = (colors: typeof THEME_COLORS[0]) => {
     const root = document.documentElement;
     root.style.setProperty("--primary", colors.primary);
     root.style.setProperty("--gold-primary", colors.secondary);
-
-    // Check if we need to update dark mode primary too
     if (root.classList.contains("dark")) {
       root.style.setProperty("--primary", colors.darkPrimary);
     }
@@ -130,210 +132,181 @@ function SettingsPage() {
   const handleThemeColorChange = (colorId: string) => {
     const selected = THEME_COLORS.find(c => c.id === colorId);
     if (!selected) return;
-
     setThemeColor(colorId);
     localStorage.setItem("app-theme-color-id", colorId);
     applyThemeColors(selected);
-
-    toast.success("تم تغيير ألوان السمة", {
-      description: `تم تطبيق ${selected.name} بنجاح`,
-      icon: <div className="size-3 rounded-full" style={{ backgroundColor: selected.primary }} />
-    });
+    toast.success(`تم تفعيل ${selected.name}`);
+    setShowColorPicker(false);
   };
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
     setDarkMode(theme);
-    if (typeof window === "undefined") return;
     localStorage.setItem("theme", theme);
     applyTheme(theme);
-    toast.success("تم تحديث المظهر", {
-      description: `تم اختيار الوضع ${theme === "dark" ? "الداكن" : theme === "light" ? "الفاتح" : "التلقائي"}`,
-      icon: <Check className="text-emerald-500" />
-    });
+    toast.success(`تم تفعيل الوضع ${theme === "dark" ? "الداكن" : theme === "light" ? "الفاتح" : "التلقائي"}`);
   };
 
-  return (
-    <AppShell title="الإعدادات" user={{ name: "مستخدم", role: "عضو", initial: "م" }}>
-      <div className="max-w-3xl mx-auto space-y-10 pb-20 animate-fade-up">
+  const currentThemeObj = THEME_COLORS.find(c => c.id === themeColor) || THEME_COLORS[0];
+  const currentFontObj = FONTS.find(f => f.id === font) || FONTS[0];
 
-        {/* Appearance - High Legibility */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 px-2">
-             <div className="size-1 w-12 bg-primary rounded-full" />
-             <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em]">تخصيص المظهر</h3>
+  return (
+    <AppShell title="الإعدادات" user={{ name: "إعدادات المجلس", role: "تخصيص", initial: "إ" }}>
+      <div className="max-w-4xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Appearance Mode */}
+        <section className="space-y-6 animate-fade-up">
+          <div className="flex items-center gap-4">
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">مظهر المنصة</h3>
+             <div className="h-px flex-1 bg-border/60" />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-             <ThemeCard
-               active={darkMode === "light"}
-               onClick={() => handleThemeChange("light")}
-               label="الوضع الفاتح"
-               desc="مثالي للقراءة في النهار"
-               icon={<Sun className="size-8" />}
-             />
-             <ThemeCard
-               active={darkMode === "dark"}
-               onClick={() => handleThemeChange("dark")}
-               label="الوضع الداكن"
-               desc="مريح للعين في المساء"
-               icon={<Moon className="size-8" />}
-             />
-             <ThemeCard
-               active={darkMode === "system"}
-               onClick={() => handleThemeChange("system")}
-               label="تلقائي"
-               desc="يتبع إعدادات جهازك"
-               icon={<Smartphone className="size-8" />}
-             />
+             <ThemeCard active={darkMode === "light"} onClick={() => handleThemeChange("light")} label="فاتح" icon={<Sun />} />
+             <ThemeCard active={darkMode === "dark"} onClick={() => handleThemeChange("dark")} label="داكن" icon={<Moon />} />
+             <ThemeCard active={darkMode === "system"} onClick={() => handleThemeChange("system")} label="تلقائي" icon={<Smartphone />} />
           </div>
         </section>
 
-        {/* Theme Colors Selection */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 px-2">
-             <div className="size-1 w-12 bg-primary rounded-full" />
-             <h3 className="text-sm font-black text-primary uppercase tracking-[0.2em]">ألوان الهوية</h3>
+        {/* Dynamic Personalization */}
+        <section className="space-y-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
+          <div className="flex items-center gap-4">
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">التخصيص الفاخر</h3>
+             <div className="h-px flex-1 bg-border/60" />
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
-            {THEME_COLORS.map((c) => (
-              <button
-                key={c.id}
-                onClick={() => handleThemeColorChange(c.id)}
-                className={cn(
-                  "p-4 rounded-[24px] transition-all duration-300 border-2 flex flex-col items-center gap-3",
-                  themeColor === c.id
-                    ? "bg-white border-primary shadow-xl scale-105"
-                    : "bg-white/50 border-transparent hover:bg-white"
-                )}
-              >
-                <div
-                  className="size-12 rounded-2xl shadow-inner border border-black/5"
-                  style={{ background: `linear-gradient(135deg, ${c.primary} 0%, ${c.secondary} 100%)` }}
-                />
-                <span className="text-[12px] font-black text-[#4A4A4A]">{c.name}</span>
-              </button>
-            ))}
-          </div>
-        </section>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Color Trigger */}
+            <div className="card-surface p-8 space-y-6 group">
+               <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">لون الهوية</p>
+                     <h4 className="text-xl font-black text-primary">{currentThemeObj.name}</h4>
+                  </div>
+                  <div className="size-14 rounded-2xl shadow-xl transition-transform group-hover:rotate-12 duration-500"
+                       style={{ background: `linear-gradient(135deg, ${currentThemeObj.primary}, ${currentThemeObj.secondary})` }} />
+               </div>
+               <button
+                 onClick={() => setShowColorPicker(true)}
+                 className="w-full btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-2xl shadow-gold-primary/20"
+               >
+                 <Palette className="size-5" /> اختيار لون جديد
+               </button>
+            </div>
 
-        {/* Font Selection */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 px-2">
-             <div className="size-1 w-12 bg-gold-primary rounded-full" />
-             <h3 className="text-sm font-black text-gold-primary uppercase tracking-[0.2em]">تخصيص الخط</h3>
-          </div>
-
-          <div className="flex overflow-x-auto no-scrollbar gap-4 pb-4 px-2">
-            {FONTS.map((f) => (
-              <button
-                key={f.id}
-                onClick={() => handleFontChange(f.id)}
-                className={cn(
-                  "px-8 py-6 rounded-[28px] shrink-0 transition-all duration-300 border-2 flex flex-col items-center gap-2",
-                  font === f.id
-                    ? "bg-primary border-gold-primary text-white shadow-xl scale-105"
-                    : "bg-white border-transparent text-[#4A4A4A] hover:bg-muted"
-                )}
-                style={{ fontFamily: f.family }}
-              >
-                <span className="text-2xl font-bold">أبج</span>
-                <span className="text-sm font-black tracking-tight">{f.name}</span>
-              </button>
-            ))}
+            {/* Font Trigger */}
+            <div className="card-surface p-8 space-y-6 group">
+               <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">خط الكتابة</p>
+                     <h4 className="text-xl font-black text-primary">{currentFontObj.name}</h4>
+                  </div>
+                  <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:-rotate-12 transition-transform duration-500">
+                     <Type className="size-7" />
+                  </div>
+               </div>
+               <button
+                 onClick={() => setShowFontPicker(true)}
+                 className="w-full px-6 py-4 rounded-2xl bg-primary/5 text-primary border border-primary/10 hover:bg-primary hover:text-white transition-all font-black text-sm"
+               >
+                 تغيير نوع الخط
+               </button>
+            </div>
           </div>
         </section>
 
-        {/* System Integration */}
-        <section className="space-y-6">
-          <div className="flex items-center gap-3 px-2">
-             <div className="size-1 w-12 bg-[#8E7745] rounded-full" />
-             <h3 className="text-sm font-black text-[#8E7745] uppercase tracking-[0.2em]">تكامل النظام</h3>
+        {/* System Settings */}
+        <section className="space-y-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
+          <div className="flex items-center gap-4">
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات النظام</h3>
+             <div className="h-px flex-1 bg-border/60" />
           </div>
-
-          <div className="card-surface divide-y divide-border/60 overflow-hidden border-none shadow-2xl">
-             {isNative && (
-               <SettingItem
-                 icon={<Bell />}
-                 title="تنبيهات الجوال"
-                 desc={notificationsEnabled ? "الإشعارات المنبثقة مفعّلة" : "اضغط لتفعيل تنبيهات المجلس"}
-                 onClick={() => toast.info("يتم تحويلك لإعدادات الإشعارات...")}
-               />
-             )}
-             <SettingItem
-               icon={<Languages />}
-               title="لغة الواجهة"
-               desc="اللغة الحالية: العربية (الإقليمية)"
-               badge="افتراضي"
-             />
-             <SettingItem
-               icon={<ShieldCheck />}
-               title="الخصوصية والأمان"
-               desc="إدارة بياناتك والتحقق بخطوتين"
-               onClick={() => toast.info("ستتوفر قريباً")}
-             />
-             <SettingItem
-               icon={<Info />}
-               title="إصدار المنصة"
-               desc={`الإصدار الحالي: ${appVersion}`}
-             />
+          <div className="card-surface overflow-hidden divide-y divide-border/40">
+             <SettingRow icon={<Languages />} title="لغة الواجهة" desc="العربية (الافتراضية)" />
+             <SettingRow icon={<Bell />} title="الإشعارات" desc="مفعلة لكافة الأحداث" />
+             <SettingRow icon={<ShieldCheck />} title="الأمان" desc="التحقق من الهوية مفعل" />
+             <div className="p-8 flex items-center justify-between text-muted-foreground/40 italic">
+                <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
+                <img src={alsaifMark.url} className="size-6 grayscale opacity-20" alt="" />
+             </div>
           </div>
         </section>
-
-        <div className="pt-10 flex flex-col items-center gap-2 opacity-30">
-           <img src={alsaifMark.url} className="size-12 grayscale" alt="Mark" />
-           <p className="text-[11px] font-black uppercase tracking-[0.5em]">Alsaif Family Hub</p>
-        </div>
       </div>
+
+      {/* Color Picker Overlay */}
+      <AnimatePresence>
+        {showColorPicker && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-8 space-y-8 shadow-2xl rounded-[48px]">
+               <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-primary tracking-tight">ألوان الهوية الفاخرة</h3>
+                  <button onClick={() => setShowColorPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
+               </div>
+               <div className="grid grid-cols-2 gap-4">
+                  {THEME_COLORS.map(c => (
+                    <button key={c.id} onClick={() => handleThemeColorChange(c.id)} className={cn("p-5 rounded-[32px] border-2 transition-all text-right flex items-center gap-4 group", themeColor === c.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50")}>
+                       <div className="size-12 rounded-2xl shadow-lg shrink-0 group-hover:scale-110 transition-transform" style={{ background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }} />
+                       <span className="font-black text-sm">{c.name}</span>
+                    </button>
+                  ))}
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Font Picker Overlay */}
+      <AnimatePresence>
+        {showFontPicker && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-8 space-y-8 shadow-2xl rounded-[48px]">
+               <div className="flex items-center justify-between">
+                  <h3 className="text-2xl font-black text-primary tracking-tight">تخصيص الخط</h3>
+                  <button onClick={() => setShowFontPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
+               </div>
+               <div className="space-y-3">
+                  {FONTS.map(f => (
+                    <button key={f.id} onClick={() => handleFontChange(f.id)} style={{ fontFamily: f.family }} className={cn("w-full p-6 rounded-3xl border-2 transition-all text-right flex items-center justify-between group", font === f.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50")}>
+                       <div>
+                          <p className="text-lg font-bold">{f.name}</p>
+                          <p className="text-xs opacity-60">{f.desc}</p>
+                       </div>
+                       <span className="text-2xl opacity-20 font-black group-hover:opacity-100 transition-opacity tracking-widest">أبج</span>
+                    </button>
+                  ))}
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </AppShell>
   );
 }
 
-function ThemeCard({ active, label, desc, onClick, icon }: any) {
+function ThemeCard({ active, label, icon, onClick }: any) {
   return (
-    <button
-      onClick={onClick}
-      className={cn(
-        "p-8 rounded-[36px] text-right transition-all duration-500 flex flex-col gap-6 group relative overflow-hidden border-4",
-        active
-          ? "bg-[#1B4332] border-[#D4AF37] text-white shadow-2xl"
-          : "bg-white border-transparent text-[#4A4A4A] hover:bg-[#F2F2F7]"
-      )}
-    >
-      <div className={cn("size-16 rounded-3xl flex items-center justify-center transition-all duration-700",
-        active ? "bg-white/10 text-[#D4AF37] rotate-12" : "bg-[#F2F2F7] text-primary")}>
-        {icon}
-      </div>
-      <div>
-        <p className="text-xl font-black tracking-tight">{label}</p>
-        <p className={cn("text-xs font-bold mt-1", active ? "text-white/60" : "text-[#8E8E93]")}>{desc}</p>
-      </div>
-      {active && <div className="absolute -bottom-4 -left-4 size-20 bg-white/5 rounded-full blur-3xl" />}
+    <button onClick={onClick} className={cn("p-8 rounded-[40px] border-4 transition-all duration-500 flex flex-col items-center gap-4 text-center", active ? "bg-primary border-gold-primary text-white shadow-2xl scale-105" : "bg-card border-transparent text-muted-foreground hover:bg-muted")}>
+       <div className={cn("size-16 rounded-[28px] flex items-center justify-center transition-all duration-700", active ? "bg-white/10 text-gold-primary rotate-12" : "bg-muted text-primary")}>
+          {icon}
+       </div>
+       <span className="text-lg font-black tracking-tight">{label}</span>
     </button>
   );
 }
 
-function SettingItem({ icon, title, desc, onClick, badge }: any) {
+function SettingRow({ icon, title, desc }: any) {
   return (
-    <button
-      onClick={onClick}
-      disabled={!onClick}
-      className="w-full p-8 flex items-center justify-between group hover:bg-[#F8F7F2] transition-all text-right"
-    >
-      <div className="flex items-center gap-6">
-        <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
-          {icon}
-        </div>
-        <div>
-          <p className="text-lg font-black text-[#0A0A0B]">{title}</p>
-          <p className="text-sm font-bold text-[#8E8E93] mt-0.5">{desc}</p>
-        </div>
-      </div>
-      {badge ? (
-        <span className="px-3 py-1 bg-primary/5 text-primary text-[10px] font-black rounded-lg border border-primary/10">{badge}</span>
-      ) : onClick ? (
-        <ChevronLeft className="size-5 text-[#E5E4E0] group-hover:text-primary transition-colors" />
-      ) : null}
-    </button>
+    <div className="p-8 flex items-center justify-between group transition-all">
+       <div className="flex items-center gap-6">
+          <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
+             {icon}
+          </div>
+          <div className="text-right">
+             <p className="font-black text-primary tracking-tight">{title}</p>
+             <p className="text-xs font-bold text-muted-foreground opacity-60">{desc}</p>
+          </div>
+       </div>
+       <ChevronLeft className="size-5 text-muted-foreground/30" />
+    </div>
   );
 }
