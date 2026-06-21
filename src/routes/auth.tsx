@@ -109,7 +109,7 @@ function AuthPage() {
       </div>
 
       <div
-        className="relative w-full max-w-[480px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border"
+        className="relative w-full max-w-[480px] md:max-w-[540px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border transition-all duration-500"
         style={paletteVars}
       >
         {authBg && (
