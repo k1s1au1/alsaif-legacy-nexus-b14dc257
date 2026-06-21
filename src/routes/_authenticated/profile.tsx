@@ -4,8 +4,11 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { toast } from "sonner";
-import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar, Phone } from "lucide-react";
+import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar, Phone, CheckCircle2, ChevronLeft, ShieldCheck, Quote } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
+import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,
@@ -93,8 +96,7 @@ function ProfilePage() {
     })();
   }, []);
 
-  const displayName =
-    (arabicName || fullName || email.split("@")[0] || "عضو").trim();
+  const displayName = (arabicName || fullName || email.split("@")[0] || "عضو العائلة").trim();
   const initial = (displayName[0] ?? "س").toUpperCase();
 
   async function saveProfile(e: React.FormEvent) {
@@ -123,7 +125,7 @@ function ProfilePage() {
       toast.error("تعذر حفظ التغييرات");
       return;
     }
-    toast.success("تم حفظ التغييرات بنجاح");
+    toast.success("تم تحديث بياناتك بنجاح");
   }
 
   async function changePassword(e: React.FormEvent) {
@@ -146,7 +148,7 @@ function ProfilePage() {
     }
     setPassword("");
     setPasswordConfirm("");
-    toast.success("تم تحديث كلمة المرور");
+    toast.success("تم تحديث كلمة المرور بنجاح");
   }
 
   async function uploadAvatar(file: File) {
@@ -169,7 +171,6 @@ function ProfilePage() {
       toast.error("فشل رفع الصورة");
       return;
     }
-    // Remove old avatar
     const previous = avatarUrl;
     if (previous && previous !== path) {
       await supabase.storage.from("avatars").remove([previous]);
@@ -188,9 +189,6 @@ function ProfilePage() {
       .from("avatars")
       .createSignedUrl(path, 60 * 60);
     setAvatarSrc(signed?.signedUrl ?? null);
-    // Invalidate caches so every visible avatar for this user refreshes instantly,
-    // both locally and on other devices (other devices receive the profiles
-    // realtime UPDATE event and call invalidateAvatar there).
     invalidateAvatar(previous);
     invalidateAvatar(path);
     setUploading(false);
@@ -200,185 +198,197 @@ function ProfilePage() {
   if (loading) {
     return (
       <AppShell title="الملف الشخصي" user={{ name: "...", role: "عضو", initial: "ص" }}>
-        <div className="grid place-items-center py-24 text-muted-foreground">
-          <Loader2 className="size-6 animate-spin" />
+        <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
+           <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+           <p className="font-black">جاري تحميل بياناتك...</p>
         </div>
       </AppShell>
     );
   }
 
   return (
-    <AppShell
-      title="الملف الشخصي"
-      user={{ name: displayName, role: "عضو", initial, avatarPath: avatarUrl }}
-    >
-      <div className="max-w-3xl space-y-8">
-        {/* Header card */}
-        <section className="card-surface p-8 flex flex-col sm:flex-row items-center gap-6 animate-fade-up">
-          <div className="relative">
-            <div className="size-24 rounded-full ring-2 ring-gold-primary/30 bg-gold-primary/10 grid place-items-center overflow-hidden">
-              {avatarSrc ? (
-                <img src={avatarSrc} alt={displayName} className="size-full object-cover" />
-              ) : (
-                <span className="text-3xl text-gold-primary font-medium">{initial}</span>
+    <AppShell title="ملفي الشخصي" user={{ name: displayName, role: "عضو العائلة", initial, avatarPath: avatarUrl }}>
+      <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Royal Profile Header */}
+        <section className="flex flex-col md:flex-row items-center gap-10 animate-fade-up">
+           <div className="relative group">
+              <div className="absolute inset-0 bg-gold-primary/20 blur-[60px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-700" />
+              <div className="relative size-40 md:size-56 rounded-[48px] bg-card border-4 border-white dark:border-border shadow-2xl overflow-hidden ring-1 ring-black/5 transition-transform duration-700 group-hover:scale-[1.02]">
+                {avatarSrc ? (
+                  <img src={avatarSrc} alt={displayName} className="size-full object-cover" />
+                ) : (
+                  <div className="size-full flex items-center justify-center bg-primary/5 text-6xl font-black text-primary uppercase">{initial}</div>
+                )}
+
+                <button
+                  type="button"
+                  onClick={() => fileRef.current?.click()}
+                  disabled={uploading}
+                  className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white transition-all duration-300 backdrop-blur-[2px]"
+                >
+                  <Camera className="size-10 mb-2" />
+                  <span className="text-xs font-black uppercase tracking-widest">تحديث الصورة</span>
+                </button>
+              </div>
+
+              {uploading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-card/80 rounded-[48px] z-20 backdrop-blur-md">
+                   <Loader2 className="size-10 animate-spin text-primary" />
+                </div>
               )}
-            </div>
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploading}
-              aria-label="تغيير صورة الملف"
-              className="absolute -bottom-1 -left-1 size-9 rounded-full bg-gold-primary text-navy-base grid place-items-center ring-2 ring-card hover:opacity-90 disabled:opacity-50 transition"
-            >
-              {uploading ? <Loader2 className="size-4 animate-spin" /> : <Camera className="size-4" />}
-            </button>
-            <input
-              ref={fileRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) uploadAvatar(f);
-                e.target.value = "";
-              }}
-            />
-          </div>
-          <div className="text-center sm:text-right">
-            <h2 className="text-2xl font-medium text-ivory">{displayName}</h2>
-            <p className="text-sm text-muted-foreground mt-1">{email}</p>
-            {phone && (
-              <p className="text-sm text-muted-foreground mt-1 flex items-center justify-center sm:justify-start gap-1">
-                <Phone className="size-3.5 text-gold-primary/70" />
-                {phone}
-              </p>
-            )}
-          </div>
+           </div>
+
+           <div className="flex-1 text-center md:text-right space-y-4">
+              <div className="space-y-1">
+                 <div className="flex items-center justify-center md:justify-start gap-3">
+                    <div className="size-1 w-8 bg-gold-primary rounded-full" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">الملف التعريفي</span>
+                 </div>
+                 <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">{displayName}</h2>
+                 <p className="text-lg font-bold text-muted-foreground opacity-60">عضو مجلس عائلة آل سيف الموقر</p>
+              </div>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                 <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 text-emerald-600">
+                    <ShieldCheck className="size-4" />
+                    <span className="text-xs font-black uppercase tracking-tighter">حساب معتمد</span>
+                 </div>
+                 <div className="flex items-center gap-2 bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10 text-primary">
+                    <Calendar className="size-4" />
+                    <span className="text-xs font-black uppercase tracking-tighter">منذ {new Date(createdAt).getFullYear()}م</span>
+                 </div>
+              </div>
+           </div>
         </section>
 
-        {/* Account info */}
-        <section className="card-surface p-6 space-y-4 animate-fade-up">
-          <h3 className="eyebrow">معلومات الحساب</h3>
-          <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <InfoItem icon={<Mail className="size-4" />} label="البريد الإلكتروني" value={email} />
-            <InfoItem
-              icon={<Calendar className="size-4" />}
-              label="تاريخ إنشاء الحساب"
-              value={new Date(createdAt).toLocaleDateString("ar-SA", {
-                year: "numeric",
-                month: "long",
-                day: "numeric",
-              })}
-            />
-          </dl>
-        </section>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-        {/* Edit profile */}
-        <form
-          onSubmit={saveProfile}
-          className="card-surface p-6 space-y-5 animate-fade-up"
-        >
-          <div className="flex items-center gap-2">
-            <UserIcon className="size-4 text-gold-primary" />
-            <h3 className="eyebrow">الاسم المعروض</h3>
-          </div>
-          <Field label="الاسم بالعربية" value={arabicName} onChange={setArabicName} placeholder="مثال: فيصل السيف" />
-          <Field label="الاسم الكامل (لاتيني)" value={fullName} onChange={setFullName} placeholder="Faisal Alsaif" />
-          <Field label="رقم الجوال" value={phone} onChange={setPhone} placeholder="055 123 4567" />
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-5 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 disabled:opacity-50 transition inline-flex items-center gap-2"
-            >
-              {saving && <Loader2 className="size-4 animate-spin" />}
-              حفظ التغييرات
-            </button>
-          </div>
-        </form>
+           {/* Primary Actions Column */}
+           <div className="lg:col-span-2 space-y-8">
 
-        {/* Password */}
-        <form
-          onSubmit={changePassword}
-          className="card-surface p-6 space-y-5 animate-fade-up"
-        >
-          <div className="flex items-center gap-2">
-            <Lock className="size-4 text-gold-primary" />
-            <h3 className="eyebrow">تغيير كلمة المرور</h3>
-          </div>
-          <Field
-            label="كلمة المرور الجديدة"
-            type="password"
-            value={password}
-            onChange={setPassword}
-            placeholder="8 أحرف على الأقل"
-          />
-          <Field
-            label="تأكيد كلمة المرور"
-            type="password"
-            value={passwordConfirm}
-            onChange={setPasswordConfirm}
-            placeholder="أعد كتابة كلمة المرور"
-          />
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              disabled={pwSaving || !password}
-              className="px-5 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 disabled:opacity-50 transition inline-flex items-center gap-2"
-            >
-              {pwSaving && <Loader2 className="size-4 animate-spin" />}
-              تحديث كلمة المرور
-            </button>
-          </div>
-        </form>
+              {/* Profile Editor */}
+              <form onSubmit={saveProfile} className="card-surface p-8 md:p-10 space-y-8 animate-fade-up" style={{ animationDelay: "100ms" }}>
+                 <div className="flex items-center justify-between border-b border-border/40 pb-6">
+                    <div className="flex items-center gap-4">
+                       <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner"><UserIcon className="size-6" /></div>
+                       <h3 className="text-xl font-black text-primary">البيانات الشخصية</h3>
+                    </div>
+                    {saving && <Loader2 className="size-5 animate-spin text-primary" />}
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Field label="الاسم بالعربية (المجلس)" icon={<Quote className="size-4" />} value={arabicName} onChange={setArabicName} placeholder="مثال: سعود السيف" />
+                    <Field label="الاسم الكامل (الهوية)" icon={<UserIcon className="size-4" />} value={fullName} onChange={setFullName} placeholder="الاسم كما في الهوية..." />
+                    <Field label="رقم الجوال" icon={<Phone className="size-4" />} value={phone} onChange={setPhone} placeholder="05xxxxxxxx" type="tel" />
+                    <Field label="البريد الإلكتروني" icon={<Mail className="size-4" />} value={email} disabled placeholder="البريد لا يمكن تعديله" />
+                 </div>
+
+                 <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="btn-gold w-full md:w-fit px-12 py-4 rounded-2xl text-base font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 transition-all hover:scale-105"
+                    >
+                      <CheckCircle2 className="size-5" />
+                      حفظ كافة التغييرات
+                    </button>
+                 </div>
+              </form>
+
+              {/* Password Security */}
+              <form onSubmit={changePassword} className="card-surface p-8 md:p-10 space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
+                 <div className="flex items-center gap-4 border-b border-border/40 pb-6">
+                    <div className="size-12 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-600 shadow-inner"><Lock className="size-6" /></div>
+                    <h3 className="text-xl font-black text-primary">تأمين الحساب</h3>
+                 </div>
+
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Field label="كلمة المرور الجديدة" type="password" value={password} onChange={setPassword} placeholder="••••••••••••" />
+                    <Field label="تأكيد كلمة المرور" type="password" value={passwordConfirm} onChange={setPasswordConfirm} placeholder="••••••••••••" />
+                 </div>
+
+                 <div className="pt-4">
+                    <button
+                      type="submit"
+                      disabled={pwSaving || !password}
+                      className="px-10 py-4 rounded-2xl bg-muted/60 hover:bg-primary hover:text-white transition-all font-black text-sm text-primary flex items-center gap-3 w-full md:w-fit"
+                    >
+                      {pwSaving ? <Loader2 className="size-5 animate-spin" /> : <Lock className="size-5" />}
+                      تحديث كلمة السر
+                    </button>
+                 </div>
+              </form>
+
+           </div>
+
+           {/* Sidebar Info Column */}
+           <div className="space-y-8">
+              <div className="card-surface p-8 space-y-6 relative overflow-hidden bg-primary text-white border-none shadow-2xl animate-fade-up" style={{ animationDelay: "300ms" }}>
+                 <div className="absolute top-0 left-0 opacity-10 -translate-x-1/3 -translate-y-1/3 pointer-events-none scale-150 rotate-12">
+                    <img src={alsaifMark.url} className="size-48 brightness-0 invert" alt="" />
+                 </div>
+                 <h4 className="text-lg font-black tracking-tight relative z-10">إرث آل سيف الرقمي</h4>
+                 <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">هذا الحساب موثق لدى مجلس العائلة. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا لأعضاء المجلس المعتمدين.</p>
+                 <div className="pt-4 relative z-10">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest">
+                       Secure Connection
+                    </div>
+                 </div>
+              </div>
+
+              <div className="card-surface p-8 space-y-6 animate-fade-up" style={{ animationDelay: "400ms" }}>
+                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-gold-primary">إحصائيات سريعة</h4>
+                 <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                       <span className="text-sm font-bold text-muted-foreground">تاريخ الانضمام</span>
+                       <span className="text-sm font-black text-primary">{new Date(createdAt).toLocaleDateString("ar-SA")}</span>
+                    </div>
+                    <div className="h-px bg-border/40" />
+                    <div className="flex items-center justify-between">
+                       <span className="text-sm font-bold text-muted-foreground">نوع الحساب</span>
+                       <span className="text-sm font-black text-emerald-600">عضو نشط</span>
+                    </div>
+                 </div>
+              </div>
+           </div>
+
+        </div>
+
+        <input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) uploadAvatar(f);
+            e.target.value = "";
+          }}
+        />
       </div>
     </AppShell>
   );
 }
 
-function Field({
-  label,
-  value,
-  onChange,
-  type = "text",
-  placeholder,
-}: {
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type?: string;
-  placeholder?: string;
-}) {
+function Field({ label, icon, value, onChange, type = "text", placeholder, disabled = false }: any) {
   return (
-    <label className="block space-y-1.5">
-      <span className="text-xs text-muted-foreground">{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className="w-full px-3 py-2.5 rounded-lg bg-background border border-border text-sm text-ivory placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-gold-primary/40 focus:border-gold-primary/40 transition"
-      />
-    </label>
-  );
-}
-
-function InfoItem({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-lg bg-background/40 border border-border">
-      <div className="text-gold-primary mt-0.5">{icon}</div>
-      <div className="min-w-0">
-        <dt className="text-[11px] text-muted-foreground uppercase tracking-wider">{label}</dt>
-        <dd className="text-sm text-ivory mt-0.5 truncate">{value}</dd>
-      </div>
+    <div className="space-y-2">
+       <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">{label}</label>
+       <div className="relative group">
+          {icon && <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gold-primary/40 group-focus-within:text-primary transition-colors">{icon}</div>}
+          <input
+            type={type}
+            disabled={disabled}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            placeholder={placeholder}
+            className={cn(
+              "w-full h-14 bg-muted/30 border border-border rounded-2xl font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm",
+              icon ? "pr-14 pl-5" : "px-5",
+              disabled && "opacity-50 cursor-not-allowed bg-muted/60"
+            )}
+          />
+       </div>
     </div>
   );
 }

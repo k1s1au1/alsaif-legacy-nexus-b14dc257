@@ -15,7 +15,12 @@ import {
   Loader2,
   X,
   ShieldAlert,
+  Clock,
+  ChevronLeft,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/majlis")({
   ssr: false,
@@ -63,9 +68,11 @@ function roleLabel(role: string | null) {
 
 function formatDate(iso: string) {
   try {
-    return new Date(iso).toLocaleString("ar", {
-      dateStyle: "medium",
-      timeStyle: "short",
+    return new Date(iso).toLocaleDateString("ar-SA", {
+      day: 'numeric',
+      month: 'long',
+      hour: '2-digit',
+      minute: '2-digit'
     });
   } catch {
     return iso;
@@ -91,10 +98,7 @@ function MajlisPage() {
   const [commentDraft, setCommentDraft] = useState<Record<string, string>>({});
   const [showCompose, setShowCompose] = useState(false);
   const [draft, setDraft] = useState({ kind: "discussion" as PostKind, title: "", body: "" });
-  // members without admin/manager can only post complaints
-
   const [filter, setFilter] = useState<"all" | PostKind>("all");
-
 
   const loadProfiles = useCallback(async (ids: string[]) => {
     if (!ids.length) return;
@@ -181,13 +185,7 @@ function MajlisPage() {
     };
   }, [loadPosts, loadComments, openComments]);
 
-  const canPost = !!me; // every authenticated user can post (at minimum a complaint)
   const canPostOfficial = !!me && (me.isAdmin || me.isManager);
-
-  const filteredPosts = useMemo(() => {
-    if (filter === "all") return posts;
-    return posts.filter((p) => p.kind === filter);
-  }, [posts, filter]);
 
   async function submitPost() {
     if (!me) return;
@@ -207,7 +205,7 @@ function MajlisPage() {
       toast.error("تعذر النشر");
       return;
     }
-    toast.success("تم النشر");
+    toast.success("تم نشر إعلانك بنجاح");
     setDraft({ kind: canPostOfficial ? "discussion" : "complaint", title: "", body: "" });
     setShowCompose(false);
     loadPosts();
@@ -223,11 +221,11 @@ function MajlisPage() {
   }
 
   async function deletePost(post: Post) {
-    if (!confirm("حذف المنشور؟")) return;
+    if (!confirm("هل أنت متأكد من حذف هذا المنشور؟")) return;
     const { error } = await supabase.from("majlis_posts").delete().eq("id", post.id);
     if (error) toast.error("تعذر الحذف");
     else {
-      toast.success("تم الحذف");
+      toast.success("تم الحذف بنجاح");
       loadPosts();
     }
   }
@@ -262,293 +260,303 @@ function MajlisPage() {
     else loadComments(c.post_id);
   }
 
+  const filteredPosts = useMemo(() => {
+    if (filter === "all") return posts;
+    return posts.filter((p) => p.kind === filter);
+  }, [posts, filter]);
+
   if (!me) {
     return (
-      <div className="min-h-screen grid place-items-center">
-        <Loader2 className="size-6 animate-spin text-gold-primary" />
-      </div>
+      <AppShell title="المجلس" user={{ name: "...", role: "عضو", initial: "ص" }}>
+        <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
+           <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+           <p className="font-black">جاري تحضير المجلس...</p>
+        </div>
+      </AppShell>
     );
   }
 
   return (
     <AppShell title="المجلس" user={{ name: me.name, role: me.role, initial: me.initial, avatarPath: me.avatarPath }}>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Header & filters */}
-        <section className="card-surface p-5 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <Megaphone className="size-6 text-gold-primary" strokeWidth={1.5} />
-            <div>
-              <h2 className="text-xl text-ivory">مجلس العائلة</h2>
-              <p className="text-xs text-muted-foreground">إعلانات رسمية ونقاشات بين الأعضاء</p>
+      <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Royal Majlis Header */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="size-1 w-10 bg-gold-primary rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">مجلس آل سيف</span>
             </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">إعلانات المجلس</h2>
+            <p className="text-muted-foreground font-bold text-lg opacity-70">شارك أخبارك، نقاشاتك، أو تواصل مع المسؤولين.</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="flex rounded-lg bg-background border border-border p-1 text-xs">
-              {([
-                { k: "all", l: "الكل" },
-                { k: "announcement", l: "إعلانات" },
-                { k: "discussion", l: "نقاشات" },
-                ...(canPostOfficial || (me && !canPostOfficial)
-                  ? [{ k: "complaint" as const, l: "شكاوى" }]
-                  : []),
-              ] as const).map((t) => (
-                <button
-                  key={t.k}
-                  onClick={() => setFilter(t.k)}
-                  className={`px-3 py-1.5 rounded-md transition ${
-                    filter === t.k
-                      ? "bg-gold-primary/15 text-gold-primary"
-                      : "text-muted-foreground hover:text-ivory"
-                  }`}
-                >
-                  {t.l}
-                </button>
-              ))}
-            </div>
-            {canPost && (
-              <button
-                onClick={() => {
-                  setShowCompose((v) => !v);
-                  if (!canPostOfficial) setDraft((d) => ({ ...d, kind: "complaint" }));
-                }}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition"
-              >
-                {showCompose ? <X className="size-4" /> : <Plus className="size-4" />}
-                {showCompose ? "إلغاء" : canPostOfficial ? "منشور جديد" : "شكوى جديدة"}
-              </button>
-            )}
-          </div>
+          <button
+            onClick={() => {
+              setShowCompose(!showCompose);
+              if (!canPostOfficial) setDraft((d) => ({ ...d, kind: "complaint" }));
+            }}
+            className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
+          >
+            {showCompose ? <X className="size-5" strokeWidth={3} /> : <Plus className="size-5" strokeWidth={3} />}
+            <span>{showCompose ? "إلغاء الكتابة" : canPostOfficial ? "كتابة إعلان جديد" : "إرسال شكوى جديدة"}</span>
+          </button>
         </section>
 
-        {/* Compose */}
-        {showCompose && canPost && (
-          <section className="card-surface p-5 space-y-3 animate-fade-up">
-            <div className="flex items-center gap-2 text-xs flex-wrap">
-              {((canPostOfficial
-                ? (["discussion", "announcement", "complaint"] as PostKind[])
-                : (["complaint"] as PostKind[]))
-              ).map((k) => (
-                <button
-                  key={k}
-                  onClick={() => setDraft((d) => ({ ...d, kind: k }))}
-                  className={`px-3 py-1.5 rounded-md border transition ${
-                    draft.kind === k
-                      ? "border-gold-primary/50 bg-gold-primary/10 text-gold-primary"
-                      : "border-border text-muted-foreground hover:text-ivory"
-                  }`}
-                >
-                  {k === "announcement" ? "إعلان رسمي" : k === "complaint" ? "شكوى (للمسؤولين فقط)" : "نقاش"}
-                </button>
-              ))}
-            </div>
-            {draft.kind === "complaint" && (
-              <p className="text-[11px] text-amber-400/80 flex items-center gap-1">
-                <ShieldAlert className="size-3.5" />
-                هذه الشكوى لن يطّلع عليها سوى المسؤولين والمشرفين.
-              </p>
-            )}
-            <input
-              value={draft.title}
-              onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
-              placeholder="عنوان المنشور"
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm text-ivory placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-            />
-            <textarea
-              value={draft.body}
-              onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
-              placeholder="اكتب المحتوى هنا..."
-              rows={5}
-              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm text-ivory placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-gold-primary/40 resize-y"
-            />
-            <div className="flex justify-end">
-              <button
-                onClick={submitPost}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition"
-              >
-                <Send className="size-4" />
-                نشر
-              </button>
-            </div>
-          </section>
-        )}
+        {/* Filters Bar */}
+        <section className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-muted/30 rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "100ms" }}>
+           <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" count={posts.length} />
+           <NavTab active={filter === "announcement"} onClick={() => setFilter("announcement")} label="الإعلانات" count={posts.filter(p => p.kind === "announcement").length} />
+           <NavTab active={filter === "discussion"} onClick={() => setFilter("discussion")} label="النقاشات" count={posts.filter(p => p.kind === "discussion").length} />
+           <NavTab active={filter === "complaint"} onClick={() => setFilter("complaint")} label="الشكاوى" count={posts.filter(p => p.kind === "complaint").length} />
+        </section>
 
-        {/* Posts list */}
+        {/* Compose Section */}
+        <AnimatePresence>
+          {showCompose && (
+            <motion.section
+              initial={{ opacity: 0, height: 0, y: -20 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -20 }}
+              className="overflow-hidden"
+            >
+              <div className="card-surface p-8 md:p-10 space-y-8 shadow-2xl border-primary/10">
+                 <div className="flex items-center gap-4">
+                    <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary shadow-inner"><Plus className="size-6" /></div>
+                    <h3 className="text-xl font-black text-primary">ماذا تود أن تشارك المجلس؟</h3>
+                 </div>
+
+                 <div className="grid gap-6">
+                    {canPostOfficial && (
+                      <div className="flex flex-wrap gap-3">
+                         <TypeBtn active={draft.kind === "announcement"} onClick={() => setDraft(d => ({...d, kind: "announcement"}))} label="إعلان رسمي" color="gold" />
+                         <TypeBtn active={draft.kind === "discussion"} onClick={() => setDraft(d => ({...d, kind: "discussion"}))} label="فتح نقاش" color="emerald" />
+                         <TypeBtn active={draft.kind === "complaint"} onClick={() => setDraft(d => ({...d, kind: "complaint"}))} label="شكوى خاصة" color="rose" />
+                      </div>
+                    )}
+
+                    {draft.kind === "complaint" && (
+                      <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex items-center gap-3 text-amber-600">
+                         <ShieldAlert className="size-5 shrink-0" />
+                         <p className="text-xs font-bold leading-relaxed">تنبيه: الشكاوى تظهر فقط لمسؤولي النظام والمشرفين لضمان الخصوصية.</p>
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                       <input
+                        value={draft.title}
+                        onChange={(e) => setDraft((d) => ({ ...d, title: e.target.value }))}
+                        placeholder="عنوان الموضوع..."
+                        className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                      />
+                      <textarea
+                        value={draft.body}
+                        onChange={(e) => setDraft((d) => ({ ...d, body: e.target.value }))}
+                        placeholder="اكتب المحتوى هنا بالتفصيل..."
+                        rows={5}
+                        className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none"
+                      />
+                    </div>
+                 </div>
+
+                 <div className="flex justify-end gap-3 pt-4">
+                    <button onClick={() => setShowCompose(false)} className="px-8 py-4 rounded-2xl font-black text-sm text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+                    <button
+                      onClick={submitPost}
+                      className="btn-gold px-12 py-4 rounded-2xl font-black text-base shadow-2xl shadow-gold-primary/20 flex items-center gap-3"
+                    >
+                      <Send className="size-5" /> نشر الآن
+                    </button>
+                 </div>
+              </div>
+            </motion.section>
+          )}
+        </AnimatePresence>
+
+        {/* Posts Feed */}
         {loading ? (
-          <div className="grid place-items-center py-16">
-            <Loader2 className="size-6 animate-spin text-gold-primary" />
+          <div className="flex flex-col items-center justify-center py-20 opacity-30">
+            <Loader2 className="size-8 animate-spin text-primary" />
           </div>
         ) : filteredPosts.length === 0 ? (
-          <div className="card-surface p-12 text-center text-muted-foreground text-sm">
-            لا توجد منشورات بعد.
+          <div className="card-surface p-32 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
+            <Megaphone size={60} strokeWidth={1} />
+            <p className="text-xl font-bold">لا توجد منشورات في هذا القسم حالياً</p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {filteredPosts.map((post) => {
-              const author = profiles[post.author_id];
-              const authorName =
-                author?.arabic_name?.trim() || author?.full_name?.trim() || "عضو";
-              const isAnnouncement = post.kind === "announcement";
-              const canModerate =
-                me.isAdmin || me.isManager || post.author_id === me.id;
-              const postComments = comments[post.id] ?? [];
-              const isOpen = !!openComments[post.id];
-
-              return (
-                <article
-                  key={post.id}
-                  className={`card-surface p-5 space-y-4 animate-fade-up ${
-                    isAnnouncement ? "border-gold-primary/30" : post.kind === "complaint" ? "border-amber-500/30" : ""
-                  }`}
-                >
-                  <header className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="size-10 rounded-full ring-1 ring-gold-primary/30 bg-gold-primary/10 overflow-hidden shrink-0">
-                        <UserAvatar
-                          path={author?.avatar_url ?? null}
-                          name={authorName}
-                          className="size-full"
-                          fallbackClassName="text-base text-gold-primary"
-                          userId={post.author_id}
-                        />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-sm text-ivory truncate">{authorName}</span>
-                          {isAnnouncement && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-gold-primary/15 text-gold-primary border border-gold-primary/30">
-                              إعلان رسمي
-                            </span>
-                          )}
-                          {post.kind === "complaint" && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 flex items-center gap-1">
-                              <ShieldAlert className="size-3" /> شكوى — مرئية للمسؤولين فقط
-                            </span>
-                          )}
-                          {post.pinned && (
-                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary text-ivory/70 flex items-center gap-1">
-                              <Pin className="size-3" /> مثبّت
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-[11px] text-muted-foreground">{formatDate(post.created_at)}</p>
-                      </div>
-                    </div>
-                    {canModerate && (
-                      <div className="flex items-center gap-1">
-                        {(me.isAdmin || me.isManager) && (
-                          <button
-                            onClick={() => togglePin(post)}
-                            className="p-2 rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-                            title={post.pinned ? "إلغاء التثبيت" : "تثبيت"}
-                          >
-                            {post.pinned ? <PinOff className="size-4" /> : <Pin className="size-4" />}
-                          </button>
-                        )}
-                        <button
-                          onClick={() => deletePost(post)}
-                          className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition"
-                          title="حذف"
-                        >
-                          <Trash2 className="size-4" />
-                        </button>
-                      </div>
-                    )}
-                  </header>
-
-                  <div>
-                    <h3 className="text-lg text-ivory mb-2">{post.title}</h3>
-                    <p className="text-sm text-ivory/80 whitespace-pre-wrap leading-relaxed">{post.body}</p>
-                  </div>
-
-                  <footer className="pt-3 border-t border-border">
-                    <button
-                      onClick={() => toggleComments(post.id)}
-                      className="flex items-center gap-2 text-xs text-muted-foreground hover:text-gold-primary transition"
-                    >
-                      <MessageSquare className="size-4" />
-                      {isOpen ? "إخفاء التعليقات" : "عرض التعليقات"}
-                      {postComments.length > 0 && (
-                        <span className="text-gold-primary">({postComments.length})</span>
-                      )}
-                    </button>
-
-                    {isOpen && (
-                      <div className="mt-4 space-y-3">
-                        {postComments.map((c) => {
-                          const ca = profiles[c.author_id];
-                          const cName =
-                            ca?.arabic_name?.trim() || ca?.full_name?.trim() || "عضو";
-                          const canDel =
-                            me.isAdmin || me.isManager || c.author_id === me.id;
-                          return (
-                            <div
-                              key={c.id}
-                              className="flex items-start gap-3 p-3 rounded-lg bg-background/40 border border-border"
-                            >
-                              <div className="size-8 rounded-full ring-1 ring-gold-primary/30 bg-gold-primary/10 overflow-hidden shrink-0">
-                                <UserAvatar
-                                  path={ca?.avatar_url ?? null}
-                                  name={cName}
-                                  className="size-full"
-                                  fallbackClassName="text-xs text-gold-primary"
-                                  userId={c.author_id}
-                                />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center justify-between gap-2">
-                                  <span className="text-xs text-ivory">{cName}</span>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-[10px] text-muted-foreground">
-                                      {formatDate(c.created_at)}
-                                    </span>
-                                    {canDel && (
-                                      <button
-                                        onClick={() => deleteComment(c)}
-                                        className="text-muted-foreground hover:text-destructive transition"
-                                        title="حذف"
-                                      >
-                                        <Trash2 className="size-3" />
-                                      </button>
-                                    )}
-                                  </div>
-                                </div>
-                                <p className="text-sm text-ivory/80 mt-1 whitespace-pre-wrap">{c.body}</p>
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        <div className="flex items-center gap-2">
-                          <input
-                            value={commentDraft[post.id] ?? ""}
-                            onChange={(e) =>
-                              setCommentDraft((p) => ({ ...p, [post.id]: e.target.value }))
-                            }
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" && !e.shiftKey) {
-                                e.preventDefault();
-                                submitComment(post.id);
-                              }
-                            }}
-                            placeholder="اكتب تعليقاً..."
-                            className="flex-1 px-3 py-2 rounded-lg bg-background border border-border text-sm text-ivory placeholder:text-muted-foreground/60 focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-                          />
-                          <button
-                            onClick={() => submitComment(post.id)}
-                            className="p-2 rounded-lg bg-gold-primary text-navy-base hover:opacity-90 transition"
-                          >
-                            <Send className="size-4" />
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </footer>
-                </article>
-              );
-            })}
+          <div className="grid gap-8">
+            {filteredPosts.map((post, i) => (
+              <PostCard
+                key={post.id}
+                post={post}
+                me={me}
+                author={profiles[post.author_id]}
+                onTogglePin={togglePin}
+                onDelete={deletePost}
+                onToggleComments={toggleComments}
+                comments={comments[post.id] ?? []}
+                isOpen={!!openComments[post.id]}
+                commentDraft={commentDraft[post.id] ?? ""}
+                onCommentChange={(v) => setCommentDraft(prev => ({...prev, [post.id]: v}))}
+                onCommentSubmit={() => submitComment(post.id)}
+                onCommentDelete={deleteComment}
+                profiles={profiles}
+              />
+            ))}
           </div>
         )}
+
       </div>
     </AppShell>
+  );
+}
+
+function PostCard({ post, me, author, onTogglePin, onDelete, onToggleComments, comments, isOpen, commentDraft, onCommentChange, onCommentSubmit, onCommentDelete, profiles }: any) {
+  const authorName = author?.arabic_name?.trim() || author?.full_name?.trim() || "عضو المجمس";
+  const isAnnouncement = post.kind === "announcement";
+  const canModerate = me.isAdmin || me.isManager || post.author_id === me.id;
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "card-surface overflow-hidden border-none shadow-2xl transition-all duration-500",
+        isAnnouncement ? "ring-2 ring-gold-primary/30 bg-gradient-to-br from-card to-gold-primary/5" : "hover:-translate-y-1"
+      )}
+    >
+      <div className="p-8 md:p-10 space-y-8">
+         <header className="flex items-start justify-between gap-4">
+            <div className="flex items-center gap-4">
+               <div className="relative">
+                  <div className="size-14 rounded-[20px] ring-4 ring-primary/5 overflow-hidden shadow-lg bg-muted">
+                    <UserAvatar path={author?.avatar_url} name={authorName} className="size-full" userId={post.author_id} />
+                  </div>
+                  {post.pinned && <div className="absolute -top-2 -right-2 size-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-card shadow-lg"><Pin size={12} strokeWidth={3} /></div>}
+               </div>
+               <div className="space-y-1">
+                  <div className="flex items-center gap-3 flex-wrap">
+                     <h4 className="text-lg font-black text-primary tracking-tight">{authorName}</h4>
+                     {isAnnouncement && <span className="px-3 py-0.5 rounded-full bg-gold-primary text-white text-[10px] font-black uppercase tracking-widest shadow-md shadow-gold-primary/20">إعلان رسمي</span>}
+                     {post.kind === "complaint" && <span className="px-3 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest">شكوى إدارية</span>}
+                  </div>
+                  <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground opacity-60 uppercase tracking-tighter">
+                     <Clock className="size-3" /> {formatDate(post.created_at)}
+                  </div>
+               </div>
+            </div>
+
+            {canModerate && (
+              <div className="flex items-center gap-1">
+                 {(me.isAdmin || me.isManager) && (
+                   <button onClick={() => onTogglePin(post)} className={cn("size-10 rounded-xl flex items-center justify-center transition-all", post.pinned ? "bg-primary text-white" : "bg-muted/50 text-muted-foreground hover:bg-muted")}>
+                      {post.pinned ? <PinOff size={18} /> : <Pin size={18} />}
+                   </button>
+                 )}
+                 <button onClick={() => onDelete(post)} className="size-10 rounded-xl bg-rose-500/10 text-rose-600 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm">
+                    <Trash2 size={18} />
+                 </button>
+              </div>
+            )}
+         </header>
+
+         <div className="space-y-4">
+            <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
+            <p className="text-base md:text-lg font-bold text-muted-foreground leading-relaxed whitespace-pre-wrap">{post.body}</p>
+         </div>
+
+         <div className="h-px bg-border/40" />
+
+         <footer className="flex flex-col gap-6">
+            <button
+              onClick={() => onToggleComments(post.id)}
+              className="flex items-center gap-3 text-primary font-black text-xs uppercase tracking-widest hover:text-gold-primary transition-all w-fit"
+            >
+              <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center shadow-inner"><MessageSquare size={18} /></div>
+              <span>{isOpen ? "إخفاء التعليقات" : `عرض التعليقات (${comments.length})`}</span>
+              <ChevronLeft className={cn("size-4 transition-transform duration-500", isOpen ? "-rotate-90" : "")} />
+            </button>
+
+            <AnimatePresence>
+              {isOpen && (
+                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-6 overflow-hidden">
+                   <div className="space-y-4">
+                      {comments.map((c: any) => {
+                         const ca = profiles[c.author_id];
+                         const cName = ca?.arabic_name?.trim() || ca?.full_name?.trim() || "عضو";
+                         return (
+                            <div key={c.id} className="flex gap-4 p-5 rounded-3xl bg-muted/20 border border-border/40 group/comment">
+                               <div className="size-10 rounded-2xl overflow-hidden shadow-md shrink-0 bg-muted">
+                                  <UserAvatar path={ca?.avatar_url} name={cName} className="size-full" userId={c.author_id} />
+                               </div>
+                               <div className="flex-1 space-y-1.5 min-w-0">
+                                  <div className="flex items-center justify-between gap-4">
+                                     <span className="text-sm font-black text-primary">{cName}</span>
+                                     <div className="flex items-center gap-2">
+                                        <span className="text-[10px] font-bold text-muted-foreground opacity-40">{formatDate(c.created_at)}</span>
+                                        {(me.isAdmin || me.isManager || c.author_id === me.id) && (
+                                           <button onClick={() => onCommentDelete(c)} className="opacity-0 group-hover/comment:opacity-100 text-rose-500 transition-all p-1"><X size={14} strokeWidth={3} /></button>
+                                        )}
+                                     </div>
+                                  </div>
+                                  <p className="text-sm font-bold text-muted-foreground leading-relaxed">{c.body}</p>
+                               </div>
+                            </div>
+                         );
+                      })}
+                   </div>
+
+                   <div className="flex gap-3">
+                      <div className="flex-1 relative">
+                         <input
+                           value={commentDraft}
+                           onChange={(e) => onCommentChange(e.target.value)}
+                           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && (e.preventDefault(), onCommentSubmit())}
+                           placeholder="اكتب تعليقك هنا..."
+                           className="w-full h-14 pr-6 pl-14 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                         />
+                         <button onClick={onCommentSubmit} className="absolute left-2 top-2 size-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 active:scale-95 transition-all"><Send className="size-4" /></button>
+                      </div>
+                   </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+         </footer>
+      </div>
+    </motion.article>
+  );
+}
+
+function NavTab({ active, onClick, label, count }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 px-6 py-3 rounded-full text-sm font-black transition-all duration-300 whitespace-nowrap",
+        active
+          ? "bg-primary text-white shadow-xl shadow-primary/20"
+          : "text-muted-foreground hover:text-primary hover:bg-white"
+      )}
+    >
+      <span>{label}</span>
+      {count > 0 && (
+        <span className={cn(
+          "min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black flex items-center justify-center",
+          active ? "bg-white text-primary" : "bg-primary text-white"
+        )}>{count}</span>
+      )}
+    </button>
+  );
+}
+
+function TypeBtn({ active, onClick, label, color }: any) {
+  const styles: any = {
+    gold: active ? "bg-gold-primary text-white border-gold-primary" : "bg-muted/40 text-muted-foreground border-border hover:border-gold-primary",
+    emerald: active ? "bg-primary text-white border-primary" : "bg-muted/40 text-muted-foreground border-border hover:border-primary",
+    rose: active ? "bg-rose-600 text-white border-rose-600" : "bg-muted/40 text-muted-foreground border-border hover:border-rose-500",
+  };
+  return (
+    <button onClick={onClick} className={cn("px-5 py-2.5 rounded-xl border text-xs font-black transition-all", styles[color])}>
+       {label}
+    </button>
   );
 }

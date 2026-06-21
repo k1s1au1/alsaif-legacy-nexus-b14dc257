@@ -266,7 +266,7 @@ function MemberCard({ member, index, presenceTime, meId, canDelete, onDelete }: 
               e.stopPropagation();
               onDelete(member.id, displayName);
             }}
-            className="absolute top-4 left-4 size-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm z-20"
+            className="absolute top-4 left-4 size-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm z-20"
             title="حذف الحساب"
           >
             <Trash2 className="size-4" />

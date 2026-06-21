@@ -2,10 +2,12 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2, Pencil, Save } from "lucide-react";
+import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2, Pencil, Save, Compass, Clock, MapPinned } from "lucide-react";
 import { toast } from "sonner";
-import tripImage from "@/assets/trip-alula.jpg";
 import { TripImage } from "@/components/trip-image";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
@@ -47,10 +49,10 @@ function formatRange(start: string | null, end: string | null) {
 
 function statusChip(status: string) {
   if (status === "upcoming")
-    return { label: "قادمة", className: "bg-gold-primary/15 text-gold-primary ring-gold-primary/30" };
+    return { label: "قادمة", className: "bg-gold-primary/10 text-gold-primary border-gold-primary/20" };
   if (status === "planning")
-    return { label: "قيد التخطيط", className: "bg-secondary text-ivory/70 ring-border" };
-  return { label: "سابقة", className: "bg-secondary/50 text-muted-foreground ring-border" };
+    return { label: "قيد التخطيط", className: "bg-blue-500/10 text-blue-400 border-blue-500/20" };
+  return { label: "سابقة", className: "bg-muted text-muted-foreground border-border" };
 }
 
 function TripsPage() {
@@ -98,11 +100,7 @@ function TripsPage() {
             .limit(1)
             .maybeSingle(),
         ]);
-        const name =
-          p?.arabic_name?.trim() ||
-          p?.full_name?.trim() ||
-          u.user.email?.split("@")[0] ||
-          "عضو العائلة";
+        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || u.user.email?.split("@")[0] || "عضو العائلة";
         setProfile({
           name,
           role: roleLabel(r?.role ?? null),
@@ -125,169 +123,161 @@ function TripsPage() {
 
   return (
     <AppShell title="الرحلات" user={profile}>
-      <div className="space-y-8">
-        <div className="flex items-center justify-between flex-wrap gap-4">
-          <div>
-            <div className="eyebrow mb-2">رحلات العائلة</div>
-            <h2 className="text-2xl font-medium text-ivory">جدول الرحلات والوجهات</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              استكشف الرحلات القادمة، سجّل حضورك، وتابع التفاصيل اللوجستية.
-            </p>
+      <div className="max-w-7xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Royal Trips Header */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="size-1 w-10 bg-gold-primary rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">استكشاف العالم</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">رحلات العائلة</h2>
+            <p className="text-muted-foreground font-bold text-lg opacity-70">جدول الوجهات واللقاءات الخارجية لأعضاء عائلة السيف.</p>
           </div>
           {canManage && (
             <button
               onClick={() => setShowAdd(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
+              className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
             >
-              <Plus className="size-4" strokeWidth={2.5} />
-              إضافة رحلة
+              <Plus className="size-5" strokeWidth={3} />
+              <span>إضافة رحلة جديدة</span>
             </button>
           )}
-        </div>
+        </section>
 
         {loading ? (
-          <div className="card-surface p-10 text-center text-muted-foreground text-sm">
-            جاري تحميل الرحلات...
+          <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
+             <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+             <p className="font-black">جاري تحضير الوجهات والرحلات...</p>
           </div>
         ) : trips.length === 0 ? (
-          <div className="card-surface p-12 text-center">
-            <Plane className="size-10 text-gold-primary mx-auto mb-4" strokeWidth={1.2} />
-            <h3 className="text-lg font-medium text-ivory mb-2">لا توجد رحلات بعد</h3>
-            <p className="text-sm text-muted-foreground mb-6">
-              {canManage ? "ابدأ بإضافة أول رحلة عائلية لتظهر هنا." : "لم يقم المشرفون بإضافة رحلات بعد."}
-            </p>
-            {canManage && (
-              <button
-                onClick={() => setShowAdd(true)}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition"
-              >
-                <Plus className="size-4" strokeWidth={2.5} />
-                إضافة رحلة
-              </button>
-            )}
+          <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40 animate-fade-up">
+            <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Compass size={60} strokeWidth={1} /></div>
+            <div className="space-y-1">
+              <p className="text-2xl font-black text-primary">لا توجد رحلات مجدولة حالياً</p>
+              <p className="text-sm font-bold opacity-60">سيتم إشعارك فور إعلان الإدارة عن رحلة عائلية جديدة.</p>
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {trips.map((trip) => {
-              const chip = statusChip(trip.status);
-              return (
-                <article
-                  key={trip.id}
-                  className="card-surface overflow-hidden flex flex-col animate-fade-up"
-                >
-                  <div className="relative h-56">
-                    <TripImage
-                      path={trip.image_url}
-                      alt={trip.title}
-                      className="absolute inset-0 size-full object-cover"
-                    />
-
-                    <div className="absolute inset-0 bg-gradient-to-t from-card via-card/30 to-transparent" />
-                    <span
-                      className={`absolute top-4 right-4 px-2.5 py-1 text-[10px] rounded uppercase tracking-wider ring-1 ${chip.className}`}
-                    >
-                      {chip.label}
-                    </span>
-                    {canManage && (
-                      <div className="absolute top-4 left-4 flex items-center gap-2">
-                        <button
-                          onClick={() => setEditingTrip(trip)}
-                          className="size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-gold-primary/80 hover:text-navy-base transition ring-1 ring-white/10"
-                          aria-label="تعديل الرحلة"
-                        >
-                          <Pencil className="size-4" strokeWidth={1.8} />
-                        </button>
-                        <button
-                          onClick={async () => {
-                            if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
-                            if (trip.image_url) {
-                              await supabase.storage.from("trip-images").remove([trip.image_url]);
-                            }
-                            const { error } = await supabase.from("trips").delete().eq("id", trip.id);
-                            if (error) {
-                              toast.error("تعذر حذف الرحلة");
-                            } else {
-                              toast.success("تم حذف الرحلة");
-                              loadTrips();
-                            }
-                          }}
-                          className="size-9 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-red-500/80 transition ring-1 ring-white/10"
-                          aria-label="حذف الرحلة"
-                        >
-                          <Trash2 className="size-4" strokeWidth={1.8} />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-6 flex-1 flex flex-col">
-                    {trip.badge && (
-                      <div className="flex items-center gap-2 flex-wrap mb-3">
-                        <span className="px-2 py-0.5 bg-gold-primary/10 text-gold-primary text-[10px] rounded uppercase tracking-wider ring-1 ring-gold-primary/20">
-                          {trip.badge}
-                        </span>
-                      </div>
-                    )}
-                    <h3 className="text-xl font-medium text-ivory mb-2">{trip.title}</h3>
-                    {trip.location && (
-                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mb-4">
-                        <MapPin className="size-3.5" strokeWidth={1.5} />
-                        {trip.location}
-                      </div>
-                    )}
-                    {trip.description && (
-                      <p className="text-sm text-muted-foreground leading-relaxed flex-1 line-clamp-3">
-                        {trip.description}
-                      </p>
-                    )}
-                    <div className="mt-6 pt-5 border-t border-border flex items-center justify-between flex-wrap gap-4">
-                      <div className="flex items-center gap-5">
-                        <div className="flex items-center gap-2 text-xs text-ivory/80">
-                          <Calendar className="size-3.5 text-gold-primary" strokeWidth={1.5} />
-                          {formatRange(trip.start_date, trip.end_date)}
-                        </div>
-                        <div className="flex items-center gap-2 text-xs text-ivory/80">
-                          <Users className="size-3.5 text-gold-primary" strokeWidth={1.5} />
-                          عائلي
-                        </div>
-                      </div>
-                      <Link
-                        to="/trips/$tripId"
-                        params={{ tripId: trip.id }}
-                        className="inline-flex items-center gap-1.5 text-xs font-semibold text-gold-primary hover:brightness-110 transition"
-                      >
-                        عرض التفاصيل
-                        <ChevronLeft className="size-3.5" />
-                      </Link>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            {trips.map((trip, i) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                index={i}
+                canManage={canManage}
+                onEdit={setEditingTrip}
+                onRefresh={loadTrips}
+              />
+            ))}
           </div>
         )}
       </div>
 
-      {showAdd && <TripDialog onClose={() => setShowAdd(false)} onSaved={loadTrips} />}
-      {editingTrip && (
-        <TripDialog
-          trip={editingTrip}
-          onClose={() => setEditingTrip(null)}
-          onSaved={loadTrips}
-        />
-      )}
+      <AnimatePresence>
+        {(showAdd || editingTrip) && (
+          <TripDialog
+            trip={editingTrip || undefined}
+            onClose={() => { setShowAdd(false); setEditingTrip(null); }}
+            onSaved={loadTrips}
+          />
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }
 
-function TripDialog({
-  trip,
-  onClose,
-  onSaved,
-}: {
-  trip?: Trip;
-  onClose: () => void;
-  onSaved: () => void;
-}) {
+function TripCard({ trip, index, canManage, onEdit, onRefresh }: any) {
+  const chip = statusChip(trip.status);
+
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className="group card-surface overflow-hidden border-none shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-gold-primary/10"
+    >
+      <div className="relative h-64 overflow-hidden">
+        <TripImage
+          path={trip.image_url}
+          alt={trip.title}
+          className="absolute inset-0 size-full object-cover transition-transform duration-700 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+
+        {/* Status Chip */}
+        <div className={cn("absolute top-5 right-5 px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border backdrop-blur-md shadow-lg", chip.className)}>
+          {chip.label}
+        </div>
+
+        {/* Admin Actions */}
+        {canManage && (
+          <div className="absolute top-5 left-5 flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button onClick={() => onEdit(trip)} className="size-10 rounded-xl bg-white/20 backdrop-blur-md text-white hover:bg-white hover:text-primary transition-all flex items-center justify-center shadow-lg border border-white/20"><Pencil size={18} /></button>
+            <button
+              onClick={async () => {
+                if (!confirm(`هل تريد حذف رحلة "${trip.title}"؟`)) return;
+                const { error } = await supabase.from("trips").delete().eq("id", trip.id);
+                if (error) toast.error("تعذر الحذف");
+                else { toast.success("تم الحذف"); onRefresh(); }
+              }}
+              className="size-10 rounded-xl bg-rose-500/80 backdrop-blur-md text-white hover:bg-rose-600 transition-all flex items-center justify-center shadow-lg border border-white/20"
+            ><Trash2 size={18} /></button>
+          </div>
+        )}
+
+        {/* Location Overlay */}
+        {trip.location && (
+          <div className="absolute bottom-5 right-5 left-5 flex items-center gap-2 text-white">
+             <MapPin className="size-4 text-gold-primary" />
+             <span className="text-xs font-black truncate drop-shadow-md">{trip.location}</span>
+          </div>
+        )}
+      </div>
+
+      <div className="p-8 space-y-6">
+        <div className="space-y-3">
+           {trip.badge && (
+              <span className="px-3 py-0.5 rounded-full bg-primary/5 text-primary text-[10px] font-black uppercase tracking-widest border border-primary/10">{trip.badge}</span>
+           )}
+           <h3 className="text-2xl font-black text-primary leading-tight line-clamp-1">{trip.title}</h3>
+           {trip.description && (
+             <p className="text-sm font-bold text-muted-foreground/80 leading-relaxed line-clamp-2 italic">"{trip.description}"</p>
+           )}
+        </div>
+
+        <div className="grid grid-cols-2 gap-4 py-4 border-y border-border/40">
+           <div className="space-y-1">
+              <div className="flex items-center gap-2 opacity-40">
+                 <Calendar className="size-3" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">تاريخ الرحلة</span>
+              </div>
+              <p className="text-xs font-black text-primary">{formatRange(trip.start_date, trip.end_date)}</p>
+           </div>
+           <div className="space-y-1">
+              <div className="flex items-center gap-2 opacity-40">
+                 <Users className="size-3" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">المشاركون</span>
+              </div>
+              <p className="text-xs font-black text-primary">أعضاء العائلة</p>
+           </div>
+        </div>
+
+        <Link
+          to="/trips/$tripId"
+          params={{ tripId: trip.id }}
+          className="w-full h-14 rounded-2xl bg-primary/5 hover:bg-primary hover:text-white transition-all duration-300 flex items-center justify-center gap-3 text-primary font-black text-sm uppercase tracking-widest border border-primary/10 shadow-inner group/btn"
+        >
+          <span>تفاصيل الوجهة</span>
+          <ChevronLeft className="size-4 transition-transform group-hover/btn:-translate-x-1" />
+        </Link>
+      </div>
+    </motion.article>
+  );
+}
+
+function TripDialog({ trip, onClose, onSaved }: any) {
   const isEdit = !!trip;
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -304,273 +294,124 @@ function TripDialog({
     status: trip?.status ?? "upcoming",
   });
 
-  function update<K extends keyof typeof form>(key: K, value: string) {
-    setForm((f) => ({ ...f, [key]: value }));
-  }
+  const update = (key: string, value: string) => setForm(f => ({ ...f, [key]: value }));
 
-  function onPickImage(e: React.ChangeEvent<HTMLInputElement>) {
+  const onPickImage = (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      toast.error("الرجاء اختيار ملف صورة");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("حجم الصورة يجب أن يكون أقل من 5 ميجابايت");
-      return;
-    }
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
-  }
+  };
 
-  function clearImage() {
-    setImageFile(null);
-    if (imagePreview) URL.revokeObjectURL(imagePreview);
-    setImagePreview(null);
-    if (isEdit && trip?.image_url) setRemoveExistingImage(true);
-  }
-
-  async function submit(e: FormEvent) {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (!form.title.trim()) {
-      toast.error("الرجاء إدخال عنوان الرحلة");
-      return;
-    }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
-    if (!u.user) {
-      toast.error("يجب تسجيل الدخول");
-      setSaving(false);
-      return;
-    }
+    if (!u.user) return;
 
-    let imagePath: string | null | undefined = undefined;
+    let imagePath = undefined;
     if (imageFile) {
-      const ext = imageFile.name.split(".").pop()?.toLowerCase() || "jpg";
+      const ext = imageFile.name.split(".").pop() || "jpg";
       const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage
-        .from("trip-images")
-        .upload(path, imageFile, { contentType: imageFile.type, upsert: false });
-      if (upErr) {
-        toast.error("تعذر رفع الصورة");
-        setSaving(false);
-        return;
-      }
+      await supabase.storage.from("trip-images").upload(path, imageFile);
       imagePath = path;
-      if (isEdit && trip?.image_url) {
-        await supabase.storage.from("trip-images").remove([trip.image_url]);
-      }
     } else if (isEdit && removeExistingImage) {
-      if (trip?.image_url) {
-        await supabase.storage.from("trip-images").remove([trip.image_url]);
-      }
       imagePath = null;
     }
 
-    const payload = {
-      title: form.title.trim(),
-      badge: form.badge.trim() || null,
-      location: form.location.trim() || null,
-      location_url: form.location_url.trim() || null,
-      start_date: form.start_date || null,
-      end_date: form.end_date || null,
-      description: form.description.trim() || null,
-      status: form.status,
-    };
+    const payload: any = { ...form };
+    if (imagePath !== undefined) payload.image_url = imagePath;
 
     let error;
-    if (isEdit && trip) {
-      const updateData = imagePath !== undefined ? { ...payload, image_url: imagePath } : payload;
-      ({ error } = await supabase.from("trips").update(updateData).eq("id", trip.id));
+    if (isEdit) {
+      ({ error } = await supabase.from("trips").update(payload).eq("id", trip.id));
     } else {
-      ({ error } = await supabase.from("trips").insert({
-        ...payload,
-        image_url: imagePath ?? null,
-        created_by: u.user.id,
-      }));
+      ({ error } = await supabase.from("trips").insert({ ...payload, created_by: u.user.id }));
     }
-    setSaving(false);
-    if (error) {
-      toast.error(isEdit ? "تعذر حفظ التعديلات" : "تعذر إضافة الرحلة");
-      return;
-    }
-    toast.success(isEdit ? "تم حفظ التعديلات" : "تمت إضافة الرحلة");
-    onSaved();
-    onClose();
-  }
 
+    setSaving(false);
+    if (error) toast.error("حدث خطأ");
+    else { toast.success("تم الحفظ"); onSaved(); onClose(); }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm grid place-items-center p-4"
-      onClick={onClose}
-    >
-      <div
-        className="card-surface w-full max-w-lg max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex items-center justify-between p-6 border-b border-border">
-          <h3 className="text-lg font-medium text-ivory">{isEdit ? "تعديل الرحلة" : "إضافة رحلة جديدة"}</h3>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-ivory transition"
-            aria-label="إغلاق"
-          >
-            <X className="size-5" />
-          </button>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card-surface w-full max-w-2xl overflow-hidden shadow-2xl rounded-[48px]">
+        <div className="p-8 sm:p-12 space-y-8 max-h-[85vh] overflow-y-auto no-scrollbar">
+           <div className="flex items-center justify-between">
+              <div className="space-y-1">
+                 <h3 className="text-3xl font-black text-primary tracking-tight">{isEdit ? "تعديل الرحلة" : "إضافة رحلة جديدة"}</h3>
+                 <p className="text-sm font-bold text-muted-foreground opacity-60">أدخل تفاصيل الوجهة والمواعيد لرحلة العائلة.</p>
+              </div>
+              <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
+           </div>
+
+           <form onSubmit={submit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <Field label="عنوان الرحلة" value={form.title} onChange={(v:any) => update("title", v)} placeholder="مثال: رحلة العائلة إلى العلا" />
+                 <Field label="الوسم / المناسبة" value={form.badge} onChange={(v:any) => update("badge", v)} placeholder="مثال: الرحلة السنوية" />
+                 <Field label="الوجهة / الموقع" value={form.location} onChange={(v:any) => update("location", v)} placeholder="مثال: العلا، المدينة المنورة" />
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">الحالة</label>
+                    <select value={form.status} onChange={(e) => update("status", e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+                       <option value="upcoming">قادمة</option>
+                       <option value="planning">قيد التخطيط</option>
+                       <option value="past">سابقة</option>
+                    </select>
+                 </div>
+                 <Field label="تاريخ البدء" type="date" value={form.start_date} onChange={(v:any) => update("start_date", v)} />
+                 <Field label="تاريخ الانتهاء" type="date" value={form.end_date} onChange={(v:any) => update("end_date", v)} />
+              </div>
+
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">رابط الموقع (خرائط جوجل)</label>
+                 <input dir="ltr" value={form.location_url} onChange={(e) => update("location_url", e.target.value)} placeholder="https://..." className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
+              </div>
+
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">وصف الرحلة</label>
+                 <textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="اكتب تفاصيل الرحلة، البرامج، والمستلزمات..." rows={4} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
+              </div>
+
+              <div className="space-y-2">
+                 <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">صورة الوجهة</label>
+                 <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all">
+                    {(imagePreview || trip?.image_url) ? (
+                       <img src={imagePreview || trip?.image_url} className="w-full h-40 object-cover rounded-2xl shadow-lg" />
+                    ) : (
+                       <>
+                        <ImageIcon className="size-10 text-muted-foreground opacity-40" />
+                        <span className="text-sm font-bold text-muted-foreground">اضغط لرفع صورة فنية للوجهة</span>
+                       </>
+                    )}
+                    <input type="file" hidden accept="image/*" onChange={onPickImage} />
+                 </label>
+              </div>
+
+              <div className="flex gap-4 pt-6">
+                 <button type="button" onClick={onClose} className="flex-1 py-5 rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+                 <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-3xl font-black text-lg shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
+                   {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد بيانات الرحلة</span>}
+                 </button>
+              </div>
+           </form>
         </div>
-        <form onSubmit={submit} className="p-6 space-y-4">
-          <Field label="عنوان الرحلة *">
-            <input
-              required
-              value={form.title}
-              onChange={(e) => update("title", e.target.value)}
-              className="input-base"
-              placeholder="رحلة الشتاء السنوية"
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="الوسم">
-              <input
-                value={form.badge}
-                onChange={(e) => update("badge", e.target.value)}
-                className="input-base"
-                placeholder="الرحلة الكبرى"
-              />
-            </Field>
-            <Field label="الحالة">
-              <select
-                value={form.status}
-                onChange={(e) => update("status", e.target.value)}
-                className="input-base"
-              >
-                <option value="upcoming">قادمة</option>
-                <option value="planning">قيد التخطيط</option>
-                <option value="past">سابقة</option>
-              </select>
-            </Field>
-          </div>
-          <Field label="الموقع">
-            <input
-              value={form.location}
-              onChange={(e) => update("location", e.target.value)}
-              className="input-base"
-              placeholder="مخيم العلا، المملكة العربية السعودية"
-            />
-          </Field>
-          <Field label="رابط الموقع (خرائط جوجل أو أي رابط)">
-            <input
-              type="url"
-              value={form.location_url}
-              onChange={(e) => update("location_url", e.target.value)}
-              className="input-base"
-              placeholder="https://maps.google.com/..."
-              dir="ltr"
-            />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="تاريخ البدء">
-              <input
-                type="date"
-                value={form.start_date}
-                onChange={(e) => update("start_date", e.target.value)}
-                className="input-base"
-              />
-            </Field>
-            <Field label="تاريخ الانتهاء">
-              <input
-                type="date"
-                value={form.end_date}
-                onChange={(e) => update("end_date", e.target.value)}
-                className="input-base"
-              />
-            </Field>
-          </div>
-          <Field label="الوصف">
-            <textarea
-              value={form.description}
-              onChange={(e) => update("description", e.target.value)}
-              className="input-base min-h-24 resize-y"
-              placeholder="اجتماع شمل العائلة..."
-            />
-          </Field>
-          <Field label="صورة الرحلة (اختياري)">
-            {imagePreview ? (
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <img src={imagePreview} alt="معاينة" className="w-full h-48 object-cover" />
-                <button
-                  type="button"
-                  onClick={clearImage}
-                  className="absolute top-2 left-2 size-8 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-black/80 transition"
-                  aria-label="إزالة الصورة"
-                >
-                  <X className="size-4" />
-                </button>
-              </div>
-            ) : isEdit && trip?.image_url && !removeExistingImage ? (
-              <div className="relative rounded-lg overflow-hidden border border-border">
-                <TripImage path={trip.image_url} alt="الصورة الحالية" className="w-full h-48 object-cover" />
-                <button
-                  type="button"
-                  onClick={() => setRemoveExistingImage(true)}
-                  className="absolute top-2 left-2 size-8 grid place-items-center rounded-full bg-black/60 text-ivory hover:bg-black/80 transition"
-                  aria-label="إزالة الصورة"
-                >
-                  <X className="size-4" />
-                </button>
-                <label className="absolute bottom-2 left-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-black/60 text-ivory text-xs cursor-pointer hover:bg-black/80 transition">
-                  <Upload className="size-3.5" />
-                  استبدال
-                  <input type="file" accept="image/*" className="hidden" onChange={onPickImage} />
-                </label>
-              </div>
-            ) : (
-              <label className="flex flex-col items-center justify-center gap-2 px-4 py-8 border border-dashed border-border rounded-lg cursor-pointer hover:border-gold-primary/40 hover:bg-secondary/20 transition">
-                <div className="size-10 rounded-full bg-gold-primary/10 grid place-items-center">
-                  <Upload className="size-5 text-gold-primary" strokeWidth={1.5} />
-                </div>
-                <div className="text-sm text-ivory">انقر لرفع صورة</div>
-                <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                  <ImageIcon className="size-3" />
-                  JPG, PNG, WebP — حتى 5 ميجابايت
-                </div>
-                <input
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={onPickImage}
-                />
-              </label>
-            )}
-          </Field>
-          <div className="flex items-center justify-end gap-3 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm text-muted-foreground hover:text-ivory transition"
-            >
-              إلغاء
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-primary text-navy-base text-sm font-semibold rounded-lg hover:brightness-110 transition disabled:opacity-60"
-            >
-              {isEdit ? <Save className="size-4" strokeWidth={2.5} /> : <Plus className="size-4" strokeWidth={2.5} />}
-              {saving ? "جاري الحفظ..." : isEdit ? "حفظ التعديلات" : "إضافة الرحلة"}
-            </button>
-          </div>
-        </form>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, value, onChange, placeholder, type = "text" }: any) {
   return (
-    <label className="block">
-      <span className="eyebrow block mb-2">{label}</span>
-      {children}
-    </label>
+    <div className="space-y-2">
+       <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">{label}</label>
+       <input
+         type={type}
+         value={value}
+         onChange={(e) => onChange(e.target.value)}
+         placeholder={placeholder}
+         className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-sm"
+       />
+    </div>
   );
 }

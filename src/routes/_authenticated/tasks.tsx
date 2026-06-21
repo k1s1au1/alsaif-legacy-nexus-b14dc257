@@ -14,39 +14,14 @@ import {
   Loader2,
   Pencil,
   Filter,
+  X,
+  ChevronLeft,
+  LayoutGrid,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   ssr: false,
@@ -100,24 +75,17 @@ const priorityLabels: Record<TaskPriority, string> = {
 };
 
 const priorityStyles: Record<TaskPriority, string> = {
-  low: "text-sky-300 bg-sky-500/10 ring-1 ring-sky-500/20",
-  medium: "text-amber-300 bg-amber-500/10 ring-1 ring-amber-500/20",
-  high: "text-red-300 bg-red-500/10 ring-1 ring-red-500/20",
-};
-
-const statusStyles: Record<TaskStatus, string> = {
-  todo: "text-ivory/70 bg-secondary/40 ring-1 ring-border",
-  in_progress: "text-amber-300 bg-amber-500/10 ring-1 ring-amber-500/20",
-  done: "text-emerald-300 bg-emerald-500/10 ring-1 ring-emerald-500/20",
+  low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+  medium: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+  high: "bg-rose-500/10 text-rose-500 border-rose-500/20",
 };
 
 function formatDate(iso: string | null) {
   if (!iso) return "—";
   try {
-    return new Date(iso).toLocaleDateString("ar-EG", {
-      year: "numeric",
-      month: "short",
+    return new Date(iso).toLocaleDateString("ar-SA", {
       day: "numeric",
+      month: "short",
     });
   } catch {
     return "—";
@@ -126,22 +94,19 @@ function formatDate(iso: string | null) {
 
 function TasksPage() {
   const [profile, setProfile] = useState({
-    name: "عضو العائلة",
-    role: "عضو",
+    name: "...",
+    role: "...",
     initial: "ص",
     avatarPath: null as string | null,
   });
   const [userId, setUserId] = useState<string | null>(null);
   const [isPrivileged, setIsPrivileged] = useState(false);
-
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-
   const [filter, setFilter] = useState<"all" | "mine" | TaskStatus>("all");
-  const [openDialog, setOpenDialog] = useState(false);
+  const [showDialog, setShowDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
-  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const memberMap = useMemo(() => {
     const m = new Map<string, Member>();
@@ -149,76 +114,43 @@ function TasksPage() {
     return m;
   }, [members]);
 
-  // Load profile + role
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       setUserId(u.user.id);
       const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("arabic_name, full_name, avatar_url")
-          .eq("id", u.user.id)
-          .maybeSingle(),
+        supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.user.id),
       ]);
       const r = (roles ?? []).map((x) => x.role);
       setIsPrivileged(r.includes("admin") || r.includes("manager"));
-      const primaryRole = r.includes("admin") ? "admin" : r.includes("manager") ? "manager" : "member";
-      const name =
-        p?.arabic_name?.trim() || p?.full_name?.trim() || u.user.email?.split("@")[0] || "عضو العائلة";
+      const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
       setProfile({
         name,
-        role: roleLabel(primaryRole),
+        role: roleLabel(r[0] ?? null),
         initial: (name[0] ?? "س").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
       });
+      await Promise.all([loadMembers(), loadTasks()]);
     })();
   }, []);
 
   const loadMembers = useCallback(async () => {
-    const { data } = await supabase
-      .from("profiles")
-      .select("id, arabic_name, full_name, avatar_url")
-      .order("arabic_name", { ascending: true });
-    setMembers(
-      (data ?? []).map((p) => ({
-        id: p.id,
-        name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
-        avatar_url: p.avatar_url ?? null,
-      })),
-    );
+    const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
+    setMembers((data ?? []).map((p) => ({
+      id: p.id,
+      name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
+      avatar_url: p.avatar_url ?? null,
+    })));
   }, []);
 
   const loadTasks = useCallback(async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("tasks")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (error) {
-      toast.error("تعذر تحميل المهام");
-      setLoading(false);
-      return;
-    }
+    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
     setTasks((data ?? []) as Task[]);
     setLoading(false);
   }, []);
-
-  useEffect(() => {
-    loadMembers();
-    loadTasks();
-    const channel = supabase
-      .channel("tasks-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "tasks" }, () => {
-        loadTasks();
-      })
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [loadMembers, loadTasks]);
 
   const filteredTasks = useMemo(() => {
     if (filter === "all") return tasks;
@@ -226,466 +158,277 @@ function TasksPage() {
     return tasks.filter((t) => t.status === filter);
   }, [tasks, filter, userId]);
 
-  const counts = useMemo(
-    () => ({
-      total: tasks.length,
-      todo: tasks.filter((t) => t.status === "todo").length,
-      inProgress: tasks.filter((t) => t.status === "in_progress").length,
-      done: tasks.filter((t) => t.status === "done").length,
-      mine: tasks.filter((t) => t.assignee_id === userId && t.status !== "done").length,
-    }),
-    [tasks, userId],
-  );
+  const stats = useMemo(() => ({
+    total: tasks.length,
+    todo: tasks.filter(t => t.status === "todo").length,
+    doing: tasks.filter(t => t.status === "in_progress").length,
+    mine: tasks.filter(t => t.assignee_id === userId && t.status !== "done").length,
+  }), [tasks, userId]);
 
-  async function quickToggleStatus(task: Task) {
-    const next: TaskStatus =
-      task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
-    const payload: Partial<Task> = { status: next };
-    if (next === "done") payload.completed_at = new Date().toISOString();
-    else payload.completed_at = null;
-    const { error } = await supabase.from("tasks").update(payload).eq("id", task.id);
-    if (error) {
-      toast.error("تعذر تحديث المهمة");
-      return;
+  async function quickToggle(task: Task) {
+    const next: TaskStatus = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
+    const { error } = await supabase.from("tasks").update({
+      status: next,
+      completed_at: next === "done" ? new Date().toISOString() : null
+    }).eq("id", task.id);
+    if (!error) {
+      toast.success("تم تحديث حالة المهمة");
+      loadTasks();
     }
-    toast.success("تم تحديث الحالة");
   }
 
-  async function handleDelete() {
-    if (!deleteId) return;
-    const { error } = await supabase.from("tasks").delete().eq("id", deleteId);
-    setDeleteId(null);
-    if (error) {
-      toast.error("تعذر حذف المهمة");
-      return;
+  async function deleteTask(id: string) {
+    if (!confirm("هل أنت متأكد من حذف هذه المهمة؟")) return;
+    const { error } = await supabase.from("tasks").delete().eq("id", id);
+    if (!error) {
+      toast.success("تم حذف المهمة");
+      loadTasks();
     }
-    toast.success("تم حذف المهمة");
-  }
-
-  function canEdit(task: Task) {
-    return isPrivileged || task.created_by === userId || task.assignee_id === userId;
-  }
-
-  function canDelete(task: Task) {
-    return isPrivileged || task.created_by === userId;
   }
 
   return (
     <AppShell title="المهام" user={profile}>
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="size-10 bg-gold-primary/10 ring-1 ring-gold-primary/30 rounded-lg grid place-items-center">
-                <ListChecks className="size-5 text-gold-primary" strokeWidth={1.5} />
+      <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Royal Tasks Header */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
+           <div className="space-y-2">
+              <div className="flex items-center gap-3">
+                 <div className="size-1 w-10 bg-gold-primary rounded-full" />
+                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المسؤوليات</span>
               </div>
-              <h2 className="text-2xl font-medium text-ivory">المهام والمسؤوليات</h2>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              تنظيم وتتبع المهام بين أعضاء العائلة.
-            </p>
-          </div>
-          <Button
-            onClick={() => {
-              setEditingTask(null);
-              setOpenDialog(true);
-            }}
-            className="bg-gold-primary text-navy-base hover:bg-gold-primary/90"
-          >
-            <Plus className="size-4 ml-2" strokeWidth={2} />
-            مهمة جديدة
-          </Button>
-        </div>
+              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">المهام العائلية</h2>
+              <p className="text-muted-foreground font-bold text-lg opacity-70">نظّم ووزع المسؤوليات بين أعضاء المجلس بكل كفاءة.</p>
+           </div>
+           <button
+             onClick={() => { setEditingTask(null); setShowDialog(true); }}
+             className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
+           >
+              <Plus className="size-5" strokeWidth={3} />
+              <span>إضافة مهمة جديدة</span>
+           </button>
+        </section>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <StatCard label="الإجمالي" value={counts.total} />
-          <StatCard label="قيد الانتظار" value={counts.todo} accent="text-ivory/70" />
-          <StatCard label="قيد التنفيذ" value={counts.inProgress} accent="text-amber-300" />
-          <StatCard label="مهامي النشطة" value={counts.mine} accent="text-gold-primary" />
-        </div>
+        {/* Stats Grid */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
+           <StatCard label="إجمالي المهام" value={stats.total} icon={<ListChecks />} />
+           <StatCard label="قيد الانتظار" value={stats.todo} icon={<Circle />} color="muted" />
+           <StatCard label="تحت التنفيذ" value={stats.doing} icon={<Loader2 className="animate-spin-slow" />} color="amber" />
+           <StatCard label="مهامي النشطة" value={stats.mine} icon={<LayoutGrid />} color="gold" />
+        </section>
 
-        {/* Filters */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <Filter className="size-4 text-muted-foreground" strokeWidth={1.5} />
-          <Tabs value={filter} onValueChange={(v) => setFilter(v as typeof filter)}>
-            <TabsList className="bg-card/40">
-              <TabsTrigger value="all">الكل</TabsTrigger>
-              <TabsTrigger value="mine">مهامي</TabsTrigger>
-              <TabsTrigger value="todo">قيد الانتظار</TabsTrigger>
-              <TabsTrigger value="in_progress">قيد التنفيذ</TabsTrigger>
-              <TabsTrigger value="done">مكتملة</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        </div>
+        {/* Tabs Filter */}
+        <section className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-muted/30 rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "200ms" }}>
+           <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" />
+           <NavTab active={filter === "mine"} onClick={() => setFilter("mine")} label="مهامي" />
+           <NavTab active={filter === "todo"} onClick={() => setFilter("todo")} label="بانتظار البدء" />
+           <NavTab active={filter === "in_progress"} onClick={() => setFilter("in_progress")} label="جاري العمل" />
+           <NavTab active={filter === "done"} onClick={() => setFilter("done")} label="المكتملة" />
+        </section>
 
-        {/* List */}
+        {/* Tasks List */}
         {loading ? (
-          <div className="text-center py-16">
-            <Loader2 className="size-6 animate-spin text-gold-primary mx-auto" />
+          <div className="flex flex-col items-center justify-center py-20 opacity-30">
+            <Loader2 className="size-8 animate-spin text-primary" />
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="text-center py-16 border border-dashed border-border rounded-2xl">
-            <ListChecks className="size-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.2} />
-            <p className="text-sm text-muted-foreground">لا توجد مهام في هذا القسم.</p>
+          <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
+             <ListChecks size={60} strokeWidth={1} />
+             <p className="text-xl font-bold">لا توجد مهام في هذا القسم حالياً</p>
           </div>
         ) : (
-          <div className="space-y-3">
-            {filteredTasks.map((task) => {
-              const assignee = task.assignee_id ? memberMap.get(task.assignee_id) : null;
-              return (
-                <div
-                  key={task.id}
-                  className="group bg-card/50 border border-border rounded-xl p-4 hover:border-gold-primary/30 transition"
-                >
-                  <div className="flex items-start gap-3">
-                    <button
-                      onClick={() => canEdit(task) && quickToggleStatus(task)}
-                      disabled={!canEdit(task)}
-                      className="mt-0.5 shrink-0 disabled:cursor-not-allowed"
-                      aria-label="تغيير الحالة"
-                    >
-                      {task.status === "done" ? (
-                        <CheckCircle2 className="size-5 text-emerald-400" strokeWidth={1.5} />
-                      ) : task.status === "in_progress" ? (
-                        <Loader2 className="size-5 text-amber-300" strokeWidth={1.5} />
-                      ) : (
-                        <Circle
-                          className="size-5 text-muted-foreground group-hover:text-gold-primary transition"
-                          strokeWidth={1.5}
-                        />
-                      )}
-                    </button>
-
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between gap-3">
-                        <h3
-                          className={`text-sm font-medium ${
-                            task.status === "done" ? "text-muted-foreground line-through" : "text-ivory"
-                          }`}
-                        >
-                          {task.title}
-                        </h3>
-                        <div className="flex items-center gap-1 shrink-0">
-                          {canEdit(task) && (
-                            <button
-                              onClick={() => {
-                                setEditingTask(task);
-                                setOpenDialog(true);
-                              }}
-                              className="p-1.5 text-muted-foreground hover:text-gold-primary transition rounded-md"
-                              aria-label="تعديل"
-                            >
-                              <Pencil className="size-3.5" strokeWidth={1.5} />
-                            </button>
-                          )}
-                          {canDelete(task) && (
-                            <button
-                              onClick={() => setDeleteId(task.id)}
-                              className="p-1.5 text-muted-foreground hover:text-red-400 transition rounded-md"
-                              aria-label="حذف"
-                            >
-                              <Trash2 className="size-3.5" strokeWidth={1.5} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      {task.description && (
-                        <p className="text-xs text-muted-foreground mt-1 whitespace-pre-wrap">
-                          {task.description}
-                        </p>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-2 mt-3">
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ${statusStyles[task.status]}`}>
-                          {statusLabels[task.status]}
-                        </span>
-                        <span
-                          className={`text-[10px] px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${priorityStyles[task.priority]}`}
-                        >
-                          <Flag className="size-2.5" strokeWidth={2} />
-                          {priorityLabels[task.priority]}
-                        </span>
-                        {task.due_date && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/40 ring-1 ring-border text-ivory/70 inline-flex items-center gap-1">
-                            <CalendarIcon className="size-2.5" strokeWidth={2} />
-                            {formatDate(task.due_date)}
-                          </span>
-                        )}
-                        {assignee && (
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-secondary/40 ring-1 ring-border text-ivory/70 inline-flex items-center gap-1.5">
-                            <span className="size-4 rounded-full overflow-hidden bg-gold-primary/20 grid place-items-center text-[8px] text-gold-primary">
-                              <UserAvatar
-                                path={assignee.avatar_url}
-                                name={assignee.name}
-                                className="size-full rounded-full"
-                                fallbackClassName="grid place-items-center size-full"
-                                userId={assignee.id}
-                              />
-                            </span>
-                            {assignee.name}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="grid gap-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
+            {filteredTasks.map((task) => (
+              <TaskRow
+                key={task.id}
+                task={task}
+                assignee={task.assignee_id ? memberMap.get(task.assignee_id) : null}
+                onToggle={() => quickToggle(task)}
+                onEdit={() => { setEditingTask(task); setShowDialog(true); }}
+                onDelete={() => deleteTask(task.id)}
+                canManage={isPrivileged || task.created_by === userId}
+              />
+            ))}
           </div>
         )}
+
       </div>
 
-      <TaskDialog
-        open={openDialog}
-        onOpenChange={(o) => {
-          setOpenDialog(o);
-          if (!o) setEditingTask(null);
-        }}
-        task={editingTask}
-        members={members}
-        userId={userId}
-        onSaved={loadTasks}
-      />
-
-      <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>حذف المهمة؟</AlertDialogTitle>
-            <AlertDialogDescription>
-              لا يمكن التراجع عن هذا الإجراء. سيتم حذف المهمة نهائياً.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>إلغاء</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDelete}
-              className="bg-red-500 hover:bg-red-600 text-white"
-            >
-              حذف
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <AnimatePresence>
+        {showDialog && (
+          <TaskDialog
+            task={editingTask}
+            members={members}
+            userId={userId}
+            onClose={() => setShowDialog(false)}
+            onSaved={loadTasks}
+          />
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }
 
-function StatCard({
-  label,
-  value,
-  accent = "text-ivory",
-}: {
-  label: string;
-  value: number;
-  accent?: string;
-}) {
+function TaskRow({ task, assignee, onToggle, onEdit, onDelete, canManage }: any) {
+  const isDone = task.status === "done";
+
   return (
-    <div className="bg-card/40 border border-border rounded-xl p-4">
-      <p className="text-xs text-muted-foreground mb-1">{label}</p>
-      <p className={`text-2xl font-semibold ${accent}`}>{value}</p>
+    <motion.div layout className={cn("card-surface p-6 md:p-8 hover:bg-primary/5 transition-all group border-none shadow-xl", isDone && "opacity-60")}>
+       <div className="flex items-start gap-6">
+          <button
+            onClick={onToggle}
+            className={cn("mt-1 size-7 rounded-full border-2 flex items-center justify-center transition-all",
+              isDone ? "bg-emerald-500 border-emerald-500 text-white" :
+              task.status === "in_progress" ? "border-amber-500 text-amber-500" :
+              "border-border text-transparent hover:border-primary")}
+          >
+             <CheckCircle2 size={16} strokeWidth={3} />
+          </button>
+
+          <div className="flex-1 min-w-0 space-y-4">
+             <div className="flex items-start justify-between gap-4">
+                <div className="space-y-1">
+                   <h4 className={cn("text-xl font-black text-primary tracking-tight", isDone && "line-through")}>{task.title}</h4>
+                   {task.description && <p className="text-sm font-bold text-muted-foreground leading-relaxed">{task.description}</p>}
+                </div>
+                {canManage && (
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                     <button onClick={onEdit} className="size-9 rounded-xl bg-muted/50 flex items-center justify-center hover:bg-primary hover:text-white transition-all"><Pencil size={14} /></button>
+                     <button onClick={onDelete} className="size-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={14} /></button>
+                  </div>
+                )}
+             </div>
+
+             <div className="flex flex-wrap items-center gap-4">
+                <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority])}>
+                   {priorityLabels[task.priority]}
+                </div>
+                {task.due_date && (
+                   <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground opacity-60 uppercase">
+                      <Clock size={12} /> {formatDate(task.due_date)}
+                   </div>
+                )}
+                <div className="flex-1" />
+                {assignee && (
+                  <div className="flex items-center gap-2 bg-white/40 dark:bg-black/20 pr-1 pl-4 py-1 rounded-full border border-border/40 shadow-sm">
+                     <div className="size-6 rounded-full overflow-hidden border border-border shadow-inner bg-muted">
+                        <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
+                     </div>
+                     <span className="text-[11px] font-black text-primary">{assignee.name}</span>
+                  </div>
+                )}
+             </div>
+          </div>
+       </div>
+    </motion.div>
+  );
+}
+
+function StatCard({ label, value, icon, color }: any) {
+  const styles: any = {
+    gold: "text-gold-primary bg-gold-primary/5 border-gold-primary/20",
+    amber: "text-amber-500 bg-amber-500/5 border-amber-500/20",
+    muted: "text-muted-foreground bg-muted/30 border-border/40",
+    default: "text-primary bg-primary/5 border-primary/20",
+  };
+  return (
+    <div className={cn("card-surface p-6 border flex flex-col gap-4 shadow-lg transition-transform hover:-translate-y-1", styles[color] || styles.default)}>
+       <div className="size-10 rounded-2xl bg-white/50 dark:bg-black/20 flex items-center justify-center shadow-inner">{icon}</div>
+       <div>
+          <p className="text-[10px] font-black uppercase tracking-widest opacity-60">{label}</p>
+          <p className="text-3xl font-black tracking-tight mt-1">{value}</p>
+       </div>
     </div>
   );
 }
 
-function TaskDialog({
-  open,
-  onOpenChange,
-  task,
-  members,
-  userId,
-  onSaved,
-}: {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  task: Task | null;
-  members: Member[];
-  userId: string | null;
-  onSaved: () => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [status, setStatus] = useState<TaskStatus>("todo");
-  const [priority, setPriority] = useState<TaskPriority>("medium");
-  const [dueDate, setDueDate] = useState("");
-  const [assigneeId, setAssigneeId] = useState<string>("none");
+function NavTab({ active, onClick, label }: any) {
+  return (
+    <button onClick={onClick} className={cn("px-6 py-3 rounded-full text-xs font-black transition-all whitespace-nowrap", active ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-muted-foreground hover:text-primary hover:bg-white")}>
+       {label}
+    </button>
+  );
+}
+
+function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
+  const [form, setForm] = useState({
+    title: task?.title ?? "",
+    description: task?.description ?? "",
+    status: task?.status ?? "todo",
+    priority: task?.priority ?? "medium",
+    due_date: task?.due_date ? task.due_date.slice(0, 10) : "",
+    assignee_id: task?.assignee_id ?? "none",
+  });
 
-  useEffect(() => {
-    if (open) {
-      setTitle(task?.title ?? "");
-      setDescription(task?.description ?? "");
-      setStatus(task?.status ?? "todo");
-      setPriority(task?.priority ?? "medium");
-      setDueDate(task?.due_date ? task.due_date.slice(0, 10) : "");
-      setAssigneeId(task?.assignee_id ?? "none");
-    }
-  }, [open, task]);
-
-  async function handleSubmit(e: React.FormEvent) {
+  const submit = async (e: any) => {
     e.preventDefault();
-    if (!title.trim()) {
-      toast.error("العنوان مطلوب");
-      return;
-    }
-    if (!userId) return;
+    if (!form.title.trim()) return;
     setSaving(true);
-
     const payload = {
-      title: title.trim(),
-      description: description.trim() || null,
-      status,
-      priority,
-      due_date: dueDate ? new Date(dueDate).toISOString() : null,
-      assignee_id: assigneeId === "none" ? null : assigneeId,
-      completed_at:
-        status === "done"
-          ? task?.completed_at ?? new Date().toISOString()
-          : null,
+      ...form,
+      assignee_id: form.assignee_id === "none" ? null : form.assignee_id,
+      due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
+      completed_at: form.status === "done" ? new Date().toISOString() : null,
     };
-
+    let error;
     if (task) {
-      const { error } = await supabase.from("tasks").update(payload).eq("id", task.id);
-      setSaving(false);
-      if (error) {
-        toast.error("تعذر حفظ التعديلات");
-        return;
-      }
-      toast.success("تم حفظ المهمة");
+      ({ error } = await supabase.from("tasks").update(payload).eq("id", task.id));
     } else {
-      const { error } = await supabase
-        .from("tasks")
-        .insert({ ...payload, created_by: userId });
-      setSaving(false);
-      if (error) {
-        toast.error("تعذر إنشاء المهمة");
-        return;
-      }
-      toast.success("تم إنشاء المهمة");
+      ({ error } = await supabase.from("tasks").insert({ ...payload, created_by: userId }));
     }
-
-    onOpenChange(false);
-    onSaved();
-  }
+    setSaving(false);
+    if (!error) { toast.success("تم الحفظ"); onSaved(); onClose(); }
+  };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl bg-card border-border rounded-[40px] p-0 overflow-hidden shadow-2xl">
-        <div className="p-8 sm:p-10 space-y-8">
-          <DialogHeader className="text-right space-y-2">
-            <DialogTitle className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المهمة" : "مهمة جديدة"}</DialogTitle>
-            <DialogDescription className="text-muted-foreground font-bold">
-              {task ? "حدّث تفاصيل المهمة الحالية." : "أضف مهمة جديدة وعيّن المسؤول عنها للمتابعة."}
-            </DialogDescription>
-          </DialogHeader>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card-surface w-full max-w-2xl p-8 sm:p-12 space-y-8 shadow-2xl rounded-[48px]">
+         <div className="flex items-center justify-between">
+            <h3 className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المهمة" : "إضافة مهمة جديدة"}</h3>
+            <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
+         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="space-y-3">
-            <Label htmlFor="title" className="font-black text-xs uppercase tracking-widest text-primary mr-1">العنوان *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="مثلاً: تنظيم اجتماع نهاية الشهر"
-              className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm"
-              required
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="description" className="font-black text-xs uppercase tracking-widest text-primary mr-1">الوصف</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="تفاصيل إضافية..."
-              className="rounded-2xl bg-muted/30 border-border font-bold shadow-sm resize-none"
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              <Label className="font-black text-xs uppercase tracking-widest text-primary mr-1">الحالة</Label>
-              <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
-                <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border shadow-2xl">
-                  <SelectItem value="todo">قيد الانتظار</SelectItem>
-                  <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
-                  <SelectItem value="done">مكتملة</SelectItem>
-                </SelectContent>
-              </Select>
+         <form onSubmit={submit} className="space-y-6">
+            <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">عنوان المهمة</label>
+               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="مثال: تجهيز استراحة الجمعة" className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
             </div>
 
-            <div className="space-y-3">
-              <Label className="font-black text-xs uppercase tracking-widest text-primary mr-1">الأولوية</Label>
-              <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
-                <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border shadow-2xl">
-                  <SelectItem value="low">منخفضة</SelectItem>
-                  <SelectItem value="medium">متوسطة</SelectItem>
-                  <SelectItem value="high">عالية</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-            <div className="space-y-3">
-              <Label htmlFor="due_date" className="font-black text-xs uppercase tracking-widest text-primary mr-1">تاريخ الاستحقاق</Label>
-              <Input
-                id="due_date"
-                type="date"
-                value={dueDate}
-                onChange={(e) => setDueDate(e.target.value)}
-                className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm"
-              />
+            <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">التفاصيل</label>
+               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل تفاصيل إضافية للمهمة..." rows={3} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
             </div>
 
-            <div className="space-y-3">
-              <Label className="font-black text-xs uppercase tracking-widest text-primary mr-1">المسند إليه</Label>
-              <Select value={assigneeId} onValueChange={setAssigneeId}>
-                <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm">
-                  <SelectValue placeholder="اختر عضو" />
-                </SelectTrigger>
-                <SelectContent className="rounded-2xl border-border shadow-2xl max-h-[250px]">
-                  <SelectItem value="none">— غير معيّن —</SelectItem>
-                  {members.map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      {m.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+               <SelectField label="الحالة" value={form.status} onChange={v => setForm({...form, status: v})} options={[{v:"todo", l:"بانتظار البدء"}, {v:"in_progress", l:"جاري التنفيذ"}, {v:"done", l:"مكتملة"}]} />
+               <SelectField label="الأولوية" value={form.priority} onChange={v => setForm({...form, priority: v})} options={[{v:"low", l:"منخفضة"}, {v:"medium", l:"متوسطة"}, {v:"high", l:"عالية"}]} />
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">تاريخ الاستحقاق</label>
+                  <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
+               </div>
+               <SelectField label="المسند إليه" value={form.assignee_id} onChange={v => setForm({...form, assignee_id: v})} options={[{v:"none", l:"— غير معيّن —"}, ...members.map((m:any)=>({v:m.id, l:m.name}))]} />
             </div>
-          </div>
 
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-4 pt-6">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              className="w-full sm:w-auto h-14 rounded-2xl font-black text-muted-foreground border-border hover:bg-muted"
-            >
-              إلغاء
-            </Button>
-            <Button
-              type="submit"
-              disabled={saving}
-              className="flex-1 btn-gold h-14 rounded-2xl text-lg shadow-2xl shadow-gold-primary/20 w-full sm:w-auto"
-            >
-              {saving ? <Loader2 className="size-5 animate-spin" /> : <span>{task ? "حفظ التعديلات" : "إنشاء المهمة"}</span>}
-            </Button>
-          </DialogFooter>
-        </form>
-        </div>
-      </DialogContent>
-    </Dialog>
+            <div className="flex gap-4 pt-6">
+               <button type="button" onClick={onClose} className="flex-1 py-5 rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+               <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-3xl font-black text-lg shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
+                 {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد المهمة</span>}
+               </button>
+            </div>
+         </form>
+      </motion.div>
+    </div>
+  );
+}
+
+function SelectField({ label, value, onChange, options }: any) {
+  return (
+    <div className="space-y-2">
+       <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">{label}</label>
+       <select value={value} onChange={e => onChange(e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+          {options.map((o:any) => <option key={o.v} value={o.v}>{o.l}</option>)}
+       </select>
+    </div>
   );
 }
