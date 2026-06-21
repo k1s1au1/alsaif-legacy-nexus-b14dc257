@@ -955,7 +955,18 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
            {/* Profile Header */}
            <div className="flex flex-col items-center text-center space-y-6">
               <div className="size-32 rounded-[40px] bg-primary/5 border-2 border-gold-primary/20 flex items-center justify-center relative shadow-2xl">
-                 {conversation.kind === "group" ? <Users className="size-12 text-primary" /> : <UserAvatar path={participants.find(p => p.user_id !== meId) ? profiles[participants.find(p => p.user_id !== meId)!.user_id]?.avatar_url : null} name={conversationTitle(conversation, participants, profiles, meId)} className="size-full" />}
+                 {conversation.kind === "group" ? (
+                   <Users className="size-12 text-primary" />
+                 ) : (
+                   <UserAvatar
+                     path={(() => {
+                       const other = participants.find(p => p.user_id !== meId);
+                       return other ? profiles[other.user_id]?.avatar_url : null;
+                     })()}
+                     name={conversationTitle(conversation, participants, profiles, meId)}
+                     className="size-full"
+                   />
+                 )}
                  <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-[40px]" />
               </div>
 

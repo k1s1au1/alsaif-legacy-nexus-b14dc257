@@ -516,11 +516,14 @@ function NewConversationDialog({
         setBusy(false);
         return;
       }
-      const rows = [...selected].map((uid) => ({
-        conversation_id: conv.id,
-        user_id: uid,
-        role: "member" as const,
-      }));
+      const rows = [
+        { conversation_id: conv.id, user_id: meId, role: "owner" as const },
+        ...([...selected].map((uid) => ({
+          conversation_id: conv.id,
+          user_id: uid,
+          role: "member" as const,
+        })))
+      ];
       const { error: addErr } = await supabase.from("conversation_participants").insert(rows);
       setBusy(false);
       if (addErr) {
