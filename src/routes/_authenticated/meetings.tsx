@@ -263,6 +263,11 @@ function MeetingsPage() {
   async function setRsvp(meetingId: string, rsvp: Rsvp) {
     if (!userId) return;
     const existing = attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId);
+    if (existing) {
+      const { error } = await supabase
+        .from("meeting_attendees")
+        .update({ rsvp })
+        .eq("meeting_id", meetingId)
         .eq("user_id", userId);
       if (error) toast.error("تعذر التحديث");
       else loadAll();
