@@ -553,7 +553,7 @@ function NewConversationDialog({
            <img src={alsaifMark.url} className="size-64" alt="" />
         </div>
 
-        <div className="p-6 sm:p-10 space-y-6 flex flex-col h-full relative z-10">
+        <div className="p-6 sm:p-10 space-y-6 flex flex-col flex-1 min-h-0 relative z-10">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
                <div className="flex items-center gap-3">
@@ -601,14 +601,14 @@ function NewConversationDialog({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-3 py-4 border-y border-border/40 min-h-0 touch-pan-y">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden pr-2 -mr-2 space-y-3 py-4 border-y border-border/40 min-h-0 overscroll-contain" style={{ WebkitOverflowScrolling: "touch" }}>
             {list.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 space-y-4 opacity-40">
                  <Search size={40} className="text-muted-foreground" />
                  <p className="text-center text-sm font-bold italic">لا توجد نتائج مطابقة لبحثك حالياً.</p>
               </div>
             )}
-            <div className="grid grid-cols-1 gap-2">
+            <div className="grid grid-cols-1 gap-2 pb-2">
               {list.map((p) => {
                 const name = displayName(p);
                 const isSel = selected.has(p.id);
