@@ -21,12 +21,18 @@ import {
   Image as ImageIcon,
   CalendarPlus,
   Palette,
+  ChevronLeft,
+  Users,
+  Search,
 } from "lucide-react";
 
 import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -195,7 +201,6 @@ function AdminPage() {
     if (userId === meId && role !== "admin") {
       if (!confirm("سيتم تعديل صلاحياتك الشخصية. هل أنت متأكد؟")) return;
     }
-    // Replace the user's roles with a single canonical role
     const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
     if (delErr) {
       toast.error("تعذر تحديث الصلاحيات");
@@ -208,7 +213,6 @@ function AdminPage() {
         return;
       }
     } else {
-      // Always keep at least the member role
       await supabase.from("user_roles").insert({ user_id: userId, role: "member" });
     }
     toast.success("تم تحديث الصلاحيات");
@@ -257,301 +261,210 @@ function AdminPage() {
 
   return (
     <AppShell title="الإدارة" user={profile}>
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center gap-3 p-5 rounded-2xl bg-card/60 border border-border">
-          <div className="size-11 rounded-xl bg-gold-primary/10 ring-1 ring-gold-primary/30 grid place-items-center">
-            <Shield className="size-5 text-gold-primary" strokeWidth={1.5} />
+      <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Royal Header Section */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="size-1 w-10 bg-gold-primary rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المجلس</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">لوحة الإدارة</h2>
+            <p className="text-muted-foreground font-bold text-lg opacity-70">إدارة طلبات الانضمام، الصلاحيات، وإعدادات الهوية البصرية.</p>
           </div>
-          <div>
-            <h2 className="text-lg font-medium text-ivory">لوحة الإدارة</h2>
-            <p className="text-xs text-muted-foreground">
-              إدارة طلبات الانضمام وتعيين المسؤولين والمشرفين.
-            </p>
+          <div className="size-20 rounded-[32px] bg-primary/5 border-2 border-gold-primary/20 flex items-center justify-center shadow-xl md:mb-2">
+            <Shield className="size-10 text-gold-primary" strokeWidth={1.5} />
           </div>
-        </div>
+        </section>
 
         {!isPriv ? (
-          <div className="text-center py-20 rounded-2xl border border-dashed border-border">
-            <Shield className="size-10 text-muted-foreground mx-auto mb-3" strokeWidth={1.2} />
-            <p className="text-sm text-muted-foreground">هذه الصفحة متاحة للمشرفين والمسؤولين فقط.</p>
+          <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60 animate-fade-up">
+             <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Shield size={40} /></div>
+             <div className="space-y-1">
+                <p className="text-xl font-black">الدخول محدود</p>
+                <p className="text-sm font-bold opacity-60">هذه الصفحة متاحة فقط لمسؤولي النظام ومديري مجلس العائلة.</p>
+             </div>
           </div>
         ) : (
           <>
-            {/* Section switch */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <button
+            {/* Section Switch Tabs */}
+            <div className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-muted/30 rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "100ms" }}>
+              <NavTab
+                active={section === "requests"}
                 onClick={() => setSection("requests")}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
-                  section === "requests"
-                    ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
-                    : "bg-card/40 border-border text-muted-foreground hover:text-ivory"
-                }`}
-              >
-                <UserPlus className="size-4" strokeWidth={1.6} />
-                طلبات إنشاء حساب
-                <span className="opacity-70 text-xs">({reqCounts.pending})</span>
-              </button>
+                icon={<UserPlus className="size-4" />}
+                label="طلبات الانضمام"
+                badge={reqCounts.pending}
+              />
               {isAdmin && (
-                <button
+                <NavTab
+                  active={section === "roles"}
                   onClick={() => setSection("roles")}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
-                    section === "roles"
-                      ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
-                      : "bg-card/40 border-border text-muted-foreground hover:text-ivory"
-                  }`}
-                >
-                  <UserCog className="size-4" strokeWidth={1.6} />
-                  تعيين المسؤولين والمشرفين
-                </button>
+                  icon={<UserCog className="size-4" />}
+                  label="الأعضاء والصلاحيات"
+                />
               )}
-              <button
+              <NavTab
+                active={section === "site"}
                 onClick={() => setSection("site")}
-                className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl border text-sm transition ${
-                  section === "site"
-                    ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
-                    : "bg-card/40 border-border text-muted-foreground hover:text-ivory"
-                }`}
-              >
-                <Palette className="size-4" strokeWidth={1.6} />
-                إعدادات الموقع
-              </button>
+                icon={<Palette className="size-4" />}
+                label="تخصيص الموقع"
+              />
             </div>
 
-
-            {loading ? (
-              <div className="grid place-items-center py-16 text-muted-foreground">
-                <Loader2 className="size-6 animate-spin" />
-              </div>
-            ) : section === "requests" ? (
-              <section className="card-surface p-5 space-y-4">
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <UserPlus className="size-5 text-gold-primary" />
-                    <h3 className="text-base text-ivory">طلبات إنشاء حساب</h3>
+            <AnimatePresence mode="wait">
+              {loading ? (
+                <motion.div
+                  key="loading"
+                  initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                  className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40"
+                >
+                  <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                  <p className="font-black">جاري تحميل بيانات الإدارة...</p>
+                </motion.div>
+              ) : section === "requests" ? (
+                <motion.div
+                  key="requests"
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                  className="space-y-8"
+                >
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-4">
+                      <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">تصنيف الطلبات</h3>
+                      <div className="h-px w-24 bg-border/60" />
+                    </div>
+                    <div className="flex items-center gap-2">
+                       {REQ_TABS.map((t) => (
+                         <button
+                           key={t.key}
+                           onClick={() => setReqTab(t.key)}
+                           className={cn(
+                             "px-5 py-2 rounded-full text-xs font-black transition-all border",
+                             reqTab === t.key
+                               ? "bg-primary text-white border-primary shadow-lg"
+                               : "bg-card text-muted-foreground border-border hover:bg-muted"
+                           )}
+                         >
+                           {t.label}
+                           <span className="ms-2 opacity-50">{reqCounts[t.key]}</span>
+                         </button>
+                       ))}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 text-xs">
-                    {REQ_TABS.map((t) => (
-                      <button
-                        key={t.key}
-                        onClick={() => setReqTab(t.key)}
-                        className={`px-3 py-1.5 rounded-lg border transition ${
-                          reqTab === t.key
-                            ? "bg-gold-primary/10 border-gold-primary/40 text-ivory"
-                            : "bg-background/40 border-border text-muted-foreground hover:text-ivory"
-                        }`}
-                      >
-                        {t.label}
-                        <span className="ms-1.5 opacity-70">({reqCounts[t.key]})</span>
-                      </button>
+
+                  <div className="grid gap-6">
+                    {filteredReqs.length === 0 ? (
+                      <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
+                        <Users className="size-16" strokeWidth={1} />
+                        <p className="text-lg font-bold">لا توجد طلبات في هذا القسم حالياً</p>
+                      </div>
+                    ) : (
+                      filteredReqs.map((r) => (
+                        <RequestCard
+                          key={r.id}
+                          req={r}
+                          onStatus={setReqStatus}
+                          onDelete={removeReq}
+                        />
+                      ))
+                    )}
+                  </div>
+                </motion.div>
+              ) : section === "roles" ? (
+                <motion.div
+                  key="roles"
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                  className="space-y-8"
+                >
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="space-y-1">
+                      <h3 className="text-xl font-black text-primary tracking-tight">إدارة الصلاحيات</h3>
+                      <p className="text-sm font-bold text-muted-foreground opacity-60">تعيين المسؤولين والمشرفين لمتابعة شؤون العائلة.</p>
+                    </div>
+                    <div className="relative group min-w-[300px]">
+                      <Search className="size-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                      <input
+                        type="text"
+                        placeholder="ابحث عن عضو بالعائلة..."
+                        value={memberSearch}
+                        onChange={(e) => setMemberSearch(e.target.value)}
+                        className="w-full bg-muted/30 border border-border rounded-2xl pr-11 pl-4 py-3.5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4">
+                    {filteredMembers.map((m) => (
+                      <MemberAdminRow
+                        key={m.id}
+                        member={m}
+                        meId={meId}
+                        currentRole={highestRole(m.roles)}
+                        onAssignRole={assignRole}
+                        onDelete={deleteMember}
+                        fullName={memberFullName(m)}
+                      />
                     ))}
                   </div>
-                </div>
-
-                {filteredReqs.length === 0 ? (
-                  <p className="text-center py-12 text-sm text-muted-foreground">لا توجد طلبات في هذه الفئة.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {filteredReqs.map((r) => {
-                      const fullName = `${r.first_name} ${r.father_name} ${r.grandfather_name}`;
-                      return (
-                        <li key={r.id} className="p-4 rounded-xl bg-background/40 border border-border">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="text-sm text-ivory font-medium">{fullName}</p>
-                              <div className="mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                                <span className="inline-flex items-center gap-1.5" dir="ltr">
-                                  <Phone className="size-3.5" strokeWidth={1.5} />
-                                  {r.phone}
-                                </span>
-                                {r.email && (
-                                  <span className="inline-flex items-center gap-1.5" dir="ltr">
-                                    <Mail className="size-3.5" strokeWidth={1.5} />
-                                    {r.email}
-                                  </span>
-                                )}
-                                <span>
-                                  {new Date(r.created_at).toLocaleDateString("ar-SA", {
-                                    year: "numeric",
-                                    month: "short",
-                                    day: "numeric",
-                                  })}
-                                </span>
-                              </div>
-                              {r.note && (
-                                <p className="mt-2 text-xs text-muted-foreground/90 leading-relaxed whitespace-pre-wrap">
-                                  {r.note}
-                                </p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              {r.status === "pending" && (
-                                <>
-                                  <button
-                                    onClick={() => setReqStatus(r.id, "approved")}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300"
-                                  >
-                                    <Check className="size-3.5" strokeWidth={1.8} />
-                                    قبول
-                                  </button>
-                                  <button
-                                    onClick={() => setReqStatus(r.id, "rejected")}
-                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs bg-destructive/15 hover:bg-destructive/25 text-destructive"
-                                  >
-                                    <X className="size-3.5" strokeWidth={1.8} />
-                                    رفض
-                                  </button>
-                                </>
-                              )}
-                              <button
-                                onClick={() => removeReq(r.id)}
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-secondary/60 hover:bg-secondary text-muted-foreground hover:text-ivory"
-                                title="حذف"
-                              >
-                                <Trash2 className="size-3.5" strokeWidth={1.5} />
-                              </button>
-                            </div>
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-            ) : section === "roles" ? (
-              <section className="card-surface p-5 space-y-4">
-
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-2">
-                    <UserCog className="size-5 text-gold-primary" />
-                    <h3 className="text-base text-ivory">تعيين المسؤولين والمشرفين</h3>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="site"
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                  className="grid grid-cols-1 md:grid-cols-2 gap-8"
+                >
+                  {/* Page Backgrounds Card */}
+                  <div className="card-surface p-10 space-y-8 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150">
+                       <img src={alsaifMark.url} className="size-64" alt="" />
+                    </div>
+                    <div className="space-y-2 relative z-10">
+                      <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-4 shadow-inner">
+                        <ImageIcon className="size-6" />
+                      </div>
+                      <h3 className="text-2xl font-black text-primary">خلفيات الموقع</h3>
+                      <p className="text-sm font-bold text-muted-foreground opacity-60">قم بتخصيص المظهر العام لصفحات المجلس.</p>
+                    </div>
+                    <div className="grid gap-4 relative z-10">
+                       <div className="space-y-4">
+                          <p className="text-xs font-black uppercase tracking-widest opacity-40">صفحة الدخول</p>
+                          <BackgroundUploader inline settingKey="auth_bg" label="تغيير خلفية تسجيل الدخول" />
+                       </div>
+                       <div className="space-y-4 pt-4 border-t border-border/40">
+                          <p className="text-xs font-black uppercase tracking-widest opacity-40">لوحة التحكم</p>
+                          <BackgroundUploader inline settingKey="dashboard_bg" label="تغيير خلفية اللوحة الرئيسية" />
+                       </div>
+                    </div>
                   </div>
-                  <input
-                    type="text"
-                    placeholder="بحث بالاسم..."
-                    value={memberSearch}
-                    onChange={(e) => setMemberSearch(e.target.value)}
-                    className="px-3 py-1.5 text-xs rounded-lg bg-background/60 border border-border text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-                  />
-                </div>
 
-                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-                  اختر الدور المناسب لكل عضو. مسؤول النظام يملك كامل الصلاحيات، والمشرف يساعد في إدارة المحتوى والطلبات.
-                </p>
-
-                {filteredMembers.length === 0 ? (
-                  <p className="text-center py-12 text-sm text-muted-foreground">لا يوجد أعضاء.</p>
-                ) : (
-                  <ul className="space-y-2">
-                    {filteredMembers.map((m) => {
-                      const role = highestRole(m.roles);
-                      const isMe = m.id === meId;
-                      return (
-                        <li
-                          key={m.id}
-                          className="p-3 rounded-xl bg-background/40 border border-border flex flex-wrap items-center justify-between gap-3"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="size-10 rounded-full bg-gold-primary/15 ring-1 ring-gold-primary/30 overflow-hidden grid place-items-center text-gold-primary">
-                              <UserAvatar
-                                path={m.avatar_url}
-                                name={memberFullName(m)}
-                                initial={(memberFullName(m)[0] ?? "ع").toUpperCase()}
-                                className="size-full"
-                                fallbackClassName=""
-                                userId={m.id}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="text-sm text-ivory truncate">
-                                {memberFullName(m)}
-                                {isMe && <span className="ms-2 text-[10px] text-muted-foreground">(أنت)</span>}
-                              </p>
-                              <p className="text-[11px] text-muted-foreground">{roleLabel(role)}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1.5 flex-wrap">
-                            <RoleBtn
-                              active={role === "admin"}
-                              onClick={() => assignRole(m.id, "admin")}
-                              icon={<Crown className="size-3.5" strokeWidth={1.8} />}
-                              label="مسؤول"
-                              tone="gold"
-                            />
-                            <RoleBtn
-                              active={role === "manager"}
-                              onClick={() => assignRole(m.id, "manager")}
-                              icon={<Star className="size-3.5" strokeWidth={1.8} />}
-                              label="مشرف"
-                              tone="emerald"
-                            />
-                            <RoleBtn
-                              active={role === "member"}
-                              onClick={() => assignRole(m.id, "member")}
-                              icon={<UserIcon className="size-3.5" strokeWidth={1.8} />}
-                              label="عضو"
-                              tone="neutral"
-                            />
-                            {!isMe && role !== "admin" && (
-                              <button
-                                onClick={() => deleteMember(m.id, memberFullName(m))}
-                                title="حذف الحساب نهائياً"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs bg-destructive/15 hover:bg-destructive/25 text-destructive border border-destructive/30 transition"
-                              >
-                                <Trash2 className="size-3.5" strokeWidth={1.8} />
-                                حذف
-                              </button>
-                            )}
-                          </div>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-            ) : (
-              <section className="card-surface p-5 space-y-5">
-                <div className="flex items-center gap-2">
-                  <Palette className="size-5 text-gold-primary" />
-                  <h3 className="text-base text-ivory">إعدادات الموقع</h3>
-                </div>
-                <p className="text-[11px] text-muted-foreground/80 leading-relaxed">
-                  تحكّم في خلفيات الموقع وإنشاء الاجتماعات من مكان واحد.
-                </p>
-
-                <div className="space-y-3">
-                  <h4 className="text-xs font-semibold text-ivory inline-flex items-center gap-1.5">
-                    <ImageIcon className="size-3.5 text-gold-primary" strokeWidth={1.8} />
-                    خلفيات الصفحات
-                  </h4>
-                  <div className="flex flex-wrap gap-2">
-                    <BackgroundUploader inline settingKey="auth_bg" label="تغيير خلفية صفحة الدخول" />
-                    <BackgroundUploader inline settingKey="dashboard_bg" label="تغيير خلفية لوحة التحكم" />
+                  {/* Meetings Actions Card */}
+                  <div className="card-surface p-10 space-y-8 flex flex-col justify-between">
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-inner">
+                          <CalendarPlus className="size-6" />
+                        </div>
+                        <h3 className="text-2xl font-black text-primary">إدارة الاجتماعات</h3>
+                        <p className="text-sm font-bold text-muted-foreground opacity-60">جدولة لقاءات عائلية جديدة ودعوة الأعضاء.</p>
+                      </div>
+                      <div className="p-6 rounded-[28px] bg-primary/5 border border-primary/10 space-y-2">
+                         <p className="text-xs font-black text-primary uppercase tracking-widest">تنبيه</p>
+                         <p className="text-sm font-bold text-primary/70 leading-relaxed">سيتم إرسال إشعار فوري لجميع أفراد العائلة المسجلين عند تأكيد إنشاء الاجتماع.</p>
+                      </div>
+                    </div>
+                    <Link
+                      to="/meetings"
+                      hash="new"
+                      className="btn-gold w-full py-5 rounded-[28px] text-center text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3"
+                    >
+                      <Plus className="size-6" strokeWidth={3} />
+                      إنشاء اجتماع جديد
+                    </Link>
                   </div>
-                  <p className="text-[11px] text-muted-foreground/70">
-                    اختر صورة مناسبة (حد أقصى 8 ميجابايت). تتكيّف ألوان الواجهة تلقائياً مع الخلفية الجديدة.
-                  </p>
-                </div>
-
-                <div className="space-y-3 pt-2 border-t border-border/60">
-                  <h4 className="text-xs font-semibold text-ivory inline-flex items-center gap-1.5">
-                    <CalendarPlus className="size-3.5 text-gold-primary" strokeWidth={1.8} />
-                    الاجتماعات
-                  </h4>
-                  <Link
-                    to="/meetings"
-                    hash="new"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-sm font-medium transition"
-                  >
-                    <CalendarPlus className="size-4" strokeWidth={1.8} />
-                    إنشاء اجتماع جديد
-                  </Link>
-                  <p className="text-[11px] text-muted-foreground/70">
-                    سيتم فتح نموذج إنشاء اجتماع جديد في صفحة الاجتماعات.
-                  </p>
-                </div>
-              </section>
-            )}
-
+                </motion.div>
+              )}
+            </AnimatePresence>
           </>
         )}
       </div>
@@ -559,38 +472,119 @@ function AdminPage() {
   );
 }
 
-function RoleBtn({
-  active,
-  onClick,
-  icon,
-  label,
-  tone,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  tone: "gold" | "emerald" | "neutral";
-}) {
-  const tones: Record<string, string> = {
-    gold: active
-      ? "bg-gold-primary/20 text-gold-primary ring-1 ring-gold-primary/40"
-      : "bg-background/40 text-muted-foreground hover:text-gold-primary border border-border",
-    emerald: active
-      ? "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-400/40"
-      : "bg-background/40 text-muted-foreground hover:text-emerald-300 border border-border",
-    neutral: active
-      ? "bg-secondary text-ivory ring-1 ring-border"
-      : "bg-background/40 text-muted-foreground hover:text-ivory border border-border",
-  };
+function NavTab({ active, onClick, icon, label, badge }: any) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "flex items-center gap-3 px-6 py-3 rounded-full text-sm font-black transition-all duration-300 whitespace-nowrap",
+        active
+          ? "bg-primary text-white shadow-xl shadow-primary/20"
+          : "text-muted-foreground hover:text-primary hover:bg-white"
+      )}
+    >
+      {icon}
+      <span>{label}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className={cn(
+          "min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-black flex items-center justify-center",
+          active ? "bg-white text-primary" : "bg-primary text-white"
+        )}>{badge}</span>
+      )}
+    </button>
+  );
+}
+
+function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; onDelete: any }) {
+  const fullName = `${req.first_name} ${req.father_name} ${req.grandfather_name}`;
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-surface p-8 group">
+       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div className="flex items-start gap-5">
+             <div className="size-16 rounded-[22px] bg-primary/5 border-2 border-gold-primary/10 flex items-center justify-center text-2xl font-black text-primary shadow-inner shrink-0">
+               {req.first_name[0]}
+             </div>
+             <div className="space-y-2">
+                <h4 className="text-xl font-black text-primary tracking-tight">{fullName}</h4>
+                <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-muted-foreground opacity-70">
+                   <span className="flex items-center gap-1.5" dir="ltr"><Phone className="size-3.5" /> {req.phone}</span>
+                   <span className="flex items-center gap-1.5" dir="ltr"><Mail className="size-3.5" /> {req.email}</span>
+                   <span className="flex items-center gap-1.5"><Clock className="size-3.5" /> {new Date(req.created_at).toLocaleDateString("ar-SA")}</span>
+                </div>
+                {req.note && (
+                  <p className="text-sm font-bold text-muted-foreground/80 bg-muted/30 p-4 rounded-2xl border border-border/40 mt-3 italic">"{req.note}"</p>
+                )}
+             </div>
+          </div>
+
+          <div className="flex items-center gap-3 self-end md:self-center">
+             {req.status === "pending" && (
+                <>
+                  <button onClick={() => onStatus(req.id, "approved")} className="px-8 py-3 rounded-2xl bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                    <Check className="size-4" strokeWidth={3} /> قبول العضوية
+                  </button>
+                  <button onClick={() => onStatus(req.id, "rejected")} className="size-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                    <X className="size-5" />
+                  </button>
+                </>
+             )}
+             <button onClick={() => onDelete(req.id)} className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all">
+                <Trash2 className="size-5" />
+             </button>
+          </div>
+       </div>
+    </motion.div>
+  );
+}
+
+function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, fullName }: any) {
+  const isMe = member.id === meId;
+
+  return (
+    <div className="card-surface p-5 hover:bg-primary/5 transition-all group">
+       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+             <div className="size-12 rounded-[16px] border-2 border-gold-primary/20 overflow-hidden shadow-lg relative">
+                <UserAvatar path={member.avatar_url} name={fullName} className="size-full" userId={member.id} />
+                {isMe && <div className="absolute inset-0 bg-primary/20 flex items-center justify-center"><UserIcon className="size-4 text-white" /></div>}
+             </div>
+             <div className="min-w-0">
+                <h4 className="text-base font-black text-primary truncate tracking-tight">{fullName} {isMe && <span className="text-[10px] text-gold-primary opacity-60 mr-2">(أنت)</span>}</h4>
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">{roleLabel(currentRole)}</p>
+             </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
+             <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
+             <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مشرف" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
+             <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
+
+             {!isMe && currentRole !== "admin" && (
+                <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                   <Trash2 className="size-4" />
+                </button>
+             )}
+          </div>
+       </div>
+    </div>
+  );
+}
+
+function RoleToggleBtn({ active, onClick, icon, label, activeClass }: any) {
   return (
     <button
       onClick={onClick}
       disabled={active}
-      className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-xs transition ${tones[tone]} ${active ? "cursor-default" : ""}`}
+      className={cn(
+        "px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border",
+        active
+          ? cn("border-transparent shadow-lg scale-105", activeClass)
+          : "bg-white text-muted-foreground border-border/60 hover:bg-muted hover:text-primary"
+      )}
     >
       {icon}
-      {label}
+      <span>{label}</span>
     </button>
   );
 }
