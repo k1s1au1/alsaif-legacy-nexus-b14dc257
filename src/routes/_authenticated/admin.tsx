@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+// Force rebuild to fix admin crashes and null pointer errors
 import { BackgroundUploader } from "@/components/background-uploader";
 
 import { AppShell } from "@/components/app-shell";
@@ -47,10 +48,10 @@ export const Route = createFileRoute("/_authenticated/admin")({
 
 type ReqRow = {
   id: string;
-  first_name: string;
-  father_name: string;
-  grandfather_name: string;
-  phone: string;
+  first_name: string | null;
+  father_name: string | null;
+  grandfather_name: string | null;
+  phone: string | null;
   email: string | null;
   note: string | null;
   status: "pending" | "approved" | "rejected";
@@ -493,7 +494,7 @@ function NavTab({ active, onClick, icon, label, badge }: any) {
 }
 
 function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; onDelete: any }) {
-  const fullName = `${req.first_name} ${req.father_name} ${req.grandfather_name}`;
+  const fullName = [req.first_name, req.father_name, req.grandfather_name].filter(Boolean).join(" ");
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-surface p-8 group">
