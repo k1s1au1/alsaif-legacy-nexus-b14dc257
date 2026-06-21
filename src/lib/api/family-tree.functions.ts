@@ -50,10 +50,60 @@ export const setMemberParent = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
-    const { error } = await supabaseAdmin
-      .from("profiles")
-      .update({ parent_id: data.parentId } as any)
-      .eq("id", data.userId);
+    return { ok: true };
+  });
+
+export const addFamilyMember = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data) =>
+    z
+      .object({
+        parentId: z.string().uuid().nullable(),
+        firstName: z.string().min(2),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+
+    const { data: isAdmin } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "admin",
+    });
+    const { data: isManager } = await supabase.rpc("has_role", {
+      _user_id: userId,
+      _role: "manager",
+    });
+
+    if (!isAdmin && !isManager) throw new Error("غير مصرّح");
+
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    let fatherName = null;
+    let grandfatherName = null;
+
+    if (data.parentId) {
+      const { data: parent } = await supabase
+        .from("profiles")
+        .select("first_name, father_name")
+        .eq("id", data.parentId)
+        .single();
+
+      if (parent) {
+        fatherName = parent.first_name;
+        grandfatherName = parent.father_name;
+      }
+    }
+
+    const { error } = await supabaseAdmin.from("profiles").insert({
+      id: crypto.randomUUID(),
+      first_name: data.firstName,
+      father_name: fatherName,
+      grandfather_name: grandfatherName,
+      parent_id: data.parentId,
+      is_active: false, // Manual entry, not an active auth account
+    } as any);
+
     if (error) throw new Error(error.message);
 
     return { ok: true };
