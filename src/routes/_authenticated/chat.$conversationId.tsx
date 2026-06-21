@@ -21,6 +21,7 @@ import {
   File as FileIcon,
   Image as ImageIcon,
   Info,
+  Lock,
   Mic,
   MoreVertical,
   Paperclip,
