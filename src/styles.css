@@ -97,8 +97,8 @@
 }
 
 .dark .logo-royal {
-  background-color: var(--gold-primary);
-  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
+  background-color: var(--primary);
+  filter: drop-shadow(0 0 15px rgba(var(--primary), 0.4));
   animation: royal-pulse 4s infinite alternate ease-in-out;
 }
 
