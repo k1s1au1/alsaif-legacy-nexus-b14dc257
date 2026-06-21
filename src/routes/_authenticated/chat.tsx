@@ -492,7 +492,7 @@ function ConversationRow({
             "flex items-center gap-4 px-4 py-4 rounded-[28px] transition-all duration-300 relative overflow-hidden",
             active
               ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-[1.01]"
-              : "bg-card/50 hover:bg-muted/60 text-foreground"
+              : "bg-card hover:bg-muted text-foreground border border-border/40 shadow-sm"
           )}
         >
           <div className="relative shrink-0">
