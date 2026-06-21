@@ -16,6 +16,7 @@ import {
   Clock,
   UserPlus,
   ArrowLeft,
+  Trash2,
 } from "lucide-react";
 import {
   chatTimeLabel,
@@ -207,7 +208,6 @@ function ChatLayout() {
     const isArchiving = !item.myParticipant.archived_at;
     const now = new Date().toISOString();
 
-    // Optimistic update
     setItems(prev => prev.map(it =>
       it.conversation.id === item.conversation.id
         ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
@@ -221,7 +221,7 @@ function ChatLayout() {
 
     if (error) {
       toast.error("حدث خطأ أثناء تغيير حالة الأرشفة");
-      load(); // Rollback
+      load();
     } else {
       toast.success(isArchiving ? "تمت أرشفة المحادثة" : "تمت استعادة المحادثة");
     }
@@ -447,7 +447,6 @@ function ConversationRow({
 
   return (
     <div className="relative overflow-hidden rounded-[28px] group/row">
-      {/* Background Actions */}
       <div className="absolute inset-0 flex items-center justify-between px-6 z-0">
         <button
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive(); }}
@@ -653,7 +652,6 @@ function NewConversationDialog({
         className="relative bg-card border border-border rounded-[48px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
         dir="rtl"
       >
-        {/* Decorative Background Mark */}
         <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150 transition-opacity duration-700">
            <img src={alsaifMark.url} className="size-64" alt="" />
         </div>
