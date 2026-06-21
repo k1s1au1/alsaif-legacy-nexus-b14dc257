@@ -603,7 +603,7 @@ function TaskDialog({
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label>الحالة</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
@@ -633,7 +633,7 @@ function TaskDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="due_date">تاريخ الاستحقاق</Label>
               <Input
@@ -662,16 +662,16 @@ function TaskDialog({
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
               إلغاء
             </Button>
             <Button
               type="submit"
               disabled={saving}
-              className="bg-gold-primary text-navy-base hover:bg-gold-primary/90"
+              className="bg-gold-primary text-navy-base hover:bg-gold-primary/90 w-full sm:w-auto font-bold"
             >
-              {saving ? <Loader2 className="size-4 animate-spin" /> : task ? "حفظ" : "إنشاء"}
+              {saving ? <Loader2 className="size-4 animate-spin" /> : task ? "حفظ التعديلات" : "إنشاء المهمة"}
             </Button>
           </DialogFooter>
         </form>
