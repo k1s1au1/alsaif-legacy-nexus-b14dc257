@@ -417,7 +417,7 @@ function AdminPage() {
                   {/* Page Backgrounds Card */}
                   <div className="card-surface p-10 space-y-8 relative overflow-hidden">
                     <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150">
-                       <img src={alsaifMark.url} className="size-64" alt="" />
+                       <img src={alsaifMark?.url || ""} className="size-64" alt="" />
                     </div>
                     <div className="space-y-2 relative z-10">
                       <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-4 shadow-inner">
@@ -503,7 +503,7 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-5">
              <div className="size-16 rounded-[22px] bg-primary/5 border-2 border-gold-primary/10 flex items-center justify-center text-2xl font-black text-primary shadow-inner shrink-0">
-               {req.first_name[0]}
+               {(req.first_name || "ع")[0]}
              </div>
              <div className="space-y-2">
                 <h4 className="text-xl font-black text-primary tracking-tight">{fullName}</h4>
