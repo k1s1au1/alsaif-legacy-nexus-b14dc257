@@ -144,14 +144,14 @@ export function AppShell({
             style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
           />
           <div className="relative">
-            <div className="size-24 rounded-full ring-4 ring-background shadow-md overflow-hidden bg-background p-1 relative">
+            <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
               <UserAvatar
                 path={myAvatarPath}
                 name={safeUser.name}
                 initial={safeUser.initial}
-                className="size-full rounded-full"
+                className="size-full rounded-full overflow-hidden"
                 userId={myUserId}
-                presenceDotClassName="absolute bottom-1 left-1 size-5 ring-4 ring-[var(--card)]"
+                presenceDotClassName="absolute -bottom-1 -left-1 size-6 ring-4 ring-[var(--card)] shadow-xl"
               />
             </div>
             <button
@@ -227,14 +227,14 @@ export function AppShell({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex items-center gap-2 outline-none group">
-                  <div className="size-10 rounded-full ring-2 ring-primary/10 overflow-hidden group-hover:ring-primary transition-all bg-background p-0.5 relative">
+                  <div className="size-10 rounded-full ring-2 ring-primary/10 group-hover:ring-primary transition-all bg-background p-0.5 relative">
                     <UserAvatar
                       path={myAvatarPath}
                       name={safeUser.name}
                       initial={safeUser.initial}
-                      className="size-full rounded-full"
+                      className="size-full rounded-full overflow-hidden"
                       userId={myUserId}
-                      presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-4 ring-2 ring-[var(--card)] shadow-lg border border-white/20"
+                      presenceDotClassName="absolute -bottom-1 -left-1 size-4 ring-2 ring-[var(--card)] shadow-lg"
                     />
                   </div>
                   <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
