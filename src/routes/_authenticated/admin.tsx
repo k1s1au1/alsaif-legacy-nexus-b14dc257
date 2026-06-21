@@ -415,10 +415,7 @@ function AdminPage() {
                   className="grid grid-cols-1 md:grid-cols-2 gap-8"
                 >
                   {/* Page Backgrounds Card */}
-                  <div className="card-surface p-10 space-y-8 relative overflow-hidden">
-                    <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150">
-                       <img src={alsaifMark?.url || ""} className="size-64" alt="" />
-                    </div>
+                  <div className="card-surface p-8 sm:p-10 space-y-8 relative overflow-hidden">
                     <div className="space-y-2 relative z-10">
                       <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-4 shadow-inner">
                         <ImageIcon className="size-6" />
@@ -426,12 +423,12 @@ function AdminPage() {
                       <h3 className="text-2xl font-black text-primary">خلفيات الموقع</h3>
                       <p className="text-sm font-bold text-muted-foreground opacity-60">قم بتخصيص المظهر العام لصفحات المجلس.</p>
                     </div>
-                    <div className="grid gap-4 relative z-10">
+                    <div className="grid gap-6 relative z-10">
                        <div className="space-y-4">
                           <p className="text-xs font-black uppercase tracking-widest opacity-40">صفحة الدخول</p>
                           <BackgroundUploader inline settingKey="auth_bg" label="تغيير خلفية تسجيل الدخول" />
                        </div>
-                       <div className="space-y-4 pt-4 border-t border-border/40">
+                       <div className="space-y-4 pt-6 border-t border-border/40">
                           <p className="text-xs font-black uppercase tracking-widest opacity-40">لوحة التحكم</p>
                           <BackgroundUploader inline settingKey="dashboard_bg" label="تغيير خلفية اللوحة الرئيسية" />
                        </div>
@@ -439,7 +436,7 @@ function AdminPage() {
                   </div>
 
                   {/* Meetings Actions Card */}
-                  <div className="card-surface p-10 space-y-8 flex flex-col justify-between">
+                  <div className="card-surface p-8 sm:p-10 space-y-8 flex flex-col justify-between">
                     <div className="space-y-6">
                       <div className="space-y-2">
                         <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-inner">
