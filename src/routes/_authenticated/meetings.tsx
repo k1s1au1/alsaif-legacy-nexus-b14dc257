@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -13,9 +13,17 @@ import {
   CheckCircle2,
   XCircle,
   HelpCircle,
+  Plus,
+  MapPinIcon,
+  ChevronLeft,
+  UserCheck,
+  UserX,
+  UserPlus,
 } from "lucide-react";
-
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -49,25 +57,25 @@ type Meeting = {
 };
 
 type Attendee = { meeting_id: string; user_id: string; rsvp: Rsvp };
-type ProfileLite = { id: string; arabic_name: string | null; full_name: string | null };
+type ProfileLite = { id: string; arabic_name: string | null; full_name: string | null; avatar_url: string | null };
 
 function formatDate(iso: string) {
-  return new Date(iso).toLocaleString("ar-SA", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+  const d = new Date(iso);
+  return {
+    day: d.getDate(),
+    month: d.toLocaleString("ar-SA", { month: "long" }),
+    weekday: d.toLocaleString("ar-SA", { weekday: "long" }),
+    time: d.toLocaleString("ar-SA", { hour: "numeric", minute: "2-digit" }),
+    full: d.toLocaleString("ar-SA", { dateStyle: "long" })
+  };
 }
 
 function statusChip(status: Meeting["status"], scheduledAt: string) {
   if (status === "cancelled")
-    return { label: "ملغي", className: "bg-destructive/15 text-destructive ring-destructive/30" };
+    return { label: "ملغي", className: "bg-red-500/10 text-red-600 border-red-500/20" };
   if (status === "completed" || new Date(scheduledAt) < new Date())
-    return { label: "منتهي", className: "bg-secondary/50 text-muted-foreground ring-border" };
-  return { label: "قادم", className: "bg-gold-primary/15 text-gold-primary ring-gold-primary/30" };
+    return { label: "منتهي", className: "bg-slate-500/10 text-slate-600 border-slate-500/20" };
+  return { label: "قادم", className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" };
 }
 
 function MeetingsPage() {
@@ -98,7 +106,7 @@ function MeetingsPage() {
   const [fWhen, setFWhen] = useState("");
   const [fDuration, setFDuration] = useState("");
 
-  function resetForm() {
+  const resetForm = useCallback(() => {
     setFTitle("");
     setFDesc("");
     setFLocation("");
@@ -106,7 +114,7 @@ function MeetingsPage() {
     setFWhen("");
     setFDuration("");
     setEditing(null);
-  }
+  }, []);
 
   function openCreate() {
     resetForm();
@@ -119,7 +127,6 @@ function MeetingsPage() {
     setFDesc(m.description ?? "");
     setFLocation(m.location ?? "");
     setFLocationUrl(m.location_url ?? "");
-    // datetime-local needs YYYY-MM-DDTHH:mm
     const d = new Date(m.scheduled_at);
     const pad = (n: number) => String(n).padStart(2, "0");
     setFWhen(
@@ -129,7 +136,7 @@ function MeetingsPage() {
     setShowForm(true);
   }
 
-  async function loadAll() {
+  const loadAll = useCallback(async () => {
     const [{ data: m, error: me }, { data: a }, { data: pr }] = await Promise.all([
       supabase
         .from("meetings")
@@ -138,7 +145,7 @@ function MeetingsPage() {
         )
         .order("scheduled_at", { ascending: true }),
       supabase.from("meeting_attendees").select("meeting_id,user_id,rsvp"),
-      supabase.from("profiles").select("id, arabic_name, full_name"),
+      supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
     ]);
     if (me) toast.error("تعذر تحميل الاجتماعات");
     setMeetings((m ?? []) as Meeting[]);
@@ -147,7 +154,7 @@ function MeetingsPage() {
     (pr ?? []).forEach((p: any) => { map[p.id] = p; });
     setProfiles(map);
     setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
     (async () => {
@@ -197,17 +204,16 @@ function MeetingsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [loadAll]);
 
-  // Auto-open the create form when navigated with #new (from admin page).
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!canManage) return;
     if (window.location.hash === "#new") {
       openCreate();
-      history.replaceState(null, "", window.location.pathname + window.location.search);
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
     }
-  }, [canManage]);
+  }, [canManage, resetForm]);
 
 
   async function submitForm(e: FormEvent) {
@@ -233,7 +239,7 @@ function MeetingsPage() {
         toast.success("تم تحديث الاجتماع");
         setShowForm(false);
         resetForm();
-        loadAll(); // Force reload after update
+        loadAll();
       }
     } else {
       const { error } = await supabase
@@ -244,7 +250,7 @@ function MeetingsPage() {
         toast.success("تم إنشاء الاجتماع");
         setShowForm(false);
         resetForm();
-        loadAll(); // Force reload after creation
+        loadAll();
       }
     }
     setSubmitting(false);
@@ -306,43 +312,59 @@ function MeetingsPage() {
 
   return (
     <AppShell title="الاجتماعات" user={profile}>
-      <div className="space-y-8" dir="rtl">
-        {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h2 className="text-2xl font-black text-[#1B4332] tracking-tight">اجتماعات العائلة</h2>
-            <p className="text-sm text-[#8E8E93] font-bold mt-1">
-              جدول اللقاءات القادمة وتأكيد الحضور.
-            </p>
+      <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
+
+        {/* Modern Header */}
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <div className="size-1 w-10 bg-gold-primary rounded-full" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">جدول العائلة</span>
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">الاجتماعات القادمة</h2>
+            <p className="text-muted-foreground font-bold text-lg opacity-70">تواصل، ترابط، واحفظ إرث عائلة آل سيف.</p>
           </div>
           {canManage && (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
               onClick={openCreate}
-              className="btn-gold px-6 py-3 text-sm font-black flex items-center gap-2 shadow-xl shadow-[#B8972E]/20"
+              className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
             >
-              <CalendarDays className="size-4" />
-              <span>إضافة اجتماع</span>
-            </button>
+              <Plus className="size-5" strokeWidth={3} />
+              <span>إضافة اجتماع جديد</span>
+            </motion.button>
           )}
-        </div>
-
+        </section>
 
         {loading ? (
-          <div className="text-center text-muted-foreground py-16">جاري التحميل...</div>
+          <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
+             <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+             <p className="font-black">جاري تحضير قائمة الاجتماعات...</p>
+          </div>
         ) : (
-          <>
-            {/* Upcoming */}
-            <section>
-              <h3 className="eyebrow mb-4">القادمة</h3>
+          <div className="space-y-20">
+            {/* Upcoming Section */}
+            <section className="space-y-8 animate-fade-up" style={{ animationDelay: "100ms" }}>
+              <div className="flex items-center gap-4">
+                 <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">المناسبات القريبة</h3>
+                 <div className="h-px flex-1 bg-border/60" />
+              </div>
+
               {upcoming.length === 0 ? (
-                <div className="rounded-2xl border border-border bg-card/40 p-10 text-center text-muted-foreground">
-                  لا توجد اجتماعات قادمة.
+                <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60">
+                   <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><CalendarDays size={40} /></div>
+                   <div className="space-y-1">
+                      <p className="text-xl font-black">لا توجد اجتماعات قادمة</p>
+                      <p className="text-sm font-bold opacity-60">سيتم إشعارك فور جدولة أي لقاء جديد.</p>
+                   </div>
                 </div>
               ) : (
-                <div className="grid gap-4">
-                  {upcoming.map((m) => (
+                <div className="grid gap-6">
+                  {upcoming.map((m, i) => (
                     <MeetingCard
                       key={m.id}
+                      index={i}
                       meeting={m}
                       counts={countsFor(m.id)}
                       attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
@@ -358,11 +380,14 @@ function MeetingsPage() {
               )}
             </section>
 
-            {/* Past */}
+            {/* Past Section */}
             {past.length > 0 && (
-              <section>
-                <h3 className="eyebrow mb-4">السابقة</h3>
-                <div className="grid gap-4 opacity-80">
+              <section className="space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
+                <div className="flex items-center gap-4">
+                   <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">اللقاءات السابقة</h3>
+                   <div className="h-px flex-1 bg-border/30" />
+                </div>
+                <div className="grid gap-4 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
                   {past.map((m) => (
                     <MeetingCard
                       key={m.id}
@@ -381,111 +406,138 @@ function MeetingsPage() {
                 </div>
               </section>
             )}
-          </>
+          </div>
         )}
       </div>
 
-      {/* Form modal */}
-      {showForm && (
-        <div
-          className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center p-4"
-          onClick={() => setShowForm(false)}
-        >
-          <div
-            className="bg-card border border-border rounded-2xl w-full max-w-lg p-6 space-y-4"
-            dir="rtl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">
-                {editing ? "تعديل الاجتماع" : "اجتماع جديد"}
-              </h3>
-              <button
-                onClick={() => setShowForm(false)}
-                className="p-1 text-muted-foreground hover:text-foreground"
-              >
-                <X className="size-5" />
-              </button>
-            </div>
-            <form onSubmit={submitForm} className="space-y-3">
-              <div>
-                <label className="text-xs text-muted-foreground">العنوان *</label>
-                <input
-                  value={fTitle}
-                  onChange={(e) => setFTitle(e.target.value)}
-                  required
-                  className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-primary"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground">الوصف</label>
-                <textarea
-                  value={fDesc}
-                  onChange={(e) => setFDesc(e.target.value)}
-                  rows={3}
-                  className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-primary resize-none"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="text-xs text-muted-foreground">الموعد *</label>
-                  <input
-                    type="datetime-local"
-                    value={fWhen}
-                    onChange={(e) => setFWhen(e.target.value)}
-                    required
-                    className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-primary"
-                  />
+      {/* Royal Form Modal */}
+      <AnimatePresence>
+        {showForm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowForm(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-card border border-border rounded-[48px] w-full max-w-2xl overflow-hidden shadow-2xl"
+              dir="rtl"
+            >
+              <div className="p-8 sm:p-12 space-y-8">
+                <div className="flex items-center justify-between">
+                   <div className="space-y-1">
+                      <h3 className="text-3xl font-black tracking-tight text-primary">
+                        {editing ? "تعديل اللقاء" : "جدولة لقاء عائلي"}
+                      </h3>
+                      <p className="text-muted-foreground font-bold text-sm">أدخل تفاصيل الاجتماع ليتم إخطار بقية الأعضاء.</p>
+                   </div>
+                   <button onClick={() => setShowForm(false)} className="size-12 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-primary transition-all">
+                      <X size={24} />
+                   </button>
                 </div>
-                <div>
-                  <label className="text-xs text-muted-foreground">المدة (دقائق)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    value={fDuration}
-                    onChange={(e) => setFDuration(e.target.value)}
-                    className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-primary"
-                  />
-                </div>
+
+                <form onSubmit={submitForm} className="space-y-6">
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                       <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">عنوان الاجتماع</label>
+                       <input
+                        value={fTitle}
+                        onChange={(e) => setFTitle(e.target.value)}
+                        required
+                        placeholder="مثال: اجتماع العائلة السنوي"
+                        className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">وصف موجز</label>
+                       <textarea
+                        value={fDesc}
+                        onChange={(e) => setFDesc(e.target.value)}
+                        rows={3}
+                        placeholder="ماذا سنناقش في هذا اللقاء؟"
+                        className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">موعد اللقاء</label>
+                         <input
+                          type="datetime-local"
+                          value={fWhen}
+                          onChange={(e) => setFWhen(e.target.value)}
+                          required
+                          className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">المدة التقريبية</label>
+                         <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              value={fDuration}
+                              onChange={(e) => setFDuration(e.target.value)}
+                              placeholder="60"
+                              className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                            />
+                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs uppercase">دقيقة</span>
+                         </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">مكان الاجتماع / الرابط</label>
+                       <div className="grid gap-3">
+                          <input
+                            value={fLocation}
+                            onChange={(e) => setFLocation(e.target.value)}
+                            placeholder="مثال: مجلس العائلة / الرياض"
+                            className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                          />
+                          <input
+                            type="url"
+                            value={fLocationUrl}
+                            onChange={(e) => setFLocationUrl(e.target.value)}
+                            placeholder="رابط الموقع على خرائط جوجل"
+                            className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                          />
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 btn-gold py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="size-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                          <span>جاري الحفظ...</span>
+                        </>
+                      ) : (
+                        <span>{editing ? "حفظ التعديلات" : "تأكيد الجدولة"}</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowForm(false)}
+                      className="px-10 py-5 rounded-[28px] bg-muted/50 font-black text-muted-foreground hover:bg-muted transition-all"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                </form>
               </div>
-              <div>
-                <label className="text-xs text-muted-foreground">المكان</label>
-                <input
-                  value={fLocation}
-                  onChange={(e) => setFLocation(e.target.value)}
-                  className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-primary"
-                />
-              </div>
-              <div>
-                <label className="text-xs text-muted-foreground">رابط الموقع (اختياري)</label>
-                <input
-                  type="url"
-                  value={fLocationUrl}
-                  onChange={(e) => setFLocationUrl(e.target.value)}
-                  placeholder="https://maps..."
-                  className="w-full mt-1 bg-secondary/40 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-gold-primary"
-                />
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="flex-1 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition disabled:opacity-50"
-                >
-                  {submitting ? "جاري الحفظ..." : editing ? "حفظ التعديلات" : "إنشاء"}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="px-4 py-2 rounded-lg border border-border text-sm hover:bg-secondary/40"
-                >
-                  إلغاء
-                </button>
-              </div>
-            </form>
+            </motion.div>
           </div>
-        </div>
-      )}
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }
@@ -501,6 +553,7 @@ function MeetingCard({
   onEdit,
   onDelete,
   isPast = false,
+  index = 0
 }: {
   meeting: Meeting;
   counts: { going: number; not_going: number; maybe: number };
@@ -512,192 +565,202 @@ function MeetingCard({
   onEdit: (m: Meeting) => void;
   onDelete: (id: string) => void;
   isPast?: boolean;
+  index?: number;
 }) {
-  const chip = statusChip(meeting.status, meeting.scheduled_at);
-  const nameOf = (uid: string) => {
-    const p = profiles[uid];
-    return p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
+  const [expanded, setExpanded] = useState(false);
+  const date = formatDate(meeting.scheduled_at);
+  const status = statusChip(meeting.status, meeting.scheduled_at);
+
+  const getAttendeesByRsvp = (rsvp: Rsvp) => {
+    return attendeesList
+      .filter(a => a.rsvp === rsvp)
+      .map(a => profiles[a.user_id])
+      .filter(Boolean);
   };
-  const going = attendeesList.filter((a) => a.rsvp === "going").map((a) => nameOf(a.user_id));
-  const maybe = attendeesList.filter((a) => a.rsvp === "maybe").map((a) => nameOf(a.user_id));
-  const notGoing = attendeesList
-    .filter((a) => a.rsvp === "not_going")
-    .map((a) => nameOf(a.user_id));
+
+  const going = getAttendeesByRsvp("going");
+  const maybe = getAttendeesByRsvp("maybe");
+  const notGoing = getAttendeesByRsvp("not_going");
 
   return (
-    <div className="rounded-2xl border border-border bg-card/60 overflow-hidden hover:bg-card/80 transition">
-      {/* Header strip */}
-      <div className="flex items-start justify-between gap-4 px-5 py-4 border-b border-border/60 bg-secondary/20">
-        <div className="flex items-center gap-3 flex-wrap min-w-0">
-          <h4 className="text-lg font-semibold truncate">{meeting.title}</h4>
-          <span className={`text-[10px] px-2 py-0.5 rounded-full ring-1 ${chip.className}`}>
-            {chip.label}
-          </span>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.1 }}
+      className="group relative"
+    >
+      <div className={cn(
+        "card-surface overflow-hidden border-none shadow-2xl transition-all duration-500",
+        expanded ? "ring-2 ring-primary" : "hover:-translate-y-1"
+      )}>
+        {/* Decorative Background Mark */}
+        <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150 group-hover:opacity-[0.05] transition-opacity duration-700">
+           <img src={alsaifMark.url} className="size-64" alt="" />
         </div>
-        {canManage && (
-          <div className="flex items-center gap-1 shrink-0">
-            <button
-              onClick={() => onEdit(meeting)}
-              className="p-2 text-muted-foreground hover:text-gold-primary rounded-lg hover:bg-secondary/40"
-              aria-label="تعديل"
-            >
-              <Pencil className="size-4" strokeWidth={1.5} />
-            </button>
-            <button
-              onClick={() => onDelete(meeting.id)}
-              className="p-2 text-muted-foreground hover:text-destructive rounded-lg hover:bg-secondary/40"
-              aria-label="حذف"
-            >
-              <Trash2 className="size-4" strokeWidth={1.5} />
-            </button>
+
+        <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-border/40 relative z-10">
+
+          {/* Left Side - Date Box */}
+          <div className="md:w-56 p-8 flex flex-col items-center justify-center text-center bg-primary/5 group-hover:bg-primary/10 transition-colors shrink-0">
+             <span className="text-gold-primary font-black uppercase tracking-[0.2em] text-[10px] mb-2">{date.weekday}</span>
+             <span className="text-6xl font-black tracking-tighter text-primary">{date.day}</span>
+             <span className="text-lg font-black text-primary opacity-60 mt-1">{date.month}</span>
+             <div className="mt-6 flex items-center gap-2 px-3 py-1 bg-white dark:bg-card border border-border/60 rounded-full shadow-sm">
+                <Clock className="size-3 text-gold-primary" />
+                <span className="text-[12px] font-black text-primary">{date.time}</span>
+             </div>
           </div>
-        )}
-      </div>
 
-      {/* Body */}
-      <div className="p-5 space-y-4">
-        {meeting.description && (
-          <p className="text-sm text-muted-foreground leading-relaxed">{meeting.description}</p>
-        )}
+          {/* Main Content Area */}
+          <div className="flex-1 p-8 md:p-10 space-y-8">
+             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="space-y-2">
+                   <div className="flex items-center gap-3">
+                      <span className={cn("px-3 py-0.5 rounded-full border text-[10px] font-black uppercase tracking-wider", status.className)}>
+                        {status.label}
+                      </span>
+                      {meeting.duration_minutes && (
+                        <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60 flex items-center gap-1">
+                          <Clock className="size-3" /> {meeting.duration_minutes} دقيقة
+                        </span>
+                      )}
+                   </div>
+                   <h4 className="text-2xl md:text-3xl font-black text-primary leading-tight group-hover:text-gold-primary transition-colors">{meeting.title}</h4>
+                   {meeting.description && (
+                     <p className="text-muted-foreground font-bold text-sm leading-relaxed max-w-2xl">{meeting.description}</p>
+                   )}
+                </div>
 
-        {/* Stacked info rows */}
-        <dl className="grid sm:grid-cols-2 gap-3 text-sm">
-          <InfoRow icon={<CalendarDays className="size-4" strokeWidth={1.5} />} label="الموعد">
-            {formatDate(meeting.scheduled_at)}
-          </InfoRow>
-          {meeting.duration_minutes && (
-            <InfoRow icon={<Clock className="size-4" strokeWidth={1.5} />} label="المدة">
-              {meeting.duration_minutes} دقيقة
-            </InfoRow>
-          )}
-          {meeting.location && (
-            <InfoRow icon={<MapPin className="size-4" strokeWidth={1.5} />} label="المكان">
-              {meeting.location_url ? (
-                <a
-                  href={meeting.location_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="hover:text-gold-primary"
-                >
-                  {meeting.location}
-                </a>
-              ) : (
-                meeting.location
-              )}
-            </InfoRow>
-          )}
-          <InfoRow icon={<Users className="size-4" strokeWidth={1.5} />} label="الحضور">
-            {counts.going} حاضر · {counts.maybe} ربما · {counts.not_going} معتذر
-          </InfoRow>
-        </dl>
+                {canManage && !isPast && (
+                  <div className="flex items-center gap-2 self-start">
+                    <button onClick={() => onEdit(meeting)} className="size-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm"><Pencil size={16} /></button>
+                    <button onClick={() => onDelete(meeting.id)} className="size-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>
+                  </div>
+                )}
+             </div>
 
-        {/* Attendees by status */}
-        {(going.length > 0 || maybe.length > 0 || notGoing.length > 0) && (
-          <div className="grid sm:grid-cols-3 gap-3 pt-3 border-t border-border/60">
-            <AttendeeList
-              title="حاضرون"
-              count={going.length}
-              names={going}
-              dotClass="bg-emerald-400"
-              chipClass="bg-emerald-500/10 text-emerald-300 ring-emerald-500/20"
-            />
-            <AttendeeList
-              title="ربما"
-              count={maybe.length}
-              names={maybe}
-              dotClass="bg-amber-400"
-              chipClass="bg-amber-500/10 text-amber-300 ring-amber-500/20"
-            />
-            <AttendeeList
-              title="معتذرون"
-              count={notGoing.length}
-              names={notGoing}
-              dotClass="bg-rose-400"
-              chipClass="bg-rose-500/10 text-rose-300 ring-rose-500/20"
-            />
+             <div className="flex flex-wrap items-center gap-8">
+                {meeting.location && (
+                  <div className="flex items-center gap-3">
+                     <div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-inner"><MapPinIcon size={20} /></div>
+                     <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40">الموقع</p>
+                        {meeting.location_url ? (
+                          <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-sm font-black hover:text-gold-primary underline underline-offset-4 decoration-gold-primary/30 decoration-2 transition-all">{meeting.location}</a>
+                        ) : (
+                          <p className="text-sm font-black">{meeting.location}</p>
+                        )}
+                     </div>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-3">
+                   <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner"><Users size={20} /></div>
+                   <div className="flex items-center gap-2">
+                      <div className="flex -space-x-3 space-x-reverse">
+                        {going.slice(0, 3).map((a) => (
+                           <div key={a.id} className="size-8 rounded-full border-2 border-background bg-muted overflow-hidden">
+                              {a.avatar_url ? <img src={a.avatar_url} className="size-full object-cover" alt="" /> : <div className="size-full flex items-center justify-center bg-primary/10 text-primary text-[10px] font-black">{(a.arabic_name || a.full_name || "?")[0]}</div>}
+                           </div>
+                        ))}
+                        {going.length > 3 && (
+                          <div className="size-8 rounded-full border-2 border-background bg-gold-primary text-white text-[10px] font-black flex items-center justify-center">+{going.length - 3}</div>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40">حالة الحضور</p>
+                        <p className="text-xs font-black text-primary">{counts.going} حاضر · {counts.maybe} ربما · {counts.not_going} اعتذار</p>
+                      </div>
+                   </div>
+                </div>
+             </div>
+
+             {/* RSVP Actions Section */}
+             {!isPast && (
+               <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
+                 <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
+                    <RsvpButton
+                      active={myRsvp === "going"}
+                      onClick={() => onRsvp(meeting.id, "going")}
+                      icon={<UserCheck className="size-4" />}
+                      label="سأحضر"
+                      color="emerald"
+                    />
+                    <RsvpButton
+                      active={myRsvp === "maybe"}
+                      onClick={() => onRsvp(meeting.id, "maybe")}
+                      icon={<HelpCircle className="size-4" />}
+                      label="ربما"
+                      color="amber"
+                    />
+                    <RsvpButton
+                      active={myRsvp === "not_going"}
+                      onClick={() => onRsvp(meeting.id, "not_going")}
+                      icon={<UserX className="size-4" />}
+                      label="أعتذر"
+                      color="rose"
+                    />
+                 </div>
+
+                 <div className="h-px flex-1 bg-border/40 hidden sm:block" />
+
+                 <button
+                  onClick={() => setExpanded(!expanded)}
+                  className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest hover:text-gold-primary transition-colors px-4 py-2 rounded-full hover:bg-muted"
+                 >
+                    <span>{expanded ? "إخفاء التفاصيل" : "عرض قائمة الحضور"}</span>
+                    <ChevronLeft className={cn("size-4 transition-transform duration-500", expanded ? "-rotate-90" : "")} />
+                 </button>
+               </div>
+             )}
           </div>
-        )}
-      </div>
-
-      {!isPast && (
-        <div className="flex gap-2 px-5 pb-5">
-          <RsvpButton
-            active={myRsvp === "going"}
-            onClick={() => onRsvp(meeting.id, "going")}
-            icon={<CheckCircle2 className="size-4" strokeWidth={1.5} />}
-            label="سأحضر"
-            activeClass="bg-emerald-500/15 text-emerald-400 ring-emerald-500/30"
-          />
-          <RsvpButton
-            active={myRsvp === "maybe"}
-            onClick={() => onRsvp(meeting.id, "maybe")}
-            icon={<HelpCircle className="size-4" strokeWidth={1.5} />}
-            label="ربما"
-            activeClass="bg-amber-500/15 text-amber-400 ring-amber-500/30"
-          />
-          <RsvpButton
-            active={myRsvp === "not_going"}
-            onClick={() => onRsvp(meeting.id, "not_going")}
-            icon={<XCircle className="size-4" strokeWidth={1.5} />}
-            label="أعتذر"
-            activeClass="bg-rose-500/15 text-rose-400 ring-rose-500/30"
-          />
         </div>
-      )}
-    </div>
+
+        {/* Expanded Attendee Lists */}
+        <AnimatePresence>
+          {expanded && (
+            <motion.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="overflow-hidden border-t border-border/40 bg-muted/10"
+            >
+              <div className="p-8 grid grid-cols-1 sm:grid-cols-3 gap-10">
+                <AttendeeCategory title="حاضرون" count={counts.going} list={going} color="emerald" />
+                <AttendeeCategory title="ربما" count={counts.maybe} list={maybe} color="amber" />
+                <AttendeeCategory title="أعتذروا" count={counts.not_going} list={notGoing} color="rose" />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </motion.div>
   );
 }
 
-function InfoRow({
-  icon,
-  label,
-  children,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  children: React.ReactNode;
-}) {
+function AttendeeCategory({ title, count, list, color }: any) {
   return (
-    <div className="flex items-start gap-3 rounded-lg bg-secondary/20 px-3 py-2.5 ring-1 ring-border/60">
-      <span className="mt-0.5 text-gold-primary shrink-0">{icon}</span>
-      <div className="min-w-0">
-        <dt className="text-[10px] uppercase tracking-wider text-muted-foreground">{label}</dt>
-        <dd className="text-sm text-foreground mt-0.5 break-words">{children}</dd>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between border-b border-border pb-3">
+         <div className="flex items-center gap-3">
+            <div className={cn("size-2 rounded-full animate-pulse",
+              color === "emerald" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" :
+              color === "amber" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" :
+              "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]")} />
+            <h5 className="font-black text-sm uppercase tracking-widest text-primary">{title}</h5>
+         </div>
+         <span className="text-[10px] font-black opacity-40">{count} عضو</span>
       </div>
-    </div>
-  );
-}
-
-function AttendeeList({
-  title,
-  count,
-  names,
-  dotClass,
-  chipClass,
-}: {
-  title: string;
-  count: number;
-  names: string[];
-  dotClass: string;
-  chipClass: string;
-}) {
-  return (
-    <div className="space-y-2">
-      <div className="flex items-center gap-2">
-        <span className={`size-1.5 rounded-full ${dotClass}`} />
-        <span className="text-xs font-medium text-foreground">{title}</span>
-        <span className="text-[10px] text-muted-foreground">({count})</span>
-      </div>
-      {names.length === 0 ? (
-        <p className="text-[11px] text-muted-foreground/70">—</p>
+      {list.length === 0 ? (
+        <p className="text-[11px] font-bold text-muted-foreground/60 italic">لا يوجد أحد حالياً</p>
       ) : (
-        <ul className="flex flex-wrap gap-1.5">
-          {names.map((n, i) => (
-            <li
-              key={i}
-              className={`text-[11px] px-2 py-0.5 rounded-full ring-1 ${chipClass}`}
-            >
-              {n}
+        <ul className="grid grid-cols-1 gap-2">
+          {list.map((p: any) => (
+            <li key={p.id} className="flex items-center gap-3 group/user">
+               <div className="size-8 rounded-full border border-border overflow-hidden bg-muted flex-shrink-0">
+                  {p.avatar_url ? <img src={p.avatar_url} className="size-full object-cover" alt="" /> : <div className="size-full flex items-center justify-center bg-primary/5 text-primary text-[10px] font-black">{(p.arabic_name || p.full_name || "?")[0]}</div>}
+               </div>
+               <span className="text-sm font-bold text-primary opacity-80 group-hover/user:opacity-100 transition-opacity truncate">{p.arabic_name || p.full_name || "عضو"}</span>
             </li>
           ))}
         </ul>
@@ -706,30 +769,25 @@ function AttendeeList({
   );
 }
 
-function RsvpButton({
-  active,
-  onClick,
-  icon,
-  label,
-  activeClass,
-}: {
-  active: boolean;
-  onClick: () => void;
-  icon: React.ReactNode;
-  label: string;
-  activeClass: string;
-}) {
+function RsvpButton({ active, onClick, icon, label, color }: any) {
+  const colors: any = {
+    emerald: active ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-emerald-500/20" : "bg-white dark:bg-card text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/5",
+    amber: active ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30 ring-amber-500/20" : "bg-white dark:bg-card text-amber-600 border-amber-500/20 hover:bg-amber-500/5",
+    rose: active ? "bg-rose-600 text-white shadow-lg shadow-rose-500/30 ring-rose-500/20" : "bg-white dark:bg-card text-rose-600 border-rose-500/20 hover:bg-rose-500/5",
+  };
+
   return (
-    <button
+    <motion.button
+      whileTap={{ scale: 0.95 }}
       onClick={onClick}
-      className={`flex-1 inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-medium ring-1 transition ${
-        active
-          ? activeClass
-          : "bg-secondary/30 text-muted-foreground ring-border hover:text-foreground hover:bg-secondary/50"
-      }`}
+      className={cn(
+        "flex-1 min-w-[100px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-xs font-black border transition-all duration-300",
+        colors[color]
+      )}
     >
       {icon}
-      {label}
-    </button>
+      <span>{label}</span>
+      {active && <CheckCircle2 size={12} className="mr-auto" />}
+    </motion.button>
   );
 }
