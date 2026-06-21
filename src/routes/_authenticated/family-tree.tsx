@@ -49,6 +49,8 @@ function FamilyTreePage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [addingTo, setAddingTo] = useState<string | null>(null);
   const [newChildName, setNewChildName] = useState("");
+  const [newFatherName, setNewFatherName] = useState("");
+  const [newGrandfatherName, setNewGrandfatherName] = useState("");
   const [draftParent, setDraftParent] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [zoom, setZoom] = useState(0.6); // Slightly zoomed out by default for mobile
@@ -153,13 +155,22 @@ function FamilyTreePage() {
   }
 
   async function handleAddChild() {
-    if (!addingTo || !newChildName.trim()) return;
+    if (!addingTo || !newChildName.trim() || !newFatherName.trim() || !newGrandfatherName.trim()) return;
     setSaving(true);
     try {
-      await addChildFn({ data: { parentId: addingTo === "__root__" ? null : addingTo, firstName: newChildName.trim() } });
+      await addChildFn({
+        data: {
+          parentId: addingTo === "__root__" ? null : addingTo,
+          firstName: newChildName.trim(),
+          fatherName: newFatherName.trim(),
+          grandfatherName: newGrandfatherName.trim(),
+        }
+      });
       toast.success("تمت إضافة العضو بنجاح");
       setAddingTo(null);
       setNewChildName("");
+      setNewFatherName("");
+      setNewGrandfatherName("");
       await load();
       router.invalidate();
     } catch (e: any) {
@@ -401,23 +412,45 @@ function FamilyTreePage() {
                   <p className="text-xs font-bold text-muted-foreground">أدخل الاسم الأول للفرد الجديد لربطه بوالده.</p>
                </div>
 
-               <div className="space-y-2">
-                  <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">الاسم الأول</label>
-                  <input
-                    autoFocus
-                    value={newChildName}
-                    onChange={(e) => setNewChildName(e.target.value)}
-                    placeholder="مثال: سعود"
-                    className="w-full px-5 py-4 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                  />
+               <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">الاسم الأول</label>
+                    <input
+                      autoFocus
+                      value={newChildName}
+                      onChange={(e) => setNewChildName(e.target.value)}
+                      placeholder="مثال: سعود"
+                      className="w-full px-5 py-3 rounded-xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">اسم الأب</label>
+                    <input
+                      value={newFatherName}
+                      onChange={(e) => setNewFatherName(e.target.value)}
+                      placeholder="اسم الأب..."
+                      className="w-full px-5 py-3 rounded-xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">اسم الجد</label>
+                    <input
+                      value={newGrandfatherName}
+                      onChange={(e) => setNewGrandfatherName(e.target.value)}
+                      placeholder="اسم الجد..."
+                      className="w-full px-5 py-3 rounded-xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                    />
+                  </div>
                </div>
 
-               <div className="flex gap-3 pt-2">
-                 <button onClick={() => setAddingTo(null)} className="flex-1 py-4 rounded-2xl font-black text-sm text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+               <div className="flex gap-3 pt-4">
+                 <button onClick={() => setAddingTo(null)} className="flex-1 py-3.5 rounded-xl font-black text-sm text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
                  <button
                   onClick={handleAddChild}
-                  disabled={saving || !newChildName.trim()}
-                  className="flex-[2] btn-gold py-4 rounded-2xl font-black text-sm shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-2"
+                  disabled={saving || !newChildName.trim() || !newFatherName.trim() || !newGrandfatherName.trim()}
+                  className="flex-[2] btn-gold py-3.5 rounded-xl font-black text-sm shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-2"
                  >
                    {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" strokeWidth={3} />}
                    إضافة للشجرة

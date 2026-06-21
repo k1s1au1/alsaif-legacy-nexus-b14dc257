@@ -60,57 +60,44 @@ export const addFamilyMember = createServerFn({ method: "POST" })
       .object({
         parentId: z.string().uuid().nullable(),
         firstName: z.string().min(2),
+        fatherName: z.string().min(2),
+        grandfatherName: z.string().min(2),
       })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    const { data: isManager } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "manager",
-    });
+    // Use the regular supabase client which respects RLS
+    // We assume there's a policy allowing admins/managers to insert profiles
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
 
-    if (!isAdmin && !isManager) throw new Error("غير مصرّح");
+    const isPriv = (roles ?? []).some(
+      (r: { role: string }) => r.role === "admin" || r.role === "manager",
+    );
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (!isPriv) throw new Error("غير مصرّح");
 
-    let fatherName = null;
-    let grandfatherName = null;
-    let fullName = data.firstName;
+    const fullName = `${data.firstName} ${data.fatherName} ${data.grandfatherName} السيف`.trim();
 
-    if (data.parentId) {
-      const { data: parent } = await supabase
-        .from("profiles")
-        .select("first_name, father_name, full_name")
-        .eq("id", data.parentId)
-        .single();
-
-      if (parent) {
-        fatherName = parent.first_name;
-        grandfatherName = parent.father_name;
-        // Construct full name: [Child] [Parent Full Name]
-        fullName = `${data.firstName} ${parent.full_name || ""}`.trim();
-        if (!fullName.includes("السيف") && !fullName.includes("Alsaif")) {
-           fullName += " السيف";
-        }
-      }
-    }
-
-    const { error } = await supabaseAdmin.from("profiles").insert({
+    const { error } = await supabase.from("profiles").insert({
+      id: crypto.randomUUID(),
       first_name: data.firstName,
-      father_name: fatherName,
-      grandfather_name: grandfatherName,
+      father_name: data.fatherName,
+      grandfather_name: data.grandfatherName,
       full_name: fullName,
+      arabic_name: fullName,
       parent_id: data.parentId,
       is_active: false,
     } as any);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      console.error("Profile insert error:", error);
+      throw new Error(error.message);
+    }
 
     return { ok: true };
   });
