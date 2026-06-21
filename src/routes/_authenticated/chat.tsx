@@ -380,7 +380,10 @@ function ChatLayout() {
             <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-8 animate-fade-up">
                <div className="relative group">
                  <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full" />
-                 <img src={alsaifMark.url} className="size-48 md:size-64 object-contain relative z-10 logo-royal opacity-40" alt="Logo" />
+                 <div
+                   className="size-48 md:size-64 relative z-10 logo-royal opacity-40"
+                   style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
+                 />
                </div>
                <div className="space-y-2 max-w-sm">
                  <h3 className="text-3xl font-black text-primary tracking-tight">مجلس المحادثات</h3>

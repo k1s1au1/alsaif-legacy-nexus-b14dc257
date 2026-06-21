@@ -30,17 +30,21 @@ export function BackgroundUploader({
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) {
-        setCanEdit(false);
-        return;
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setCanEdit(false);
+          return;
+        }
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id);
+        const r = (roles ?? []).map((x) => x.role);
+        setCanEdit(r.includes("admin") || r.includes("manager"));
+      } catch (err) {
+        console.error("Error checking permissions:", err);
       }
-      const { data: roles } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", u.user.id);
-      const r = (roles ?? []).map((x) => x.role);
-      setCanEdit(r.includes("admin") || r.includes("manager"));
     })();
   }, []);
 
@@ -76,6 +80,8 @@ export function BackgroundUploader({
       if (setErr) throw setErr;
 
       toast.success("تم تحديث الخلفية");
+      // Force refresh to show new background
+      window.location.reload();
     } catch (err: any) {
       toast.error("فشل رفع الصورة", { description: err?.message });
     } finally {
@@ -96,22 +102,28 @@ export function BackgroundUploader({
         type="button"
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        title={label}
         className={cn(
+          "relative group transition-all duration-300",
           inline
-            ? "inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-sm font-medium transition disabled:opacity-60"
-            : "fixed bottom-6 left-6 z-[60] inline-flex items-center gap-2 px-4 py-2.5 rounded-full bg-gold-primary text-navy-base font-semibold text-xs shadow-lg ring-1 ring-black/10 hover:shadow-xl hover:-translate-y-0.5 transition-all disabled:opacity-60",
+            ? "flex-1 flex flex-col items-center justify-center gap-3 p-6 rounded-3xl bg-muted/40 hover:bg-muted border border-border/40 min-h-[140px]"
+            : "fixed bottom-6 left-6 z-[60] size-12 rounded-full bg-gold-primary text-navy-base shadow-lg ring-1 ring-black/10 flex items-center justify-center",
           className,
         )}
       >
-        {uploading ? (
-          <Loader2 className="size-4 animate-spin" />
-        ) : (
-          <ImagePlus className="size-4" strokeWidth={2} />
+        <div className={cn(
+          "rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110",
+          inline ? "size-12 bg-card shadow-sm" : ""
+        )}>
+          {uploading ? (
+            <Loader2 className="size-5 animate-spin text-primary" />
+          ) : (
+            <ImagePlus className={cn("size-6", inline ? "text-gold-primary" : "text-navy-base")} strokeWidth={2} />
+          )}
+        </div>
+        {inline && (
+          <span className="text-xs font-black uppercase tracking-widest text-primary">{label}</span>
         )}
-        <span>{label}</span>
       </button>
     </>
   );
 }
-
