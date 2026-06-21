@@ -194,7 +194,6 @@ function ChatLayout() {
         if (title.includes(q)) return true;
         const preview = messagePreview(it.lastMessage).toLowerCase();
         if (preview.includes(q)) return true;
-        // search participant names
         return it.participants.some((p) =>
           displayName(profiles[p.user_id]).toLowerCase().includes(q),
         );
@@ -204,14 +203,12 @@ function ChatLayout() {
   return (
     <AppShell title="المحادثات" user={shellUser}>
       <div className="flex h-[calc(100vh-10rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10 overflow-hidden bg-background">
-        {/* Sidebar (conversation list) */}
         <aside
           className={cn(
             "flex flex-col w-full lg:w-[400px] shrink-0 border-l border-border bg-card/30 backdrop-blur-xl relative z-20 transition-all duration-500",
             isConvOpen ? "hidden lg:flex" : "flex"
           )}
         >
-          {/* Sidebar Header */}
           <div className="p-6 border-b border-border space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
@@ -270,7 +267,6 @@ function ChatLayout() {
             </div>
           </div>
 
-          {/* List Area */}
           <div className="flex-1 overflow-y-auto no-scrollbar py-2">
             {loading ? (
               <div className="flex flex-col items-center justify-center py-20 space-y-3 opacity-30">
@@ -316,7 +312,6 @@ function ChatLayout() {
           </div>
         </aside>
 
-        {/* Conversation panel */}
         <main className={cn(
           "flex-1 min-w-0 bg-background relative z-10",
           isConvOpen ? "flex" : "hidden lg:flex"
@@ -490,48 +485,48 @@ function NewConversationDialog({
   async function create() {
     if (selected.size === 0 || busy) return;
     setBusy(true);
-    if (mode === "chat") {
-      const otherId = [...selected][0];
-      const { data, error } = await supabase.rpc("find_or_create_direct", { _other: otherId });
+    try {
+      if (mode === "chat") {
+        const otherId = Array.from(selected)[0];
+        console.log("Starting chat with:", otherId);
+        const { data, error } = await supabase.rpc("find_or_create_direct", { _other: otherId });
+        if (error) throw error;
+        if (!data) throw new Error("No conversation ID returned");
+
+        onClose();
+        navigate({ to: "/chat/$conversationId", params: { conversationId: String(data) } });
+      } else {
+        if (!title.trim()) {
+          toast.error("اكتب اسماً للمجموعة");
+          setBusy(false);
+          return;
+        }
+        const { data: conv, error: convErr } = await supabase
+          .from("conversations")
+          .insert({ kind: "group", title: title.trim(), created_by: meId })
+          .select()
+          .single();
+        if (convErr || !conv) throw convErr || new Error("Failed to create group");
+
+        const rows = [
+          { conversation_id: conv.id, user_id: meId, role: "owner" as const },
+          ...Array.from(selected).map((uid) => ({
+            conversation_id: conv.id,
+            user_id: uid,
+            role: "member" as const,
+          }))
+        ];
+        const { error: addErr } = await supabase.from("conversation_participants").insert(rows);
+        if (addErr) throw addErr;
+
+        onClose();
+        navigate({ to: "/chat/$conversationId", params: { conversationId: conv.id } });
+      }
+    } catch (err: any) {
+      console.error("Chat creation error:", err);
+      toast.error("تعذّر إنشاء المحادثة: " + (err.message || "خطأ غير معروف"));
+    } finally {
       setBusy(false);
-      if (error || !data) {
-        toast.error("تعذّر إنشاء المحادثة");
-        return;
-      }
-      onClose();
-      navigate({ to: "/chat/$conversationId", params: { conversationId: data as string } });
-    } else {
-      if (!title.trim()) {
-        toast.error("اكتب اسماً للمجموعة");
-        setBusy(false);
-        return;
-      }
-      const { data: conv, error: convErr } = await supabase
-        .from("conversations")
-        .insert({ kind: "group", title: title.trim(), created_by: meId })
-        .select()
-        .single();
-      if (convErr || !conv) {
-        toast.error("تعذّر إنشاء المجموعة");
-        setBusy(false);
-        return;
-      }
-      const rows = [
-        { conversation_id: conv.id, user_id: meId, role: "owner" as const },
-        ...([...selected].map((uid) => ({
-          conversation_id: conv.id,
-          user_id: uid,
-          role: "member" as const,
-        })))
-      ];
-      const { error: addErr } = await supabase.from("conversation_participants").insert(rows);
-      setBusy(false);
-      if (addErr) {
-        toast.error("تعذّر إضافة الأعضاء");
-        return;
-      }
-      onClose();
-      navigate({ to: "/chat/$conversationId", params: { conversationId: conv.id } });
     }
   }
 

@@ -124,7 +124,6 @@ function ConversationRoute() {
     return isAdmin || myParticipant.can_send;
   }, [conv, myParticipant, isAdmin]);
 
-  // --- Initial load -------------------------------------------------------
   useEffect(() => {
     setNotFound(false);
     setConv(null);
@@ -166,7 +165,6 @@ function ConversationRoute() {
       const msgList = (msgs ?? []) as Message[];
       setMessages(msgList);
 
-      // Load reactions + deliveries for these messages
       if (msgList.length) {
         const ids = msgList.map((m) => m.id);
         const [{ data: rxs }, { data: delvs }] = await Promise.all([
@@ -177,7 +175,6 @@ function ConversationRoute() {
         setDeliveries((delvs ?? []) as Delivery[]);
       }
 
-      // Load presence for all participants
       const userIds = (parts ?? []).map((p) => p.user_id);
       if (userIds.length) {
         const { data: pres } = await supabase
@@ -191,7 +188,6 @@ function ConversationRoute() {
     })();
   }, [conversationId]);
 
-  // --- Realtime: messages, reactions, deliveries, presence ----------------
   useEffect(() => {
     if (!meId) return;
     const ch = supabase
@@ -304,7 +300,6 @@ function ConversationRoute() {
     };
   }, [conversationId, meId]);
 
-  // --- Typing broadcast channel ------------------------------------------
   useEffect(() => {
     if (!meId) return;
     const ch = supabase.channel(`typing-${conversationId}`, {
@@ -339,7 +334,6 @@ function ConversationRoute() {
     await supabase.rpc("mark_conversation_read", { _conversation_id: conversationId });
   }, [conversationId, meId]);
 
-  // --- Auto-scroll + mark read on view ----------------------------------
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
   }, [messages.length]);
@@ -367,7 +361,6 @@ function ConversationRoute() {
     });
   }
 
-  // --- Send text --------------------------------------------------------
   async function sendText(e?: FormEvent) {
     e?.preventDefault();
     const body = draft.trim();
@@ -396,7 +389,6 @@ function ConversationRoute() {
     }
   }
 
-  // --- Upload attachment ------------------------------------------------
   async function uploadAndSend(file: File, kind: "image" | "video" | "audio" | "file") {
     if (!meId || !conv) return;
     const ext = file.name.split(".").pop() || "bin";
@@ -445,7 +437,6 @@ function ConversationRoute() {
     e.target.value = "";
   }
 
-  // --- Voice recording --------------------------------------------------
   async function startRecording() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -483,7 +474,6 @@ function ConversationRoute() {
     if (recordTimerRef.current) clearInterval(recordTimerRef.current);
   }
 
-  // --- Reactions & Deletion ---------------------------------------------
   async function toggleReaction(messageId: string, emoji: string) {
     if (!meId) return;
     const existing = reactions.find((r) => r.message_id === messageId && r.user_id === meId && r.emoji === emoji);
@@ -499,6 +489,29 @@ function ConversationRoute() {
     } else if (isAdmin) {
       await supabase.from("messages").delete().eq("id", m.id);
     }
+  }
+
+  async function toggleMute() {
+    if (!myParticipant) return;
+    await supabase.from("conversation_participants").update({ muted: !myParticipant.muted }).eq("id", myParticipant.id);
+  }
+  async function toggleArchive() {
+    if (!myParticipant) return;
+    await supabase.from("conversation_participants").update({ archived_at: myParticipant.archived_at ? null : new Date().toISOString() }).eq("id", myParticipant.id);
+    toast.success(myParticipant.archived_at ? "تم إلغاء الأرشفة" : "تمت الأرشفة");
+  }
+  async function deleteConversation() {
+    if (!conv) return;
+    if (!confirm("هل تريد حذف هذه المحادثة بالكامل؟")) return;
+    const { error } = await supabase.from("conversations").delete().eq("id", conv.id);
+    if (error) { toast.error("تعذّر الحذف"); return; }
+    navigate({ to: "/chat" });
+  }
+  async function leaveConversation() {
+    if (!myParticipant) return;
+    if (!confirm("هل تريد مغادرة هذه المحادثة؟")) return;
+    await supabase.from("conversation_participants").delete().eq("id", myParticipant.id);
+    navigate({ to: "/chat" });
   }
 
   const visibleMessages = useMemo(() => {
@@ -524,7 +537,6 @@ function ConversationRoute() {
 
   return (
     <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden">
-      {/* HEADER */}
       <header className="h-20 shrink-0 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-6 z-30 shadow-sm">
         <div className="flex items-center gap-4 min-w-0">
           <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-primary transition-all">
@@ -553,14 +565,9 @@ function ConversationRoute() {
 
         <div className="flex items-center gap-2 shrink-0">
            <button onClick={() => setShowSearch(!showSearch)} className={cn("size-10 rounded-xl flex items-center justify-center transition-all", showSearch ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted")}><Search className="size-5" /></button>
-           <div className="hidden sm:flex items-center gap-2">
-              <button className="size-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"><Phone className="size-5" /></button>
-              <button className="size-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"><Video className="size-5" /></button>
-           </div>
            <button onClick={() => setShowInfo(true)} className="size-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"><MoreVertical className="size-5" /></button>
         </div>
 
-        {/* SEARCH BAR OVERLAY */}
         <AnimatePresence>
           {showSearch && (
             <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="absolute inset-x-0 bottom-0 top-0 bg-card z-50 flex items-center px-6 gap-4 border-b border-border shadow-2xl">
@@ -572,7 +579,6 @@ function ConversationRoute() {
         </AnimatePresence>
       </header>
 
-      {/* MESSAGES LIST */}
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto no-scrollbar px-4 md:px-8 py-10 space-y-6 relative"
@@ -587,7 +593,7 @@ function ConversationRoute() {
             reactions,
             deliveries,
             onReply: setReplyTo,
-            onReact: (id) => setReactingTo(id),
+            onReact: (id: string) => setReactingTo(id),
             onDelete: deleteMessage,
             isAdmin,
             reactingTo,
@@ -597,7 +603,6 @@ function ConversationRoute() {
         </AnimatePresence>
       </div>
 
-      {/* COMPOSER BOX */}
       <div className="px-6 pb-6 shrink-0 relative z-20">
          <AnimatePresence>
            {replyTo && (
@@ -694,10 +699,6 @@ function ConversationRoute() {
     </div>
   );
 }
-
-// ============================================================
-// Message rendering
-// ============================================================
 
 function renderGroupedMessages(opts: any) {
   const { messages, meId, profiles, participants, reactions, deliveries, onReply, onReact, onDelete, isAdmin, reactingTo, onPickReaction, closeReactingTo } = opts;
@@ -818,7 +819,6 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
            </div>
         </div>
 
-        {/* REACTIONS BOX */}
         {Object.keys(rxGrouped).length > 0 && (
            <div className={cn("flex flex-wrap gap-1 mt-2 animate-fade-in", mine ? "justify-end" : "")}>
               {Object.entries(rxGrouped).map(([emoji, info]: any) => (
@@ -830,7 +830,6 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
            </div>
         )}
 
-        {/* REACTION PICKER OVERLAY */}
         {reacting && (
            <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className={cn("absolute -top-12 z-50 bg-card border border-border p-1 rounded-2xl flex gap-1 shadow-2xl", mine ? "right-0" : "left-0")}>
               {EMOJI_QUICK.map(e => <button key={e} onClick={() => onPickReaction(e)} className="size-10 flex items-center justify-center text-xl hover:bg-muted rounded-xl transition-all active:scale-125">{e}</button>)}
@@ -838,7 +837,6 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
         )}
       </div>
 
-      {/* QUICK ACTIONS TOOLBAR (Hover) */}
       {!m.deleted_at && (
          <div className={cn("opacity-0 group-hover:opacity-100 transition-all flex items-center self-center", mine ? "flex-row-reverse" : "")}>
             <button onClick={onReact} className="p-2 text-muted-foreground hover:text-gold-primary transition-all"><Smile size={16} /></button>
@@ -849,10 +847,6 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
     </motion.div>
   );
 }
-
-// ============================================================
-// Attachment body
-// ============================================================
 
 function AttachmentBody({ m }: { m: Message }) {
   const [signed, setSigned] = useState<string | null>(null);
@@ -920,10 +914,6 @@ function AttachmentBody({ m }: { m: Message }) {
   );
 }
 
-// ============================================================
-// Info drawer (Redesigned)
-// ============================================================
-
 function InfoDrawer({ conversation, participants, profiles, presence, meId, isAdmin, myParticipant, onClose, onToggleMute, onToggleArchive, onDelete, onLeave }: any) {
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(conversation.title ?? "");
@@ -942,6 +932,8 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
     return displayName(profiles[a.user_id]).localeCompare(displayName(profiles[b.user_id]), "ar");
   });
 
+  const otherUser = useMemo(() => participants.find(p => p.user_id !== meId), [participants, meId]);
+
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex justify-end">
       <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30 }} className="w-full max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border">
@@ -952,22 +944,19 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
         </header>
 
         <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-10">
-           {/* Profile Header */}
            <div className="flex flex-col items-center text-center space-y-6">
-              <div className="size-32 rounded-[40px] bg-primary/5 border-2 border-gold-primary/20 flex items-center justify-center relative shadow-2xl">
+              <div className="size-32 rounded-[40px] bg-primary/5 border-2 border-gold-primary/20 flex items-center justify-center relative shadow-2xl overflow-hidden">
                  {conversation.kind === "group" ? (
                    <Users className="size-12 text-primary" />
                  ) : (
                    <UserAvatar
-                     path={(() => {
-                       const other = participants.find(p => p.user_id !== meId);
-                       return other ? profiles[other.user_id]?.avatar_url : null;
-                     })()}
+                     path={otherUser ? profiles[otherUser.user_id]?.avatar_url : null}
                      name={conversationTitle(conversation, participants, profiles, meId)}
                      className="size-full"
+                     userId={otherUser?.user_id}
                    />
                  )}
-                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-[40px]" />
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none" />
               </div>
 
               <div className="space-y-2">
@@ -986,7 +975,6 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
               </div>
            </div>
 
-           {/* Quick Actions */}
            <div className="grid grid-cols-2 gap-3">
               <button onClick={onToggleMute} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-muted/40 hover:bg-muted transition-all border border-border/40 group">
                  <div className="size-10 rounded-2xl bg-card flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">{myParticipant?.muted ? <Bell className="size-5 text-gold-primary" /> : <BellOff className="size-5 text-muted-foreground" />}</div>
@@ -998,7 +986,6 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
               </button>
            </div>
 
-           {/* Members List */}
            <div className="space-y-6">
               <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3">
@@ -1032,7 +1019,6 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
               </div>
            </div>
 
-           {/* Danger Zone */}
            <div className="pt-10 space-y-3">
               {conversation.kind === "group" && <button onClick={onLeave} className="w-full py-4 rounded-2xl bg-red-500/5 text-red-600 font-black text-sm border border-red-500/10 hover:bg-red-500 hover:text-white transition-all">مغادرة المجلس</button>}
               {(isAdmin || conversation.created_by === meId) && <button onClick={onDelete} className="w-full py-4 rounded-2xl bg-red-500/5 text-red-600 font-black text-sm border border-red-500/10 hover:bg-red-500 hover:text-white transition-all">حذف المحادثة نهائياً</button>}
@@ -1084,7 +1070,7 @@ function AddParticipantsDialog({ conversationId, existing, profiles, meId, onClo
             <button key={p.id} onClick={() => add(p.id)} disabled={busy === p.id} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-primary/5 transition-all border border-transparent hover:border-primary/10">
               <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black uppercase text-xs">{(p.arabic_name || p.full_name || "?")[0]}</div>
               <span className="flex-1 text-sm font-bold text-right text-primary">{displayName(p)}</span>
-              {busy === p.id ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4 text-gold-primary" />}
+              {busy === p.id ? <div className="size-4 rounded-full border-2 border-primary/20 border-t-primary animate-spin" /> : <UserPlus className="size-4 text-gold-primary" />}
             </button>
           ))}
         </div>
