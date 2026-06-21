@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { Loader2, Search, Users, ShieldCheck, Mail, MapPin, ChevronLeft } from "lucide-react";
+import { Loader2, Search, Users, ShieldCheck, Mail, MapPin, ChevronLeft, Trash2 } from "lucide-react";
 import { PresenceDot, presenceFromLastSeen, type PresenceState } from "@/lib/presence";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useServerFn } from "@tanstack/react-start";
+import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 
 export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
@@ -34,29 +36,47 @@ function MembersPage() {
   const [presence, setPresence] = useState<Record<string, string>>({});
   const [, setTick] = useState(0);
   const [q, setQ] = useState("");
-  const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
+  const [me, setMe] = useState<{ id: string; name: string; initial: string; avatarPath: string | null; role: string }>({
+    id: "",
     name: "...",
     initial: "س",
     avatarPath: null,
+    role: "عضو",
   });
+  const [isAdmin, setIsAdmin] = useState(false);
+  const deleteAccountFn = useServerFn(deleteMemberAccount);
 
   useEffect(() => {
     (async () => {
       const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
+
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
+      const rs = (roles ?? []).map((r) => r.role);
+      const isSystemAdmin = rs.includes("admin");
+      setIsAdmin(isSystemAdmin || rs.includes("manager"));
+
       const { data, error } = await supabase
         .from("profiles")
         .select("id, arabic_name, full_name, avatar_url, father_name")
         .order("arabic_name", { ascending: true });
+
       if (!error && data) setMembers(data as MemberRow[]);
-      if (u.user) {
-        const mine = (data as MemberRow[] | null)?.find((m) => m.id === u.user!.id);
-        const name =
-          mine?.arabic_name?.trim() ||
-          mine?.full_name?.trim() ||
-          u.user.email?.split("@")[0] ||
-          "عضو";
-        setMe({ name, initial: (name[0] ?? "س").toUpperCase(), avatarPath: mine?.avatar_url ?? null });
-      }
+
+      const mine = (data as MemberRow[] | null)?.find((m) => m.id === u.user!.id);
+      const name =
+        mine?.arabic_name?.trim() ||
+        mine?.full_name?.trim() ||
+        u.user.email?.split("@")[0] ||
+        "عضو";
+
+      setMe({
+        id: u.user.id,
+        name,
+        initial: (name[0] ?? "س").toUpperCase(),
+        avatarPath: mine?.avatar_url ?? null,
+        role: isSystemAdmin ? "admin" : rs.includes("manager") ? "manager" : "member"
+      });
       setLoading(false);
     })();
 
@@ -157,6 +177,18 @@ function MembersPage() {
                       member={m}
                       index={i}
                       presenceTime={presence[m.id]}
+                      meId={me.id}
+                      canDelete={isAdmin}
+                      onDelete={async (id, name) => {
+                        if (!confirm(`هل أنت متأكد من حذف حساب "${name}" نهائياً؟`)) return;
+                        try {
+                          await deleteAccountFn({ data: { userId: id } });
+                          toast.success("تم حذف الحساب بنجاح");
+                          setMembers(prev => prev.filter(mem => mem.id !== id));
+                        } catch (err: any) {
+                          toast.error("فشل الحذف: " + err.message);
+                        }
+                      }}
                     />
                   ))}
                 </motion.div>
@@ -169,9 +201,10 @@ function MembersPage() {
   );
 }
 
-function MemberCard({ member, index, presenceTime }: { member: MemberRow; index: number; presenceTime?: string }) {
+function MemberCard({ member, index, presenceTime, meId, canDelete, onDelete }: { member: MemberRow; index: number; presenceTime?: string; meId: string; canDelete: boolean; onDelete: (id: string, name: string) => void }) {
   const displayName = member.arabic_name?.trim() || member.full_name?.trim() || "عضو العائلة";
   const state: PresenceState = presenceFromLastSeen(presenceTime);
+  const isMe = member.id === meId;
 
   return (
     <motion.div
@@ -179,51 +212,67 @@ function MemberCard({ member, index, presenceTime }: { member: MemberRow; index:
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
     >
-      <Link
-        to="/members/$userId"
-        params={{ userId: member.id }}
-        className="group relative block"
-      >
-        <div className="card-surface p-6 flex flex-col items-center text-center gap-4 hover:-translate-y-2 hover:shadow-2xl hover:border-gold-primary/30 transition-all duration-500 overflow-hidden h-full">
+      <div className="group relative">
+        <Link
+          to="/members/$userId"
+          params={{ userId: member.id }}
+          className="block"
+        >
+          <div className="card-surface p-6 flex flex-col items-center text-center gap-4 hover:-translate-y-2 hover:shadow-2xl hover:border-gold-primary/30 transition-all duration-500 overflow-hidden h-full">
 
-           {/* Background Mark Decor */}
-           <div className="absolute top-0 left-0 opacity-[0.02] -translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:opacity-[0.05] transition-opacity duration-700">
-              <img src={alsaifMark.url} className="size-32" alt="" />
-           </div>
+            {/* Background Mark Decor */}
+            <div className="absolute top-0 left-0 opacity-[0.02] -translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:opacity-[0.05] transition-opacity duration-700">
+                <img src={alsaifMark.url} className="size-32" alt="" />
+            </div>
 
-           {/* Avatar Section */}
-           <div className="relative">
-              <div className="size-24 rounded-[32px] ring-4 ring-primary/5 group-hover:ring-primary/10 bg-muted overflow-hidden transition-all duration-500 shadow-lg">
-                 <UserAvatar
-                    path={member.avatar_url}
-                    name={displayName}
-                    className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
-                    userId={member.id}
-                 />
-              </div>
-              <div className="absolute -bottom-1 -left-1 ring-4 ring-card rounded-full shadow-lg">
-                <PresenceDot state={state} className="size-5 border-2 border-card" />
-              </div>
-           </div>
+            {/* Avatar Section */}
+            <div className="relative">
+                <div className="size-24 rounded-[32px] ring-4 ring-primary/5 group-hover:ring-primary/10 bg-muted overflow-hidden transition-all duration-500 shadow-lg">
+                  <UserAvatar
+                      path={member.avatar_url}
+                      name={displayName}
+                      className="size-full object-cover transition-transform duration-700 group-hover:scale-110"
+                      userId={member.id}
+                  />
+                </div>
+                <div className="absolute -bottom-1 -left-1 ring-4 ring-card rounded-full shadow-lg">
+                  <PresenceDot state={state} className="size-5 border-2 border-card" />
+                </div>
+            </div>
 
-           {/* Info Section */}
-           <div className="space-y-1 w-full">
-              <h4 className="text-lg font-black text-primary truncate group-hover:text-gold-primary transition-colors">{displayName}</h4>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">عضو مجلس العائلة</p>
-           </div>
+            {/* Info Section */}
+            <div className="space-y-1 w-full">
+                <h4 className="text-lg font-black text-primary truncate group-hover:text-gold-primary transition-colors">{displayName}</h4>
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">عضو مجلس العائلة</p>
+            </div>
 
-           <div className="w-full h-px bg-border/40 my-2" />
+            <div className="w-full h-px bg-border/40 my-2" />
 
-           <div className="w-full flex items-center justify-between">
-              <div className="flex items-center gap-2 text-emerald-600">
-                 <ShieldCheck className="size-3.5" />
-                 <span className="text-[10px] font-black uppercase tracking-tighter">حساب نشط</span>
-              </div>
-              <ChevronLeft className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
-           </div>
+            <div className="w-full flex items-center justify-between">
+                <div className="flex items-center gap-2 text-emerald-600">
+                  <ShieldCheck className="size-3.5" />
+                  <span className="text-[10px] font-black uppercase tracking-tighter">حساب نشط</span>
+                </div>
+                <ChevronLeft className="size-4 text-muted-foreground opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all" />
+            </div>
+          </div>
+        </Link>
 
-        </div>
-      </Link>
+        {/* Admin Delete Button */}
+        {canDelete && !isMe && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onDelete(member.id, displayName);
+            }}
+            className="absolute top-4 left-4 size-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-red-500 hover:text-white shadow-sm z-20"
+            title="حذف الحساب"
+          >
+            <Trash2 className="size-4" />
+          </button>
+        )}
+      </div>
     </motion.div>
   );
 }

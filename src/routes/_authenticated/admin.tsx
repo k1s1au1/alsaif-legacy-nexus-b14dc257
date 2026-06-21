@@ -24,6 +24,7 @@ import {
   Clock,
   Users,
   Search,
+  ImagePlus,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -425,19 +426,19 @@ function AdminPage() {
                   <div className="card-surface p-8 sm:p-10 space-y-8 relative overflow-hidden">
                     <div className="space-y-2 relative z-10">
                       <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-4 shadow-inner">
-                        <ImageIcon className="size-6" />
+                        <ImagePlus className="size-6" />
                       </div>
-                      <h3 className="text-2xl font-black text-primary">خلفيات الموقع</h3>
-                      <p className="text-sm font-bold text-muted-foreground opacity-60">قم بتخصيص المظهر العام لصفحات المجلس.</p>
+                      <h3 className="text-2xl font-black text-primary">تخصيص الواجهة</h3>
+                      <p className="text-sm font-bold text-muted-foreground opacity-60">تغيير الصور الخلفية لصفحات المجلس.</p>
                     </div>
                     <div className="grid gap-6 relative z-10">
                        <div className="space-y-4">
-                          <p className="text-xs font-black uppercase tracking-widest opacity-40">صفحة الدخول</p>
-                          <BackgroundUploader inline settingKey="auth_bg" label="تغيير خلفية تسجيل الدخول" />
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">صفحة الدخول</p>
+                          <BackgroundUploader inline settingKey="auth_bg" label="خلفية تسجيل الدخول" />
                        </div>
                        <div className="space-y-4 pt-6 border-t border-border/40">
-                          <p className="text-xs font-black uppercase tracking-widest opacity-40">لوحة التحكم</p>
-                          <BackgroundUploader inline settingKey="dashboard_bg" label="تغيير خلفية اللوحة الرئيسية" />
+                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">لوحة التحكم</p>
+                          <BackgroundUploader inline settingKey="dashboard_bg" label="خلفية اللوحة الرئيسية" />
                        </div>
                     </div>
                   </div>
@@ -449,12 +450,8 @@ function AdminPage() {
                         <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-inner">
                           <CalendarPlus className="size-6" />
                         </div>
-                        <h3 className="text-2xl font-black text-primary">إدارة الاجتماعات</h3>
+                        <h3 className="text-2xl font-black text-primary">الاجتماعات</h3>
                         <p className="text-sm font-bold text-muted-foreground opacity-60">جدولة لقاءات عائلية جديدة ودعوة الأعضاء.</p>
-                      </div>
-                      <div className="p-6 rounded-[28px] bg-primary/5 border border-primary/10 space-y-2">
-                         <p className="text-xs font-black text-primary uppercase tracking-widest">تنبيه</p>
-                         <p className="text-sm font-bold text-primary/70 leading-relaxed">سيتم إرسال إشعار فوري لجميع أفراد العائلة المسجلين عند تأكيد إنشاء الاجتماع.</p>
                       </div>
                     </div>
                     <Link
