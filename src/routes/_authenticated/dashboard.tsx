@@ -15,23 +15,17 @@ import {
   Plane,
   Sparkles,
   Plus,
-  History,
   Timer,
-  ArrowUpRight,
-  ChevronRight,
-  User,
-  Trees,
   Compass,
-  MapPinned
+  MapPinned,
+  User,
+  Trees
 } from "lucide-react";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/user-avatar";
-import useEmblaCarousel from "embla-carousel-react";
-import Autoplay from "embla-carousel-autoplay";
-import { motion } from "framer-motion";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -57,53 +51,40 @@ function Dashboard() {
   const [tasksCount, setTasksCount] = useState(0);
   const [statIndex, setStatIndex] = useState(0);
 
-  const [emblaRef] = useEmblaCarousel({ loop: true, direction: 'rtl' }, [Autoplay({ delay: 5000 })]);
-  const [tripsEmblaRef] = useEmblaCarousel({ loop: true, direction: 'rtl' }, [Autoplay({ delay: 6000 })]);
-
   const loadData = useCallback(async () => {
     try {
       const { data: authData } = await supabase.auth.getUser();
-      const u = authData?.user;
-      if (!u) return;
+      if (!authData?.user) return;
+      const u = authData.user;
 
-      const uid = u.id;
-      const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", uid).maybeSingle();
+      const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle();
 
       const name = p?.arabic_name || p?.full_name || u.email?.split('@')[0] || "عضو العائلة";
 
       setProfile({
         name,
         role: "عضو المجلس",
-        initial: (name[0] || "س").toUpperCase(),
+        initial: (name ? name[0] : "ع").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
-        userId: uid
+        userId: u.id
       });
 
-      const [tripsRes, membersRes, tasksRes] = await Promise.all([
-        supabase.from("trips").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done")
-      ]).catch(err => {
-        console.error("Dashboard stats load error:", err);
-        return [ {count: 0}, {count: 0}, {count: 0} ];
+      // Fetch stats individually to avoid Promise.all crash
+      supabase.from("trips").select("*", { count: "exact", head: true }).then(r => setTripsCount(r.count || 0));
+      supabase.from("profiles").select("*", { count: "exact", head: true }).then(r => setMembersCount(r.count || 0));
+      supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then(r => setTasksCount(r.count || 0));
+
+      const now = new Date().toISOString();
+      supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(2).then(r => setUpcomingMeetings(r.data || []));
+      supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(2).then(r => setUpcomingTrips(r.data || []));
+
+      supabase.from("fund_transactions").select("amount, type").then(r => {
+        const bal = (r.data || []).reduce((acc, t) => {
+          const val = Number(t.amount) || 0;
+          return t.type === "contribution" ? acc + val : acc - val;
+        }, 0);
+        setFundBalance(bal);
       });
-
-      setTripsCount(tripsRes?.count || 0);
-      setMembersCount(membersRes?.count || 0);
-      setTasksCount(tasksRes?.count || 0);
-
-      const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5).catch(() => ({ data: [] }));
-      setUpcomingMeetings(meets || []);
-
-      const { data: trips } = await supabase.from("trips").select("*").gte("start_date", new Date().toISOString()).order("start_date").limit(5).catch(() => ({ data: [] }));
-      setUpcomingTrips(trips || []);
-
-      const { data: txs } = await supabase.from("fund_transactions").select("amount, type").catch(() => ({ data: [] }));
-      const bal = (txs || []).reduce((acc, t) => {
-        const val = Number(t.amount) || 0;
-        return t.type === "contribution" ? acc + val : acc - val;
-      }, 0) || 0;
-      setFundBalance(bal);
     } catch (err) {
       console.error("Dashboard error:", err);
     }
@@ -126,17 +107,17 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20">
 
-        {/* Centered Hero Greeting */}
+        {/* Hero Section */}
         <section className="text-center space-y-6 animate-fade-up">
            <div className="inline-block px-6 py-2 bg-primary/5 rounded-full border border-primary/10 backdrop-blur-sm">
              <LiveClock />
            </div>
 
            <div className="relative inline-block group">
-             <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(212,175,55,0.3)_0%,transparent_70%)] blur-[100px] rounded-full group-hover:bg-[radial-gradient(circle,rgba(212,175,55,0.5)_0%,transparent_70%)] transition-all duration-1000 animate-pulse" />
-             <div className="absolute -inset-4 bg-gradient-to-br from-gold-primary/20 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full animate-pulse" />
+             <div className="absolute -inset-4 bg-gradient-to-br from-gold-primary/20 to-transparent rounded-full blur-2xl" />
              <div
-               className="size-40 md:size-56 relative z-10 logo-royal hover:scale-110 transition-transform duration-700 cursor-pointer"
+               className="size-40 md:size-56 relative z-10 logo-royal hover:scale-105 transition-transform duration-700"
                style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
              />
            </div>
@@ -149,7 +130,7 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* Quick Actions Grid (Centered) */}
+        {/* Quick Actions */}
         <section className="animate-fade-up" style={{ animationDelay: "100ms" }}>
            <div className="flex items-center justify-center gap-4 mb-8">
              <div className="h-px w-12 bg-border" />
@@ -168,169 +149,64 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* Dynamic Event Banners (Trips & Meetings) */}
-        <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
-
-           {/* Upcoming Trips Banner - Cinema Style */}
-           <AnimatePresence>
-            {upcomingTrips.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 overflow-hidden"
-              >
-                <div className="overflow-hidden" ref={tripsEmblaRef}>
-                  <div className="flex">
-                    {upcomingTrips.map((trip) => (
-                      <div key={trip.id} className="flex-[0_0_100%] min-w-0">
-                        <article className="relative h-[340px] flex flex-col md:flex-row bg-[#2C1810] text-white overflow-hidden">
-                           {/* Rich Background with Pattern */}
-                           <div className="absolute inset-0 opacity-20 pointer-events-none scale-150 rotate-12">
-                              <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
-                           </div>
-                           <div className="absolute inset-0 bg-gradient-to-r from-[#2C1810] via-[#2C1810]/80 to-transparent z-0" />
-
-                           <div className="flex-1 p-10 md:p-14 space-y-8 relative z-10">
-                              <div className="flex items-center gap-4">
-                                 <div className="size-12 rounded-2xl bg-gold-primary flex items-center justify-center shadow-lg shadow-gold-primary/20">
-                                    <Plane className="size-6 text-[#2C1810]" strokeWidth={2.5} />
-                                 </div>
-                                 <div className="space-y-0.5">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">وجهة عائلية قادمة</p>
-                                    <h3 className="text-3xl md:text-5xl font-black tracking-tight">{trip.title}</h3>
-                                 </div>
-                              </div>
-
-                              <div className="flex flex-wrap items-center gap-8 py-4 border-y border-white/10">
-                                 <div className="flex items-center gap-3">
-                                    <MapPinned className="size-5 text-gold-primary" />
-                                    <span className="text-lg font-bold">{trip.location || "لم يحدد الموقع بعد"}</span>
-                                 </div>
-                                 <div className="flex items-center gap-3">
-                                    <Clock className="size-5 text-gold-primary" />
-                                    <span className="text-lg font-bold">
-                                      {(() => {
-                                        try {
-                                          return trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { month: 'long', day: 'numeric' }) : "—";
-                                        } catch { return "—"; }
-                                      })()}
-                                    </span>
-                                 </div>
-                              </div>
-
-                              <Link to="/trips" className="inline-flex items-center gap-4 bg-gold-primary text-[#2C1810] px-12 py-4 rounded-2xl text-lg font-black transition-all hover:scale-105 hover:shadow-[0_20px_50px_rgba(212,175,55,0.3)]">
-                                 تفاصيل الرحلة <Compass size={24} />
-                              </Link>
-                           </div>
-
-                           {/* Artistic Icon Side */}
-                           <div className="hidden lg:flex md:w-1/3 items-center justify-center p-10 relative bg-white/5 backdrop-blur-sm border-l border-white/10">
-                              <div className="relative group/icon">
-                                 <div className="absolute inset-0 bg-gold-primary/20 blur-3xl rounded-full group-hover/icon:bg-gold-primary/40 transition-all duration-700" />
-                                 <div className="size-48 rounded-[60px] bg-gradient-to-br from-white/10 to-transparent border border-white/20 flex items-center justify-center shadow-inner relative z-10">
-                                    <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}>
-                                       <Plane className="size-24 text-gold-primary opacity-60" strokeWidth={1} />
-                                    </motion.div>
-                                 </div>
-                              </div>
-                           </div>
-                        </article>
-                      </div>
-                    ))}
-                  </div>
+        {/* Dynamic Event Banners */}
+        <section className="px-4 space-y-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
+           {upcomingTrips.map(trip => (
+             <article key={trip.id} className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 bg-[#2C1810] text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+                <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
+                <div className="flex-1 space-y-6 relative z-10">
+                   <div className="px-4 py-1 rounded-full bg-white/10 w-fit text-[10px] font-black uppercase tracking-widest">رحلة مرتقبة</div>
+                   <h3 className="text-3xl md:text-5xl font-black">{trip.title}</h3>
+                   <div className="flex gap-6 text-sm font-bold opacity-80">
+                      <span className="flex items-center gap-2"><MapPin className="size-4" /> {trip.location || "وجهة عائلية"}</span>
+                      <span className="flex items-center gap-2"><CalendarDays className="size-4" /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA") : "—"}</span>
+                   </div>
+                   <Link to="/trips" className="btn-gold px-10 py-4 rounded-full font-black inline-flex items-center gap-3">استكشاف <Compass size={20} /></Link>
                 </div>
-              </motion.div>
-            )}
-           </AnimatePresence>
+                <div className="hidden lg:flex size-40 rounded-[50px] bg-white/10 items-center justify-center relative z-10"><Plane className="size-20 opacity-40" /></div>
+             </article>
+           ))}
 
-           {/* Upcoming Meetings Carousel */}
-           <AnimatePresence>
-            <div className="overflow-hidden rounded-[48px] shadow-2xl border-4 border-primary/20" ref={emblaRef}>
-              <div className="flex">
-                {upcomingMeetings.length === 0 ? (
-                  <div className="flex-[0_0_100%] min-w-0">
-                    <article className="h-[280px] flex flex-col md:flex-row bg-primary text-white">
-                       <div className="flex-1 p-10 md:p-14 space-y-6">
-                          <span className="text-xs font-black text-gold-primary uppercase tracking-[0.3em] opacity-60">الحدث القادم</span>
-                          <h3 className="text-4xl font-black">لا توجد اجتماعات حالياً</h3>
-                          <Link to="/meetings" className="inline-flex items-center gap-3 bg-white/20 px-8 py-3 rounded-full text-sm font-black opacity-50 cursor-not-allowed">عرض الجدول <ChevronLeft size={20} /></Link>
-                       </div>
-                    </article>
+           {upcomingMeetings.map(meeting => {
+             const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+             return (
+               <article key={meeting.id} className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-primary/20 bg-primary text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
+                  <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
+                  <div className="flex-1 space-y-6 relative z-10">
+                     <span className="text-xs font-black uppercase tracking-widest opacity-60">الحدث القادم</span>
+                     <h3 className="text-3xl md:text-5xl font-black">{meeting.title}</h3>
+                     <p className="text-lg font-black">{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                     <Link to="/meetings" className="btn-gold px-10 py-4 rounded-full font-black inline-block">تأكيد الحضور</Link>
                   </div>
-                ) : (
-                  upcomingMeetings.map((meeting, index) => {
-                    const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    return (
-                      <div key={meeting.id} className="flex-[0_0_100%] min-w-0">
-                        <article className="relative h-[280px] flex flex-col md:flex-row bg-primary text-white">
-                           <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                           <div className="flex-1 p-10 md:p-14 space-y-6 relative z-10">
-                              <div className="space-y-1">
-                                <span className="text-xs font-black text-gold-primary uppercase tracking-[0.3em] opacity-60">الحدث القادم ({index + 1}/{upcomingMeetings.length})</span>
-                                <h3 className="text-3xl md:text-4xl font-black truncate">{meeting.title}</h3>
-                              </div>
-                              <div className="flex items-center gap-4">
-                                 <div className="size-12 rounded-2xl bg-white/10 flex items-center justify-center"><CalendarDays size={24} /></div>
-                                 <p className="text-lg font-black">{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                              </div>
-                              <Link to="/meetings" className="btn-gold px-12 py-3 text-base shadow-2xl shadow-gold-primary/20 inline-block">تأكيد الحضور</Link>
-                           </div>
-                           <div className="hidden md:flex md:w-1/3 bg-white/5 backdrop-blur-sm p-10 flex-col items-center justify-center text-center relative overflow-hidden shrink-0 border-r border-white/10">
-                              <div className="relative z-10 space-y-4">
-                                <div className="size-16 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-8 animate-pulse" /></div>
-                                <div>
-                                  <p className="text-[11px] font-black uppercase tracking-widest opacity-60 mb-1">الوقت المتبقي</p>
-                                  <div className="text-5xl font-black tracking-tighter">{daysLeft > 0 ? daysLeft : 0}</div>
-                                  <p className="text-xl font-black opacity-80">أيام</p>
-                                </div>
-                              </div>
-                           </div>
-                        </article>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            </div>
-           </AnimatePresence>
+                  <div className="hidden md:flex flex-col items-center justify-center p-8 bg-white/5 rounded-[40px] border border-white/10 relative z-10">
+                     <Timer className="size-8 mb-2 animate-pulse" />
+                     <p className="text-4xl font-black tracking-tighter">{daysLeft > 0 ? daysLeft : 0} أيام</p>
+                  </div>
+               </article>
+             );
+           })}
         </section>
 
-        {/* Animated Stats Banner */}
+        {/* Stats Slider */}
         <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
-           <div className="relative overflow-hidden rounded-[48px] h-[280px] shadow-2xl group border-4 border-white dark:border-border">
+           <div className="relative overflow-hidden rounded-[48px] h-[280px] shadow-2xl border-4 border-white dark:border-border">
               {stats.map((stat, i) => (
                 <div key={i} className={cn(
-                  "absolute inset-0 w-full h-full transition-all duration-1000 ease-in-out flex items-center p-12 md:p-20",
+                  "absolute inset-0 w-full h-full transition-all duration-1000 flex items-center p-12 md:p-20",
                   stat.color,
                   statIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
                 )}>
-                   <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 rotate-12">
-                      <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
-                   </div>
+                   <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
                    <div className="relative z-10 flex items-center justify-between w-full text-white">
                       <div className="space-y-6">
-                         <div className="flex items-center gap-3 font-black uppercase tracking-[0.4em] text-xs opacity-70">
-                            <Sparkles className="size-5" /> {stat.label}
-                         </div>
-                         <div className="text-6xl md:text-8xl font-black tracking-tighter leading-none flex items-baseline gap-4">
-                            <AnimatedCounter value={stat.value} />
-                            <span className="text-2xl opacity-50">{stat.suffix}</span>
-                         </div>
-                         <Link to={stat.link} className="inline-flex items-center gap-3 bg-white/20 hover:bg-white/30 backdrop-blur-xl px-8 py-3 rounded-full text-sm font-black transition-all">
-                            التفاصيل <ChevronLeft size={20} />
-                         </Link>
+                         <div className="flex items-center gap-3 font-black uppercase tracking-[0.4em] text-xs opacity-70"><Sparkles className="size-5" /> {stat.label}</div>
+                         <div className="text-6xl md:text-8xl font-black tracking-tighter flex items-baseline gap-4"><AnimatedCounter value={stat.value} /><span className="text-2xl opacity-50">{stat.suffix}</span></div>
+                         <Link to={stat.link} className="inline-flex items-center gap-3 bg-white/20 px-8 py-3 rounded-full text-sm font-black transition-all">التفاصيل <ChevronLeft size={20} /></Link>
                       </div>
-                      <div className="hidden lg:flex size-44 rounded-[50px] bg-white/10 backdrop-blur-md items-center justify-center border border-white/20 shadow-inner">
-                         {stat.icon}
-                      </div>
+                      <div className="hidden lg:flex size-44 rounded-[50px] bg-white/10 items-center justify-center border border-white/20">{stat.icon}</div>
                    </div>
                 </div>
               ))}
-              <div className="absolute bottom-10 right-14 flex gap-3 z-20">
-                 {stats.map((_, i) => (
-                    <button key={i} onClick={() => setStatIndex(i)} className={cn("h-2 rounded-full transition-all duration-500", statIndex === i ? "w-12 bg-white" : "w-2 bg-white/30")} />
-                 ))}
-              </div>
            </div>
         </section>
 

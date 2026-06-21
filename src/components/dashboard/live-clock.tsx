@@ -7,25 +7,32 @@ const AR_MONTHS = [
 ];
 
 export function LiveClock() {
-  const [now, setNow] = useState(() => new Date());
+  const [now, setNow] = useState(new Date());
+
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(id);
   }, []);
-  let h = now.getHours();
-  const m = now.getMinutes().toString().padStart(2, "0");
-  const s = now.getSeconds().toString().padStart(2, "0");
-  const suffix = h >= 12 ? "م" : "ص";
-  h = h % 12 || 12;
-  return (
-    <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-muted-foreground">
-      <span className="font-medium text-gold-primary tabular-nums text-sm tracking-wider">
-        {h.toString().padStart(2, "0")}:{m}
-        <span className="text-muted-foreground/60">:{s}</span> {suffix}
-      </span>
-      <span>
-        {AR_DAYS[now.getDay()]}، {now.getDate()} {AR_MONTHS[now.getMonth()]} {now.getFullYear()}
-      </span>
-    </div>
-  );
+
+  try {
+    let h = now.getHours();
+    const m = now.getMinutes().toString().padStart(2, "0");
+    const s = now.getSeconds().toString().padStart(2, "0");
+    const suffix = h >= 12 ? "م" : "ص";
+    h = h % 12 || 12;
+
+    return (
+      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-muted-foreground">
+        <span className="font-medium text-gold-primary tabular-nums text-sm tracking-wider">
+          {h.toString().padStart(2, "0")}:{m}
+          <span className="text-muted-foreground/60">:{s}</span> {suffix}
+        </span>
+        <span>
+          {AR_DAYS[now.getDay()]}، {now.getDate()} {AR_MONTHS[now.getMonth()]} {now.getFullYear()}
+        </span>
+      </div>
+    );
+  } catch {
+    return <div className="text-xs text-muted-foreground opacity-50">جاري تحميل الوقت...</div>;
+  }
 }

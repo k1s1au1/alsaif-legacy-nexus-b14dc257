@@ -28,9 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type BadgeFn = (ctx: { userId: string; isAdmin: boolean; isManager: boolean }) => Promise<number>;
-
-const navItems: { to: string; label: string; icon: typeof LayoutDashboard; badge?: BadgeFn; adminOnly?: boolean }[] = [
+const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
   { to: "/members", label: "الأعضاء", icon: Users },
@@ -49,8 +47,7 @@ export function AppShell({
 }) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
-  const [navBadges, setNavBadges] = useState<Record<string, number>>({});
-  const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
+  const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -65,65 +62,42 @@ export function AppShell({
 
   usePresenceHeartbeat();
 
-  const loadBadges = useCallback(async () => {
-    try {
-      const { data } = await supabase.auth.getUser();
-      const u = data?.user;
-      if (!u) return;
-
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
-      const r = (roles ?? []).map((x) => x.role);
-      const isAdmin = r.includes("admin");
-      const isManager = r.includes("manager");
-      setIsAdminManager({ isAdmin, isManager, userId: u.id });
-
-      const next: Record<string, number> = {};
-      await Promise.all(
-        navItems.map(async (item) => {
-          if (!item.badge) return;
-          try {
-            const count = await item.badge({ userId: u.id, isAdmin, isManager });
-            if (count > 0) next[item.to] = count;
-          } catch {}
-        }),
-      );
-      setNavBadges(next);
-    } catch (err) {
-      console.error("Shell loadBadges error", err);
-    }
-  }, []);
-
   useEffect(() => {
-    loadBadges();
     (async () => {
       try {
         const { data } = await supabase.auth.getUser();
-        const u = data?.user;
-        if (!u) return;
-        setMyUserId(u.id);
+        if (!data?.user) return;
+        const uid = data.user.id;
+        setMyUserId(uid);
 
-        // Always try to get latest avatar if not explicitly provided
-        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", u.id).maybeSingle();
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+        const r = (roles ?? []).map(x => x.role);
+        setIsAdmin(r.includes("admin") || r.includes("manager"));
+
+        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
         if (p?.avatar_url) setMyAvatarPath(p.avatar_url);
-      } catch (err) {
-        console.error("Shell user load error", err);
+      } catch (e) {
+        console.error("Shell initialization error", e);
       }
     })();
-  }, [loadBadges]);
+  }, []);
 
   async function signOut() {
-    await queryClient.cancelQueries();
-    queryClient.clear();
-    await supabase.auth.signOut();
-    toast.success("تم تسجيل الخروج");
-    navigate({ to: "/auth", replace: true });
+    try {
+      await queryClient.cancelQueries();
+      queryClient.clear();
+      await supabase.auth.signOut();
+      toast.success("تم تسجيل الخروج");
+      navigate({ to: "/auth", replace: true });
+    } catch {
+      window.location.href = "/auth";
+    }
   }
 
-  const safeUser = user || { name: "عضو", role: "عضو", initial: "ع" };
+  const safeUser = user || { name: "عضو العائلة", role: "عضو", initial: "ع" };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
-      {/* Backdrop overlay */}
       <div
         onClick={() => setSidebarOpen(false)}
         className={cn(
@@ -132,7 +106,6 @@ export function AppShell({
         )}
       />
 
-      {/* Modern High-Contrast Sidebar (RTL) */}
       <aside
         className={cn(
           "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl transition-transform duration-500",
@@ -170,9 +143,8 @@ export function AppShell({
         </div>
 
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto no-scrollbar">
-          {navItems.filter((item) => !item.adminOnly || isAdminManager.isAdmin || isAdminManager.isManager).map(({ to, label, icon: Icon }) => {
+          {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => {
             const active = path === to || path.startsWith(to + "/");
-            const badgeCount = navBadges[to] ?? 0;
             return (
               <Link
                 key={to}
@@ -187,11 +159,6 @@ export function AppShell({
               >
                 <Icon className={cn("size-5 shrink-0", active ? "text-primary-foreground" : "text-muted-foreground")} strokeWidth={active ? 2.5 : 2} />
                 <span className="mr-auto">{label}</span>
-                {badgeCount > 0 && (
-                  <span className={cn("px-2 py-0.5 rounded-full text-[10px] font-bold", active ? "bg-background text-primary" : "bg-primary text-primary-foreground")}>
-                    {badgeCount > 99 ? "99+" : badgeCount}
-                  </span>
-                )}
               </Link>
             );
           })}
@@ -208,11 +175,8 @@ export function AppShell({
         </div>
       </aside>
 
-      {/* Main Container */}
       <main className="relative min-h-screen pb-20">
-        <header
-          className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-card/80 backdrop-blur-md border-b border-border transition-all shadow-sm"
-        >
+        <header className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-card/80 backdrop-blur-md border-b border-border transition-all shadow-sm">
           <div className="flex items-center gap-5">
             <button
               onClick={() => setSidebarOpen(true)}

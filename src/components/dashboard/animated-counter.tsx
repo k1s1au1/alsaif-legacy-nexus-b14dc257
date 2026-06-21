@@ -7,7 +7,7 @@ export function AnimatedCounter({
   className,
   suffix,
 }: {
-  value: number | null;
+  value: number | null | undefined;
   duration?: number;
   decimals?: number;
   className?: string;
@@ -18,15 +18,14 @@ export function AnimatedCounter({
   const startRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (value === null || Number.isNaN(value)) return;
+    if (value === null || value === undefined || Number.isNaN(value)) return;
     const from = fromRef.current;
-    const to = value;
+    const to = Number(value);
     startRef.current = null;
     let raf = 0;
     const tick = (t: number) => {
       if (startRef.current === null) startRef.current = t;
       const p = Math.min(1, (t - startRef.current) / duration);
-      // easeOutCubic
       const eased = 1 - Math.pow(1 - p, 3);
       setDisplay(from + (to - from) * eased);
       if (p < 1) raf = requestAnimationFrame(tick);
@@ -36,7 +35,8 @@ export function AnimatedCounter({
     return () => cancelAnimationFrame(raf);
   }, [value, duration]);
 
-  if (value === null) return <span className={className}>—</span>;
+  if (value === null || value === undefined) return <span className={className}>—</span>;
+
   return (
     <span className={className}>
       {display.toLocaleString("en-US", {
