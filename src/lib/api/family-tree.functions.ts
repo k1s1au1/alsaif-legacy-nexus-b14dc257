@@ -81,27 +81,33 @@ export const addFamilyMember = createServerFn({ method: "POST" })
 
     let fatherName = null;
     let grandfatherName = null;
+    let fullName = data.firstName;
 
     if (data.parentId) {
       const { data: parent } = await supabase
         .from("profiles")
-        .select("first_name, father_name")
+        .select("first_name, father_name, full_name")
         .eq("id", data.parentId)
         .single();
 
       if (parent) {
         fatherName = parent.first_name;
         grandfatherName = parent.father_name;
+        // Construct full name: [Child] [Parent Full Name]
+        fullName = `${data.firstName} ${parent.full_name || ""}`.trim();
+        if (!fullName.includes("السيف") && !fullName.includes("Alsaif")) {
+           fullName += " السيف";
+        }
       }
     }
 
     const { error } = await supabaseAdmin.from("profiles").insert({
-      id: crypto.randomUUID(),
       first_name: data.firstName,
       father_name: fatherName,
       grandfather_name: grandfatherName,
+      full_name: fullName,
       parent_id: data.parentId,
-      is_active: false, // Manual entry, not an active auth account
+      is_active: false,
     } as any);
 
     if (error) throw new Error(error.message);
