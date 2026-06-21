@@ -120,23 +120,10 @@ function Dashboard() {
            </div>
 
            <div className="relative inline-block group">
-             <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-1000 animate-pulse" />
-
-             {/* Large Central Avatar with Status */}
-             <div className="relative size-40 md:size-56 rounded-[56px] bg-card border-4 border-white dark:border-border shadow-2xl ring-1 ring-black/5 transition-transform duration-700 group-hover:scale-[1.02]">
-                <UserAvatar
-                  path={profile.avatarPath}
-                  name={profile.name}
-                  initial={profile.initial}
-                  className="size-full rounded-[50px] object-cover"
-                  userId={profile.userId}
-                  presenceDotClassName="absolute -bottom-2 -left-2 size-10 ring-[8px] ring-card shadow-2xl"
-                />
-             </div>
-
-             {/* Small Floating Family Mark */}
+             <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(212,175,55,0.3)_0%,transparent_70%)] blur-[100px] rounded-full group-hover:bg-[radial-gradient(circle,rgba(212,175,55,0.5)_0%,transparent_70%)] transition-all duration-1000 animate-pulse" />
+             <div className="absolute -inset-4 bg-gradient-to-br from-gold-primary/20 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
              <div
-               className="absolute -top-4 -right-4 size-20 md:size-24 z-20 logo-royal hover:rotate-12 transition-transform duration-700 cursor-pointer drop-shadow-2xl"
+               className="size-40 md:size-56 relative z-10 logo-royal hover:scale-110 transition-transform duration-700 cursor-pointer"
                style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
              />
            </div>
