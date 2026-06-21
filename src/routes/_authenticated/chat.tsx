@@ -553,7 +553,7 @@ function NewConversationDialog({
            <img src={alsaifMark.url} className="size-64" alt="" />
         </div>
 
-        <div className="p-8 sm:p-10 space-y-8 flex flex-col h-full relative z-10">
+        <div className="p-6 sm:p-10 space-y-6 flex flex-col h-full relative z-10">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
                <div className="flex items-center gap-3">
@@ -601,7 +601,7 @@ function NewConversationDialog({
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar -mx-2 px-2 space-y-3 py-4 border-y border-border/40">
+          <div className="flex-1 overflow-y-auto pr-2 -mr-2 space-y-3 py-4 border-y border-border/40 min-h-0 touch-pan-y">
             {list.length === 0 && (
               <div className="flex flex-col items-center justify-center py-12 space-y-4 opacity-40">
                  <Search size={40} className="text-muted-foreground" />
