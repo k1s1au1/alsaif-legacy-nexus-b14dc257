@@ -55,34 +55,41 @@ function Dashboard() {
   const [emblaRef] = useEmblaCarousel({ loop: true, direction: 'rtl' }, [Autoplay({ delay: 5000 })]);
 
   const loadData = useCallback(async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
+    try {
+      const { data: u } = await supabase.auth.getUser();
+      if (!u.user) return;
 
-    const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle();
-    const name = p?.arabic_name || p?.full_name || "عضو العائلة";
-    setProfile({
-      name,
-      role: "مسؤول النظام",
-      initial: (name[0] || "س").toUpperCase(),
-      avatarPath: p?.avatar_url ?? null,
-      userId: u.user.id
-    });
+      const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle();
+      const name = p?.arabic_name || p?.full_name || "عضو العائلة";
+      setProfile({
+        name,
+        role: "مسؤول النظام",
+        initial: (name[0] || "س").toUpperCase(),
+        avatarPath: p?.avatar_url ?? null,
+        userId: u.user.id
+      });
 
-    const [ { count: tc }, { count: mc }, { count: tskc } ] = await Promise.all([
-      supabase.from("trips").select("*", { count: "exact", head: true }),
-      supabase.from("profiles").select("*", { count: "exact", head: true }),
-      supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done"),
-    ]);
-    setTripsCount(tc || 0);
-    setMembersCount(mc || 0);
-    setTasksCount(tskc || 0);
+      const [ { count: tc }, { count: mc }, { count: tskc } ] = await Promise.all([
+        supabase.from("trips").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done"),
+      ]);
+      setTripsCount(tc || 0);
+      setMembersCount(mc || 0);
+      setTasksCount(tskc || 0);
 
-    const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
-    setUpcomingMeetings(meets || []);
+      const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
+      setUpcomingMeetings(meets || []);
 
-    const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
-    const bal = txs?.reduce((acc, t) => Number(t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount)), 0) || 0;
-    setFundBalance(bal);
+      const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
+      const bal = txs?.reduce((acc, t) => {
+        const val = Number(t.amount) || 0;
+        return t.type === "contribution" ? acc + val : acc - val;
+      }, 0) || 0;
+      setFundBalance(bal);
+    } catch (err) {
+      console.error("Dashboard loadData crash", err);
+    }
   }, []);
 
   useEffect(() => {

@@ -49,7 +49,14 @@ export function NotificationsBell() {
     const out: Notif[] = [];
 
     // Get "Dismissed" notifications from localStorage to hide them immediately
-    const dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
+    let dismissed = [];
+    try {
+      dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
+      if (!Array.isArray(dismissed)) dismissed = [];
+    } catch (e) {
+      console.error("Failed to parse dismissed notifs", e);
+      dismissed = [];
+    }
 
     // 1) Unread messages
     const { data: parts } = await supabase.from("conversation_participants").select("conversation_id,last_read_at").eq("user_id", uid);
@@ -109,7 +116,14 @@ export function NotificationsBell() {
     setItems(prev => prev.filter(item => item.id !== notif.id));
 
     // 2. Persist dismissal locally so it doesn't reappear on reload
-    const dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
+    let dismissed = [];
+    try {
+      dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
+      if (!Array.isArray(dismissed)) dismissed = [];
+    } catch (e) {
+      dismissed = [];
+    }
+
     if (!dismissed.includes(notif.id)) {
       dismissed.push(notif.id);
       localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50))); // Keep last 50

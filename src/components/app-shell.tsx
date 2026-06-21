@@ -66,25 +66,29 @@ export function AppShell({
   usePresenceHeartbeat();
 
   const loadBadges = useCallback(async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
-    const r = (roles ?? []).map((x) => x.role);
-    const isAdmin = r.includes("admin");
-    const isManager = r.includes("manager");
-    setIsAdminManager({ isAdmin, isManager, userId: u.user.id });
+    try {
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (!u) return;
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
+      const r = (roles ?? []).map((x) => x.role);
+      const isAdmin = r.includes("admin");
+      const isManager = r.includes("manager");
+      setIsAdminManager({ isAdmin, isManager, userId: u.id });
 
-    const next: Record<string, number> = {};
-    await Promise.all(
-      navItems.map(async (item) => {
-        if (!item.badge) return;
-        try {
-          const count = await item.badge({ userId: u.user.id, isAdmin, isManager });
-          if (count > 0) next[item.to] = count;
-        } catch {}
-      }),
-    );
-    setNavBadges(next);
+      const next: Record<string, number> = {};
+      await Promise.all(
+        navItems.map(async (item) => {
+          if (!item.badge) return;
+          try {
+            const count = await item.badge({ userId: u.id, isAdmin, isManager });
+            if (count > 0) next[item.to] = count;
+          } catch {}
+        }),
+      );
+      setNavBadges(next);
+    } catch (err) {
+      console.error("Shell loadBadges error", err);
+    }
   }, []);
 
   useEffect(() => {
