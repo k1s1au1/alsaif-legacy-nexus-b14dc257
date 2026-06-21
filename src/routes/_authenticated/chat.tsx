@@ -12,7 +12,8 @@ import {
   Search,
   Users,
   X,
-  Lock,
+  Plus,
+  Clock,
 } from "lucide-react";
 import {
   chatTimeLabel,
@@ -28,6 +29,9 @@ import {
 } from "@/lib/chat";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   ssr: false,
@@ -199,122 +203,156 @@ function ChatLayout() {
 
   return (
     <AppShell title="المحادثات" user={shellUser}>
-      <div className="flex h-[calc(100vh-9rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10">
+      <div className="flex h-[calc(100vh-10rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10 overflow-hidden bg-background">
         {/* Sidebar (conversation list) */}
         <aside
-          className={`${
+          className={cn(
+            "flex flex-col w-full lg:w-[400px] shrink-0 border-l border-border bg-card/30 backdrop-blur-xl relative z-20 transition-all duration-500",
             isConvOpen ? "hidden lg:flex" : "flex"
-          } flex-col w-full lg:w-96 shrink-0 border-l border-border bg-card/40 backdrop-blur-md`}
+          )}
         >
-          <div className="p-4 border-b border-border space-y-3">
+          {/* Sidebar Header */}
+          <div className="p-6 border-b border-border space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-medium text-ivory">المحادثات</h2>
-              <div className="flex items-center gap-1">
+              <div className="space-y-1">
+                <h2 className="text-2xl font-black text-primary tracking-tight">الرسائل</h2>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary opacity-60">تواصل مباشر</p>
+              </div>
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowNew("chat")}
-                  title="محادثة جديدة"
-                  className="p-2 rounded-lg text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                  className="size-10 rounded-xl bg-primary text-primary-foreground flex items-center justify-center hover:brightness-110 transition-all shadow-lg shadow-primary/20"
                 >
-                  <MessageSquarePlus className="size-4" strokeWidth={1.5} />
+                  <Plus className="size-5" />
                 </button>
                 <button
                   onClick={() => setShowNew("group")}
-                  title="مجموعة جديدة"
-                  className="p-2 rounded-lg text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
+                  className="size-10 rounded-xl bg-gold-primary/10 text-gold-primary border border-gold-primary/20 flex items-center justify-center hover:bg-gold-primary/20 transition-all"
                 >
-                  <Users className="size-4" strokeWidth={1.5} />
+                  <Users className="size-5" />
                 </button>
               </div>
             </div>
-            <div className="relative">
+
+            <div className="relative group">
               <Search
-                className="size-4 absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
-                strokeWidth={1.5}
+                className="size-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors pointer-events-none"
+                strokeWidth={2.5}
               />
               <input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="ابحث في المحادثات..."
-                className="w-full bg-background/60 border border-border rounded-xl pl-3 pr-9 py-2.5 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
+                className="w-full bg-background/50 border border-border rounded-2xl pl-4 pr-11 py-3.5 text-sm font-bold text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-inner"
               />
             </div>
-            <div className="flex gap-1 text-xs">
+
+            <div className="flex p-1 bg-muted/40 rounded-2xl border border-border/40">
               <button
                 onClick={() => setShowArchive(false)}
-                className={`flex-1 py-1.5 rounded-lg transition ${
-                  !showArchive
-                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    : "text-muted-foreground hover:bg-secondary/40"
-                }`}
+                className={cn(
+                  "flex-1 py-2 text-xs font-black rounded-xl transition-all",
+                  !showArchive ? "bg-card text-primary shadow-md" : "text-muted-foreground hover:text-foreground"
+                )}
               >
                 نشطة
               </button>
               <button
                 onClick={() => setShowArchive(true)}
-                className={`flex-1 py-1.5 rounded-lg flex items-center justify-center gap-1.5 transition ${
-                  showArchive
-                    ? "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                    : "text-muted-foreground hover:bg-secondary/40"
-                }`}
+                className={cn(
+                  "flex-1 py-2 text-xs font-black rounded-xl flex items-center justify-center gap-2 transition-all",
+                  showArchive ? "bg-card text-primary shadow-md" : "text-muted-foreground hover:text-foreground"
+                )}
               >
-                <Archive className="size-3" strokeWidth={1.5} />
-                الأرشيف
+                <Archive className="size-3.5" />
+                المؤرشفة
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto">
-            {loading && (
-              <p className="text-center text-xs text-muted-foreground py-8">جارٍ التحميل...</p>
+          {/* List Area */}
+          <div className="flex-1 overflow-y-auto no-scrollbar py-2">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-20 space-y-3 opacity-30">
+                 <div className="size-8 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">جاري التحميل...</span>
+              </div>
+            ) : filtered.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 px-10 text-center space-y-4 opacity-40">
+                <div className="size-16 rounded-[32px] bg-muted flex items-center justify-center text-muted-foreground">
+                   <Users className="size-8" />
+                </div>
+                <p className="text-sm font-bold leading-relaxed">
+                  {showArchive ? "لا توجد محادثات مؤرشفة حالياً" : "ابدأ أول محادثة مع أفراد عائلتك الآن"}
+                </p>
+              </div>
+            ) : (
+              <div className="px-3 space-y-1">
+                {filtered.map((it) => (
+                  <ConversationRow
+                    key={it.conversation.id}
+                    item={it}
+                    meId={meId}
+                    profiles={profiles}
+                    active={path === `/chat/${it.conversation.id}`}
+                    onOpen={() => {
+                      setItems((prev) =>
+                        prev.map((x) =>
+                          x.conversation.id === it.conversation.id
+                            ? { ...x, unread: 0 }
+                            : x,
+                        ),
+                      );
+                      if (meId) {
+                        supabase.rpc("mark_conversation_read", {
+                          _conversation_id: it.conversation.id,
+                        });
+                      }
+                    }}
+                  />
+                ))}
+              </div>
             )}
-            {!loading && filtered.length === 0 && (
-              <p className="text-center text-xs text-muted-foreground py-10 px-6">
-                {showArchive ? "لا توجد محادثات مؤرشفة." : "ابدأ محادثة جديدة من الأعلى."}
-              </p>
-            )}
-            {filtered.map((it) => (
-              <ConversationRow
-                key={it.conversation.id}
-                item={it}
-                meId={meId}
-                profiles={profiles}
-                active={path === `/chat/${it.conversation.id}`}
-                onOpen={() => {
-                  // Optimistically clear the unread badge the moment the
-                  // recipient opens the conversation, then mark the whole
-                  // conversation read on the backend so every session syncs.
-                  setItems((prev) =>
-                    prev.map((x) =>
-                      x.conversation.id === it.conversation.id
-                        ? { ...x, unread: 0 }
-                        : x,
-                    ),
-                  );
-                  if (meId) {
-                    supabase.rpc("mark_conversation_read", {
-                      _conversation_id: it.conversation.id,
-                    });
-                  }
-                }}
-              />
-            ))}
           </div>
         </aside>
 
         {/* Conversation panel */}
-        <div className={`flex-1 min-w-0 ${isConvOpen ? "flex" : "hidden lg:flex"}`}>
+        <main className={cn(
+          "flex-1 min-w-0 bg-background relative z-10",
+          isConvOpen ? "flex" : "hidden lg:flex"
+        )}>
+          {!isConvOpen && (
+            <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-8 animate-fade-up">
+               <div className="relative group">
+                 <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full" />
+                 <img src={alsaifMark.url} className="size-48 md:size-64 object-contain relative z-10 logo-royal opacity-40" alt="Logo" />
+               </div>
+               <div className="space-y-2 max-w-sm">
+                 <h3 className="text-3xl font-black text-primary tracking-tight">مجلس المحادثات</h3>
+                 <p className="text-muted-foreground font-bold text-lg opacity-60 leading-relaxed">اختر محادثة من القائمة للبدء في التواصل مع أعضاء عائلة السيف.</p>
+               </div>
+               <button
+                onClick={() => setShowNew("chat")}
+                className="btn-gold px-10 py-4 text-base shadow-2xl shadow-gold-primary/20"
+               >
+                 بدء محادثة جديدة
+               </button>
+            </div>
+          )}
           <Outlet />
-        </div>
+        </main>
       </div>
 
-      {showNew && meId && (
-        <NewConversationDialog
-          mode={showNew}
-          meId={meId}
-          profiles={profiles}
-          onClose={() => setShowNew(null)}
-        />
-      )}
+      <AnimatePresence>
+        {showNew && meId && (
+          <NewConversationDialog
+            mode={showNew}
+            meId={meId}
+            profiles={profiles}
+            onClose={() => setShowNew(null)}
+          />
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }
@@ -344,56 +382,71 @@ function ConversationRow({
     : undefined;
   const otherAvatarPath = other ? profiles[other.user_id]?.avatar_url ?? null : null;
   const lastMine = item.lastMessage?.sender_id === meId;
-  const lastDelivered = item.lastMessage; // simplified — full delivery state in detail view
+  const lastDelivered = item.lastMessage;
 
   return (
     <Link
       to="/chat/$conversationId"
       params={{ conversationId: item.conversation.id }}
       onClick={() => onOpen?.()}
-      className={`flex items-center gap-3 px-4 py-3 border-b border-border/40 hover:bg-secondary/30 transition ${
-        active ? "bg-secondary/40" : ""
-      }`}
+      className={cn(
+        "flex items-center gap-4 px-4 py-4 rounded-[28px] transition-all duration-300 relative overflow-hidden group",
+        active
+          ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-[1.02] z-10"
+          : "hover:bg-muted/60 text-foreground"
+      )}
     >
-      <div
-        className={`size-12 rounded-full grid place-items-center text-sm font-medium shrink-0 overflow-hidden ${
-          item.conversation.kind === "group"
-            ? "bg-secondary/60 text-ivory ring-1 ring-border"
-            : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-        }`}
-      >
-        {item.conversation.kind === "group" ? (
-          <Users className="size-5" strokeWidth={1.5} />
-        ) : (
-          <UserAvatar path={otherAvatarPath} initial={initial} className="size-full" userId={other?.user_id ?? null} />
+      <div className="relative shrink-0">
+        <div
+          className={cn(
+            "size-14 rounded-[22px] grid place-items-center text-sm font-black overflow-hidden border-2 transition-all duration-500",
+            active ? "border-white/20" : "border-gold-primary/10 group-hover:border-gold-primary/30"
+          )}
+        >
+          {item.conversation.kind === "group" ? (
+            <div className={cn("size-full flex items-center justify-center", active ? "bg-white/10" : "bg-primary/5")}>
+              <Users className={cn("size-6", active ? "text-white" : "text-primary")} strokeWidth={2} />
+            </div>
+          ) : (
+            <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full" userId={other?.user_id ?? null} />
+          )}
+        </div>
+        {!active && item.unread > 0 && (
+          <span className="absolute -top-1.5 -left-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-navy-base text-[10px] font-black grid place-items-center border-2 border-card shadow-lg animate-fade-in">
+            {item.unread > 99 ? "99+" : item.unread}
+          </span>
         )}
       </div>
+
       <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-medium text-ivory truncate">{title}</h3>
-          <span className="text-[10px] text-muted-foreground shrink-0">
-            {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
-          </span>
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <h3 className={cn("text-sm font-black truncate tracking-tight", active ? "text-white" : "text-primary group-hover:text-gold-primary transition-colors")}>{title}</h3>
+          <div className="flex items-center gap-1.5 opacity-60">
+             {!active && <Clock className="size-3" />}
+             <span className="text-[10px] font-bold">
+               {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
+             </span>
+          </div>
         </div>
-        <div className="flex items-center justify-between gap-2 mt-0.5">
-          <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <p className={cn("text-xs font-bold truncate flex items-center gap-1.5", active ? "text-white/80" : "text-muted-foreground")}>
             {lastMine && lastDelivered && (
-              <CheckCheck className="size-3 text-gold-primary/60 shrink-0" strokeWidth={2} />
+              <CheckCheck className={cn("size-3.5", active ? "text-white/60" : "text-gold-primary/60")} strokeWidth={2.5} />
             )}
             {messagePreview(item.lastMessage)}
           </p>
-          <div className="flex items-center gap-1.5 shrink-0">
-            {item.myParticipant?.muted && (
-              <BellOff className="size-3 text-muted-foreground" strokeWidth={1.5} />
-            )}
-            {item.unread > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-gold-primary text-navy-base text-[10px] font-bold grid place-items-center">
-                {item.unread > 99 ? "99+" : item.unread}
-              </span>
-            )}
-          </div>
+          {item.myParticipant?.muted && !active && (
+            <BellOff className="size-3 text-muted-foreground opacity-40" strokeWidth={2.5} />
+          )}
         </div>
       </div>
+
+      {active && (
+        <motion.div
+          layoutId="active-chat-pill"
+          className="absolute left-0 inset-y-4 w-1 bg-white rounded-full opacity-40"
+        />
+      )}
     </Link>
   );
 }
@@ -480,71 +533,112 @@ function NewConversationDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-navy-base/80 backdrop-blur-sm grid place-items-center z-[100] p-4"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="card-surface w-full max-w-md p-6 space-y-4 max-h-[80vh] flex flex-col"
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/80 backdrop-blur-md"
+      />
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.9, y: 20 }}
+        className="relative bg-card border border-border rounded-[48px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
+        dir="rtl"
       >
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-medium text-ivory">
-            {mode === "chat" ? "محادثة جديدة" : "مجموعة جديدة"}
-          </h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-ivory">
-            <X className="size-4" />
-          </button>
+        <div className="p-8 sm:p-10 space-y-8 flex flex-col h-full">
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <h3 className="text-3xl font-black tracking-tight text-primary">
+                {mode === "chat" ? "محادثة جديدة" : "مجموعة عائلية"}
+              </h3>
+              <p className="text-muted-foreground font-bold text-sm">اختر الأفراد الذين تود التواصل معهم.</p>
+            </div>
+            <button onClick={onClose} className="size-12 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-primary transition-all">
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="space-y-4">
+            {mode === "group" && (
+              <div className="space-y-2">
+                <label className="text-[10px] font-black uppercase tracking-widest text-primary mr-2 block">اسم المجموعة</label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="أدخل اسم المجموعة هنا..."
+                  maxLength={80}
+                  className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                />
+              </div>
+            )}
+
+            <div className="relative group">
+              <Search className="size-4 absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="ابحث عن فرد من العائلة..."
+                className="w-full bg-muted/30 border border-border rounded-2xl pl-4 pr-12 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+              />
+            </div>
+          </div>
+
+          <div className="flex-1 overflow-y-auto no-scrollbar -mx-2 px-2 space-y-2 py-4 border-y border-border/40">
+            {list.length === 0 && (
+              <p className="text-center text-sm font-bold text-muted-foreground py-10 opacity-60 italic">لا توجد نتائج للبحث حالياً.</p>
+            )}
+            {list.map((p) => {
+              const name = displayName(p);
+              const isSel = selected.has(p.id);
+              return (
+                <button
+                  key={p.id}
+                  onClick={() => toggle(p.id)}
+                  className={cn(
+                    "w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 border-2",
+                    isSel
+                      ? "bg-primary/5 border-primary/20 shadow-sm"
+                      : "bg-white/50 border-transparent hover:bg-white hover:border-border"
+                  )}
+                >
+                  <div className={cn(
+                    "size-11 rounded-[16px] grid place-items-center text-xs font-black overflow-hidden border-2 transition-all duration-500",
+                    isSel ? "border-primary bg-primary text-white scale-110 shadow-md" : "border-gold-primary/10 bg-muted"
+                  )}>
+                    <UserAvatar path={p.avatar_url} name={name} initial={initialOf(name)} className="size-full" userId={p.id} />
+                  </div>
+                  <span className={cn("flex-1 text-sm font-bold text-right truncate", isSel ? "text-primary" : "text-foreground")}>{name}</span>
+                  {isSel && (
+                    <div className="size-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg">
+                      <Check className="size-3.5" strokeWidth={4} />
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="pt-4">
+            <button
+              onClick={create}
+              disabled={selected.size === 0 || busy || (mode === "group" && !title.trim())}
+              className="w-full btn-gold py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              {busy ? (
+                <div className="size-6 rounded-full border-3 border-white/20 border-t-white animate-spin" />
+              ) : (
+                <>
+                  {mode === "chat" ? "بدء المحادثة الآن" : `إنشاء المجموعة (${selected.size})`}
+                  <ArrowRight className="size-5 rotate-180" />
+                </>
+              )}
+            </button>
+          </div>
         </div>
-        {mode === "group" && (
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="اسم المجموعة"
-            maxLength={80}
-            className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-          />
-        )}
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="ابحث بالاسم..."
-          className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-        />
-        <div className="flex-1 overflow-y-auto -mx-2 px-2 space-y-1">
-          {list.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-6">لا توجد نتائج.</p>
-          )}
-          {list.map((p) => {
-            const name = displayName(p);
-            const isSel = selected.has(p.id);
-            return (
-              <button
-                key={p.id}
-                onClick={() => toggle(p.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition text-right ${
-                  isSel ? "bg-gold-primary/10 ring-1 ring-gold-primary/20" : "hover:bg-secondary/40"
-                }`}
-              >
-                <div className="size-9 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-xs font-medium shrink-0">
-                  {initialOf(name)}
-                </div>
-                <span className="flex-1 text-sm text-ivory truncate">{name}</span>
-                {isSel && <Check className="size-4 text-gold-primary" strokeWidth={2} />}
-              </button>
-            );
-          })}
-        </div>
-        <button
-          onClick={create}
-          disabled={
-            selected.size === 0 || busy || (mode === "group" && !title.trim())
-          }
-          className="w-full px-4 py-3 bg-gold-primary text-navy-base text-sm font-semibold rounded-xl hover:brightness-110 transition disabled:opacity-40"
-        >
-          {busy ? "..." : mode === "chat" ? "بدء المحادثة" : `إنشاء المجموعة (${selected.size})`}
-        </button>
-      </div>
+      </motion.div>
     </div>
   );
 }

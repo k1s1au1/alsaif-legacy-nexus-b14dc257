@@ -37,6 +37,9 @@ import {
   Users,
   UserPlus,
   X,
+  Clock,
+  Phone,
+  Video,
 } from "lucide-react";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
@@ -63,6 +66,9 @@ import {
   type Reaction,
   timeLabel,
 } from "@/lib/chat";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/chat/$conversationId")({
   ssr: false,
@@ -201,10 +207,6 @@ function ConversationRoute() {
         (payload) => {
           const m = payload.new as Message;
           setMessages((prev) => (prev.some((x) => x.id === m.id) ? prev : [...prev, m]));
-          // Browser notification
-          if (m.sender_id !== meId && document.visibilityState !== "visible") {
-            maybeNotify(m, profiles);
-          }
           if (document.visibilityState === "visible" && m.sender_id !== meId) {
             markConversationRead();
           } else {
@@ -295,30 +297,11 @@ function ConversationRoute() {
           setParticipants((parts ?? []) as unknown as Participant[]);
         },
       )
-      .on(
-        "postgres_changes",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "conversations",
-          filter: `id=eq.${conversationId}`,
-        },
-        (payload) => setConv(payload.new as unknown as Conversation),
-      )
-      .on(
-        "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "profiles" },
-        (payload) => {
-          const p = payload.new as Profile;
-          setProfiles((prev) => ({ ...prev, [p.id]: { ...prev[p.id], ...p } }));
-        },
-      )
       .subscribe();
 
     return () => {
       supabase.removeChannel(ch);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conversationId, meId]);
 
   // --- Typing broadcast channel ------------------------------------------
@@ -331,7 +314,6 @@ function ConversationRoute() {
       const uid = payload?.user_id as string | undefined;
       if (!uid || uid === meId) return;
       setTypingUsers((prev) => (prev.includes(uid) ? prev : [...prev, uid]));
-      // auto-clear after 3s
       window.setTimeout(() => {
         setTypingUsers((prev) => prev.filter((x) => x !== uid));
       }, 3000);
@@ -344,58 +326,6 @@ function ConversationRoute() {
     };
   }, [conversationId, meId]);
 
-  // --- Presence: heartbeat ourselves online ------------------------------
-  useEffect(() => {
-    if (!meId) return;
-    const setOnline = () =>
-      supabase
-        .from("user_presence")
-        .upsert({ user_id: meId, status: "online", last_seen_at: new Date().toISOString() });
-    const setOffline = () =>
-      supabase
-        .from("user_presence")
-        .upsert({ user_id: meId, status: "offline", last_seen_at: new Date().toISOString() });
-
-    setOnline();
-    const interval = window.setInterval(setOnline, 30_000);
-    const onUnload = () => setOffline();
-    window.addEventListener("beforeunload", onUnload);
-    return () => {
-      window.clearInterval(interval);
-      window.removeEventListener("beforeunload", onUnload);
-      setOffline();
-    };
-  }, [meId]);
-
-  // --- Notification permission ------------------------------------------
-  useEffect(() => {
-    if (typeof Notification !== "undefined" && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
-    }
-  }, []);
-
-  function maybeNotify(m: Message, profs: Record<string, Profile>) {
-    if (myParticipant?.muted) return;
-    if (typeof Notification === "undefined" || Notification.permission !== "granted") return;
-    try {
-      new Notification(displayName(profs[m.sender_id]), {
-        body:
-          m.kind === "text"
-            ? (m.body ?? "")
-            : m.kind === "audio"
-            ? "🎙 رسالة صوتية"
-            : m.kind === "image"
-            ? "📷 صورة"
-            : m.kind === "video"
-            ? "🎬 فيديو"
-            : `📎 ${m.attachment_name ?? "ملف"}`,
-        silent: false,
-      });
-    } catch {
-      /* ignore */
-    }
-  }
-
   const markConversationRead = useCallback(async () => {
     if (!meId) return;
     const now = new Date().toISOString();
@@ -404,13 +334,6 @@ function ConversationRoute() {
         p.conversation_id === conversationId && p.user_id === meId
           ? { ...p, last_read_at: now }
           : p,
-      ),
-    );
-    setDeliveries((prev) =>
-      prev.map((d) =>
-        d.conversation_id === conversationId && d.user_id === meId && !d.read_at
-          ? { ...d, delivered_at: d.delivered_at ?? now, read_at: now }
-          : d,
       ),
     );
     await supabase.rpc("mark_conversation_read", { _conversation_id: conversationId });
@@ -434,7 +357,7 @@ function ConversationRoute() {
       .eq("user_id", meId)
       .is("delivered_at", null);
   }
-  // --- Typing emit on keystroke -----------------------------------------
+
   function onDraftKey() {
     if (!meId || !typingChannelRef.current) return;
     typingChannelRef.current.send({
@@ -492,9 +415,7 @@ function ConversationRoute() {
     if (kind === "audio" || kind === "video") {
       try {
         duration_ms = await readMediaDuration(file);
-      } catch {
-        /* ignore */
-      }
+      } catch { /* ignore */ }
     }
     const { error: msgErr } = await supabase.from("messages").insert({
       conversation_id: conv.id,
@@ -518,19 +439,10 @@ function ConversationRoute() {
 
   function onPickFile(e: React.ChangeEvent<HTMLInputElement>, mode: "any" | "image") {
     const file = e.target.files?.[0];
-    e.target.value = "";
     if (!file) return;
-    const kind =
-      mode === "image" && file.type.startsWith("image/")
-        ? "image"
-        : file.type.startsWith("image/")
-        ? "image"
-        : file.type.startsWith("video/")
-        ? "video"
-        : file.type.startsWith("audio/")
-        ? "audio"
-        : "file";
+    const kind = file.type.startsWith("image/") ? "image" : file.type.startsWith("video/") ? "video" : file.type.startsWith("audio/") ? "audio" : "file";
     uploadAndSend(file, kind);
+    e.target.value = "";
   }
 
   // --- Voice recording --------------------------------------------------
@@ -560,127 +472,48 @@ function ConversationRoute() {
       toast.error("لا يمكن الوصول للميكروفون");
     }
   }
+
   function stopRecording(cancel: boolean) {
     const mr = mediaRecorderRef.current;
     if (!mr) return;
-    if (cancel) mr.ondataavailable = null as never;
+    if (cancel) mr.ondataavailable = null as any;
     mr.stop();
     mediaRecorderRef.current = null;
     setRecording(false);
-    if (recordTimerRef.current) {
-      clearInterval(recordTimerRef.current);
-      recordTimerRef.current = null;
-    }
-    if (cancel) mediaChunksRef.current = [];
+    if (recordTimerRef.current) clearInterval(recordTimerRef.current);
   }
 
-  // --- Reactions --------------------------------------------------------
+  // --- Reactions & Deletion ---------------------------------------------
   async function toggleReaction(messageId: string, emoji: string) {
     if (!meId) return;
-    const existing = reactions.find(
-      (r) => r.message_id === messageId && r.user_id === meId && r.emoji === emoji,
-    );
-    if (existing) {
-      await supabase.from("message_reactions").delete().eq("id", existing.id);
-    } else {
-      await supabase.from("message_reactions").insert({
-        message_id: messageId,
-        user_id: meId,
-        emoji,
-      });
-    }
+    const existing = reactions.find((r) => r.message_id === messageId && r.user_id === meId && r.emoji === emoji);
+    if (existing) await supabase.from("message_reactions").delete().eq("id", existing.id);
+    else await supabase.from("message_reactions").insert({ message_id: messageId, user_id: meId, emoji });
     setReactingTo(null);
   }
 
-  // --- Delete message ---------------------------------------------------
   async function deleteMessage(m: Message) {
     if (!meId) return;
     if (m.sender_id === meId) {
-      await supabase
-        .from("messages")
-        .update({ deleted_at: new Date().toISOString(), body: null, attachment_url: null })
-        .eq("id", m.id);
+      await supabase.from("messages").update({ deleted_at: new Date().toISOString() }).eq("id", m.id);
     } else if (isAdmin) {
       await supabase.from("messages").delete().eq("id", m.id);
     }
   }
 
-  // --- Conversation actions: archive/mute --------------------------------
-  async function toggleMute() {
-    if (!myParticipant) return;
-    await supabase
-      .from("conversation_participants")
-      .update({ muted: !myParticipant.muted })
-      .eq("id", myParticipant.id);
-  }
-  async function toggleArchive() {
-    if (!myParticipant) return;
-    await supabase
-      .from("conversation_participants")
-      .update({ archived_at: myParticipant.archived_at ? null : new Date().toISOString() })
-      .eq("id", myParticipant.id);
-    toast.success(myParticipant.archived_at ? "تم إلغاء الأرشفة" : "تمت الأرشفة");
-  }
-  async function deleteConversation() {
-    if (!conv) return;
-    if (!confirm("هل تريد حذف هذه المحادثة بالكامل؟")) return;
-    const { error } = await supabase.from("conversations").delete().eq("id", conv.id);
-    if (error) {
-      toast.error("تعذّر الحذف — تحتاج صلاحيات مسؤول الغرفة");
-      return;
-    }
-    navigate({ to: "/chat" });
-  }
-  async function leaveConversation() {
-    if (!myParticipant) return;
-    if (!confirm("هل تريد مغادرة هذه المحادثة؟")) return;
-    await supabase.from("conversation_participants").delete().eq("id", myParticipant.id);
-    navigate({ to: "/chat" });
-  }
-
-  // --- Filtered messages with search ------------------------------------
   const visibleMessages = useMemo(() => {
     if (!search.trim()) return messages;
-    const q = search.toLowerCase();
-    return messages.filter((m) => (m.body ?? "").toLowerCase().includes(q));
+    return messages.filter((m) => (m.body ?? "").toLowerCase().includes(search.toLowerCase()));
   }, [messages, search]);
 
-  if (notFound) {
-    return (
-      <div className="flex-1 grid place-items-center text-center px-6">
-        <div className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            المحادثة غير موجودة أو ليست لديك صلاحية الوصول.
-          </p>
-          <button
-            onClick={() => navigate({ to: "/chat" })}
-            className="text-sm text-gold-primary hover:underline"
-          >
-            العودة
-          </button>
-        </div>
-      </div>
-    );
-  }
-  if (!conv) {
-    return (
-      <div className="flex-1 grid place-items-center text-center text-sm text-muted-foreground">
-        جارٍ التحميل...
-      </div>
-    );
-  }
+  if (!conv) return null;
 
   const title = conversationTitle(conv, participants, profiles, meId);
-  const initial = conversationAvatarInitial(conv, participants, profiles, meId);
   const otherInDirect = participants.find((p) => p.user_id !== meId);
-  const headerStatus =
-    conv.kind === "direct"
-      ? (() => {
-          const p = otherInDirect ? presence[otherInDirect.user_id] : undefined;
-          if (p?.status === "online") return "متصل الآن";
-          return lastSeenLabel(p?.last_seen_at ?? null);
-        })()
-      : `${participants.length} عضو`;
+  const presenceInfo = otherInDirect ? presence[otherInDirect.user_id] : undefined;
+  const statusLabel = conv.kind === "direct"
+    ? (presenceInfo?.status === "online" ? "متصل الآن" : lastSeenLabel(presenceInfo?.last_seen_at ?? null))
+    : `${participants.length} عضو`;
 
   const typingLabel = (() => {
     const others = typingUsers.filter((u) => u !== meId);
@@ -690,258 +523,174 @@ function ConversationRoute() {
   })();
 
   return (
-    <div className="flex-1 flex flex-col min-w-0 bg-background">
-      {/* Header */}
-      <header className="h-16 border-b border-border px-4 lg:px-6 flex items-center gap-3 bg-card/40 backdrop-blur-md">
-        <button
-          onClick={() => navigate({ to: "/chat" })}
-          className="lg:hidden p-2 -mr-2 rounded-lg text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-          aria-label="رجوع"
-        >
-          <ArrowRight className="size-4" strokeWidth={1.5} />
-        </button>
-        <button
-          onClick={() => setShowInfo(true)}
-          className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition text-right"
-        >
-          <div
-            className={`size-10 rounded-full grid place-items-center text-sm font-medium shrink-0 overflow-hidden ${
-              conv.kind === "group"
-                ? "bg-secondary/60 text-ivory ring-1 ring-border"
-                : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-            }`}
-          >
-            {conv.kind === "group" ? (
-              <Users className="size-5" strokeWidth={1.5} />
-            ) : (
-              <UserAvatar
-                path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null}
-                initial={initial}
-                className="size-full"
-                userId={otherInDirect?.user_id ?? null}
-              />
-            )}
-          </div>
-          <div className="min-w-0 flex-1">
-            <h2 className="text-sm font-medium text-ivory truncate">{title}</h2>
-            <p className="text-[11px] text-muted-foreground truncate">
-              {typingLabel ?? headerStatus}
-            </p>
-          </div>
-        </button>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            onClick={() => setShowSearch((v) => !v)}
-            className="p-2 rounded-lg text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-            aria-label="بحث"
-          >
-            <Search className="size-4" strokeWidth={1.5} />
+    <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden">
+      {/* HEADER */}
+      <header className="h-20 shrink-0 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-6 z-30 shadow-sm">
+        <div className="flex items-center gap-4 min-w-0">
+          <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-primary transition-all">
+            <ArrowRight className="size-5" />
           </button>
-          <button
-            onClick={() => setShowInfo(true)}
-            className="p-2 rounded-lg text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-            aria-label="معلومات"
-          >
-            <Info className="size-4" strokeWidth={1.5} />
-          </button>
+
+          <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setShowInfo(true)}>
+             <div className="size-12 rounded-[20px] bg-primary/5 border border-primary/10 overflow-hidden relative shadow-inner">
+                {conv.kind === "group" ? (
+                  <div className="size-full flex items-center justify-center bg-primary text-white"><Users className="size-6" /></div>
+                ) : (
+                  <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full" userId={otherInDirect?.user_id ?? null} />
+                )}
+                {conv.kind === "direct" && presenceInfo?.status === "online" && (
+                   <span className="absolute bottom-0 right-0 size-3 bg-emerald-500 rounded-full border-2 border-card" />
+                )}
+             </div>
+             <div className="min-w-0">
+                <h2 className="text-[17px] font-black tracking-tight text-primary group-hover:text-gold-primary transition-colors truncate">{title}</h2>
+                <p className="text-[11px] font-bold text-muted-foreground opacity-60">
+                   {typingLabel ? <span className="text-emerald-500 animate-pulse">{typingLabel}</span> : statusLabel}
+                </p>
+             </div>
+          </div>
         </div>
+
+        <div className="flex items-center gap-2 shrink-0">
+           <button onClick={() => setShowSearch(!showSearch)} className={cn("size-10 rounded-xl flex items-center justify-center transition-all", showSearch ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted")}><Search className="size-5" /></button>
+           <div className="hidden sm:flex items-center gap-2">
+              <button className="size-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"><Phone className="size-5" /></button>
+              <button className="size-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"><Video className="size-5" /></button>
+           </div>
+           <button onClick={() => setShowInfo(true)} className="size-10 rounded-xl flex items-center justify-center text-muted-foreground hover:bg-muted transition-all"><MoreVertical className="size-5" /></button>
+        </div>
+
+        {/* SEARCH BAR OVERLAY */}
+        <AnimatePresence>
+          {showSearch && (
+            <motion.div initial={{ y: -20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }} className="absolute inset-x-0 bottom-0 top-0 bg-card z-50 flex items-center px-6 gap-4 border-b border-border shadow-2xl">
+               <Search className="size-5 text-primary" />
+               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث في محادثة المجلس..." className="flex-1 bg-transparent border-none focus:outline-none font-bold text-lg" autoFocus />
+               <button onClick={() => { setShowSearch(false); setSearch(""); }} className="size-10 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X className="size-5" /></button>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
-      {showSearch && (
-        <div className="border-b border-border px-4 py-2 bg-card/40">
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث في الرسائل..."
-            autoFocus
-            className="w-full bg-background/60 border border-border rounded-xl px-4 py-2 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-          />
-        </div>
-      )}
-
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 lg:px-8 py-4 space-y-1">
-        {visibleMessages.length === 0 && (
-          <div className="h-full grid place-items-center text-sm text-muted-foreground">
-            {search ? "لا توجد نتائج." : "ابدأ المحادثة بإرسال رسالة."}
-          </div>
-        )}
-        {renderGroupedMessages({
-          messages: visibleMessages,
-          meId,
-          profiles,
-          participants,
-          reactions,
-          deliveries,
-          onReply: setReplyTo,
-          onReact: (id) => setReactingTo(id),
-          onDelete: deleteMessage,
-          isAdmin,
-          reactingTo,
-          onPickReaction: toggleReaction,
-          closeReactingTo: () => setReactingTo(null),
-        })}
+      {/* MESSAGES LIST */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto no-scrollbar px-4 md:px-8 py-10 space-y-6 relative"
+        style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' viewBox='0 0 20 20' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%238E7745' fill-opacity='0.03' fill-rule='evenodd'%3E%3Ccircle cx='3' cy='3' r='3'/%3E%3Ccircle cx='13' cy='13' r='3'/%3E%3C/g%3E%3C/svg%3E")` }}
+      >
+        <AnimatePresence initial={false}>
+          {renderGroupedMessages({
+            messages: visibleMessages,
+            meId,
+            profiles,
+            participants,
+            reactions,
+            deliveries,
+            onReply: setReplyTo,
+            onReact: (id) => setReactingTo(id),
+            onDelete: deleteMessage,
+            isAdmin,
+            reactingTo,
+            onPickReaction: toggleReaction,
+            closeReactingTo: () => setReactingTo(null),
+          })}
+        </AnimatePresence>
       </div>
 
-      {/* Reply context */}
-      {replyTo && (
-        <div className="border-t border-border bg-card/60 px-4 py-2 flex items-center gap-3">
-          <div className="flex-1 min-w-0 border-r-2 border-gold-primary pr-3">
-            <p className="text-[11px] text-gold-primary">رد على {displayName(profiles[replyTo.sender_id])}</p>
-            <p className="text-xs text-muted-foreground truncate">
-              {replyTo.body ?? `[${replyTo.kind}]`}
-            </p>
-          </div>
-          <button
-            onClick={() => setReplyTo(null)}
-            className="text-muted-foreground hover:text-ivory"
-          >
-            <X className="size-4" />
-          </button>
-        </div>
-      )}
+      {/* COMPOSER BOX */}
+      <div className="px-6 pb-6 shrink-0 relative z-20">
+         <AnimatePresence>
+           {replyTo && (
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="mb-2 bg-card/90 backdrop-blur-md border border-border rounded-2xl p-4 flex items-center gap-4 shadow-xl border-r-4 border-r-gold-primary">
+                 <Reply className="size-4 text-gold-primary" />
+                 <div className="flex-1 min-w-0">
+                    <p className="text-[10px] font-black uppercase text-gold-primary">الرد على {displayName(profiles[replyTo.sender_id])}</p>
+                    <p className="text-xs font-bold text-muted-foreground truncate">{replyTo.body || `[مرفق]`}</p>
+                 </div>
+                 <button onClick={() => setReplyTo(null)} className="size-8 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X className="size-4 text-muted-foreground" /></button>
+              </motion.div>
+           )}
+         </AnimatePresence>
 
-      {/* Composer */}
-      {recording ? (
-        <div className="border-t border-border px-4 lg:px-6 py-3 bg-card/60 flex items-center gap-3">
-          <button
-            onClick={() => stopRecording(true)}
-            className="p-2 rounded-full text-red-400 hover:bg-red-400/10"
-            aria-label="إلغاء"
-          >
-            <Trash2 className="size-4" />
-          </button>
-          <div className="flex-1 flex items-center gap-2">
-            <span className="size-2 rounded-full bg-red-400 animate-pulse" />
-            <span className="text-sm text-ivory">{formatDuration(recordMs)}</span>
-            <span className="text-xs text-muted-foreground">جاري التسجيل...</span>
-          </div>
-          <button
-            onClick={() => stopRecording(false)}
-            className="p-3 rounded-full bg-gold-primary text-navy-base hover:brightness-110"
-            aria-label="إرسال"
-          >
-            <Send className="size-4" />
-          </button>
-        </div>
-      ) : !canSend ? (
-        <div className="border-t border-border px-4 py-4 bg-card/60 text-center text-xs text-muted-foreground">
-          {conv?.send_permission === "admins"
-            ? "🔒 المشرفون فقط يمكنهم إرسال الرسائل في هذه المجموعة"
-            : "🔒 ليس لديك صلاحية إرسال الرسائل في هذه المجموعة"}
-        </div>
-      ) : (
-        <form
-          onSubmit={sendText}
-          className="border-t border-border px-3 lg:px-4 py-3 bg-card/60 flex items-end gap-2"
-        >
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setShowEmoji((v) => !v)}
-              className="p-2.5 rounded-full text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-              aria-label="إيموجي"
-            >
-              <Smile className="size-5" strokeWidth={1.5} />
-            </button>
-            {showEmoji && (
-              <div className="absolute bottom-12 right-0 w-72 max-h-64 overflow-y-auto card-surface p-2 grid grid-cols-8 gap-1 z-50">
-                {EMOJI_PICKER.map((e) => (
-                  <button
-                    key={e}
-                    type="button"
-                    onClick={() => {
-                      setDraft((d) => d + e);
-                      setShowEmoji(false);
-                    }}
-                    className="size-7 grid place-items-center hover:bg-secondary/40 rounded text-base"
-                  >
-                    {e}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="p-2.5 rounded-full text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-            aria-label="مرفق"
-          >
-            <Paperclip className="size-5" strokeWidth={1.5} />
-          </button>
-          <button
-            type="button"
-            onClick={() => imageInputRef.current?.click()}
-            className="p-2.5 rounded-full text-muted-foreground hover:text-gold-primary hover:bg-secondary/40 transition"
-            aria-label="صورة"
-          >
-            <ImageIcon className="size-5" strokeWidth={1.5} />
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            hidden
-            onChange={(e) => onPickFile(e, "any")}
-          />
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*,video/*"
-            capture="environment"
-            hidden
-            onChange={(e) => onPickFile(e, "image")}
-          />
-          <textarea
-            value={draft}
-            onChange={(e) => {
-              setDraft(e.target.value);
-              onDraftKey();
-            }}
-            onKeyDown={onComposerKeyDown}
-            placeholder="اكتب رسالتك..."
-            rows={1}
-            disabled={sending}
-            className="flex-1 resize-none max-h-32 bg-background/60 border border-border rounded-2xl px-4 py-2.5 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-          />
-          {draft.trim() ? (
-            <button
-              type="submit"
-              disabled={sending}
-              className="p-3 rounded-full bg-gold-primary text-navy-base hover:brightness-110 transition disabled:opacity-40"
-              aria-label="إرسال"
-            >
-              <Send className="size-4" strokeWidth={2} />
-            </button>
-          ) : (
-            <button
-              type="button"
-              onClick={startRecording}
-              className="p-3 rounded-full bg-gold-primary text-navy-base hover:brightness-110 transition"
-              aria-label="تسجيل صوتي"
-            >
-              <Mic className="size-4" strokeWidth={2} />
-            </button>
-          )}
-        </form>
-      )}
+         {recording ? (
+            <div className="bg-primary h-[72px] rounded-[28px] flex items-center px-6 gap-6 shadow-2xl text-white">
+               <button onClick={() => stopRecording(true)} className="size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-all"><Trash2 className="size-5" /></button>
+               <div className="flex-1 flex items-center gap-4">
+                  <div className="size-3 rounded-full bg-red-400 animate-pulse" />
+                  <span className="text-lg font-black tracking-tighter">{formatDuration(recordMs)}</span>
+                  <div className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
+                     <motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 60, ease: "linear" }} />
+                  </div>
+               </div>
+               <button onClick={() => stopRecording(false)} className="size-12 rounded-[20px] bg-white text-primary flex items-center justify-center hover:scale-105 transition-all shadow-lg"><Send className="size-5" /></button>
+            </div>
+         ) : !canSend ? (
+            <div className="bg-muted/30 h-14 rounded-[28px] border border-border flex items-center justify-center text-[13px] font-black text-muted-foreground">
+               <Lock className="size-4 ml-2 opacity-40" />
+               {conv.send_permission === "admins" ? "المشرفون فقط يمكنهم إرسال الرسائل هنا" : "ليس لديك صلاحية للإرسال"}
+            </div>
+         ) : (
+            <form onSubmit={sendText} className="flex items-end gap-3">
+               <div className="flex-1 bg-card/80 backdrop-blur-xl border border-border rounded-[32px] p-2 flex items-end shadow-2xl focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                  <div className="flex items-center pb-1">
+                     <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all relative">
+                        <Smile className="size-6" />
+                        {showEmoji && (
+                          <div className="absolute bottom-14 right-0 w-80 h-80 bg-card border border-border rounded-[32px] shadow-2xl p-4 grid grid-cols-6 gap-2 overflow-y-auto no-scrollbar z-50">
+                             {EMOJI_PICKER.map(e => <button key={e} type="button" onClick={() => { setDraft(d => d + e); setShowEmoji(false); }} className="size-10 flex items-center justify-center text-xl hover:bg-muted rounded-xl transition-all">{e}</button>)}
+                          </div>
+                        )}
+                     </button>
+                     <button type="button" onClick={() => fileInputRef.current?.click()} className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all"><Paperclip className="size-6" /></button>
+                  </div>
+                  <textarea
+                    value={draft}
+                    onChange={(e) => { setDraft(e.target.value); onDraftKey(); }}
+                    onKeyDown={onComposerKeyDown}
+                    placeholder="اكتب رسالتك للمجلس..."
+                    rows={1}
+                    className="flex-1 bg-transparent border-none focus:outline-none px-2 py-3.5 font-bold text-[15px] resize-none max-h-40 no-scrollbar min-h-[52px]"
+                  />
+                  <input ref={fileInputRef} type="file" hidden onChange={(e) => onPickFile(e, "any")} />
+                  <div className="pb-1 px-1">
+                     <button type="button" onClick={() => imageInputRef.current?.click()} className="size-11 rounded-full bg-primary/5 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"><ImageIcon className="size-6" /></button>
+                     <input ref={imageInputRef} type="file" accept="image/*,video/*" hidden onChange={(e) => onPickFile(e, "image")} />
+                  </div>
+               </div>
 
-      {showInfo && (
-        <InfoDrawer
-          conversation={conv}
-          participants={participants}
-          profiles={profiles}
-          presence={presence}
-          meId={meId}
-          isAdmin={isAdmin}
-          myParticipant={myParticipant}
-          onClose={() => setShowInfo(false)}
-          onToggleMute={toggleMute}
-          onToggleArchive={toggleArchive}
-          onDelete={deleteConversation}
-          onLeave={leaveConversation}
-        />
-      )}
+               <div className="shrink-0">
+                  {draft.trim() ? (
+                     <button type="submit" className="size-[60px] rounded-[24px] bg-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-primary/30">
+                        <Send className="size-6" strokeWidth={2.5} />
+                     </button>
+                  ) : (
+                     <button type="button" onClick={startRecording} className="size-[60px] rounded-[24px] bg-gold-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-gold-primary/30">
+                        <Mic className="size-6" strokeWidth={2.5} />
+                     </button>
+                  )}
+               </div>
+            </form>
+         )}
+      </div>
+
+      <AnimatePresence>
+        {showInfo && (
+          <InfoDrawer
+            conversation={conv}
+            participants={participants}
+            profiles={profiles}
+            presence={presence}
+            meId={meId}
+            isAdmin={isAdmin}
+            myParticipant={myParticipant}
+            onClose={() => setShowInfo(false)}
+            onToggleMute={toggleMute}
+            onToggleArchive={toggleArchive}
+            onDelete={deleteConversation}
+            onLeave={leaveConversation}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
@@ -950,48 +699,21 @@ function ConversationRoute() {
 // Message rendering
 // ============================================================
 
-function renderGroupedMessages(opts: {
-  messages: Message[];
-  meId: string | null;
-  profiles: Record<string, Profile>;
-  participants: Participant[];
-  reactions: Reaction[];
-  deliveries: Delivery[];
-  onReply: (m: Message) => void;
-  onReact: (id: string) => void;
-  onDelete: (m: Message) => void;
-  isAdmin: boolean;
-  reactingTo: string | null;
-  onPickReaction: (id: string, emoji: string) => void;
-  closeReactingTo: () => void;
-}) {
-  const {
-    messages,
-    meId,
-    profiles,
-    participants,
-    reactions,
-    deliveries,
-    onReply,
-    onReact,
-    onDelete,
-    isAdmin,
-    reactingTo,
-    onPickReaction,
-    closeReactingTo,
-  } = opts;
+function renderGroupedMessages(opts: any) {
+  const { messages, meId, profiles, participants, reactions, deliveries, onReply, onReact, onDelete, isAdmin, reactingTo, onPickReaction, closeReactingTo } = opts;
   const nodes: React.ReactNode[] = [];
   let lastDay = "";
   const byId: Record<string, Message> = {};
-  messages.forEach((m) => (byId[m.id] = m));
+  messages.forEach((m: Message) => (byId[m.id] = m));
   const totalRecipients = Math.max(1, participants.length - 1);
 
-  messages.forEach((m) => {
+  messages.forEach((m: Message, idx: number) => {
     const day = dayKey(m.created_at);
     if (day !== lastDay) {
       nodes.push(
-        <div key={`day-${day}`} className="flex justify-center my-3">
-          <span className="text-[10px] text-muted-foreground bg-card/60 px-3 py-1 rounded-full ring-1 ring-border">
+        <div key={`day-${day}`} className="flex justify-center my-8 relative">
+          <div className="h-px w-full bg-border absolute top-1/2 left-0 z-0" />
+          <span className="relative z-10 text-[11px] font-black uppercase tracking-[0.3em] text-muted-foreground bg-background px-6 rounded-full border border-border">
             {dayLabel(m.created_at)}
           </span>
         </div>,
@@ -1002,18 +724,19 @@ function renderGroupedMessages(opts: {
       <MessageBubble
         key={m.id}
         m={m}
+        index={idx}
         meId={meId}
         profiles={profiles}
         replyTo={m.reply_to_id ? byId[m.reply_to_id] : undefined}
-        reactions={reactions.filter((r) => r.message_id === m.id)}
-        deliveries={deliveries.filter((d) => d.message_id === m.id)}
+        reactions={reactions.filter((r: any) => r.message_id === m.id)}
+        deliveries={deliveries.filter((d: any) => d.message_id === m.id)}
         totalRecipients={totalRecipients}
         onReply={() => onReply(m)}
         onReact={() => onReact(m.id)}
         onDelete={() => onDelete(m)}
         isAdmin={isAdmin}
         reacting={reactingTo === m.id}
-        onPickReaction={(e) => onPickReaction(m.id, e)}
+        onPickReaction={(e: string) => onPickReaction(m.id, e)}
         closeReacting={closeReactingTo}
       />,
     );
@@ -1021,194 +744,109 @@ function renderGroupedMessages(opts: {
   return nodes;
 }
 
-function MessageBubble({
-  m,
-  meId,
-  profiles,
-  replyTo,
-  reactions,
-  deliveries,
-  totalRecipients,
-  onReply,
-  onReact,
-  onDelete,
-  isAdmin,
-  reacting,
-  onPickReaction,
-  closeReacting,
-}: {
-  m: Message;
-  meId: string | null;
-  profiles: Record<string, Profile>;
-  replyTo: Message | undefined;
-  reactions: Reaction[];
-  deliveries: Delivery[];
-  totalRecipients: number;
-  onReply: () => void;
-  onReact: () => void;
-  onDelete: () => void;
-  isAdmin: boolean;
-  reacting: boolean;
-  onPickReaction: (e: string) => void;
-  closeReacting: () => void;
-}) {
+function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, totalRecipients, onReply, onReact, onDelete, isAdmin, reacting, onPickReaction, closeReacting, index }: any) {
   const mine = m.sender_id === meId;
-  const name = displayName(profiles[m.sender_id]);
+  const profile = profiles[m.sender_id];
+  const name = displayName(profile);
   const initial = initialOf(name);
   const canDelete = mine || isAdmin;
 
-  // reaction summary grouped by emoji
-  const rxGrouped = reactions.reduce<Record<string, { count: number; mine: boolean }>>((acc, r) => {
+  const rxGrouped = reactions.reduce((acc: any, r: any) => {
     if (!acc[r.emoji]) acc[r.emoji] = { count: 0, mine: false };
     acc[r.emoji].count++;
     if (r.user_id === meId) acc[r.emoji].mine = true;
     return acc;
   }, {});
 
-  // status indicator (for own messages)
   let status: "sent" | "delivered" | "read" = "sent";
   if (mine && deliveries.length > 0) {
-    const delivered = deliveries.filter((d) => d.delivered_at).length;
-    const read = deliveries.filter((d) => d.read_at).length;
+    const delivered = deliveries.filter((d: any) => d.delivered_at).length;
+    const read = deliveries.filter((d: any) => d.read_at).length;
     if (read >= totalRecipients) status = "read";
     else if (delivered > 0) status = "delivered";
   }
 
   return (
-    <div className={`group flex items-end gap-2 my-1 ${mine ? "flex-row-reverse" : ""}`}>
+    <motion.div
+      initial={{ opacity: 0, x: mine ? 20 : -20, scale: 0.9 }}
+      animate={{ opacity: 1, x: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 25 }}
+      className={cn("group flex items-end gap-3", mine ? "flex-row-reverse" : "flex-row")}
+    >
       {!mine && (
-        <div className="size-7 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-[10px] font-medium shrink-0 overflow-hidden">
-          <UserAvatar
-            path={profiles[m.sender_id]?.avatar_url ?? null}
-            initial={initial}
-            className="size-full"
-            userId={m.sender_id}
-          />
+        <div className="size-9 rounded-[14px] border border-gold-primary/10 overflow-hidden shrink-0 shadow-sm">
+          <UserAvatar path={profile?.avatar_url ?? null} name={name} initial={initial} className="size-full" userId={m.sender_id} />
         </div>
       )}
-      <div className={`max-w-[78%] ${mine ? "items-end" : "items-start"} flex flex-col relative`}>
+
+      <div className={cn("max-w-[85%] sm:max-w-[70%] flex flex-col relative", mine ? "items-end text-left" : "items-start text-right")}>
         {!mine && (
-          <span className="text-[10px] text-muted-foreground mb-0.5 px-2">{name}</span>
+           <span className="text-[10px] font-black text-primary opacity-60 mb-1.5 mr-3 tracking-wide">{name}</span>
         )}
-        <div
-          className={`relative px-3 py-2 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap break-words ${
-            mine
-              ? "bg-gold-primary text-navy-base rounded-br-sm"
-              : "bg-secondary/70 text-ivory ring-1 ring-border rounded-bl-sm"
-          }`}
-        >
-          {replyTo && (
-            <div
-              className={`mb-1.5 px-2 py-1 rounded-md text-[11px] border-r-2 ${
-                mine
-                  ? "bg-navy-base/15 border-navy-base/40"
-                  : "bg-background/50 border-gold-primary/50"
-              }`}
-            >
-              <p className={`font-medium ${mine ? "text-navy-base/80" : "text-gold-primary"}`}>
-                {displayName(profiles[replyTo.sender_id])}
-              </p>
-              <p className={`truncate ${mine ? "text-navy-base/70" : "text-muted-foreground"}`}>
-                {replyTo.deleted_at ? "🚫 محذوفة" : replyTo.body ?? `[${replyTo.kind}]`}
-              </p>
-            </div>
-          )}
 
-          {m.deleted_at ? (
-            <em className="opacity-70">🚫 تم حذف هذه الرسالة</em>
-          ) : (
-            <AttachmentBody m={m} />
-          )}
+        <div className={cn(
+          "relative px-4 py-3 rounded-[24px] shadow-sm transition-all duration-300",
+          mine
+            ? "bg-primary text-white rounded-br-none shadow-primary/10"
+            : "bg-white dark:bg-card border border-border text-foreground rounded-bl-none shadow-black/5"
+        )}>
+           {replyTo && (
+              <div className={cn(
+                "mb-3 p-3 rounded-xl border-r-4 text-[12px] font-bold",
+                mine ? "bg-black/10 border-white/30 text-white/90" : "bg-muted/50 border-gold-primary/40 text-muted-foreground"
+              )}>
+                 <p className="text-[10px] uppercase font-black mb-1 opacity-70">{displayName(profiles[replyTo.sender_id])}</p>
+                 <p className="truncate italic">{replyTo.deleted_at ? "رسالة محذوفة" : (replyTo.body || "[مرفق]")}</p>
+              </div>
+           )}
 
-          <div
-            className={`flex items-center gap-1 mt-1 text-[10px] ${
-              mine ? "text-navy-base/70" : "text-muted-foreground"
-            } ${mine ? "justify-end" : "justify-start"}`}
-          >
-            <span>{timeLabel(m.created_at)}</span>
-            {mine && !m.deleted_at && (
-              <>
-                {status === "sent" && <Check className="size-3" strokeWidth={2.2} />}
-                {status === "delivered" && <CheckCheck className="size-3" strokeWidth={2.2} />}
-                {status === "read" && (
-                  <CheckCheck className="size-3 text-blue-500" strokeWidth={2.2} />
-                )}
-              </>
-            )}
-          </div>
+           {m.deleted_at ? (
+              <p className="text-xs italic opacity-40 py-1">🚫 تم حذف هذه الرسالة</p>
+           ) : (
+              <div className="text-[15px] font-bold leading-relaxed">
+                 <AttachmentBody m={m} />
+              </div>
+           )}
+
+           <div className={cn("flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest", mine ? "text-white/50 justify-end" : "text-muted-foreground/50")}>
+              <span>{timeLabel(m.created_at)}</span>
+              {mine && !m.deleted_at && (
+                <div className="flex">
+                   {status === "sent" ? <Check className="size-3" /> : status === "delivered" ? <CheckCheck className="size-3" /> : <CheckCheck className="size-3 text-emerald-400" />}
+                </div>
+              )}
+           </div>
         </div>
 
-        {/* Reactions chips */}
+        {/* REACTIONS BOX */}
         {Object.keys(rxGrouped).length > 0 && (
-          <div className={`flex gap-1 mt-1 ${mine ? "self-end" : "self-start"}`}>
-            {Object.entries(rxGrouped).map(([emoji, info]) => (
-              <button
-                key={emoji}
-                onClick={() => onPickReaction(emoji)}
-                className={`text-xs px-1.5 py-0.5 rounded-full bg-card/80 ring-1 transition ${
-                  info.mine ? "ring-gold-primary/50" : "ring-border"
-                }`}
-              >
-                {emoji} {info.count}
-              </button>
-            ))}
-          </div>
+           <div className={cn("flex flex-wrap gap-1 mt-2 animate-fade-in", mine ? "justify-end" : "")}>
+              {Object.entries(rxGrouped).map(([emoji, info]: any) => (
+                <button key={emoji} onClick={() => onPickReaction(emoji)} className={cn("px-2 py-1 rounded-full text-xs font-black border flex items-center gap-1.5 transition-all active:scale-90", info.mine ? "bg-primary text-white border-primary" : "bg-card border-border text-primary hover:border-gold-primary")}>
+                   <span>{emoji}</span>
+                   <span className="opacity-60">{info.count}</span>
+                </button>
+              ))}
+           </div>
         )}
 
-        {/* Reaction picker */}
+        {/* REACTION PICKER OVERLAY */}
         {reacting && (
-          <div
-            className={`absolute top-0 ${
-              mine ? "left-0" : "right-0"
-            } -translate-y-full mb-1 card-surface p-1 flex gap-0.5 z-20`}
-            onMouseLeave={closeReacting}
-          >
-            {EMOJI_QUICK.map((e) => (
-              <button
-                key={e}
-                onClick={() => onPickReaction(e)}
-                className="size-8 grid place-items-center hover:bg-secondary/40 rounded text-base"
-              >
-                {e}
-              </button>
-            ))}
-          </div>
+           <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className={cn("absolute -top-12 z-50 bg-card border border-border p-1 rounded-2xl flex gap-1 shadow-2xl", mine ? "right-0" : "left-0")}>
+              {EMOJI_QUICK.map(e => <button key={e} onClick={() => onPickReaction(e)} className="size-10 flex items-center justify-center text-xl hover:bg-muted rounded-xl transition-all active:scale-125">{e}</button>)}
+           </motion.div>
         )}
       </div>
 
-      {/* Hover toolbar */}
+      {/* QUICK ACTIONS TOOLBAR (Hover) */}
       {!m.deleted_at && (
-        <div
-          className={`opacity-0 group-hover:opacity-100 transition flex gap-0.5 ${
-            mine ? "flex-row-reverse" : ""
-          }`}
-        >
-          <button
-            onClick={onReact}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40"
-            aria-label="تفاعل"
-          >
-            <Smile className="size-3.5" strokeWidth={1.5} />
-          </button>
-          <button
-            onClick={onReply}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-gold-primary hover:bg-secondary/40"
-            aria-label="رد"
-          >
-            <Reply className="size-3.5" strokeWidth={1.5} />
-          </button>
-          {canDelete && (
-            <button
-              onClick={onDelete}
-              className="p-1.5 rounded-md text-muted-foreground hover:text-red-400 hover:bg-secondary/40"
-              aria-label="حذف"
-            >
-              <Trash2 className="size-3.5" strokeWidth={1.5} />
-            </button>
-          )}
-        </div>
+         <div className={cn("opacity-0 group-hover:opacity-100 transition-all flex items-center self-center", mine ? "flex-row-reverse" : "")}>
+            <button onClick={onReact} className="p-2 text-muted-foreground hover:text-gold-primary transition-all"><Smile size={16} /></button>
+            <button onClick={onReply} className="p-2 text-muted-foreground hover:text-gold-primary transition-all"><Reply size={16} /></button>
+            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground hover:text-red-500 transition-all"><Trash2 size={16} /></button>}
+         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -1229,139 +867,73 @@ function AttachmentBody({ m }: { m: Message }) {
     };
   }, [m.attachment_url]);
 
-  if (m.kind === "text") {
-    return <>{m.body}</>;
-  }
-  if (!m.attachment_url) {
-    return <em className="opacity-70">[مرفق غير متاح]</em>;
-  }
+  if (m.kind === "text") return <span className="dir-rtl inline-block text-right w-full">{m.body}</span>;
+  if (!m.attachment_url) return <em className="opacity-70">[مرفق غير متاح]</em>;
+
   if (m.kind === "image") {
     return signed ? (
-      <a href={signed} target="_blank" rel="noopener noreferrer" className="block">
-        <img
-          src={signed}
-          alt={m.attachment_name ?? ""}
-          loading="lazy"
-          className="max-w-[260px] max-h-[260px] rounded-lg object-cover"
-        />
+      <a href={signed} target="_blank" rel="noopener noreferrer" className="block relative group/img overflow-hidden rounded-2xl shadow-lg border border-white/10">
+        <img src={signed} alt={m.attachment_name ?? ""} loading="lazy" className="max-w-full max-h-[400px] object-cover transition-transform duration-700 group-hover/img:scale-110" />
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity"><Download className="text-white size-8" /></div>
       </a>
     ) : (
-      <div className="size-40 rounded-lg bg-background/40 animate-pulse" />
+      <div className="size-48 rounded-2xl bg-muted animate-pulse flex items-center justify-center text-muted-foreground"><ImageIcon className="size-10 opacity-20" /></div>
     );
   }
+
   if (m.kind === "video") {
     return signed ? (
-      <video src={signed} controls className="max-w-[280px] max-h-[280px] rounded-lg" />
+      <div className="rounded-2xl overflow-hidden shadow-xl border border-white/10 bg-black">
+         <video src={signed} controls className="max-w-full max-h-[400px]" />
+      </div>
     ) : (
-      <div className="size-40 rounded-lg bg-background/40 animate-pulse" />
+      <div className="size-48 rounded-2xl bg-muted animate-pulse" />
     );
   }
+
   if (m.kind === "audio") {
     return (
-      <div className="flex items-center gap-3 min-w-[220px]">
-        {signed ? (
-          <audio controls src={signed} className="h-8 w-full" />
-        ) : (
-          <span className="text-xs opacity-70">جارٍ التحميل...</span>
-        )}
+      <div className="flex flex-col gap-3 min-w-[250px] p-2 bg-black/5 rounded-2xl">
+        <div className="flex items-center gap-3">
+           <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white"><Mic className="size-5" /></div>
+           <div className="flex-1">
+              <p className="text-[10px] font-black uppercase opacity-60 mb-1">رسالة صوتية</p>
+              {signed ? <audio controls src={signed} className="h-6 w-full opacity-60" /> : <span className="text-xs opacity-50">تحميل...</span>}
+           </div>
+        </div>
         {m.attachment_duration_ms && (
-          <span className="text-[10px] opacity-70">{formatDuration(m.attachment_duration_ms)}</span>
+          <span className="text-[10px] font-black opacity-40 self-end px-2">{formatDuration(m.attachment_duration_ms)}</span>
         )}
       </div>
     );
   }
-  // file
+
   return (
-    <a
-      href={signed ?? "#"}
-      target="_blank"
-      rel="noopener noreferrer"
-      download={m.attachment_name ?? undefined}
-      className="flex items-center gap-3 px-2 py-1.5 rounded-lg bg-background/30 hover:bg-background/50 transition min-w-[200px]"
-    >
-      <div className="size-10 rounded-lg bg-gold-primary/20 grid place-items-center shrink-0">
-        <FileIcon className="size-5" strokeWidth={1.5} />
-      </div>
+    <a href={signed ?? "#"} target="_blank" rel="noopener noreferrer" download={m.attachment_name ?? undefined} className="flex items-center gap-4 px-4 py-3 rounded-2xl bg-muted/30 hover:bg-muted transition-all border border-border min-w-[220px]">
+      <div className="size-12 rounded-xl bg-gold-primary text-white flex items-center justify-center shadow-lg"><FileIcon className="size-6" /></div>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate">{m.attachment_name ?? "ملف"}</p>
-        <p className="text-[10px] opacity-70">{formatBytes(m.attachment_size)}</p>
+        <p className="text-sm font-black truncate text-primary">{m.attachment_name ?? "ملف"}</p>
+        <p className="text-[10px] font-bold opacity-40">{formatBytes(m.attachment_size)}</p>
       </div>
-      <Download className="size-3.5 opacity-70" strokeWidth={1.5} />
+      <Download className="size-4 text-primary opacity-60" />
     </a>
   );
 }
 
 // ============================================================
-// Info drawer (members + admin controls)
+// Info drawer (Redesigned)
 // ============================================================
 
-function InfoDrawer({
-  conversation,
-  participants,
-  profiles,
-  presence,
-  meId,
-  isAdmin,
-  myParticipant,
-  onClose,
-  onToggleMute,
-  onToggleArchive,
-  onDelete,
-  onLeave,
-}: {
-  conversation: Conversation;
-  participants: Participant[];
-  profiles: Record<string, Profile>;
-  presence: Record<string, Presence>;
-  meId: string | null;
-  isAdmin: boolean;
-  myParticipant?: Participant;
-  onClose: () => void;
-  onToggleMute: () => void;
-  onToggleArchive: () => void;
-  onDelete: () => void;
-  onLeave: () => void;
-}) {
+function InfoDrawer({ conversation, participants, profiles, presence, meId, isAdmin, myParticipant, onClose, onToggleMute, onToggleArchive, onDelete, onLeave }: any) {
   const [renaming, setRenaming] = useState(false);
   const [title, setTitle] = useState(conversation.title ?? "");
   const [showAdd, setShowAdd] = useState(false);
 
   async function saveTitle() {
     if (!title.trim()) return;
-    await supabase
-      .from("conversations")
-      .update({ title: title.trim() })
-      .eq("id", conversation.id);
+    await supabase.from("conversations").update({ title: title.trim() }).eq("id", conversation.id);
     setRenaming(false);
-    toast.success("تم تحديث الاسم");
-  }
-  async function setRole(p: Participant, role: "admin" | "member") {
-    await supabase.from("conversation_participants").update({ role }).eq("id", p.id);
-  }
-  async function setPermission(perm: "all" | "admins" | "selected") {
-    const { error } = await supabase
-      .from("conversations")
-      .update({ send_permission: perm } as never)
-      .eq("id", conversation.id);
-    if (error) {
-      toast.error("تعذّر تحديث الصلاحيات");
-      return;
-    }
-    toast.success("تم تحديث صلاحيات الإرسال");
-  }
-  async function toggleCanSend(p: Participant, value: boolean) {
-    const { error } = await supabase
-      .from("conversation_participants")
-      .update({ can_send: value } as never)
-      .eq("id", p.id);
-    if (error) toast.error("تعذّر التحديث");
-  }
-  async function removeMember(p: Participant) {
-    if (p.user_id === conversation.created_by) {
-      toast.error("لا يمكن إزالة مالك المجموعة");
-      return;
-    }
-    await supabase.from("conversation_participants").delete().eq("id", p.id);
+    toast.success("تم تحديث اسم المجلس");
   }
 
   const sorted = [...participants].sort((a, b) => {
@@ -1371,276 +943,96 @@ function InfoDrawer({
   });
 
   return (
-    <div
-      className="fixed inset-0 bg-navy-base/80 backdrop-blur-sm z-[100]"
-      onClick={onClose}
-    >
-      <aside
-        onClick={(e) => e.stopPropagation()}
-        className="absolute inset-y-0 left-0 w-full max-w-md bg-card border-l border-border flex flex-col overflow-hidden"
-      >
-        <header className="px-5 py-4 border-b border-border flex items-center justify-between">
-          <h3 className="text-base font-medium text-ivory">معلومات المحادثة</h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-ivory">
-            <X className="size-4" />
-          </button>
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex justify-end">
+      <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30 }} className="w-full max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border">
+
+        <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-8 bg-muted/10">
+           <h3 className="text-xl font-black text-primary tracking-tight">معلومات المجلس</h3>
+           <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X className="size-5" /></button>
         </header>
-        <div className="flex-1 overflow-y-auto p-5 space-y-5">
-          {/* Header card */}
-          <div className="text-center space-y-2">
-            <div
-              className={`size-20 rounded-full grid place-items-center text-xl font-medium mx-auto ${
-                conversation.kind === "group"
-                  ? "bg-secondary/60 text-ivory ring-1 ring-border"
-                  : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-              }`}
-            >
-              {conversation.kind === "group" ? (
-                <Users className="size-8" strokeWidth={1.5} />
-              ) : (
-                conversationAvatarInitial(conversation, participants, profiles, meId)
-              )}
-            </div>
-            {conversation.kind === "group" && renaming ? (
-              <div className="flex gap-2 max-w-xs mx-auto">
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="flex-1 bg-background/60 border border-border rounded-lg px-3 py-2 text-sm text-ivory text-center"
-                />
-                <button
-                  onClick={saveTitle}
-                  className="px-3 py-2 bg-gold-primary text-navy-base rounded-lg text-xs font-semibold"
-                >
-                  حفظ
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <h4 className="text-lg font-medium text-ivory">
-                  {conversationTitle(conversation, participants, profiles, meId)}
-                </h4>
-                {conversation.kind === "group" && isAdmin && (
-                  <button
-                    onClick={() => setRenaming(true)}
-                    className="text-muted-foreground hover:text-gold-primary"
-                  >
-                    <Settings2 className="size-3.5" />
-                  </button>
-                )}
-              </div>
-            )}
-            <p className="text-xs text-muted-foreground">
-              {conversation.kind === "group" ? `${participants.length} عضو` : "محادثة فردية"}
-            </p>
-          </div>
 
-          {/* Actions */}
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={onToggleMute}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/40 hover:bg-secondary/60 text-sm text-ivory transition"
-            >
-              {myParticipant?.muted ? (
-                <>
-                  <Bell className="size-4" strokeWidth={1.5} />
-                  إلغاء الكتم
-                </>
-              ) : (
-                <>
-                  <BellOff className="size-4" strokeWidth={1.5} />
-                  كتم
-                </>
-              )}
-            </button>
-            <button
-              onClick={onToggleArchive}
-              className="flex items-center justify-center gap-2 py-2.5 rounded-xl bg-secondary/40 hover:bg-secondary/60 text-sm text-ivory transition"
-            >
-              <Archive className="size-4" strokeWidth={1.5} />
-              {myParticipant?.archived_at ? "إلغاء الأرشفة" : "أرشفة"}
-            </button>
-          </div>
-
-          {/* Send permissions (group + admin only) */}
-          {conversation.kind === "group" && isAdmin && (
-            <div>
-              <h5 className="text-xs uppercase tracking-wider text-muted-foreground mb-2">
-                صلاحيات الإرسال
-              </h5>
-              <div className="space-y-1.5">
-                {(
-                  [
-                    { v: "all", label: "كل الأعضاء", desc: "يستطيع جميع الأعضاء إرسال الرسائل" },
-                    { v: "admins", label: "المشرفون فقط", desc: "المالك والمشرفون فقط يمكنهم الإرسال" },
-                    { v: "selected", label: "أعضاء محددون والمشرفون", desc: "اختر يدويًا من يستطيع الإرسال" },
-                  ] as const
-                ).map((opt) => {
-                  const active = (conversation.send_permission ?? "all") === opt.v;
-                  return (
-                    <button
-                      key={opt.v}
-                      onClick={() => setPermission(opt.v)}
-                      className={`w-full text-right px-3 py-2.5 rounded-xl border transition ${
-                        active
-                          ? "border-gold-primary/60 bg-gold-primary/10"
-                          : "border-border bg-secondary/30 hover:bg-secondary/50"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div>
-                          <div className="text-sm text-ivory">{opt.label}</div>
-                          <div className="text-[11px] text-muted-foreground mt-0.5">{opt.desc}</div>
-                        </div>
-                        <span
-                          className={`size-4 rounded-full border ${
-                            active ? "border-gold-primary bg-gold-primary" : "border-border"
-                          }`}
-                        />
-                      </div>
-                    </button>
-                  );
-                })}
+        <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-10">
+           {/* Profile Header */}
+           <div className="flex flex-col items-center text-center space-y-6">
+              <div className="size-32 rounded-[40px] bg-primary/5 border-2 border-gold-primary/20 flex items-center justify-center relative shadow-2xl">
+                 {conversation.kind === "group" ? <Users className="size-12 text-primary" /> : <UserAvatar path={participants.find(p => p.user_id !== meId) ? profiles[participants.find(p => p.user_id !== meId)!.user_id]?.avatar_url : null} name={conversationTitle(conversation, participants, profiles, meId)} className="size-full" />}
+                 <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent rounded-[40px]" />
               </div>
-            </div>
-          )}
 
-          {/* Members */}
-          <div>
-            <div className="flex items-center justify-between mb-2">
-              <h5 className="text-xs uppercase tracking-wider text-muted-foreground">الأعضاء</h5>
-              {conversation.kind === "group" && isAdmin && (
-                <button
-                  onClick={() => setShowAdd(true)}
-                  className="text-xs text-gold-primary inline-flex items-center gap-1 hover:underline"
-                >
-                  <UserPlus className="size-3.5" strokeWidth={1.5} />
-                  إضافة
-                </button>
-              )}
-            </div>
-            <div className="space-y-1">
-              {sorted.map((p) => {
-                const name = displayName(profiles[p.user_id]);
-                const isMe = p.user_id === meId;
-                const isOwner = p.role === "owner";
-                const isMemAdmin = p.role === "admin";
-                const pres = presence[p.user_id];
-                return (
-                  <div
-                    key={p.id}
-                    className="group flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-secondary/30 transition"
-                  >
-                    <div className="relative shrink-0">
-                      <div
-                        className={`size-9 rounded-full grid place-items-center text-xs font-medium overflow-hidden ${
-                          isOwner || isMemAdmin
-                            ? "bg-gold-primary text-navy-base"
-                            : "bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20"
-                        }`}
-                      >
-                        <UserAvatar
-                          path={profiles[p.user_id]?.avatar_url ?? null}
-                          name={name}
-                          className="size-full"
-                          userId={p.user_id}
-                        />
-                      </div>
+              <div className="space-y-2">
+                 {renaming ? (
+                    <div className="flex gap-2">
+                       <input value={title} onChange={(e) => setTitle(e.target.value)} className="bg-muted border border-border rounded-xl px-4 py-2 font-bold text-center" />
+                       <button onClick={saveTitle} className="btn-gold px-4 rounded-xl font-black">حفظ</button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm text-ivory truncate flex items-center gap-1.5">
-                        {name}
-                        {isMe && <span className="text-[10px] text-muted-foreground">(أنت)</span>}
-                      </div>
-                      <div className="text-[11px] text-muted-foreground flex items-center gap-1">
-                        {isOwner && <Crown className="size-3" strokeWidth={1.5} />}
-                        {isMemAdmin && <ShieldCheck className="size-3" strokeWidth={1.5} />}
-                        {isOwner
-                          ? "المالك"
-                          : isMemAdmin
-                          ? "مشرف"
-                          : pres?.status === "online"
-                          ? "متصل الآن"
-                          : lastSeenLabel(pres?.last_seen_at ?? null)}
-                      </div>
+                 ) : (
+                    <div className="flex items-center justify-center gap-3">
+                       <h4 className="text-2xl font-black text-primary tracking-tight">{conversationTitle(conversation, participants, profiles, meId)}</h4>
+                       {isAdmin && <button onClick={() => setRenaming(true)} className="text-muted-foreground hover:text-primary"><Settings2 size={16} /></button>}
                     </div>
-                    {conversation.kind === "group" &&
-                      isAdmin &&
-                      conversation.send_permission === "selected" &&
-                      !isOwner &&
-                      !isMemAdmin && (
-                        <label
-                          className="text-[11px] text-muted-foreground flex items-center gap-1.5 cursor-pointer select-none"
-                          title="السماح بالإرسال"
-                        >
-                          <input
-                            type="checkbox"
-                            checked={p.can_send}
-                            onChange={(e) => toggleCanSend(p, e.target.checked)}
-                            className="accent-gold-primary"
-                          />
-                          إرسال
-                        </label>
-                      )}
-                    {conversation.kind === "group" && isAdmin && !isMe && !isOwner && (
-                      <div className="opacity-0 group-hover:opacity-100 flex gap-1 transition">
-                        {isMemAdmin ? (
-                          <button
-                            onClick={() => setRole(p, "member")}
-                            title="إلغاء صلاحية الإشراف"
-                            className="text-xs text-muted-foreground hover:text-ivory px-2 py-1 rounded"
-                          >
-                            عضو
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setRole(p, "admin")}
-                            title="ترقية إلى مشرف"
-                            className="text-xs text-gold-primary hover:underline px-2 py-1 rounded"
-                          >
-                            مشرف
-                          </button>
-                        )}
-                        <button
-                          onClick={() => removeMember(p)}
-                          className="text-muted-foreground hover:text-red-400 p-1"
-                        >
-                          <X className="size-3.5" />
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+                 )}
+                 <p className="text-sm font-bold text-muted-foreground opacity-60 italic">{conversation.kind === "group" ? `مجلس يضم ${participants.length} عضو` : "محادثة خاصة ومؤمنة"}</p>
+              </div>
+           </div>
 
-          {/* Danger zone */}
-          <div className="border-t border-border pt-4 space-y-2">
-            {conversation.kind === "group" && (
-              <button
-                onClick={onLeave}
-                className="w-full py-2.5 text-sm text-red-400 hover:bg-red-400/10 rounded-xl transition"
-              >
-                مغادرة المجموعة
+           {/* Quick Actions */}
+           <div className="grid grid-cols-2 gap-3">
+              <button onClick={onToggleMute} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-muted/40 hover:bg-muted transition-all border border-border/40 group">
+                 <div className="size-10 rounded-2xl bg-card flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">{myParticipant?.muted ? <Bell className="size-5 text-gold-primary" /> : <BellOff className="size-5 text-muted-foreground" />}</div>
+                 <span className="text-[11px] font-black uppercase tracking-widest">{myParticipant?.muted ? "إلغاء الكتم" : "كتم الإشعارات"}</span>
               </button>
-            )}
-            {(isAdmin || conversation.created_by === meId) && (
-              <button
-                onClick={onDelete}
-                className="w-full py-2.5 text-sm text-red-400 hover:bg-red-400/10 rounded-xl transition"
-              >
-                حذف المحادثة
+              <button onClick={onToggleArchive} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-muted/40 hover:bg-muted transition-all border border-border/40 group">
+                 <div className="size-10 rounded-2xl bg-card flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform"><Archive className="size-5 text-muted-foreground" /></div>
+                 <span className="text-[11px] font-black uppercase tracking-widest">{myParticipant?.archived_at ? "إلغاء الأرشفة" : "أرشفة المحادثة"}</span>
               </button>
-            )}
-          </div>
+           </div>
+
+           {/* Members List */}
+           <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                 <div className="flex items-center gap-3">
+                    <h5 className="font-black text-xs uppercase tracking-[0.2em] text-primary">أعضاء المجلس</h5>
+                    <span className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10">{participants.length}</span>
+                 </div>
+                 {isAdmin && <button onClick={() => setShowAdd(true)} className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline">+ إضافة عضو</button>}
+              </div>
+
+              <div className="space-y-2">
+                 {sorted.map(p => {
+                    const profile = profiles[p.user_id];
+                    const name = displayName(profile);
+                    const pres = presence[p.user_id];
+                    return (
+                       <div key={p.id} className="flex items-center gap-4 p-3 rounded-2xl hover:bg-muted/40 transition-all group/mem">
+                          <div className="size-11 rounded-[14px] border border-border overflow-hidden shrink-0 shadow-sm relative">
+                             <UserAvatar path={profile?.avatar_url ?? null} name={name} className="size-full" userId={p.user_id} />
+                             {pres?.status === "online" && <div className="absolute -bottom-1 -right-1 size-3 bg-emerald-500 rounded-full border-2 border-card" />}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                             <p className="text-sm font-black text-primary truncate">{name} {p.user_id === meId && <span className="opacity-40 font-bold">(أنت)</span>}</p>
+                             <div className="flex items-center gap-1.5 mt-0.5 opacity-60">
+                                {p.role === "owner" ? <Crown size={10} className="text-gold-primary" /> : p.role === "admin" ? <ShieldCheck size={10} className="text-primary" /> : <Users size={10} />}
+                                <span className="text-[10px] font-black uppercase tracking-tighter">{p.role === "owner" ? "مالك المجلس" : p.role === "admin" ? "مشرف" : "عضو"}</span>
+                             </div>
+                          </div>
+                       </div>
+                    );
+                 })}
+              </div>
+           </div>
+
+           {/* Danger Zone */}
+           <div className="pt-10 space-y-3">
+              {conversation.kind === "group" && <button onClick={onLeave} className="w-full py-4 rounded-2xl bg-red-500/5 text-red-600 font-black text-sm border border-red-500/10 hover:bg-red-500 hover:text-white transition-all">مغادرة المجلس</button>}
+              {(isAdmin || conversation.created_by === meId) && <button onClick={onDelete} className="w-full py-4 rounded-2xl bg-red-500/5 text-red-600 font-black text-sm border border-red-500/10 hover:bg-red-500 hover:text-white transition-all">حذف المحادثة نهائياً</button>}
+           </div>
         </div>
-      </aside>
+      </motion.div>
 
       {showAdd && (
         <AddParticipantsDialog
           conversationId={conversation.id}
-          existing={new Set(participants.map((p) => p.user_id))}
+          existing={new Set(participants.map((p: any) => p.user_id))}
           profiles={profiles}
           meId={meId}
           onClose={() => setShowAdd(false)}
@@ -1650,86 +1042,45 @@ function InfoDrawer({
   );
 }
 
-function AddParticipantsDialog({
-  conversationId,
-  existing,
-  profiles,
-  meId,
-  onClose,
-}: {
-  conversationId: string;
-  existing: Set<string>;
-  profiles: Record<string, Profile>;
-  meId: string | null;
-  onClose: () => void;
-}) {
+function AddParticipantsDialog({ conversationId, existing, profiles, meId, onClose }: any) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const list = Object.values(profiles)
-    .filter((p) => p.id !== meId && !existing.has(p.id))
-    .filter((p) => !q.trim() || displayName(p).toLowerCase().includes(q.toLowerCase()));
+    .filter((p: any) => p.id !== meId && !existing.has(p.id))
+    .filter((p: any) => !q.trim() || displayName(p).toLowerCase().includes(q.toLowerCase()));
 
   async function add(uid: string) {
     setBusy(uid);
-    const { error } = await supabase
-      .from("conversation_participants")
-      .insert({ conversation_id: conversationId, user_id: uid, role: "member" });
+    const { error } = await supabase.from("conversation_participants").insert({ conversation_id: conversationId, user_id: uid, role: "member" });
     setBusy(null);
-    if (error) {
-      toast.error("تعذّر إضافة العضو");
-      return;
-    }
-    toast.success("تمت الإضافة");
+    if (error) { toast.error("تعذّر إضافة العضو"); return; }
+    toast.success("تمت الإضافة للمجلس");
   }
 
   return (
-    <div
-      className="fixed inset-0 bg-navy-base/80 backdrop-blur-sm grid place-items-center z-[110] p-4"
-      onClick={onClose}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        className="card-surface w-full max-w-md p-6 space-y-4 max-h-[80vh] flex flex-col"
-      >
+    <div className="fixed inset-0 bg-black/80 backdrop-blur-md grid place-items-center z-[110] p-4" onClick={onClose}>
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} onClick={(e) => e.stopPropagation()} className="card-surface w-full max-w-md p-8 space-y-6 flex flex-col rounded-[40px]">
         <div className="flex items-center justify-between">
-          <h3 className="text-base font-medium text-ivory">إضافة أعضاء</h3>
-          <button onClick={onClose} className="text-muted-foreground hover:text-ivory">
-            <X className="size-4" />
-          </button>
+          <h3 className="text-2xl font-black text-primary tracking-tight">إضافة للمجلس</h3>
+          <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X className="size-5" /></button>
         </div>
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="ابحث بالاسم..."
-          className="w-full bg-background/60 border border-border rounded-xl px-4 py-3 text-sm text-ivory placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-gold-primary/40"
-        />
-        <div className="flex-1 overflow-y-auto -mx-2 px-2 space-y-1">
-          {list.length === 0 && (
-            <p className="text-center text-xs text-muted-foreground py-6">لا توجد نتائج.</p>
-          )}
-          {list.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => add(p.id)}
-              disabled={busy === p.id}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-secondary/40 transition text-right disabled:opacity-40"
-            >
-              <div className="size-8 rounded-full bg-gold-primary/10 text-gold-primary ring-1 ring-gold-primary/20 grid place-items-center text-xs font-medium shrink-0">
-                {initialOf(displayName(p))}
-              </div>
-              <span className="flex-1 text-sm text-ivory truncate">{displayName(p)}</span>
-              <UserPlus className="size-4 text-gold-primary" strokeWidth={1.5} />
+        <div className="relative">
+          <Search className="size-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث بالاسم..." className="w-full bg-muted/40 border border-border rounded-2xl pl-4 pr-11 py-3.5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
+        </div>
+        <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 min-h-[300px] max-h-[400px]">
+          {list.map((p: any) => (
+            <button key={p.id} onClick={() => add(p.id)} disabled={busy === p.id} className="w-full flex items-center gap-4 px-4 py-3 rounded-2xl hover:bg-primary/5 transition-all border border-transparent hover:border-primary/10">
+              <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary font-black uppercase text-xs">{(p.arabic_name || p.full_name || "?")[0]}</div>
+              <span className="flex-1 text-sm font-bold text-right text-primary">{displayName(p)}</span>
+              {busy === p.id ? <Loader2 className="size-4 animate-spin" /> : <UserPlus className="size-4 text-gold-primary" />}
             </button>
           ))}
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
-
-// ============================================================
-// Helpers
-// ============================================================
 
 async function readMediaDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
