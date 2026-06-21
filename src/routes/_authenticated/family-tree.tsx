@@ -41,7 +41,7 @@ const NODE_H = 80;
 
 function FamilyTreePage() {
   const router = useRouter();
-  const [me, setMe] = useState<any>(null);
+  const [me, setMe] = useState<{ name: string; role: string; initial: string; avatarPath?: string | null } | null>(null);
   const [isPriv, setIsPriv] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,12 +68,11 @@ function FamilyTreePage() {
         const rs = (roles ?? []).map((r) => r.role);
         const isAdmin = rs.includes("admin") || rs.includes("manager");
 
-        const name = profile?.arabic_name || profile?.full_name || "عضو";
+        const profileName = profile?.arabic_name || profile?.full_name || "عضو";
         setMe({
-          ...profile,
-          name,
+          name: profileName,
           role: rs.includes("admin") ? "مسؤول النظام" : "عضو",
-          initial: name[0],
+          initial: (profileName[0] || "ع").toUpperCase(),
           avatarPath: profile?.avatar_url
         });
         setIsPriv(isAdmin);
@@ -150,10 +149,10 @@ function FamilyTreePage() {
   }
 
   const renderNode = ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
-    const memberId = (nodeDatum.attributes?.memberId as string);
-    const m = members.find(mem => mem.id === memberId);
+    const memberId = (nodeDatum.attributes?.memberId as string | undefined);
+    const m = memberId ? members.find(mem => mem.id === memberId) : null;
     const isRoot = memberId === "__root__";
-    const isMe = me && m && m.id === me.id;
+    const isMe = me && m && m.id === (me as any).id;
     const isSearchMatch = search && m && (
       (m.first_name || "").includes(search) ||
       (m.father_name || "").includes(search)
@@ -236,10 +235,9 @@ function FamilyTreePage() {
         {/* Responsive Mobile Header */}
         <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
           <div className="flex items-center gap-3">
-            <div
-              className="size-10 md:size-14 rounded-2xl logo-royal shadow-lg shadow-[#1B4332]/20 shrink-0"
-              style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
-            />
+            <div className="size-10 md:size-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+               <Trees className="size-6 md:size-8 text-white" />
+            </div>
             <div>
               <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>
               <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">استكشف تفرعات وجذور عائلة آل سيف العريقة</p>
