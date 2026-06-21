@@ -115,25 +115,39 @@ function TasksPage() {
   }, [members]);
 
   useEffect(() => {
+    let mounted = true;
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setUserId(u.user.id);
-      const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
-      ]);
-      const r = (roles ?? []).map((x) => x.role);
-      setIsPrivileged(r.includes("admin") || r.includes("manager"));
-      const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
-      setProfile({
-        name,
-        role: roleLabel(r[0] || null),
-        initial: (name[0] || "ع").toUpperCase(),
-        avatarPath: p?.avatar_url ?? null,
-      });
-      await Promise.all([loadMembers(), loadTasks()]).catch(e => console.error("Data load failed", e));
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user || !mounted) return;
+        setUserId(u.user.id);
+
+        const [{ data: p }, { data: roles }] = await Promise.all([
+          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+        ]);
+
+        if (!mounted) return;
+
+        const r = (roles ?? []).map((x) => x.role);
+        setIsPrivileged(r.includes("admin") || r.includes("manager"));
+
+        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
+        const char = name ? name[0] : "ع";
+
+        setProfile({
+          name,
+          role: roleLabel(r[0] || null),
+          initial: (char || "ع").toUpperCase(),
+          avatarPath: p?.avatar_url ?? null,
+        });
+
+        await Promise.all([loadMembers(), loadTasks()]);
+      } catch (err) {
+        console.error("Tasks init failed:", err);
+      }
     })();
+    return () => { mounted = false; };
   }, [loadMembers, loadTasks]);
 
   const loadMembers = useCallback(async () => {
