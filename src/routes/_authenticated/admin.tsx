@@ -289,12 +289,12 @@ function AdminPage() {
         ) : (
           <>
             {/* Section Switch Tabs */}
-            <div className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-muted/30 rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "100ms" }}>
+            <div className="flex sm:inline-flex items-center gap-2 p-1.5 bg-muted/30 rounded-2xl md:rounded-[32px] border border-border/40 w-full sm:w-auto overflow-x-auto no-scrollbar animate-fade-up" style={{ animationDelay: "100ms" }}>
               <NavTab
                 active={section === "requests"}
                 onClick={() => setSection("requests")}
                 icon={<UserPlus className="size-4" />}
-                label="طلبات الانضمام"
+                label="الطلبات"
                 badge={reqCounts.pending}
               />
               {isAdmin && (
@@ -302,14 +302,14 @@ function AdminPage() {
                   active={section === "roles"}
                   onClick={() => setSection("roles")}
                   icon={<UserCog className="size-4" />}
-                  label="الأعضاء والصلاحيات"
+                  label="الصلاحيات"
                 />
               )}
               <NavTab
                 active={section === "site"}
                 onClick={() => setSection("site")}
                 icon={<Palette className="size-4" />}
-                label="تخصيص الموقع"
+                label="التخصيص"
               />
             </div>
 
@@ -542,10 +542,10 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
   const isMe = member.id === meId;
 
   return (
-    <div className="card-surface p-5 hover:bg-primary/5 transition-all group">
-       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
+    <div className="card-surface p-4 md:p-5 hover:bg-primary/5 transition-all group">
+       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
           <div className="flex items-center gap-4">
-             <div className="size-12 rounded-[16px] border-2 border-gold-primary/20 overflow-hidden shadow-lg relative">
+             <div className="size-12 rounded-[16px] border-2 border-gold-primary/20 overflow-hidden shadow-lg relative shrink-0">
                 <UserAvatar path={member.avatar_url} name={fullName} className="size-full" userId={member.id} />
                 {isMe && <div className="absolute inset-0 bg-primary/20 flex items-center justify-center"><UserIcon className="size-4 text-white" /></div>}
              </div>
