@@ -6,8 +6,8 @@ import type { RawNodeDatum, CustomNodeElementProps } from "react-d3-tree";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { setMemberParent, addFamilyMember } from "@/lib/api/family-tree.functions";
-import { Loader2, Pencil, Check, X, Trees, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck, Plus } from "lucide-react";
+import { setMemberParent } from "@/lib/api/family-tree.functions";
+import { Loader2, Pencil, Check, X, Trees, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -47,17 +47,12 @@ function FamilyTreePage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
-  const [addingTo, setAddingTo] = useState<string | null>(null);
-  const [newChildName, setNewChildName] = useState("");
-  const [newFatherName, setNewFatherName] = useState("");
-  const [newGrandfatherName, setNewGrandfatherName] = useState("");
   const [draftParent, setDraftParent] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [zoom, setZoom] = useState(0.6); // Slightly zoomed out by default for mobile
   const [translate, setTranslate] = useState({ x: 200, y: 100 });
   const containerRef = useRef<HTMLDivElement | null>(null);
   const setParentFn = useServerFn(setMemberParent);
-  const addChildFn = useServerFn(addFamilyMember);
 
   useEffect(() => {
     (async () => {
@@ -154,32 +149,6 @@ function FamilyTreePage() {
     }
   }
 
-  async function handleAddChild() {
-    if (!addingTo || !newChildName.trim() || !newFatherName.trim() || !newGrandfatherName.trim()) return;
-    setSaving(true);
-    try {
-      await addChildFn({
-        data: {
-          parentId: addingTo === "__root__" ? null : addingTo,
-          firstName: newChildName.trim(),
-          fatherName: newFatherName.trim(),
-          grandfatherName: newGrandfatherName.trim(),
-        }
-      });
-      toast.success("تمت إضافة العضو بنجاح");
-      setAddingTo(null);
-      setNewChildName("");
-      setNewFatherName("");
-      setNewGrandfatherName("");
-      await load();
-      router.invalidate();
-    } catch (e: any) {
-      toast.error("فشل إضافة العضو", { description: e.message });
-    } finally {
-      setSaving(false);
-    }
-  }
-
   const renderNode = ({ nodeDatum, toggleNode }: CustomNodeElementProps) => {
     const memberId = (nodeDatum.attributes?.memberId as string);
     const m = members.find(mem => mem.id === memberId);
@@ -208,17 +177,6 @@ function FamilyTreePage() {
               <div className="flex flex-col items-center">
                  <Trees className="size-4 text-[#D4AF37] mb-0.5" />
                  <span className="text-[11px] font-black uppercase tracking-tighter">{nodeDatum.name}</span>
-                 {isPriv && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAddingTo("__root__");
-                      }}
-                      className="mt-1 size-5 rounded-full bg-[#D4AF37] text-[#1B4332] flex items-center justify-center shadow-md hover:scale-110 transition-all"
-                    >
-                      <Plus className="size-3" strokeWidth={4} />
-                    </button>
-                 )}
               </div>
             ) : m ? (
               <>
@@ -239,30 +197,19 @@ function FamilyTreePage() {
                   </p>
                 </div>
                 {isPriv && (
-                  <div className="flex flex-col gap-1 items-center opacity-0 group-hover:opacity-100 transition-all">
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setAddingTo(m.id);
-                      }}
-                      className={cn("p-1 rounded-full bg-[#D4AF37] text-[#1B4332] shadow-sm hover:scale-110 transition-all")}
-                      title="إضافة ولد"
-                    >
-                      <Plus className="size-2.5" strokeWidth={4} />
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditing(m.id);
-                        setDraftParent(m.parent_id);
-                      }}
-                      className={cn("p-1 rounded-lg hover:bg-gold-primary/10 transition-all",
-                        (isMe || isRoot) ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-gold-primary"
-                      )}
-                    >
-                      <Pencil className="size-2.5" />
-                    </button>
-                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(m.id);
+                      setDraftParent(m.parent_id);
+                    }}
+                    className={cn("p-1 rounded-lg opacity-0 hover:bg-gold-primary/10 transition-all",
+                      (isMe || isRoot) ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-gold-primary",
+                      "group-hover:opacity-100"
+                    )}
+                  >
+                    <Pencil className="size-3" />
+                  </button>
                 )}
               </>
             ) : null}
@@ -396,66 +343,6 @@ function FamilyTreePage() {
                   {saving ? <Loader2 className="size-3 animate-spin" /> : <Check className="size-3" />} حفظ
                 </button>
               </div>
-            </div>
-          </div>
-        )}
-
-        {addingTo && (
-          <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4" onClick={() => setAddingTo(null)}>
-            <div dir="rtl" className="w-full max-w-sm rounded-[28px] border border-border bg-white p-8 space-y-6 shadow-2xl animate-fade-up" onClick={(e) => e.stopPropagation()}>
-               <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                     <div className="size-1 w-8 bg-gold-primary rounded-full" />
-                     <span className="text-[10px] font-black uppercase tracking-widest text-gold-primary">إضافة فرع جديد</span>
-                  </div>
-                  <h3 className="text-2xl font-black text-primary tracking-tight">إضافة فرد للشجرة</h3>
-                  <p className="text-xs font-bold text-muted-foreground">أدخل الاسم الأول للفرد الجديد لربطه بوالده.</p>
-               </div>
-
-               <div className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">الاسم الأول</label>
-                    <input
-                      autoFocus
-                      value={newChildName}
-                      onChange={(e) => setNewChildName(e.target.value)}
-                      placeholder="مثال: سعود"
-                      className="w-full px-5 py-3 rounded-xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">اسم الأب</label>
-                    <input
-                      value={newFatherName}
-                      onChange={(e) => setNewFatherName(e.target.value)}
-                      placeholder="اسم الأب..."
-                      className="w-full px-5 py-3 rounded-xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">اسم الجد</label>
-                    <input
-                      value={newGrandfatherName}
-                      onChange={(e) => setNewGrandfatherName(e.target.value)}
-                      placeholder="اسم الجد..."
-                      className="w-full px-5 py-3 rounded-xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                    />
-                  </div>
-               </div>
-
-               <div className="flex gap-3 pt-4">
-                 <button onClick={() => setAddingTo(null)} className="flex-1 py-3.5 rounded-xl font-black text-sm text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
-                 <button
-                  onClick={handleAddChild}
-                  disabled={saving || !newChildName.trim() || !newFatherName.trim() || !newGrandfatherName.trim()}
-                  className="flex-[2] btn-gold py-3.5 rounded-xl font-black text-sm shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-2"
-                 >
-                   {saving ? <Loader2 className="size-4 animate-spin" /> : <Plus className="size-4" strokeWidth={3} />}
-                   إضافة للشجرة
-                 </button>
-               </div>
             </div>
           </div>
         )}

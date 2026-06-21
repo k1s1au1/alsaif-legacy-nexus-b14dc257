@@ -50,53 +50,11 @@ export const setMemberParent = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"
     );
-    return { ok: true };
-  });
-
-export const addFamilyMember = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
-    z
-      .object({
-        parentId: z.string().uuid().nullable(),
-        firstName: z.string().min(2),
-        fatherName: z.string().min(2),
-        grandfatherName: z.string().min(2),
-      })
-      .parse(data),
-  )
-  .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
-
-    // Use the regular supabase client which respects RLS
-    // We assume there's a policy allowing admins/managers to insert profiles
-    const { data: roles } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-
-    const isPriv = (roles ?? []).some(
-      (r: { role: string }) => r.role === "admin" || r.role === "manager",
-    );
-
-    if (!isPriv) throw new Error("غير مصرّح");
-
-    const fullName = `${data.firstName} ${data.fatherName} ${data.grandfatherName} السيف`.trim();
-
-    const { error } = await supabase.from("profiles").upsert({
-      first_name: data.firstName,
-      father_name: data.fatherName,
-      grandfather_name: data.grandfatherName,
-      full_name: fullName,
-      arabic_name: fullName,
-      parent_id: data.parentId,
-      is_active: false,
-    } as any);
-
-    if (error) {
-      console.error("Profile insert error:", error);
-      throw new Error(error.message);
-    }
+    const { error } = await supabaseAdmin
+      .from("profiles")
+      .update({ parent_id: data.parentId } as any)
+      .eq("id", data.userId);
+    if (error) throw new Error(error.message);
 
     return { ok: true };
   });
