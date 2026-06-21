@@ -83,8 +83,7 @@ export const addFamilyMember = createServerFn({ method: "POST" })
 
     const fullName = `${data.firstName} ${data.fatherName} ${data.grandfatherName} السيف`.trim();
 
-    const { error } = await supabase.from("profiles").insert({
-      id: crypto.randomUUID(),
+    const { error } = await supabase.from("profiles").upsert({
       first_name: data.firstName,
       father_name: data.fatherName,
       grandfather_name: data.grandfatherName,
