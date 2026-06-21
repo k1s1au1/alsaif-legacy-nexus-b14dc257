@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-// Force rebuild to fix admin crashes and null pointer errors
 import { BackgroundUploader } from "@/components/background-uploader";
 
 import { AppShell } from "@/components/app-shell";
@@ -22,7 +21,7 @@ import {
   Image as ImageIcon,
   CalendarPlus,
   Palette,
-  ChevronLeft,
+  Clock,
   Users,
   Search,
 } from "lucide-react";
@@ -33,7 +32,6 @@ import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -105,34 +103,42 @@ function AdminPage() {
   const deleteAccountFn = useServerFn(deleteMemberAccount);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("account_requests")
-      .select("*")
-      .order("created_at", { ascending: false });
-    if (!error && data) setRows(data as ReqRow[]);
+    try {
+      const { data, error } = await supabase
+        .from("account_requests")
+        .select("*")
+        .order("created_at", { ascending: false });
+      if (!error && data) setRows(data as ReqRow[]);
+    } catch (e) {
+      console.error("Failed to load requests", e);
+    }
   }, []);
 
   const loadMembers = useCallback(async () => {
-    const [{ data: profiles }, { data: roles }] = await Promise.all([
-      supabase
-        .from("profiles")
-        .select("id, first_name, father_name, grandfather_name, arabic_name, full_name, avatar_url")
-        .order("created_at", { ascending: false }),
-      supabase.from("user_roles").select("user_id, role"),
-    ]);
-    if (!profiles) return;
-    const roleMap = new Map<string, AppRole[]>();
-    (roles ?? []).forEach((r) => {
-      const arr = roleMap.get(r.user_id) ?? [];
-      arr.push(r.role as AppRole);
-      roleMap.set(r.user_id, arr);
-    });
-    setMembers(
-      profiles.map((p) => ({
-        ...p,
-        roles: roleMap.get(p.id) ?? ["member"],
-      })) as MemberRow[],
-    );
+    try {
+      const [{ data: profiles }, { data: roles }] = await Promise.all([
+        supabase
+          .from("profiles")
+          .select("id, first_name, father_name, grandfather_name, arabic_name, full_name, avatar_url")
+          .order("created_at", { ascending: false }),
+        supabase.from("user_roles").select("user_id, role"),
+      ]);
+      if (!profiles) return;
+      const roleMap = new Map<string, AppRole[]>();
+      (roles ?? []).forEach((r) => {
+        const arr = roleMap.get(r.user_id) ?? [];
+        arr.push(r.role as AppRole);
+        roleMap.set(r.user_id, arr);
+      });
+      setMembers(
+        profiles.map((p) => ({
+          ...p,
+          roles: roleMap.get(p.id) ?? ["member"],
+        })) as MemberRow[],
+      );
+    } catch (e) {
+      console.error("Failed to load members", e);
+    }
   }, []);
 
   useEffect(() => {
@@ -494,30 +500,33 @@ function NavTab({ active, onClick, icon, label, badge }: any) {
 }
 
 function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; onDelete: any }) {
-  const fullName = [req.first_name, req.father_name, req.grandfather_name].filter(Boolean).join(" ");
+  const firstName = req?.first_name || "ع";
+  const fatherName = req?.father_name || "";
+  const grandName = req?.grandfather_name || "";
+  const fullName = [firstName, fatherName, grandName].filter(Boolean).join(" ");
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-surface p-8 group">
        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-start gap-5">
              <div className="size-16 rounded-[22px] bg-primary/5 border-2 border-gold-primary/10 flex items-center justify-center text-2xl font-black text-primary shadow-inner shrink-0">
-               {(req.first_name || "ع")[0]}
+               {firstName[0] || "ع"}
              </div>
              <div className="space-y-2">
                 <h4 className="text-xl font-black text-primary tracking-tight">{fullName}</h4>
                 <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-muted-foreground opacity-70">
-                   <span className="flex items-center gap-1.5" dir="ltr"><Phone className="size-3.5" /> {req.phone}</span>
-                   <span className="flex items-center gap-1.5" dir="ltr"><Mail className="size-3.5" /> {req.email}</span>
-                   <span className="flex items-center gap-1.5"><Clock className="size-3.5" /> {new Date(req.created_at).toLocaleDateString("ar-SA")}</span>
+                   <span className="flex items-center gap-1.5" dir="ltr"><Phone className="size-3.5" /> {req?.phone || "—"}</span>
+                   <span className="flex items-center gap-1.5" dir="ltr"><Mail className="size-3.5" /> {req?.email || "—"}</span>
+                   <span className="flex items-center gap-1.5"><Clock className="size-3.5" /> {req?.created_at ? new Date(req.created_at).toLocaleDateString("ar-SA") : "—"}</span>
                 </div>
-                {req.note && (
+                {req?.note && (
                   <p className="text-sm font-bold text-muted-foreground/80 bg-muted/30 p-4 rounded-2xl border border-border/40 mt-3 italic">"{req.note}"</p>
                 )}
              </div>
           </div>
 
           <div className="flex items-center gap-3 self-end md:self-center">
-             {req.status === "pending" && (
+             {req?.status === "pending" && (
                 <>
                   <button onClick={() => onStatus(req.id, "approved")} className="px-8 py-3 rounded-2xl bg-emerald-500 text-white font-black text-sm shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
                     <Check className="size-4" strokeWidth={3} /> قبول العضوية
@@ -527,7 +536,7 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
                   </button>
                 </>
              )}
-             <button onClick={() => onDelete(req.id)} className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all">
+             <button onClick={() => onDelete(req?.id)} className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all">
                 <Trash2 className="size-5" />
              </button>
           </div>
@@ -554,9 +563,11 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-             <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
-             <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مشرف" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
-             <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
+             <div className="flex items-center gap-1.5 flex-wrap">
+               <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
+               <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مشرف" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
+               <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
+             </div>
 
              {!isMe && currentRole !== "admin" && (
                 <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
