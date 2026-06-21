@@ -23,14 +23,18 @@ type Notif = {
 };
 
 function timeAgo(iso: string) {
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1) return "الآن";
-  if (m < 60) return `${m}د`;
-  const h = Math.floor(m / 60);
-  if (h < 24) return `${h}س`;
-  const d = Math.floor(h / 24);
-  return `${d}ي`;
+  try {
+    const diff = Date.now() - new Date(iso).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1) return "الآن";
+    if (m < 60) return `${m}د`;
+    const h = Math.floor(m / 60);
+    if (h < 24) return `${h}س`;
+    const d = Math.floor(h / 24);
+    return `${d}ي`;
+  } catch {
+    return "";
+  }
 }
 
 export function NotificationsBell() {
@@ -41,101 +45,100 @@ export function NotificationsBell() {
   const inChat = pathname.startsWith("/chat");
 
   const load = useCallback(async () => {
-    const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    const uid = u.user.id;
-    setUserId(uid);
-
-    const out: Notif[] = [];
-
-    // Get "Dismissed" notifications from localStorage to hide them immediately
-    let dismissed = [];
     try {
-      dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
-      if (!Array.isArray(dismissed)) dismissed = [];
-    } catch (e) {
-      console.error("Failed to parse dismissed notifs", e);
-      dismissed = [];
-    }
+      const { data: u } = await supabase.auth.getUser();
+      if (!u?.user) return;
+      const uid = u.user.id;
+      setUserId(uid);
 
-    // 1) Unread messages
-    const { data: parts } = await supabase.from("conversation_participants").select("conversation_id,last_read_at").eq("user_id", uid);
-    if (parts?.length) {
-      const readMap = new Map(parts.map(p => [p.conversation_id, new Date(p.last_read_at).getTime()]));
-      const { data: msgs } = await supabase.from("messages").select("id,conversation_id,body,created_at,sender_id").in("conversation_id", [...readMap.keys()]).neq("sender_id", uid).order("created_at", { ascending: false }).limit(50);
+      const out: Notif[] = [];
 
-      const unreadConvs = new Set<string>();
-      (msgs ?? []).forEach(m => {
-        const notifId = `msg-${m.conversation_id}`;
-        if (new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0) && !dismissed.includes(notifId)) {
-          if (!unreadConvs.has(m.conversation_id)) {
-             unreadConvs.add(m.conversation_id);
-             out.push({
-               id: notifId,
-               kind: "message",
-               title: "رسالة جديدة",
-               description: m.body?.slice(0, 40) || "وصلتك رسالة جديدة",
-               href: `/chat/${m.conversation_id}`,
-               at: m.created_at,
-               refId: m.conversation_id
-             });
+      // Safe localStorage access
+      let dismissed = [];
+      try {
+        const raw = localStorage.getItem("dismissed_notifs");
+        dismissed = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(dismissed)) dismissed = [];
+      } catch { dismissed = []; }
+
+      // 1) Unread messages
+      const { data: parts } = await supabase.from("conversation_participants").select("conversation_id,last_read_at").eq("user_id", uid);
+      if (parts?.length) {
+        const readMap = new Map(parts.map(p => [p.conversation_id, p.last_read_at ? new Date(p.last_read_at).getTime() : 0]));
+        const { data: msgs } = await supabase.from("messages").select("id,conversation_id,body,created_at,sender_id").in("conversation_id", [...readMap.keys()]).neq("sender_id", uid).order("created_at", { ascending: false }).limit(50);
+
+        const unreadConvs = new Set<string>();
+        (msgs ?? []).forEach(m => {
+          const notifId = `msg-${m.conversation_id}`;
+          if (new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0) && !dismissed.includes(notifId)) {
+            if (!unreadConvs.has(m.conversation_id)) {
+               unreadConvs.add(m.conversation_id);
+               out.push({
+                 id: notifId,
+                 kind: "message",
+                 title: "رسالة جديدة",
+                 description: m.body?.slice(0, 40) || "وصلتك رسالة جديدة",
+                 href: `/chat/${m.conversation_id}`,
+                 at: m.created_at,
+                 refId: m.conversation_id
+               });
+            }
           }
-        }
+        });
+      }
+
+      // 2) Upcoming Meetings
+      const { data: meetings } = await supabase.from("meetings").select("id,title,scheduled_at").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
+      (meetings ?? []).forEach(m => {
+          const notifId = `meet-${m.id}`;
+          if (!dismissed.includes(notifId)) {
+            out.push({ id: notifId, kind: "meeting", title: m.title, description: "موعد اجتماع عائلي مرتقب", href: "/meetings", at: m.scheduled_at, refId: m.id });
+          }
       });
+
+      // 3) Admin Requests
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
+      const isPriv = (roles ?? []).some(r => r.role === "admin" || r.role === "manager");
+      if (isPriv) {
+        const { data: reqs } = await supabase.from("account_requests").select("id,first_name,created_at").eq("status", "pending").limit(5);
+        (reqs ?? []).forEach(req => {
+          const notifId = `req-${req.id}`;
+          if (!dismissed.includes(notifId)) {
+            out.push({ id: notifId, kind: "account_request", title: "طلب انضمام جديد", description: `المتقدم: ${req.first_name}`, href: "/admin", at: req.created_at, refId: req.id });
+          }
+        });
+      }
+
+      setItems(out.sort((a,b) => new Date(b.at).getTime() - new Date(a.at).getTime()));
+    } catch (e) {
+      console.error("Notifications load error", e);
     }
-
-    // 2) Upcoming Meetings
-    const { data: meetings } = await supabase.from("meetings").select("id,title,scheduled_at").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
-    (meetings ?? []).forEach(m => {
-        const notifId = `meet-${m.id}`;
-        if (!dismissed.includes(notifId)) {
-          out.push({ id: notifId, kind: "meeting", title: m.title, description: "موعد اجتماع عائلي مرتقب", href: "/meetings", at: m.scheduled_at, refId: m.id });
-        }
-    });
-
-    // 3) Admin Requests
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-    const isPriv = (roles ?? []).some(r => r.role === "admin" || r.role === "manager");
-    if (isPriv) {
-      const { data: reqs } = await supabase.from("account_requests").select("id,first_name,created_at").eq("status", "pending").limit(5);
-      (reqs ?? []).forEach(req => {
-        const notifId = `req-${req.id}`;
-        if (!dismissed.includes(notifId)) {
-          out.push({ id: notifId, kind: "account_request", title: "طلب انضمام جديد", description: `المتقدم: ${req.first_name}`, href: "/admin", at: req.created_at, refId: req.id });
-        }
-      });
-    }
-
-    setItems(out.sort((a,b) => new Date(b.at).getTime() - new Date(a.at).getTime()));
   }, []);
 
   const handleNotifClick = async (notif: Notif) => {
-    setOpen(false);
-
-    // 1. Remove from local state immediately
-    setItems(prev => prev.filter(item => item.id !== notif.id));
-
-    // 2. Persist dismissal locally so it doesn't reappear on reload
-    let dismissed = [];
     try {
-      dismissed = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
-      if (!Array.isArray(dismissed)) dismissed = [];
-    } catch (e) {
-      dismissed = [];
-    }
+      setOpen(false);
+      setItems(prev => prev.filter(item => item.id !== notif.id));
 
-    if (!dismissed.includes(notif.id)) {
-      dismissed.push(notif.id);
-      localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50))); // Keep last 50
-    }
+      let dismissed = [];
+      try {
+        const raw = localStorage.getItem("dismissed_notifs");
+        dismissed = raw ? JSON.parse(raw) : [];
+        if (!Array.isArray(dismissed)) dismissed = [];
+      } catch { dismissed = []; }
 
-    // 3. Special handling: If it's a message, mark as read in DB too
-    if (notif.kind === "message" && userId && notif.refId) {
-      await supabase.from("conversation_participants")
-        .update({ last_read_at: new Date().toISOString() })
-        .eq("user_id", userId)
-        .eq("conversation_id", notif.refId);
-    }
+      if (!dismissed.includes(notif.id)) {
+        dismissed.push(notif.id);
+        localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50)));
+      }
+
+      if (notif.kind === "message" && userId && notif.refId) {
+        await supabase.from("conversation_participants")
+          .update({ last_read_at: new Date().toISOString() })
+          .eq("user_id", userId)
+          .eq("conversation_id", notif.refId);
+      }
+    } catch {}
   };
 
   useEffect(() => {

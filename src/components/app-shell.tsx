@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
-import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
+import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
@@ -51,7 +51,7 @@ export function AppShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [navBadges, setNavBadges] = useState<Record<string, number>>({});
   const [isAdminManager, setIsAdminManager] = useState({ isAdmin: false, isManager: false, userId: "" });
-  const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user.avatarPath ?? null);
+  const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const queryClient = useQueryClient();
@@ -69,6 +69,7 @@ export function AppShell({
     try {
       const { data: { user: u } } = await supabase.auth.getUser();
       if (!u) return;
+
       const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.id);
       const r = (roles ?? []).map((x) => x.role);
       const isAdmin = r.includes("admin");
@@ -94,15 +95,19 @@ export function AppShell({
   useEffect(() => {
     loadBadges();
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setMyUserId(u.user.id);
-      if (user.avatarPath === undefined) {
-        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", u.user.id).maybeSingle();
-        setMyAvatarPath(p?.avatar_url ?? null);
+      try {
+        const { data: { user: u } } = await supabase.auth.getUser();
+        if (!u) return;
+        setMyUserId(u.id);
+
+        // Always try to get latest avatar if not explicitly provided
+        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", u.id).maybeSingle();
+        if (p?.avatar_url) setMyAvatarPath(p.avatar_url);
+      } catch (err) {
+        console.error("Shell user load error", err);
       }
     })();
-  }, [loadBadges, user.avatarPath]);
+  }, [loadBadges]);
 
   async function signOut() {
     await queryClient.cancelQueries();
@@ -111,6 +116,8 @@ export function AppShell({
     toast.success("تم تسجيل الخروج");
     navigate({ to: "/auth", replace: true });
   }
+
+  const safeUser = user || { name: "عضو", role: "عضو", initial: "ع" };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
@@ -137,14 +144,14 @@ export function AppShell({
             style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
           />
           <div className="relative">
-            <div className="size-24 rounded-full ring-4 ring-background shadow-md overflow-hidden bg-background p-1 relative group/avatar">
+            <div className="size-24 rounded-full ring-4 ring-background shadow-md overflow-hidden bg-background p-1 relative">
               <UserAvatar
                 path={myAvatarPath}
-                name={user.name}
-                initial={user.initial}
+                name={safeUser.name}
+                initial={safeUser.initial}
                 className="size-full rounded-full"
                 userId={myUserId}
-                presenceDotClassName="absolute bottom-1 left-1 size-5 ring-4 ring-card"
+                presenceDotClassName="absolute bottom-1 left-1 size-5 ring-4 ring-[var(--card)]"
               />
             </div>
             <button
@@ -155,8 +162,8 @@ export function AppShell({
             </button>
           </div>
           <div>
-            <h3 className="text-xl font-bold text-primary tracking-tight">{user.name}</h3>
-            <p className="text-[12px] text-muted-foreground font-bold uppercase tracking-[0.1em] mt-1">{user.role}</p>
+            <h3 className="text-xl font-bold text-primary tracking-tight">{safeUser.name}</h3>
+            <p className="text-[12px] text-muted-foreground font-bold uppercase tracking-[0.1em] mt-1">{safeUser.role}</p>
           </div>
         </div>
 
@@ -223,11 +230,11 @@ export function AppShell({
                   <div className="size-10 rounded-full ring-2 ring-primary/10 overflow-hidden group-hover:ring-primary transition-all bg-background p-0.5 relative">
                     <UserAvatar
                       path={myAvatarPath}
-                      name={user.name}
-                      initial={user.initial}
+                      name={safeUser.name}
+                      initial={safeUser.initial}
                       className="size-full rounded-full"
                       userId={myUserId}
-                      presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-3 ring-2 ring-card"
+                      presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-3 ring-2 ring-[var(--card)]"
                     />
                   </div>
                   <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
@@ -235,8 +242,8 @@ export function AppShell({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" sideOffset={12} className="min-w-[220px] rounded-2xl border-border bg-card p-2 text-right shadow-xl">
                 <DropdownMenuLabel className="px-4 py-4 border-b border-muted mb-1">
-                  <p className="text-[15px] font-bold text-primary">{user.name}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{user.role}</p>
+                  <p className="text-[15px] font-bold text-primary">{safeUser.name}</p>
+                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{safeUser.role}</p>
                 </DropdownMenuLabel>
                 <Link to="/profile">
                   <DropdownMenuItem className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-foreground focus:bg-muted focus:text-primary cursor-pointer">

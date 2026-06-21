@@ -26,6 +26,7 @@ import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
+import { UserAvatar } from "@/components/user-avatar";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 
@@ -56,27 +57,30 @@ function Dashboard() {
 
   const loadData = useCallback(async () => {
     try {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
+      const { data: authData } = await supabase.auth.getUser();
+      if (!authData?.user) return;
 
-      const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle();
-      const name = p?.arabic_name || p?.full_name || "عضو العائلة";
+      const uid = authData.user.id;
+      const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", uid).maybeSingle();
+
+      const name = p?.arabic_name || p?.full_name || authData.user.email?.split('@')[0] || "عضو العائلة";
+
       setProfile({
         name,
-        role: "مسؤول النظام",
+        role: "عضو المجلس", // Default until roles loaded if needed, but AppShell handles it
         initial: (name[0] || "س").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
-        userId: u.user.id
+        userId: uid
       });
 
-      const [ { count: tc }, { count: mc }, { count: tskc } ] = await Promise.all([
-        supabase.from("trips").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done"),
-      ]);
-      setTripsCount(tc || 0);
-      setMembersCount(mc || 0);
-      setTasksCount(tskc || 0);
+      // Load stats safely
+      const tripsRes = await supabase.from("trips").select("*", { count: "exact", head: true });
+      const membersRes = await supabase.from("profiles").select("*", { count: "exact", head: true });
+      const tasksRes = await supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done");
+
+      setTripsCount(tripsRes.count || 0);
+      setMembersCount(membersRes.count || 0);
+      setTasksCount(tasksRes.count || 0);
 
       const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
       setUpcomingMeetings(meets || []);
@@ -88,7 +92,7 @@ function Dashboard() {
       }, 0) || 0;
       setFundBalance(bal);
     } catch (err) {
-      console.error("Dashboard loadData crash", err);
+      console.error("Dashboard error:", err);
     }
   }, []);
 
@@ -114,23 +118,29 @@ function Dashboard() {
            <div className="inline-block px-6 py-2 bg-primary/5 rounded-full border border-primary/10 backdrop-blur-sm">
              <LiveClock />
            </div>
+
            <div className="relative inline-block group">
              <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-1000 animate-pulse" />
+
+             {/* Large Central Avatar with Status */}
              <div className="relative size-40 md:size-56 rounded-[56px] bg-card border-4 border-white dark:border-border shadow-2xl overflow-hidden ring-1 ring-black/5 transition-transform duration-700 group-hover:scale-[1.02]">
                 <UserAvatar
                   path={profile.avatarPath}
                   name={profile.name}
                   initial={profile.initial}
-                  className="size-full rounded-none"
+                  className="size-full rounded-none object-cover"
                   userId={profile.userId}
                   presenceDotClassName="absolute bottom-2 left-2 size-8 ring-[6px] ring-card"
                 />
              </div>
+
+             {/* Small Floating Family Mark */}
              <div
                className="absolute -bottom-6 -right-6 size-20 md:size-24 z-20 logo-royal hover:rotate-12 transition-transform duration-700 cursor-pointer drop-shadow-2xl"
                style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
              />
            </div>
+
            <div className="space-y-2">
              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">
                {profile.name}
@@ -168,7 +178,7 @@ function Dashboard() {
                   statIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
                 )}>
                    <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 rotate-12">
-                      <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" />
+                      <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
                    </div>
                    <div className="relative z-10 flex items-center justify-between w-full text-white">
                       <div className="space-y-6">
@@ -218,7 +228,7 @@ function Dashboard() {
                   <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block opacity-50 cursor-not-allowed pointer-events-none">تأكيد الحضور</Link>
                </div>
                <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden">
-                  <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" /></div>
+                  <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
                   <div className="relative z-10 space-y-6">
                     <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 opacity-30" /></div>
                     <div>
@@ -253,7 +263,7 @@ function Dashboard() {
                             <Link to="/meetings" className="btn-gold px-12 py-4 text-base shadow-2xl shadow-gold-primary/20 inline-block">تأكيد الحضور</Link>
                          </div>
                          <div className="md:w-1/3 bg-primary p-12 flex flex-col items-center justify-center text-center text-primary-foreground relative overflow-hidden shrink-0">
-                            <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" /></div>
+                            <div className="absolute inset-0 opacity-10 scale-150 rotate-12"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
                             <div className="relative z-10 space-y-6">
                               <div className="size-20 rounded-full bg-white/10 flex items-center justify-center mx-auto border border-white/20"><Timer className="size-10 animate-pulse" /></div>
                               <div>
