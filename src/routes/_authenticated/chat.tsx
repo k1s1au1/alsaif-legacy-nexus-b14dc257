@@ -202,6 +202,62 @@ function ChatLayout() {
       });
   }, [items, profiles, meId, search, showArchive]);
 
+  const handleToggleArchive = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isArchiving = !item.myParticipant.archived_at;
+    const now = new Date().toISOString();
+
+    // Optimistic update
+    setItems(prev => prev.map(it =>
+      it.conversation.id === item.conversation.id
+        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
+        : it
+    ));
+
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ archived_at: isArchiving ? now : null })
+      .eq("id", item.myParticipant.id);
+
+    if (error) {
+      toast.error("حدث خطأ أثناء تغيير حالة الأرشفة");
+      load(); // Rollback
+    } else {
+      toast.success(isArchiving ? "تمت أرشفة المحادثة" : "تمت استعادة المحادثة");
+    }
+  };
+
+  const handleDeleteOrLeave = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+
+    const isOwner = item.myParticipant.role === "owner";
+    const isGroup = item.conversation.kind === "group";
+
+    const msg = isOwner && isGroup
+      ? "هل أنت متأكد من حذف هذه المجموعة نهائياً؟"
+      : isGroup
+        ? "هل تود مغادرة هذه المجموعة؟"
+        : "هل تود حذف هذه المحادثة من قائمتك؟";
+
+    if (!confirm(msg)) return;
+
+    let error;
+    if (isOwner && isGroup) {
+      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
+      error = err;
+    }
+
+    if (error) {
+      toast.error("فشل الإجراء: " + error.message);
+    } else {
+      toast.success("تم تنفيذ طلبك بنجاح");
+      load();
+    }
+  };
+
   return (
     <AppShell title="المحادثات" user={shellUser}>
       <div className="flex h-[calc(100vh-10rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10 overflow-hidden bg-background">
@@ -293,6 +349,8 @@ function ChatLayout() {
                     meId={meId}
                     profiles={profiles}
                     active={path === `/chat/${it.conversation.id}`}
+                    onArchive={() => handleToggleArchive(it)}
+                    onDelete={() => handleDeleteOrLeave(it)}
                     onOpen={() => {
                       setItems((prev) =>
                         prev.map((x) =>
@@ -360,12 +418,16 @@ function ConversationRow({
   profiles,
   active,
   onOpen,
+  onArchive,
+  onDelete,
 }: {
   item: ConversationListItem;
   meId: string | null;
   profiles: Record<string, Profile>;
   active: boolean;
   onOpen?: () => void;
+  onArchive: () => void;
+  onDelete: () => void;
 }) {
   const title = conversationTitle(item.conversation, item.participants, profiles, meId);
   const initial = conversationAvatarInitial(
@@ -381,70 +443,113 @@ function ConversationRow({
   const lastMine = item.lastMessage?.sender_id === meId;
   const lastDelivered = item.lastMessage;
 
+  const isArchived = !!item.myParticipant?.archived_at;
+
   return (
-    <Link
-      to="/chat/$conversationId"
-      params={{ conversationId: item.conversation.id }}
-      onClick={() => onOpen?.()}
-      className={cn(
-        "flex items-center gap-4 px-4 py-4 rounded-[28px] transition-all duration-300 relative overflow-hidden group",
-        active
-          ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-[1.02] z-10"
-          : "hover:bg-muted/60 text-foreground"
-      )}
-    >
-      <div className="relative shrink-0">
-        <div
+    <div className="relative overflow-hidden rounded-[28px] group/row">
+      {/* Background Actions */}
+      <div className="absolute inset-0 flex items-center justify-between px-6 z-0">
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onArchive(); }}
           className={cn(
-            "size-14 rounded-[22px] grid place-items-center text-sm font-black overflow-hidden border-2 transition-all duration-500",
-            active ? "border-white/20" : "border-gold-primary/10 group-hover:border-gold-primary/30"
+            "flex flex-col items-center justify-center gap-1 transition-all active:scale-95",
+            isArchived ? "text-emerald-500" : "text-amber-500"
           )}
         >
-          {item.conversation.kind === "group" ? (
-            <div className={cn("size-full flex items-center justify-center", active ? "bg-white/10" : "bg-primary/5")}>
-              <Users className={cn("size-6", active ? "text-white" : "text-primary")} strokeWidth={2} />
-            </div>
-          ) : (
-            <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full" userId={other?.user_id ?? null} />
-          )}
-        </div>
-        {!active && item.unread > 0 && (
-          <span className="absolute -top-1.5 -left-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-navy-base text-[10px] font-black grid place-items-center border-2 border-card shadow-lg animate-fade-in">
-            {item.unread > 99 ? "99+" : item.unread}
-          </span>
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <h3 className={cn("text-sm font-black truncate tracking-tight", active ? "text-white" : "text-primary group-hover:text-gold-primary transition-colors")}>{title}</h3>
-          <div className="flex items-center gap-1.5 opacity-60">
-             {!active && <Clock className="size-3" />}
-             <span className="text-[10px] font-bold">
-               {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
-             </span>
+          <div className={cn("size-10 rounded-full flex items-center justify-center bg-current/10 shadow-sm")}>
+            <Archive className="size-5" />
           </div>
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <p className={cn("text-xs font-bold truncate flex items-center gap-1.5", active ? "text-white/80" : "text-muted-foreground")}>
-            {lastMine && lastDelivered && (
-              <CheckCheck className={cn("size-3.5", active ? "text-white/60" : "text-gold-primary/60")} strokeWidth={2.5} />
-            )}
-            {messagePreview(item.lastMessage)}
-          </p>
-          {item.myParticipant?.muted && !active && (
-            <BellOff className="size-3 text-muted-foreground opacity-40" strokeWidth={2.5} />
-          )}
-        </div>
+          <span className="text-[10px] font-black uppercase tracking-tighter">{isArchived ? "استعادة" : "أرشفة"}</span>
+        </button>
+
+        <button
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); }}
+          className="flex flex-col items-center justify-center gap-1 text-red-500 transition-all active:scale-95"
+        >
+          <div className="size-10 rounded-full flex items-center justify-center bg-red-500/10 shadow-sm">
+            <Trash2 className="size-5" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-tighter">حذف</span>
+        </button>
       </div>
 
-      {active && (
-        <motion.div
-          layoutId="active-chat-pill"
-          className="absolute left-0 inset-y-4 w-1 bg-white rounded-full opacity-40"
-        />
-      )}
-    </Link>
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -120, right: 120 }}
+        dragSnapToOrigin
+        onDragEnd={(e, info) => {
+          if (info.offset.x > 80) onArchive();
+          else if (info.offset.x < -80) onDelete();
+        }}
+        dragElastic={0.2}
+        whileDrag={{ cursor: "grabbing" }}
+        className="relative z-10"
+      >
+        <Link
+          to="/chat/$conversationId"
+          params={{ conversationId: item.conversation.id }}
+          onClick={() => onOpen?.()}
+          className={cn(
+            "flex items-center gap-4 px-4 py-4 rounded-[28px] transition-all duration-300 relative overflow-hidden",
+            active
+              ? "bg-primary text-primary-foreground shadow-xl shadow-primary/20 scale-[1.01]"
+              : "bg-card/50 hover:bg-muted/60 text-foreground"
+          )}
+        >
+          <div className="relative shrink-0">
+            <div
+              className={cn(
+                "size-14 rounded-[22px] grid place-items-center text-sm font-black overflow-hidden border-2 transition-all duration-500",
+                active ? "border-white/20" : "border-gold-primary/10"
+              )}
+            >
+              {item.conversation.kind === "group" ? (
+                <div className={cn("size-full flex items-center justify-center", active ? "bg-white/10" : "bg-primary/5")}>
+                  <Users className={cn("size-6", active ? "text-white" : "text-primary")} strokeWidth={2} />
+                </div>
+              ) : (
+                <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full" userId={other?.user_id ?? null} />
+              )}
+            </div>
+            {!active && item.unread > 0 && (
+              <span className="absolute -top-1.5 -left-1.5 min-w-[20px] h-5 px-1.5 rounded-full bg-gold-primary text-navy-base text-[10px] font-black grid place-items-center border-2 border-card shadow-lg animate-fade-in">
+                {item.unread > 99 ? "99+" : item.unread}
+              </span>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-2 mb-1">
+              <h3 className={cn("text-sm font-black truncate tracking-tight", active ? "text-white" : "text-primary group-hover/row:text-gold-primary transition-colors")}>{title}</h3>
+              <div className="flex items-center gap-1.5 opacity-60">
+                 {!active && <Clock className="size-3" />}
+                 <span className="text-[10px] font-bold">
+                   {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
+                 </span>
+              </div>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <p className={cn("text-xs font-bold truncate flex items-center gap-1.5", active ? "text-white/80" : "text-muted-foreground")}>
+                {lastMine && lastDelivered && (
+                  <CheckCheck className={cn("size-3.5", active ? "text-white/60" : "text-gold-primary/60")} strokeWidth={2.5} />
+                )}
+                {messagePreview(item.lastMessage)}
+              </p>
+              {item.myParticipant?.muted && !active && (
+                <BellOff className="size-3 text-muted-foreground opacity-40" strokeWidth={2.5} />
+              )}
+            </div>
+          </div>
+
+          {active && (
+            <motion.div
+              layoutId="active-chat-pill"
+              className="absolute left-0 inset-y-4 w-1 bg-white rounded-full opacity-40"
+            />
+          )}
+        </Link>
+      </motion.div>
+    </div>
   );
 }
 
