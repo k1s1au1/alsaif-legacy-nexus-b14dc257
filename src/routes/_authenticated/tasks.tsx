@@ -572,45 +572,48 @@ function TaskDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>{task ? "تعديل المهمة" : "مهمة جديدة"}</DialogTitle>
-          <DialogDescription>
-            {task ? "حدّث تفاصيل المهمة." : "أضف مهمة جديدة وعيّن المسؤول عنها."}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-2xl bg-card border-border rounded-[40px] p-0 overflow-hidden shadow-2xl">
+        <div className="p-8 sm:p-10 space-y-8">
+          <DialogHeader className="text-right space-y-2">
+            <DialogTitle className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المهمة" : "مهمة جديدة"}</DialogTitle>
+            <DialogDescription className="text-muted-foreground font-bold">
+              {task ? "حدّث تفاصيل المهمة الحالية." : "أضف مهمة جديدة وعيّن المسؤول عنها للمتابعة."}
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <Label htmlFor="title">العنوان *</Label>
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-3">
+            <Label htmlFor="title" className="font-black text-xs uppercase tracking-widest text-primary mr-1">العنوان *</Label>
             <Input
               id="title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="مثلاً: تنظيم اجتماع نهاية الشهر"
+              className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm"
               required
             />
           </div>
 
-          <div className="space-y-1.5">
-            <Label htmlFor="description">الوصف</Label>
+          <div className="space-y-3">
+            <Label htmlFor="description" className="font-black text-xs uppercase tracking-widest text-primary mr-1">الوصف</Label>
             <Textarea
               id="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="تفاصيل إضافية..."
+              className="rounded-2xl bg-muted/30 border-border font-bold shadow-sm resize-none"
               rows={3}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label>الحالة</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <Label className="font-black text-xs uppercase tracking-widest text-primary mr-1">الحالة</Label>
               <Select value={status} onValueChange={(v) => setStatus(v as TaskStatus)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl border-border shadow-2xl">
                   <SelectItem value="todo">قيد الانتظار</SelectItem>
                   <SelectItem value="in_progress">قيد التنفيذ</SelectItem>
                   <SelectItem value="done">مكتملة</SelectItem>
@@ -618,13 +621,13 @@ function TaskDialog({
               </Select>
             </div>
 
-            <div className="space-y-1.5">
-              <Label>الأولوية</Label>
+            <div className="space-y-3">
+              <Label className="font-black text-xs uppercase tracking-widest text-primary mr-1">الأولوية</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
-                <SelectTrigger>
+                <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl border-border shadow-2xl">
                   <SelectItem value="low">منخفضة</SelectItem>
                   <SelectItem value="medium">متوسطة</SelectItem>
                   <SelectItem value="high">عالية</SelectItem>
@@ -633,24 +636,25 @@ function TaskDialog({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="due_date">تاريخ الاستحقاق</Label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <div className="space-y-3">
+              <Label htmlFor="due_date" className="font-black text-xs uppercase tracking-widest text-primary mr-1">تاريخ الاستحقاق</Label>
               <Input
                 id="due_date"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
+                className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm"
               />
             </div>
 
-            <div className="space-y-1.5">
-              <Label>المسند إليه</Label>
+            <div className="space-y-3">
+              <Label className="font-black text-xs uppercase tracking-widest text-primary mr-1">المسند إليه</Label>
               <Select value={assigneeId} onValueChange={setAssigneeId}>
-                <SelectTrigger>
+                <SelectTrigger className="h-14 rounded-2xl bg-muted/30 border-border font-bold shadow-sm">
                   <SelectValue placeholder="اختر عضو" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-2xl border-border shadow-2xl max-h-[250px]">
                   <SelectItem value="none">— غير معيّن —</SelectItem>
                   {members.map((m) => (
                     <SelectItem key={m.id} value={m.id}>
@@ -662,19 +666,25 @@ function TaskDialog({
             </div>
           </div>
 
-          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-3 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="w-full sm:w-auto">
+          <DialogFooter className="flex flex-col-reverse sm:flex-row gap-4 pt-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="w-full sm:w-auto h-14 rounded-2xl font-black text-muted-foreground border-border hover:bg-muted"
+            >
               إلغاء
             </Button>
             <Button
               type="submit"
               disabled={saving}
-              className="bg-gold-primary text-navy-base hover:bg-gold-primary/90 w-full sm:w-auto font-bold"
+              className="flex-1 btn-gold h-14 rounded-2xl text-lg shadow-2xl shadow-gold-primary/20 w-full sm:w-auto"
             >
-              {saving ? <Loader2 className="size-4 animate-spin" /> : task ? "حفظ التعديلات" : "إنشاء المهمة"}
+              {saving ? <Loader2 className="size-5 animate-spin" /> : <span>{task ? "حفظ التعديلات" : "إنشاء المهمة"}</span>}
             </Button>
           </DialogFooter>
         </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
