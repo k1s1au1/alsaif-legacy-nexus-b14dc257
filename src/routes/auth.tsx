@@ -246,7 +246,7 @@ function AuthPage() {
                    <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
                 </div>
 
-                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar px-1" dir="rtl">
+                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[60vh] md:max-h-none overflow-y-auto md:overflow-visible no-scrollbar px-1" dir="rtl">
                    <div className="grid grid-cols-1 gap-4">
                       <ReqField label="الاسم الأول" icon={<User />} value={reqFirstName} onChange={setReqFirstName} placeholder="مثال: سعود" />
                       <div className="grid grid-cols-2 gap-3">
