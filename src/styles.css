@@ -1,7 +1,7 @@
 @import "tailwindcss" source(none);
-@source "../src";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;900&family=Cairo:wght@400;600;700;900&family=Almarai:wght@400;700;800&family=El+Messiri:wght@400;600;700&family=Amiri:wght@400;700&display=swap');
+@source "../src";
+
 
 /*
  * Alsaif Design System — Royal Obsidian Edition
