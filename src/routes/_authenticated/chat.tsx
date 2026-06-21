@@ -14,6 +14,8 @@ import {
   X,
   Plus,
   Clock,
+  UserPlus,
+  ArrowLeft,
 } from "lucide-react";
 import {
   chatTimeLabel,
@@ -546,94 +548,139 @@ function NewConversationDialog({
         className="relative bg-card border border-border rounded-[48px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
         dir="rtl"
       >
-        <div className="p-8 sm:p-10 space-y-8 flex flex-col h-full">
+        {/* Decorative Background Mark */}
+        <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150 transition-opacity duration-700">
+           <img src={alsaifMark.url} className="size-64" alt="" />
+        </div>
+
+        <div className="p-8 sm:p-10 space-y-8 flex flex-col h-full relative z-10">
           <div className="flex items-center justify-between">
             <div className="space-y-1">
+               <div className="flex items-center gap-3">
+                  <div className="size-1 w-10 bg-gold-primary rounded-full" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">تواصل مباشر</span>
+               </div>
               <h3 className="text-3xl font-black tracking-tight text-primary">
-                {mode === "chat" ? "محادثة جديدة" : "مجموعة عائلية"}
+                {mode === "chat" ? "محادثة جديدة" : "مجلس عائلي جديد"}
               </h3>
-              <p className="text-muted-foreground font-bold text-sm">اختر الأفراد الذين تود التواصل معهم.</p>
+              <p className="text-muted-foreground font-bold text-sm">اختر الأفراد الذين تود التواصل معهم في هذا المجلس.</p>
             </div>
             <button onClick={onClose} className="size-12 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-primary transition-all">
               <X size={24} />
             </button>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-6">
             {mode === "group" && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-primary mr-2 block">اسم المجموعة</label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="أدخل اسم المجموعة هنا..."
-                  maxLength={80}
-                  className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                />
+                <label className="text-[10px] font-black uppercase tracking-widest text-primary mr-2 block">عنوان المجلس</label>
+                <div className="relative group">
+                   <Users className="size-4 absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-gold-primary transition-colors" />
+                   <input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="مثال: مجلس الأحفاد / ترتيبات العيد"
+                    maxLength={80}
+                    className="w-full bg-muted/30 border border-border rounded-2xl pl-6 pr-12 py-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                  />
+                </div>
               </div>
             )}
 
-            <div className="relative group">
-              <Search className="size-4 absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="ابحث عن فرد من العائلة..."
-                className="w-full bg-muted/30 border border-border rounded-2xl pl-4 pr-12 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-              />
+            <div className="space-y-2">
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary mr-2 block">البحث عن أفراد العائلة</label>
+               <div className="relative group">
+                 <Search className="size-4 absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                 <input
+                   value={q}
+                   onChange={(e) => setQ(e.target.value)}
+                   placeholder="ابحث بالاسم أو اللقب..."
+                   className="w-full bg-muted/30 border border-border rounded-2xl pl-6 pr-12 py-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                 />
+               </div>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar -mx-2 px-2 space-y-2 py-4 border-y border-border/40">
+          <div className="flex-1 overflow-y-auto no-scrollbar -mx-2 px-2 space-y-3 py-4 border-y border-border/40">
             {list.length === 0 && (
-              <p className="text-center text-sm font-bold text-muted-foreground py-10 opacity-60 italic">لا توجد نتائج للبحث حالياً.</p>
+              <div className="flex flex-col items-center justify-center py-12 space-y-4 opacity-40">
+                 <Search size={40} className="text-muted-foreground" />
+                 <p className="text-center text-sm font-bold italic">لا توجد نتائج مطابقة لبحثك حالياً.</p>
+              </div>
             )}
-            {list.map((p) => {
-              const name = displayName(p);
-              const isSel = selected.has(p.id);
-              return (
-                <button
-                  key={p.id}
-                  onClick={() => toggle(p.id)}
-                  className={cn(
-                    "w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 border-2",
-                    isSel
-                      ? "bg-primary/5 border-primary/20 shadow-sm"
-                      : "bg-white/50 border-transparent hover:bg-white hover:border-border"
-                  )}
-                >
-                  <div className={cn(
-                    "size-11 rounded-[16px] grid place-items-center text-xs font-black overflow-hidden border-2 transition-all duration-500",
-                    isSel ? "border-primary bg-primary text-white scale-110 shadow-md" : "border-gold-primary/10 bg-muted"
-                  )}>
-                    <UserAvatar path={p.avatar_url} name={name} initial={initialOf(name)} className="size-full" userId={p.id} />
-                  </div>
-                  <span className={cn("flex-1 text-sm font-bold text-right truncate", isSel ? "text-primary" : "text-foreground")}>{name}</span>
-                  {isSel && (
-                    <div className="size-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg">
-                      <Check className="size-3.5" strokeWidth={4} />
+            <div className="grid grid-cols-1 gap-2">
+              {list.map((p) => {
+                const name = displayName(p);
+                const isSel = selected.has(p.id);
+                return (
+                  <motion.button
+                    key={p.id}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => toggle(p.id)}
+                    className={cn(
+                      "w-full flex items-center gap-4 px-5 py-4 rounded-[28px] transition-all duration-300 border-2 text-right group",
+                      isSel
+                        ? "bg-primary/5 border-primary/20 shadow-xl shadow-primary/5"
+                        : "bg-white/50 border-transparent hover:bg-white hover:border-border"
+                    )}
+                  >
+                    <div className={cn(
+                      "size-12 rounded-[20px] grid place-items-center text-xs font-black overflow-hidden border-2 transition-all duration-500",
+                      isSel ? "border-primary bg-primary text-white scale-110 shadow-lg" : "border-gold-primary/10 bg-muted group-hover:border-gold-primary/30"
+                    )}>
+                      <UserAvatar path={p.avatar_url} name={name} initial={initialOf(name)} className="size-full" userId={p.id} />
                     </div>
-                  )}
-                </button>
-              );
-            })}
+                    <div className="flex-1 min-w-0">
+                       <p className={cn("text-base font-black truncate transition-colors", isSel ? "text-primary" : "text-foreground group-hover:text-gold-primary")}>{name}</p>
+                       <p className="text-[10px] font-bold text-muted-foreground opacity-60 uppercase tracking-widest">عضو العائلة</p>
+                    </div>
+                    {isSel && (
+                      <div className="size-7 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-lg animate-fade-in">
+                        <Check className="size-4" strokeWidth={4} />
+                      </div>
+                    )}
+                    {!isSel && mode === "group" && (
+                       <div className="size-7 rounded-full border-2 border-border flex items-center justify-center text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Plus className="size-4" />
+                       </div>
+                    )}
+                    {!isSel && mode === "chat" && (
+                       <ArrowLeft className="size-5 text-gold-primary opacity-0 group-hover:opacity-100 transition-all translate-x-2 group-hover:translate-x-0" />
+                    )}
+                  </motion.button>
+                );
+              })}
+            </div>
           </div>
 
-          <div className="pt-4">
+          <div className="pt-6">
             <button
               onClick={create}
               disabled={selected.size === 0 || busy || (mode === "group" && !title.trim())}
-              className="w-full btn-gold py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+              className="w-full btn-gold py-6 rounded-[32px] text-xl font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-4 disabled:opacity-50 transition-all"
             >
               {busy ? (
-                <div className="size-6 rounded-full border-3 border-white/20 border-t-white animate-spin" />
+                <div className="size-7 rounded-full border-4 border-white/20 border-t-white animate-spin" />
               ) : (
                 <>
-                  {mode === "chat" ? "بدء المحادثة الآن" : `إنشاء المجموعة (${selected.size})`}
-                  <ArrowRight className="size-5 rotate-180" />
+                  {mode === "chat" ? (
+                    <>
+                      <span>بدء المحادثة الآن</span>
+                      <MessageSquarePlus className="size-6" />
+                    </>
+                  ) : (
+                    <>
+                      <span>تأسيس المجلس ({selected.size})</span>
+                      <ArrowRight className="size-6 rotate-180" />
+                    </>
+                  )}
                 </>
               )}
             </button>
+            {mode === "group" && (
+               <p className="text-center text-[10px] font-bold text-muted-foreground mt-4 opacity-60">سيتم إضافة جميع الأعضاء المختارين تلقائياً إلى هذا المجلس فور إنشائه.</p>
+            )}
           </div>
         </div>
       </motion.div>
