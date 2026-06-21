@@ -83,20 +83,23 @@ function Dashboard() {
         supabase.from("trips").select("*", { count: "exact", head: true }),
         supabase.from("profiles").select("*", { count: "exact", head: true }),
         supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done")
-      ]);
+      ]).catch(err => {
+        console.error("Dashboard stats load error:", err);
+        return [ {count: 0}, {count: 0}, {count: 0} ];
+      });
 
-      setTripsCount(tripsRes.count || 0);
-      setMembersCount(membersRes.count || 0);
-      setTasksCount(tasksRes.count || 0);
+      setTripsCount(tripsRes?.count || 0);
+      setMembersCount(membersRes?.count || 0);
+      setTasksCount(tasksRes?.count || 0);
 
-      const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5);
+      const { data: meets } = await supabase.from("meetings").select("*").gte("scheduled_at", new Date().toISOString()).order("scheduled_at").limit(5).catch(() => ({ data: [] }));
       setUpcomingMeetings(meets || []);
 
-      const { data: trips } = await supabase.from("trips").select("*").gte("start_date", new Date().toISOString()).order("start_date").limit(5);
+      const { data: trips } = await supabase.from("trips").select("*").gte("start_date", new Date().toISOString()).order("start_date").limit(5).catch(() => ({ data: [] }));
       setUpcomingTrips(trips || []);
 
-      const { data: txs } = await supabase.from("fund_transactions").select("amount, type");
-      const bal = txs?.reduce((acc, t) => {
+      const { data: txs } = await supabase.from("fund_transactions").select("amount, type").catch(() => ({ data: [] }));
+      const bal = (txs || []).reduce((acc, t) => {
         const val = Number(t.amount) || 0;
         return t.type === "contribution" ? acc + val : acc - val;
       }, 0) || 0;
@@ -205,7 +208,13 @@ function Dashboard() {
                                  </div>
                                  <div className="flex items-center gap-3">
                                     <Clock className="size-5 text-gold-primary" />
-                                    <span className="text-lg font-bold">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { month: 'long', day: 'numeric' }) : "—"}</span>
+                                    <span className="text-lg font-bold">
+                                      {(() => {
+                                        try {
+                                          return trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { month: 'long', day: 'numeric' }) : "—";
+                                        } catch { return "—"; }
+                                      })()}
+                                    </span>
                                  </div>
                               </div>
 
