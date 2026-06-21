@@ -3,10 +3,12 @@ import { useEffect, useState } from "react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User, Quote } from "lucide-react";
 import logoAsset from "@/assets/alsaif-logo.png.asset.json";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { paletteToCssVars } from "@/lib/bg-palette";
+import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -19,12 +21,24 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+type AuthMode = "login" | "request" | "forgot";
+
 function AuthPage() {
   const navigate = useNavigate();
+  const [mode, setAuthMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Request form fields
+  const [reqFirstName, setReqFirstName] = useState("");
+  const [reqFatherName, setReqFatherName] = useState("");
+  const [reqGrandName, setReqGrandFatherName] = useState("");
+  const [reqPhone, setReqPhone] = useState("");
+  const [reqEmail, setReqEmail] = useState("");
+  const [reqPassword, setReqPassword] = useState("");
+  const [reqNote, setReqNote] = useState("");
 
   const { url: authBg, palette: authPalette } = useAppBackground("auth_bg");
   const paletteVars = authPalette ? paletteToCssVars(authPalette) : undefined;
@@ -35,7 +49,7 @@ function AuthPage() {
     });
   }, [navigate]);
 
-  async function onSubmit(e: React.FormEvent) {
+  async function onLogin(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -48,20 +62,56 @@ function AuthPage() {
     navigate({ to: "/dashboard", replace: true });
   }
 
+  async function onRequestAccount(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.from("account_requests").insert({
+      first_name: reqFirstName,
+      father_name: reqFatherName,
+      grandfather_name: reqGrandName,
+      phone: reqPhone,
+      email: reqEmail,
+      desired_password: reqPassword,
+      note: reqNote,
+      terms_accepted: true
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("تعذر إرسال الطلب", { description: error.message });
+      return;
+    }
+    toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة الطلب من قبل الإدارة وإشعارك قريباً." });
+    setAuthMode("login");
+  }
+
+  async function onForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("حدث خطأ", { description: error.message });
+      return;
+    }
+    toast.success("تم إرسال رابط الاستعادة", { description: "يرجى التحقق من بريدك الإلكتروني." });
+    setAuthMode("login");
+  }
+
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden">
 
-      {/* Background Watermarks - Kept subtle */}
+      {/* Royal Background Decoration */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-primary/5 blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-gold-primary/5 blur-[120px]" />
       </div>
 
       <div
-        className="relative w-full max-w-[460px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border"
+        className="relative w-full max-w-[480px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border"
         style={paletteVars}
       >
-        {/* BACKGROUND IMAGE - Strictly confined to this card */}
         {authBg && (
           <div
             className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
@@ -71,122 +121,234 @@ function AuthPage() {
           </div>
         )}
 
-        <div className="relative z-10 p-8 sm:p-10">
+        <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center mb-8">
-            <div className="size-28 mb-6 flex items-center justify-center p-4 bg-gradient-to-b from-card to-muted rounded-[36px] shadow-lg ring-1 ring-border relative group overflow-hidden">
+            <motion.div
+              whileHover={{ scale: 1.05 }}
+              className="size-24 mb-6 flex items-center justify-center p-4 bg-gradient-to-b from-card to-muted rounded-[32px] shadow-lg ring-1 ring-border relative group overflow-hidden"
+            >
               <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
               <img src={logoAsset?.url || ""} alt="Logo" className="size-full object-contain relative z-10 logo-royal" />
-            </div>
-            <h1 className="text-4xl font-serif text-primary mb-1 font-bold tracking-tight">مجلس السيف</h1>
-            <div className="flex items-center gap-3 text-[10px] font-bold tracking-[0.3em] text-gold-primary uppercase mt-2">
-              <span>◆</span>
-              <span>ALSAIF · PRIVATE ACCESS</span>
-              <span>◆</span>
-            </div>
-            <p className="mt-8 text-[15px] text-muted-foreground font-medium leading-relaxed max-w-[30ch]">
-              هذه المنصة خاصة بأعضاء العائلة. الوصول بدعوة أو بموافقة المشرفين.
-            </p>
+            </motion.div>
+            <h1 className="text-3xl font-black text-primary mb-1 tracking-tight">مجلس السيف</h1>
+            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-60">ALSAIF · PRIVATE ACCESS</p>
           </div>
 
-          {/* Inner Login Form Container */}
-          <div className="relative bg-muted/30 rounded-[36px] p-6 sm:p-8 border border-border shadow-[inset_0_1px_4px_rgba(0,0,0,0.02)]">
-
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-card px-5 py-1.5 rounded-full shadow-md text-gold-primary border border-border">
-               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                 <path d="M12,2L4.5,20.29L5.21,21L12,18L18.79,21L19.5,20.29L12,2Z"/>
-               </svg>
-            </div>
-
-            <div className="flex items-center justify-center gap-4 mb-8 pt-3">
-              <div className="h-[1.5px] w-10 bg-gold-primary/30" />
-              <h2 className="text-[18px] font-bold text-primary tracking-tight">تسجيل الدخول</h2>
-              <div className="h-[1.5px] w-10 bg-gold-primary/30" />
-            </div>
-
-            <form onSubmit={onSubmit} className="space-y-6">
-              <div className="space-y-2 text-right">
-                <label className="text-[12px] text-muted-foreground font-bold mr-2 block uppercase tracking-wider">البريد الإلكتروني</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
-                    <Mail className="size-5 text-gold-primary/60" />
-                  </div>
-                  <input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    dir="ltr"
-                    className="w-full bg-card border border-border rounded-2xl pr-14 pl-5 py-4 text-[16px] font-medium text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all text-right shadow-sm"
-                    placeholder="name@alsaif.family"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 text-right">
-                <label className="text-[12px] text-muted-foreground font-bold mr-2 block uppercase tracking-wider">كلمة المرور</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 right-5 flex items-center pointer-events-none">
-                    <Lock className="size-5 text-gold-primary/60" />
-                  </div>
-                  <input
-                    type={showPassword ? "text" : "password"}
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full bg-card border border-border rounded-2xl pr-14 pl-14 py-4 text-[16px] font-medium text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                    placeholder="••••••••••••"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute inset-y-0 left-5 flex items-center text-muted-foreground hover:text-primary transition-colors"
-                  >
-                    {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
-                  </button>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between text-[14px] px-1 font-bold">
-                <label className="flex items-center gap-2.5 cursor-pointer text-muted-foreground">
-                  <input type="checkbox" className="size-4.5 accent-primary rounded-lg border-border" />
-                  تذكرني
-                </label>
-                <button
-                  type="button"
-                  className="text-gold-primary hover:text-primary transition-colors"
-                >
-                  نسيت كلمة المرور؟
-                </button>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-4.5 bg-primary text-primary-foreground text-[17px] font-bold rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3 group"
+          <AnimatePresence mode="wait">
+            {mode === "login" ? (
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
               >
-                {loading && <Loader2 className="size-5 animate-spin" />}
-                <span>دخول إلى المجلس</span>
-                <ArrowLeft className="size-5 group-hover:-translate-x-1 transition-transform" />
-              </button>
+                <div className="flex items-center justify-center gap-4 mb-2">
+                  <div className="h-px w-8 bg-border" />
+                  <h2 className="text-sm font-black text-primary uppercase tracking-widest">تسجيل الدخول</h2>
+                  <div className="h-px w-8 bg-border" />
+                </div>
 
-              <div className="text-center pt-2">
-                <button
-                  type="button"
-                  className="text-[14px] text-primary hover:underline font-bold opacity-90"
-                >
-                  طلب إنشاء حساب جديد
-                </button>
-              </div>
-            </form>
-          </div>
+                <form onSubmit={onLogin} className="space-y-5">
+                  <div className="space-y-1.5" dir="rtl">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                    <div className="relative">
+                      <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="example@alsaif.family"
+                      />
+                    </div>
+                  </div>
 
-          <p className="text-center text-[10px] text-muted-foreground mt-12 tracking-[0.4em] uppercase font-black opacity-60">
+                  <div className="space-y-1.5" dir="rtl">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">كلمة المرور</label>
+                    <div className="relative">
+                      <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-14 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="••••••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between px-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-muted-foreground select-none">
+                      <input type="checkbox" className="size-4 rounded-md border-border text-primary focus:ring-primary" />
+                      تذكرني
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("forgot")}
+                      className="text-xs font-black text-gold-primary hover:text-primary transition-colors"
+                    >
+                      نسيت كلمة المرور؟
+                    </button>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                  >
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : (
+                      <>
+                        <span>دخول إلى المجلس</span>
+                        <ArrowLeft className="size-5" />
+                      </>
+                    )}
+                  </button>
+
+                  <div className="text-center pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("request")}
+                      className="text-sm font-black text-primary hover:underline flex items-center justify-center gap-2 mx-auto"
+                    >
+                      <UserPlus size={16} />
+                      طلب إنشاء حساب جديد
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            ) : mode === "request" ? (
+              <motion.div
+                key="request"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between mb-2" dir="rtl">
+                   <h2 className="text-sm font-black text-primary uppercase tracking-widest">طلب انضمام للمجلس</h2>
+                   <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
+                </div>
+
+                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar px-1" dir="rtl">
+                   <div className="grid grid-cols-1 gap-4">
+                      <ReqField label="الاسم الأول" icon={<User />} value={reqFirstName} onChange={setReqFirstName} placeholder="مثال: سعود" />
+                      <div className="grid grid-cols-2 gap-3">
+                         <ReqField label="اسم الأب" value={reqFatherName} onChange={setReqFatherName} placeholder="..." />
+                         <ReqField label="اسم الجد" value={reqGrandName} onChange={setReqGrandFatherName} placeholder="..." />
+                      </div>
+                      <ReqField label="رقم الجوال" icon={<Phone />} value={reqPhone} onChange={setReqPhone} placeholder="05xxxxxxxx" type="tel" />
+                      <ReqField label="البريد الإلكتروني" icon={<Mail />} value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+                      <ReqField label="كلمة المرور المقترحة" icon={<Lock />} value={reqPassword} onChange={setReqPassword} placeholder="••••••••" type="password" />
+                      <div className="space-y-1.5">
+                         <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">ملاحظة إضافية</label>
+                         <textarea
+                           value={reqNote} onChange={(e) => setReqNote(e.target.value)}
+                           className="w-full bg-muted/40 border border-border rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none"
+                           rows={2} placeholder="صلة القرابة أو أي معلومات إضافية..."
+                         />
+                      </div>
+                   </div>
+
+                   <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3 sticky bottom-0"
+                  >
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : (
+                      <>
+                        <span>إرسال الطلب</span>
+                        <Send className="size-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="forgot"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between mb-2" dir="rtl">
+                   <h2 className="text-sm font-black text-primary uppercase tracking-widest">استعادة كلمة المرور</h2>
+                   <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
+                </div>
+
+                <form onSubmit={onForgotPassword} className="space-y-6" dir="rtl">
+                  <p className="text-xs font-bold text-muted-foreground leading-relaxed">أدخل بريدك الإلكتروني المسجل وسنرسل لك رابطاً لاستعادة الوصول لحسابك.</p>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                    <div className="relative">
+                      <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="your-email@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || !email}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3"
+                  >
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : (
+                      <>
+                        <span>إرسال رابط الاستعادة</span>
+                        <Send className="size-4" />
+                      </>
+                    )}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <p className="text-center text-[10px] text-muted-foreground mt-12 tracking-[0.4em] uppercase font-black opacity-40">
             ALSAIF FAMILY HUB
           </p>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ReqField({ label, icon, value, onChange, placeholder, type = "text" }: any) {
+  return (
+    <div className="space-y-1.5">
+       <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">{label}</label>
+       <div className="relative">
+          {icon && <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gold-primary/40">{icon}</div>}
+          <input
+            type={type}
+            required
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={cn(
+              "w-full h-12 bg-muted/40 border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary transition-all shadow-sm",
+              icon ? "pr-12 pl-4" : "px-4"
+            )}
+            placeholder={placeholder}
+          />
+       </div>
     </div>
   );
 }
