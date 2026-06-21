@@ -234,7 +234,7 @@ export function AppShell({
                       initial={safeUser.initial}
                       className="size-full rounded-full"
                       userId={myUserId}
-                      presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-3 ring-2 ring-[var(--card)]"
+                      presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-4 ring-2 ring-[var(--card)] shadow-lg border border-white/20"
                     />
                   </div>
                   <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
