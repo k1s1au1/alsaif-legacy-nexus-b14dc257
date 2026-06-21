@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { setMemberParent } from "@/lib/api/family-tree.functions";
-import { Loader2, Pencil, Check, X, Users, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck } from "lucide-react";
+import { Loader2, Pencil, Check, X, Trees, ZoomIn, ZoomOut, Maximize2, Search, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -175,7 +175,7 @@ function FamilyTreePage() {
           >
             {isRoot ? (
               <div className="flex flex-col items-center">
-                 <Users className="size-4 text-[#D4AF37] mb-0.5" />
+                 <Trees className="size-4 text-[#D4AF37] mb-0.5" />
                  <span className="text-[11px] font-black uppercase tracking-tighter">{nodeDatum.name}</span>
               </div>
             ) : m ? (
@@ -237,7 +237,7 @@ function FamilyTreePage() {
         <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
           <div className="flex items-center gap-3">
             <div className="size-10 md:size-14 rounded-2xl bg-[#1B4332] flex items-center justify-center shadow-lg shadow-[#1B4332]/20 shrink-0">
-              <Users className="size-5 md:size-8 text-[#D4AF37]" />
+              <Trees className="size-5 md:size-8 text-[#D4AF37]" />
             </div>
             <div>
               <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>

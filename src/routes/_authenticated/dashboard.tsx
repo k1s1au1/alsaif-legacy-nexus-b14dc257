@@ -19,7 +19,8 @@ import {
   Timer,
   ArrowUpRight,
   ChevronRight,
-  User
+  User,
+  Trees
 } from "lucide-react";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
@@ -126,7 +127,7 @@ function Dashboard() {
               <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-amber-500" />
               <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-rose-500" />
               <QuickAction to="/majlis" label="إعلان" icon={<Megaphone />} color="bg-emerald-500" />
-              <QuickAction to="/family-tree" label="الشجرة" icon={<Users />} color="bg-teal-500" />
+              <QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-teal-500" />
               <QuickAction to="/finance" label="الصندوق" icon={<Wallet />} color="bg-green-600" />
               <QuickAction to="/profile" label="ملفي" icon={<User />} color="bg-slate-500" />
            </div>
