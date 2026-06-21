@@ -104,7 +104,10 @@ function Dashboard() {
            <div className="relative inline-block group">
              <div className="absolute inset-0 bg-[radial-gradient(circle,rgba(212,175,55,0.3)_0%,transparent_70%)] blur-[100px] rounded-full group-hover:bg-[radial-gradient(circle,rgba(212,175,55,0.5)_0%,transparent_70%)] transition-all duration-1000 animate-pulse" />
              <div className="absolute -inset-4 bg-gradient-to-br from-gold-primary/20 to-transparent rounded-full blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-             <img src={alsaifMark?.url || ""} alt="Logo" className="size-40 md:size-56 object-contain relative z-10 logo-royal hover:scale-110 transition-transform duration-700 cursor-pointer" />
+             <div
+               className="size-40 md:size-56 relative z-10 logo-royal hover:scale-110 transition-transform duration-700 cursor-pointer"
+               style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
+             />
            </div>
            <div className="space-y-2">
              <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">

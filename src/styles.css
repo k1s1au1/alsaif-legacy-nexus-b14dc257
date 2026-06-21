@@ -84,15 +84,21 @@
   }
 }
 
-/* Beautiful Royal Logo Transition */
+/* Beautiful Royal Logo Transition - Synchronized with Theme Colors */
 @utility logo-royal {
   transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-  mix-blend-mode: multiply;
+  /* Use mask-image to make the logo take the current primary color */
+  mask-image: var(--logo-url);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  background-color: var(--primary);
+  filter: drop-shadow(0 0 10px rgba(var(--primary), 0.2));
 }
 
 .dark .logo-royal {
-  mix-blend-mode: screen;
-  filter: invert(1) brightness(1.2) sepia(1) saturate(8) hue-rotate(345deg) drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
+  background-color: var(--gold-primary);
+  filter: drop-shadow(0 0 15px rgba(212, 175, 55, 0.6));
   animation: royal-pulse 4s infinite alternate ease-in-out;
 }
 
