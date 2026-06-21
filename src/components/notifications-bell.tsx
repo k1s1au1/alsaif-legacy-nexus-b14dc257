@@ -207,7 +207,7 @@ export function NotificationsBell() {
         <DropdownMenuSeparator className="m-0 bg-border/40" />
 
         <Link
-          to="/majlis"
+          to="/notifications"
           onClick={() => setOpen(false)}
           className="flex items-center justify-center gap-2 py-5 bg-primary/5 hover:bg-primary/10 transition-colors text-[13px] font-black text-primary"
         >
