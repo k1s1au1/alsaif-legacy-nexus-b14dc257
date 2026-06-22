@@ -25,6 +25,7 @@ import {
   Users,
   Search,
   ImagePlus,
+  Plus,
 } from "lucide-react";
 
 import { toast } from "sonner";
