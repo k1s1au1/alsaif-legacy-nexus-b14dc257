@@ -260,7 +260,7 @@ function MeetingStory({ meeting, index, userId, onRsvp, attendees, profiles, can
             <div className="flex flex-col gap-4">
                {meeting.location && (
                   <div className="flex items-center justify-center md:justify-start gap-3 text-primary/60 font-bold">
-                     <MapPinIcon size={18} className="text-gold-primary" />
+                     <MapPin size={18} className="text-gold-primary" />
                      <span>{meeting.location}</span>
                   </div>
                )}

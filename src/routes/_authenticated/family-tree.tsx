@@ -217,11 +217,17 @@ function FamilyTreePage() {
 
     return (
       <g>
-        <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2} style={{ overflow: "visible" }}>
+        <foreignObject
+          width={NODE_W}
+          height={NODE_H}
+          x={-NODE_W / 2}
+          y={-NODE_H / 2}
+          style={{ overflow: "visible" }}
+        >
           <div
             onClick={toggleNode}
             className={cn(
-              "relative w-full h-full rounded-full border-[3px] p-1.5 flex items-center justify-center gap-2 transition-all duration-500 cursor-pointer shadow-lg",
+              "relative w-full h-full rounded-full border-[3px] p-1.5 flex items-center justify-center gap-2 cursor-pointer shadow-lg",
               isRoot
                 ? "bg-[#1B4332] border-[#D4AF37] text-white"
                 : isMe
@@ -229,9 +235,14 @@ function FamilyTreePage() {
                   : isSearchMatch
                     ? "bg-[#D4AF37] border-white ring-4 ring-[#D4AF37]/20 scale-110"
                     : isExtra
-                      ? "bg-[#FFF8E7] border-[#D4AF37]/60 hover:border-[#1B4332]"
-                      : "bg-white border-[#E5E4E0] hover:border-[#1B4332]",
+                      ? "bg-[#FFF8E7] border-[#D4AF37]/60"
+                      : "bg-white border-[#E5E4E0]",
             )}
+            style={{
+              // Safari fix: ensure proper display and overflow
+              display: 'flex',
+              WebkitBackfaceVisibility: 'hidden',
+            }}
           >
             {isRoot ? (
               <div className="flex flex-col items-center">
@@ -493,7 +504,6 @@ function FamilyTreePage() {
           stroke-width: 2px;
           stroke-dasharray: 6;
           opacity: 0.15;
-          transition: all 0.5s ease;
         }
         .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 20px 20px; }
       `}</style>
