@@ -104,10 +104,10 @@ function Dashboard() {
   }, [loadData]);
 
   const stats = [
-    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-emerald-600", icon: <Wallet className="size-16" />, link: "/finance" },
-    { label: "أفراد العائلة", value: membersCount, suffix: "عضو", color: "bg-primary", icon: <Users className="size-16" />, link: "/members" },
-    { label: "الرحلات المجدولة", value: tripsCount, suffix: "رحلة", color: "bg-[#8E7745]", icon: <Plane className="size-16" />, link: "/trips" },
-    { label: "مهام قيد التنفيذ", value: tasksCount, suffix: "مهمة", color: "bg-rose-700", icon: <ListChecks className="size-16" />, link: "/tasks" },
+    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
+    { label: "أفراد العائلة", value: membersCount, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
+    { label: "الرحلات المجدولة", value: tripsCount, suffix: "رحلة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
+    { label: "مهام قيد التنفيذ", value: tasksCount, suffix: "مهمة", color: "bg-gradient-to-br from-rose-700 to-rose-950", icon: <ListChecks className="size-16" />, link: "/tasks" },
   ];
 
   const tripsPlugin = useRef(
@@ -292,17 +292,32 @@ function Dashboard() {
                      const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                      return (
                        <CarouselItem key={meeting.id}>
-                         <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-primary/20 bg-primary text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full">
-                            <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                            <div className="flex-1 space-y-6 relative z-10">
-                               <span className="text-xs font-black uppercase tracking-widest opacity-60">الحدث القادم</span>
-                               <h3 className="text-3xl md:text-5xl font-black">{meeting.title}</h3>
-                               <p className="text-lg font-black">{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                               <Link to="/meetings" className="btn-gold px-10 py-4 rounded-full font-black inline-block">تأكيد الحضور</Link>
+                         <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-white/5 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full group">
+                            <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 group-hover:scale-110 transition-transform duration-1000">
+                               <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
                             </div>
-                            <div className="hidden md:flex flex-col items-center justify-center p-8 bg-white/5 rounded-[40px] border border-white/10 relative z-10">
-                               <Timer className="size-8 mb-2 animate-pulse" />
-                               <p className="text-4xl font-black tracking-tighter">{daysLeft > 0 ? daysLeft : 0} أيام</p>
+                            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+                            <div className="flex-1 space-y-6 relative z-10">
+                               <div className="flex items-center gap-3">
+                                  <div className="h-0.5 w-8 bg-gold-primary" />
+                                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">حدث عائلي قريب</span>
+                               </div>
+                               <h3 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h3>
+                               <div className="flex items-center gap-4 text-white/60 font-bold">
+                                  <Clock className="size-5 text-gold-primary" />
+                                  <span>{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                               </div>
+                               <Link to="/meetings" className="btn-gold px-12 py-4 rounded-full font-black inline-flex items-center gap-3 shadow-2xl shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all">
+                                  تأكيد الحضور <ChevronLeft size={20} />
+                               </Link>
+                            </div>
+                            <div className="hidden md:flex flex-col items-center justify-center p-10 bg-white/5 backdrop-blur-md rounded-[40px] border border-white/10 relative z-10 min-w-[180px]">
+                               <Timer className="size-10 mb-3 text-gold-primary animate-pulse" />
+                               <div className="text-center">
+                                  <p className="text-5xl font-black tracking-tighter text-white">{daysLeft > 0 ? daysLeft : 0}</p>
+                                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">أيام متبقية</p>
+                               </div>
                             </div>
                          </article>
                        </CarouselItem>
