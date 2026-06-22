@@ -180,32 +180,47 @@ function Dashboard() {
                    loop: true,
                  }}
                >
-                 <CarouselContent className="h-[550px]">
+                 <CarouselContent className="h-[480px]">
                    {upcomingTrips.map(trip => (
                      <CarouselItem key={trip.id} className="h-full">
-                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-2 border-gold-primary/20 bg-gradient-to-br from-[#2C1810] via-[#1a0f0a] to-[#2C1810] text-white p-10 flex flex-col items-center justify-between h-full w-full group">
+                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-2 border-gold-primary/20 text-white p-10 flex flex-col items-center justify-between h-full w-full group">
+                          {/* Background Destination Image */}
+                          {trip.image_url ? (
+                            <div className="absolute inset-0 z-0">
+                               <img
+                                 src={trip.image_url}
+                                 className="size-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                 alt={trip.title}
+                               />
+                               <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f0a] via-[#1a0f0a]/60 to-transparent" />
+                               <div className="absolute inset-0 bg-black/40" />
+                            </div>
+                          ) : (
+                            <div className="absolute inset-0 bg-gradient-to-br from-[#2C1810] via-[#1a0f0a] to-[#2C1810]" />
+                          )}
+
                           {/* Decorative background mark */}
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none scale-[2.5] group-hover:scale-[2.8] transition-transform duration-1000">
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none scale-[2.5] group-hover:scale-[2.8] transition-transform duration-1000 z-1">
                              <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
                           </div>
 
                           {/* Top Section: Badge & Icon */}
                           <div className="relative z-10 w-full flex justify-between items-start">
-                             <div className="px-5 py-2 rounded-2xl bg-gold-primary/10 border border-gold-primary/20 backdrop-blur-md text-gold-primary text-[10px] font-black uppercase tracking-[0.2em]">
+                             <div className="px-5 py-2 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md text-gold-primary text-[10px] font-black uppercase tracking-[0.2em]">
                                 رحلة مرتقبة
                              </div>
-                             <div className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gold-primary animate-pulse">
+                             <div className="size-14 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md flex items-center justify-center text-gold-primary animate-pulse">
                                 <Plane size={24} />
                              </div>
                           </div>
 
                           {/* Middle Section: Title & Location */}
                           <div className="relative z-10 space-y-4 text-center">
-                             <h3 className="text-4xl md:text-6xl font-black bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent leading-tight">
+                             <h3 className="text-4xl md:text-5xl font-black bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent leading-tight drop-shadow-2xl">
                                 {trip.title}
                              </h3>
-                             <div className="flex items-center justify-center gap-4 text-sm font-medium text-gold-primary/80">
-                                <span className="flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full"><MapPin size={14} /> {trip.location || "وجهة عائلية"}</span>
+                             <div className="flex items-center justify-center gap-4 text-sm font-medium text-gold-primary">
+                                <span className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5"><MapPin size={14} /> {trip.location || "وجهة عائلية"}</span>
                              </div>
                           </div>
 
@@ -213,17 +228,17 @@ function Dashboard() {
                           <div className="relative z-10 w-full space-y-8 flex flex-col items-center">
                              <div className="flex items-center gap-10">
                                 <div className="text-center">
-                                   <p className="text-[10px] uppercase tracking-widest opacity-40 mb-1">التاريخ</p>
+                                   <p className="text-[10px] uppercase tracking-widest opacity-60 mb-1">التاريخ</p>
                                    <p className="text-xl font-black">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { day: 'numeric', month: 'short' }) : "—"}</p>
                                 </div>
-                                <div className="h-10 w-px bg-white/10" />
+                                <div className="h-10 w-px bg-white/20" />
                                 <div className="text-center">
-                                   <p className="text-[10px] uppercase tracking-widest opacity-40 mb-1">اليوم</p>
+                                   <p className="text-[10px] uppercase tracking-widest opacity-60 mb-1">اليوم</p>
                                    <p className="text-xl font-black">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { weekday: 'long' }) : "—"}</p>
                                 </div>
                              </div>
 
-                             <Link to="/trips" className="group/btn relative px-12 py-5 overflow-hidden rounded-full font-black text-black transition-all hover:scale-105 active:scale-95">
+                             <Link to="/trips" className="group/btn relative px-12 py-5 overflow-hidden rounded-full font-black text-black transition-all hover:scale-105 active:scale-95 shadow-xl">
                                 <div className="absolute inset-0 bg-gold-primary" />
                                 <span className="relative flex items-center gap-3">تفاصيل الرحلة <Compass size={20} /></span>
                              </Link>
