@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useParams } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -507,26 +507,4 @@ function formatDate(iso: string | null) {
   } catch {
     return "—";
   }
-}
-
-function Stat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="flex items-start gap-3">
-      <div className="size-9 rounded-lg bg-gold-primary/10 ring-1 ring-gold-primary/20 grid place-items-center">
-        <Icon className="size-4 text-gold-primary" strokeWidth={1.5} />
-      </div>
-      <div>
-        <div className="eyebrow mb-1">{label}</div>
-        <div className="text-sm text-ivory">{value}</div>
-      </div>
-    </div>
-  );
 }

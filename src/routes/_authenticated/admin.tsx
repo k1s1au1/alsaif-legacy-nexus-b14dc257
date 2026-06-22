@@ -498,17 +498,23 @@ function AttendanceSection() {
   const loadAttendance = useCallback(async () => {
     setLoading(true);
     try {
+      const { data: profiles } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url");
+      const profMap = new Map((profiles || []).map(p => [p.id, p]));
+
       if (tab === "trips") {
         const { data: trips } = await supabase.from("trips").select("id, title").order("start_date", { ascending: false });
-        const { data: attendees } = await supabase.from("trip_attendees").select("trip_id, user_id, status");
-        const { data: profiles } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url");
 
-        const profMap = new Map((profiles || []).map(p => [p.id, p]));
+        // Try with status, fallback if error
+        const { data: attendees, error } = await supabase.from("trip_attendees").select("trip_id, user_id, status");
+
+        const finalAttendees = (error && error.message?.includes('status'))
+          ? (await supabase.from("trip_attendees").select("trip_id, user_id")).data || []
+          : attendees || [];
 
         const result = (trips || []).map(t => ({
           id: t.id,
           title: t.title,
-          attendees: (attendees || [])
+          attendees: finalAttendees
             .filter(a => a.trip_id === t.id && (!a.status || a.status === 'going'))
             .map(a => profMap.get(a.user_id))
             .filter(Boolean)
@@ -517,9 +523,6 @@ function AttendanceSection() {
       } else {
         const { data: meetings } = await supabase.from("meetings").select("id, title").order("scheduled_at", { ascending: false });
         const { data: attendees } = await supabase.from("meeting_attendees").select("meeting_id, user_id, rsvp");
-        const { data: profiles } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url");
-
-        const profMap = new Map((profiles || []).map(p => [p.id, p]));
 
         const result = (meetings || []).map(m => ({
           id: m.id,
@@ -582,6 +585,7 @@ function AttendanceSection() {
     </motion.div>
   );
 }
+function NavTab({ active, onClick, icon, label, badge }: any) {
   return (
     <button
       onClick={onClick}
