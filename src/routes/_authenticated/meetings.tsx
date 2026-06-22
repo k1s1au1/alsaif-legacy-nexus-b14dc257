@@ -19,11 +19,17 @@ import {
   UserCheck,
   UserX,
   UserPlus,
+  Share2,
+  Calendar,
+  ChevronDown,
+  Timer,
+  AlertCircle
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -268,25 +274,36 @@ function MeetingsPage() {
 
   async function setRsvp(meetingId: string, rsvp: Rsvp) {
     if (!userId) return;
-    const existing = attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId);
-    if (existing) {
-      const { error } = await supabase
-        .from("meeting_attendees")
-        .update({ rsvp })
-        .eq("meeting_id", meetingId)
-        .eq("user_id", userId);
-      if (error) toast.error("تعذر التحديث");
-      else loadAll();
-      return;
+
+    // Optimistic update
+    const oldAttendees = [...attendees];
+    const newAttendees = [...attendees];
+    const idx = newAttendees.findIndex(a => a.meeting_id === meetingId && a.user_id === userId);
+
+    if (idx >= 0) {
+      if (newAttendees[idx].rsvp === rsvp) {
+        // Toggle off if clicking the same status
+        newAttendees.splice(idx, 1);
+        setAttendees(newAttendees);
+        const { error } = await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
+        if (error) { toast.error("حدث خطأ"); setAttendees(oldAttendees); }
+        else toast.success("تم إلغاء التفضيل");
+      } else {
+        newAttendees[idx].rsvp = rsvp;
+        setAttendees(newAttendees);
+        const { error } = await supabase.from("meeting_attendees").update({ rsvp }).eq("meeting_id", meetingId).eq("user_id", userId);
+        if (error) { toast.error("حدث خطأ"); setAttendees(oldAttendees); }
+        else toast.success("تم تحديث حالتك");
+      }
+    } else {
+      newAttendees.push({ meeting_id: meetingId, user_id: userId, rsvp });
+      setAttendees(newAttendees);
+      const { error } = await supabase.from("meeting_attendees").insert({ meeting_id: meetingId, user_id: userId, rsvp });
+      if (error) { toast.error("حدث خطأ"); setAttendees(oldAttendees); }
+      else toast.success("تم تسجيل حضورك");
     }
-    const { error } = await supabase
-      .from("meeting_attendees")
-      .upsert(
-        { meeting_id: meetingId, user_id: userId, rsvp },
-        { onConflict: "meeting_id,user_id" },
-      );
-    if (error) toast.error("تعذر التحديث");
-    else loadAll();
+
+    loadAll();
   }
 
   function countsFor(meetingId: string) {
@@ -312,55 +329,64 @@ function MeetingsPage() {
 
   return (
     <AppShell title="الاجتماعات" user={profile}>
-      <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Modern Header */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="size-1 w-10 bg-gold-primary rounded-full" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">جدول العائلة</span>
-            </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">الاجتماعات القادمة</h2>
-            <p className="text-muted-foreground font-bold text-lg opacity-70">تواصل، ترابط، واحفظ إرث عائلة آل سيف.</p>
-          </div>
-          {canManage && (
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              onClick={openCreate}
-              className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
-            >
-              <Plus className="size-5" strokeWidth={3} />
-              <span>إضافة اجتماع جديد</span>
-            </motion.button>
-          )}
+        {/* Immersive Header */}
+        <section className="relative overflow-hidden rounded-[48px] bg-gradient-to-br from-primary via-[#1a2b3c] to-primary p-12 md:p-20 text-white shadow-2xl animate-fade-up">
+           <div className="absolute top-0 left-0 size-96 opacity-[0.05] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-royal"
+                style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+
+           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10">
+              <div className="space-y-6">
+                 <div className="flex items-center gap-3">
+                    <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_15px_rgba(142,119,69,0.5)]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold-primary">مركز الاجتماعات</span>
+                 </div>
+                 <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">اللقاءات العائلية</h2>
+                 <p className="text-xl text-white/60 font-bold max-w-xl">مساحة للتواصل، تقوية الروابط، ومناقشة مستقبل العائلة.</p>
+              </div>
+
+              {canManage && (
+                <button
+                  onClick={openCreate}
+                  className="btn-gold px-10 py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/30 flex items-center justify-center gap-4 group/btn"
+                >
+                  <Plus className="size-6 group-hover/btn:rotate-90 transition-transform duration-500" strokeWidth={3} />
+                  <span>جدولة اجتماع جديد</span>
+                </button>
+              )}
+           </div>
         </section>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
-             <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-             <p className="font-black">جاري تحضير قائمة الاجتماعات...</p>
+             <div className="size-16 rounded-full border-4 border-primary/20 border-t-gold-primary animate-spin" />
+             <p className="font-black text-primary uppercase tracking-widest text-xs">جاري تحضير الجدول...</p>
           </div>
         ) : (
-          <div className="space-y-20">
+          <div className="space-y-24">
             {/* Upcoming Section */}
-            <section className="space-y-8 animate-fade-up" style={{ animationDelay: "100ms" }}>
-              <div className="flex items-center gap-4">
-                 <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">المناسبات القريبة</h3>
-                 <div className="h-px flex-1 bg-border/60" />
+            <section className="space-y-10 animate-fade-up" style={{ animationDelay: "100ms" }}>
+              <div className="flex items-center gap-6 px-4">
+                 <h3 className="text-xs font-black text-primary uppercase tracking-[0.4em] whitespace-nowrap">الفعاليات القادمة</h3>
+                 <div className="h-px flex-1 bg-gradient-to-l from-border/60 to-transparent" />
+                 <div className="flex items-center gap-2 bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10">
+                    <span className="text-[10px] font-black text-primary">{upcoming.length} اجتماع</span>
+                 </div>
               </div>
 
               {upcoming.length === 0 ? (
-                <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60">
-                   <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><CalendarDays size={40} /></div>
-                   <div className="space-y-1">
-                      <p className="text-xl font-black">لا توجد اجتماعات قادمة</p>
-                      <p className="text-sm font-bold opacity-60">سيتم إشعارك فور جدولة أي لقاء جديد.</p>
+                <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed border-2 opacity-50 mx-4 rounded-[48px]">
+                   <div className="size-24 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground shadow-inner">
+                      <CalendarDays size={48} strokeWidth={1.5} />
+                   </div>
+                   <div className="space-y-2">
+                      <p className="text-2xl font-black text-primary">لا يوجد لقاءات مجدولة</p>
+                      <p className="text-base font-bold text-muted-foreground opacity-60">سيتم إخطارك فور تحديد موعد اجتماع جديد.</p>
                    </div>
                 </div>
               ) : (
-                <div className="grid gap-6">
+                <div className="grid gap-8 px-4 md:px-0">
                   {upcoming.map((m, i) => (
                     <MeetingCard
                       key={m.id}
@@ -382,12 +408,12 @@ function MeetingsPage() {
 
             {/* Past Section */}
             {past.length > 0 && (
-              <section className="space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
-                <div className="flex items-center gap-4">
-                   <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">اللقاءات السابقة</h3>
-                   <div className="h-px flex-1 bg-border/30" />
+              <section className="space-y-10 animate-fade-up" style={{ animationDelay: "200ms" }}>
+                <div className="flex items-center gap-6 px-4 opacity-50">
+                   <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.4em] whitespace-nowrap">الأرشيف</h3>
+                   <div className="h-px flex-1 bg-gradient-to-l from-border/30 to-transparent" />
                 </div>
-                <div className="grid gap-4 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-500">
+                <div className="grid gap-6 px-4 md:px-0 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
                   {past.map((m) => (
                     <MeetingCard
                       key={m.id}
@@ -571,150 +597,155 @@ function MeetingCard({
   const date = formatDate(meeting.scheduled_at);
   const status = statusChip(meeting.status, meeting.scheduled_at);
 
-  const getAttendeesByRsvp = (rsvp: Rsvp) => {
-    return attendeesList
-      .filter(a => a.rsvp === rsvp)
-      .map(a => profiles[a.user_id])
-      .filter(Boolean);
-  };
-
-  const going = getAttendeesByRsvp("going");
-  const maybe = getAttendeesByRsvp("maybe");
-  const notGoing = getAttendeesByRsvp("not_going");
+  const going = attendeesList.filter(a => a.rsvp === "going").map(a => profiles[a.user_id]).filter(Boolean);
+  const maybe = attendeesList.filter(a => a.rsvp === "maybe").map(a => profiles[a.user_id]).filter(Boolean);
+  const notGoing = attendeesList.filter(a => a.rsvp === "not_going").map(a => profiles[a.user_id]).filter(Boolean);
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-      className="group relative"
+      transition={{ delay: index * 0.1, duration: 0.8, ease: "easeOut" }}
+      className="group"
     >
       <div className={cn(
-        "card-surface overflow-hidden border-none shadow-2xl transition-all duration-500",
-        expanded ? "ring-2 ring-primary" : "hover:-translate-y-1"
+        "card-surface overflow-hidden border-none shadow-[0_20px_50px_rgba(0,0,0,0.1)] transition-all duration-500 rounded-[48px]",
+        expanded ? "ring-2 ring-primary bg-primary/5" : "hover:-translate-y-2 hover:shadow-[0_40px_80px_rgba(0,0,0,0.15)]"
       )}>
-        {/* Decorative Background Mark */}
-        <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150 group-hover:opacity-[0.05] transition-opacity duration-700">
-           <img src={alsaifMark.url} className="size-64" alt="" />
-        </div>
+        <div className="flex flex-col md:flex-row relative z-10 min-h-[320px]">
 
-        <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-border/40 relative z-10">
-
-          {/* Left Side - Date Box */}
-          <div className="w-full md:w-56 p-6 md:p-8 flex flex-row md:flex-col items-center justify-between md:justify-center text-center bg-primary/5 group-hover:bg-primary/10 transition-colors shrink-0 gap-4 md:gap-2">
-             <div className="flex flex-col md:items-center items-start">
-               <span className="text-gold-primary font-black uppercase tracking-[0.2em] text-[10px] mb-1">{date.weekday}</span>
-               <div className="flex items-baseline gap-2 md:block">
-                 <span className="text-4xl md:text-6xl font-black tracking-tighter text-primary">{date.day}</span>
-                 <span className="text-base md:text-lg font-black text-primary opacity-60 mt-1">{date.month}</span>
-               </div>
-             </div>
-             <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-card border border-border/60 rounded-full shadow-sm">
-                <Clock className="size-3.5 md:size-3 text-gold-primary" />
-                <span className="text-[12px] md:text-[12px] font-black text-primary">{date.time}</span>
+          {/* Date Column */}
+          <div className="w-full md:w-64 p-10 flex flex-col items-center justify-center text-center bg-gradient-to-b from-primary/5 to-primary/[0.02] border-b md:border-b-0 md:border-l border-border/40 shrink-0 relative overflow-hidden group-hover:bg-primary/[0.08] transition-colors">
+             <div className="absolute inset-0 opacity-[0.03] pointer-events-none logo-royal scale-[1.5]" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+             <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] mb-3 relative z-10">{date.weekday}</span>
+             <span className="text-7xl font-black tracking-tighter text-primary relative z-10 leading-none">{date.day}</span>
+             <span className="text-xl font-black text-primary opacity-50 mt-2 relative z-10">{date.month}</span>
+             <div className="mt-8 flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-card border border-border/60 rounded-2xl shadow-xl relative z-10">
+                <Timer className="size-4 text-gold-primary animate-pulse" />
+                <span className="text-[14px] font-black text-primary">{date.time}</span>
              </div>
           </div>
 
-          {/* Main Content Area */}
-          <div className="flex-1 p-6 md:p-10 space-y-6 md:space-y-8">
-             <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="space-y-2">
-                   <div className="flex items-center gap-3">
-                      <span className={cn("px-3 py-0.5 rounded-full border text-[10px] font-black uppercase tracking-wider", status.className)}>
-                        {status.label}
-                      </span>
-                      {meeting.duration_minutes && (
-                        <span className="text-[10px] font-black text-muted-foreground uppercase opacity-60 flex items-center gap-1">
-                          <Clock className="size-3" /> {meeting.duration_minutes} دقيقة
-                        </span>
-                      )}
-                   </div>
-                   <h4 className="text-2xl md:text-3xl font-black text-primary leading-tight group-hover:text-gold-primary transition-colors">{meeting.title}</h4>
-                   {meeting.description && (
-                     <p className="text-muted-foreground font-bold text-sm leading-relaxed max-w-2xl">{meeting.description}</p>
+          {/* Main Info Column */}
+          <div className="flex-1 p-10 md:p-14 flex flex-col justify-between space-y-10 relative overflow-hidden">
+             {/* Large background info icon */}
+             <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-[0.02] pointer-events-none rotate-12">
+                <Calendar size={300} strokeWidth={1} />
+             </div>
+
+             <div className="space-y-6 relative z-10">
+                <div className="flex flex-wrap items-center gap-3">
+                   <span className={cn("px-4 py-1.5 rounded-full border text-[10px] font-black uppercase tracking-widest shadow-sm", status.className)}>
+                     {status.label}
+                   </span>
+                   {meeting.duration_minutes && (
+                     <span className="px-3 py-1.5 bg-muted/50 rounded-xl text-[10px] font-black text-muted-foreground uppercase opacity-80 flex items-center gap-2 border border-border/40">
+                       <Clock className="size-3" /> {meeting.duration_minutes} دقيقة
+                     </span>
+                   )}
+                   <div className="flex-1" />
+                   {canManage && !isPast && (
+                      <div className="flex items-center gap-2">
+                        <button onClick={() => onEdit(meeting)} className="size-11 rounded-2xl bg-white dark:bg-card border border-border/60 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white hover:border-primary transition-all shadow-lg active:scale-95"><Pencil size={18} /></button>
+                        <button onClick={() => onDelete(meeting.id)} className="size-11 rounded-2xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all shadow-lg active:scale-95"><Trash2 size={18} /></button>
+                      </div>
                    )}
                 </div>
 
-                {canManage && !isPast && (
-                  <div className="flex items-center gap-2 self-start">
-                    <button onClick={() => onEdit(meeting)} className="size-10 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm"><Pencil size={16} /></button>
-                    <button onClick={() => onDelete(meeting.id)} className="size-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>
-                  </div>
-                )}
+                <div className="space-y-3">
+                   <h4 className="text-4xl md:text-5xl font-black text-primary leading-tight tracking-tight group-hover:text-gold-primary transition-colors duration-500">{meeting.title}</h4>
+                   {meeting.description && (
+                     <p className="text-muted-foreground font-bold text-lg leading-relaxed max-w-2xl border-r-4 border-gold-primary/20 pr-6 py-2">{meeting.description}</p>
+                   )}
+                </div>
              </div>
 
-             <div className="flex flex-wrap items-center gap-8">
+             <div className="flex flex-wrap items-center gap-10 relative z-10">
                 {meeting.location && (
-                  <div className="flex items-center gap-3">
-                     <div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-inner"><MapPinIcon size={20} /></div>
-                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40">الموقع</p>
+                  <div className="flex items-center gap-5 group/loc">
+                     <div className="size-14 rounded-3xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-inner border border-gold-primary/20 group-hover/loc:bg-gold-primary group-hover/loc:text-white transition-all duration-500">
+                        <MapPinIcon size={24} />
+                     </div>
+                     <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">مكان اللقاء</p>
                         {meeting.location_url ? (
-                          <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-sm font-black hover:text-gold-primary underline underline-offset-4 decoration-gold-primary/30 decoration-2 transition-all">{meeting.location}</a>
+                          <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-base font-black hover:text-gold-primary underline underline-offset-8 decoration-gold-primary/30 hover:decoration-gold-primary transition-all flex items-center gap-2">
+                             {meeting.location}
+                             <Share2 size={14} className="opacity-40" />
+                          </a>
                         ) : (
-                          <p className="text-sm font-black">{meeting.location}</p>
+                          <p className="text-base font-black">{meeting.location}</p>
                         )}
                      </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-3">
-                   <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary shadow-inner"><Users size={20} /></div>
-                   <div className="flex items-center gap-2">
-                      <div className="flex -space-x-3 space-x-reverse">
-                        {going.slice(0, 3).map((a) => (
-                           <div key={a.id} className="size-8 rounded-full border-2 border-background bg-muted overflow-hidden">
-                              {a.avatar_url ? <img src={a.avatar_url} className="size-full object-cover" alt="" /> : <div className="size-full flex items-center justify-center bg-primary/10 text-primary text-[10px] font-black">{(a.arabic_name || a.full_name || "?")[0]}</div>}
+                <div className="flex items-center gap-5">
+                   <div className="size-14 rounded-3xl bg-primary/10 flex items-center justify-center text-primary shadow-inner border border-primary/20">
+                      <Users size={24} />
+                   </div>
+                   <div className="flex items-center gap-4">
+                      <div className="flex -space-x-4 space-x-reverse">
+                        {going.slice(0, 4).map((a) => (
+                           <div key={a.id} className="size-10 rounded-2xl border-4 border-background overflow-hidden shadow-xl ring-1 ring-border/40">
+                              <UserAvatar path={a.avatar_url} name={a.arabic_name || a.full_name} className="size-full" userId={a.id} />
                            </div>
                         ))}
-                        {going.length > 3 && (
-                          <div className="size-8 rounded-full border-2 border-background bg-gold-primary text-white text-[10px] font-black flex items-center justify-center">+{going.length - 3}</div>
+                        {going.length > 4 && (
+                          <div className="size-10 rounded-2xl border-4 border-background bg-gold-primary text-black text-xs font-black flex items-center justify-center shadow-xl ring-1 ring-gold-primary/40">+{going.length - 4}</div>
                         )}
                       </div>
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-widest opacity-40">حالة الحضور</p>
-                        <p className="text-xs font-black text-primary">{counts.going} حاضر · {counts.maybe} ربما · {counts.not_going} اعتذار</p>
+                      <div className="space-y-0.5">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">المؤكدون</p>
+                        <button onClick={() => setExpanded(!expanded)} className="text-sm font-black text-primary hover:text-gold-primary transition-colors underline decoration-gold-primary/20 decoration-2 underline-offset-4 flex items-center gap-2">
+                           {counts.going} حاضر
+                           <ChevronDown size={14} className={cn("transition-transform duration-500", expanded ? "rotate-180" : "")} />
+                        </button>
                       </div>
                    </div>
                 </div>
              </div>
 
-             {/* RSVP Actions Section */}
+             {/* RSVP Actions - Modern Bar */}
              {!isPast && (
-               <div className="pt-4 flex flex-col sm:flex-row items-center gap-4">
-                 <div className="flex items-center gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
+               <div className="pt-8 border-t border-border/40 flex flex-col lg:flex-row items-center gap-6 relative z-10">
+                 <div className="flex items-center gap-3 w-full lg:w-auto p-1.5 bg-muted/40 rounded-[28px] border border-border/40 backdrop-blur-sm shadow-inner">
                     <RsvpButton
                       active={myRsvp === "going"}
                       onClick={() => onRsvp(meeting.id, "going")}
-                      icon={<UserCheck className="size-4" />}
+                      icon={<UserCheck size={18} />}
                       label="سأحضر"
                       color="emerald"
                     />
                     <RsvpButton
                       active={myRsvp === "maybe"}
                       onClick={() => onRsvp(meeting.id, "maybe")}
-                      icon={<HelpCircle className="size-4" />}
+                      icon={<HelpCircle size={18} />}
                       label="ربما"
                       color="amber"
                     />
                     <RsvpButton
                       active={myRsvp === "not_going"}
                       onClick={() => onRsvp(meeting.id, "not_going")}
-                      icon={<UserX className="size-4" />}
+                      icon={<UserX size={18} />}
                       label="أعتذر"
                       color="rose"
                     />
                  </div>
 
-                 <div className="h-px flex-1 bg-border/40 hidden sm:block" />
+                 <div className="hidden lg:block h-10 w-px bg-border/40 mx-2" />
 
-                 <button
-                  onClick={() => setExpanded(!expanded)}
-                  className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest hover:text-gold-primary transition-colors px-4 py-2 rounded-full hover:bg-muted"
-                 >
-                    <span>{expanded ? "إخفاء التفاصيل" : "عرض قائمة الحضور"}</span>
-                    <ChevronLeft className={cn("size-4 transition-transform duration-500", expanded ? "-rotate-90" : "")} />
-                 </button>
+                 <div className="flex items-center gap-4 text-[10px] font-black uppercase tracking-widest text-muted-foreground/60">
+                    <div className="flex items-center gap-2">
+                       <div className="size-1.5 rounded-full bg-emerald-500" /> {counts.going} مؤكد
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <div className="size-1.5 rounded-full bg-amber-500" /> {counts.maybe} ربما
+                    </div>
+                    <div className="flex items-center gap-2">
+                       <div className="size-1.5 rounded-full bg-rose-500" /> {counts.not_going} اعتذار
+                    </div>
+                 </div>
                </div>
              )}
           </div>
@@ -727,12 +758,13 @@ function MeetingCard({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden border-t border-border/40 bg-muted/10"
+              transition={{ duration: 0.6, ease: "easeInOut" }}
+              className="overflow-hidden border-t border-border/40 bg-primary/[0.02]"
             >
-              <div className="p-8 grid grid-cols-1 sm:grid-cols-3 gap-10">
-                <AttendeeCategory title="حاضرون" count={counts.going} list={going} color="emerald" />
-                <AttendeeCategory title="ربما" count={counts.maybe} list={maybe} color="amber" />
-                <AttendeeCategory title="أعتذروا" count={counts.not_going} list={notGoing} color="rose" />
+              <div className="p-10 md:p-14 grid grid-cols-1 md:grid-cols-3 gap-12">
+                <AttendeeCategory title="سيحضرون اللقاء" count={counts.going} list={going} color="emerald" icon={<UserCheck className="size-5" />} />
+                <AttendeeCategory title="احتمالية الحضور" count={counts.maybe} list={maybe} color="amber" icon={<HelpCircle className="size-5" />} />
+                <AttendeeCategory title="اعتذروا عن الحضور" count={counts.not_going} list={notGoing} color="rose" icon={<UserX className="size-5" />} />
               </div>
             </motion.div>
           )}
@@ -742,29 +774,34 @@ function MeetingCard({
   );
 }
 
-function AttendeeCategory({ title, count, list, color }: any) {
+function AttendeeCategory({ title, count, list, color, icon }: any) {
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between border-b border-border pb-3">
+    <div className="space-y-6">
+      <div className="flex items-center justify-between border-b-2 border-border/40 pb-4">
          <div className="flex items-center gap-3">
-            <div className={cn("size-2 rounded-full animate-pulse",
-              color === "emerald" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" :
-              color === "amber" ? "bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" :
-              "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]")} />
-            <h5 className="font-black text-sm uppercase tracking-widest text-primary">{title}</h5>
+            <div className={cn("p-2 rounded-xl",
+              color === "emerald" ? "bg-emerald-500/10 text-emerald-500" :
+              color === "amber" ? "bg-amber-500/10 text-amber-500" :
+              "bg-rose-500/10 text-rose-500")}>
+               {icon}
+            </div>
+            <h5 className="font-black text-base tracking-tight text-primary">{title}</h5>
          </div>
-         <span className="text-[10px] font-black opacity-40">{count} عضو</span>
+         <span className="px-3 py-1 bg-muted rounded-full text-[10px] font-black opacity-60">{count}</span>
       </div>
       {list.length === 0 ? (
-        <p className="text-[11px] font-bold text-muted-foreground/60 italic">لا يوجد أحد حالياً</p>
+        <div className="flex flex-col items-center justify-center py-6 gap-3 opacity-20 border-2 border-dashed border-border rounded-3xl">
+           <AlertCircle size={32} />
+           <p className="text-xs font-bold italic">لا توجد أسماء</p>
+        </div>
       ) : (
-        <ul className="grid grid-cols-1 gap-2">
+        <ul className="grid grid-cols-1 gap-3">
           {list.map((p: any) => (
-            <li key={p.id} className="flex items-center gap-3 group/user">
-               <div className="size-8 rounded-full border border-border overflow-hidden bg-muted flex-shrink-0">
-                  {p.avatar_url ? <img src={p.avatar_url} className="size-full object-cover" alt="" /> : <div className="size-full flex items-center justify-center bg-primary/5 text-primary text-[10px] font-black">{(p.arabic_name || p.full_name || "?")[0]}</div>}
+            <li key={p.id} className="flex items-center gap-4 group/user p-2 rounded-2xl hover:bg-white dark:hover:bg-card transition-all duration-300">
+               <div className="size-10 rounded-xl border border-border overflow-hidden bg-muted flex-shrink-0 shadow-sm transition-transform group-hover/user:scale-105">
+                  <UserAvatar path={p.avatar_url} name={p.arabic_name || p.full_name} className="size-full" userId={p.id} />
                </div>
-               <span className="text-sm font-bold text-primary opacity-80 group-hover/user:opacity-100 transition-opacity truncate">{p.arabic_name || p.full_name || "عضو"}</span>
+               <span className="text-sm font-black text-primary opacity-80 group-hover/user:opacity-100 transition-opacity truncate">{p.arabic_name || p.full_name}</span>
             </li>
           ))}
         </ul>
@@ -775,9 +812,9 @@ function AttendeeCategory({ title, count, list, color }: any) {
 
 function RsvpButton({ active, onClick, icon, label, color }: any) {
   const colors: any = {
-    emerald: active ? "bg-emerald-600 text-white shadow-lg shadow-emerald-500/30 ring-emerald-500/20" : "bg-white dark:bg-card text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/5",
-    amber: active ? "bg-amber-500 text-white shadow-lg shadow-amber-500/30 ring-amber-500/20" : "bg-white dark:bg-card text-amber-600 border-amber-500/20 hover:bg-amber-500/5",
-    rose: active ? "bg-rose-600 text-white shadow-lg shadow-rose-500/30 ring-rose-500/20" : "bg-white dark:bg-card text-rose-600 border-rose-500/20 hover:bg-rose-500/5",
+    emerald: active ? "bg-emerald-600 text-white shadow-xl shadow-emerald-500/30 scale-105" : "bg-transparent text-emerald-600 border-transparent hover:bg-emerald-500/10",
+    amber: active ? "bg-amber-500 text-white shadow-xl shadow-amber-500/30 scale-105" : "bg-transparent text-amber-600 border-transparent hover:bg-amber-500/10",
+    rose: active ? "bg-rose-600 text-white shadow-xl shadow-rose-500/30 scale-105" : "bg-transparent text-rose-600 border-transparent hover:bg-rose-500/10",
   };
 
   return (
@@ -785,13 +822,13 @@ function RsvpButton({ active, onClick, icon, label, color }: any) {
       whileTap={{ scale: 0.95 }}
       onClick={onClick}
       className={cn(
-        "flex-1 min-w-[100px] inline-flex items-center justify-center gap-2 px-5 py-3 rounded-2xl text-xs font-black border transition-all duration-300",
+        "flex-1 min-w-[110px] inline-flex items-center justify-center gap-2 px-6 py-4 rounded-[22px] text-xs font-black transition-all duration-500 border-2",
+        active ? "border-transparent" : "border-transparent",
         colors[color]
       )}
     >
       {icon}
       <span>{label}</span>
-      {active && <CheckCircle2 size={12} className="mr-auto" />}
     </motion.button>
   );
 }
