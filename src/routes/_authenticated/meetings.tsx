@@ -485,9 +485,47 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
           </div>
 
           <div className="flex flex-col gap-4 w-full md:w-auto min-w-full md:min-w-[320px]">
-             <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] flex items-center gap-1.5 shadow-2xl">
-                <RsvpInteractiveBtn active={myRsvp === 'going'} onClick={() => onRsvp(meeting.id, 'going')} label="سأحضر" color="bg-emerald-500" icon={<UserCheck size={18} />} />
-                <RsvpInteractiveBtn active={myRsvp === 'not_going'} onClick={() => onRsvp(meeting.id, 'not_going')} label="أعتذر" color="bg-rose-500" icon={<UserX size={18} />} />
+             <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[32px] flex items-center shadow-2xl h-[64px] overflow-hidden">
+                {/* Sliding Background Indicator */}
+                <AnimatePresence initial={false}>
+                  {myRsvp && (
+                    <motion.div
+                      layoutId="rsvp-active-bg"
+                      initial={false}
+                      animate={{
+                        x: myRsvp === 'going' ? '0%' : '-100%',
+                        backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
+                      }}
+                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                      className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-[26px] z-0 shadow-lg"
+                      style={{ right: myRsvp === 'going' ? 'auto' : 'auto' }}
+                    />
+                  )}
+                </AnimatePresence>
+
+                <div className="relative z-10 flex w-full h-full">
+                  <button
+                    onClick={() => onRsvp(meeting.id, 'going')}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-3 transition-colors duration-500 font-black text-sm",
+                      myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
+                    )}
+                  >
+                    <UserCheck size={20} />
+                    <span>سأحضر</span>
+                  </button>
+
+                  <button
+                    onClick={() => onRsvp(meeting.id, 'not_going')}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-3 transition-colors duration-500 font-black text-sm",
+                      myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
+                    )}
+                  >
+                    <UserX size={20} />
+                    <span>أعتذر</span>
+                  </button>
+                </div>
              </div>
              {canManage && (
                 <div className="flex items-center gap-2 px-1">
