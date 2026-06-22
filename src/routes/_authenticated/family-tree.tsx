@@ -32,7 +32,7 @@ export const Route = createFileRoute("/_authenticated/family-tree")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "شجرة العائلة — السيف" },
+      { title: "شجرة عائلة السيف" },
       {
         name: "description",
         content:
@@ -319,7 +319,7 @@ function FamilyTreePage() {
   const editingMember = editing ? members.find((m) => m.id === editing) : null;
 
   return (
-    <AppShell title="شجرة العائلة" user={me}>
+    <AppShell title="شجرة عائلة السيف" user={me}>
       <div className="space-y-4 px-1 md:px-0">
         <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
           <div className="flex items-center gap-3">
@@ -327,7 +327,7 @@ function FamilyTreePage() {
               <Trees className="size-6 md:size-8 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة عائلة آل سيف</h1>
+              <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة عائلة السيف</h1>
               <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">
                 استكشف تفرعات وجذور عائلة آل سيف العريقة
               </p>

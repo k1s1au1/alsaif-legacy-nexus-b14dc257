@@ -36,12 +36,9 @@ const FONTS = [
 const THEME_COLORS = [
   { id: "emerald", name: "الأخضر الماسي", primary: "#064E3B", secondary: "#D4AF37", darkPrimary: "#059669", foreground: "#FFFFFF" },
   { id: "pure-white", name: "الأبيض اللؤلؤي", primary: "#F8FAFC", secondary: "#064E3B", darkPrimary: "#F1F5F9", foreground: "#064E3B" },
-  { id: "champagne", name: "شامبين الذهب", primary: "#F3E5AB", secondary: "#451A03", darkPrimary: "#FDE68A", foreground: "#451A03" },
-  { id: "platinum", name: "البلاتين الفخم", primary: "#E5E7EB", secondary: "#111827", darkPrimary: "#D1D5DB", foreground: "#111827" },
-  { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA", foreground: "#FFFFFF" },
-  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#D4AF37", darkPrimary: "#800000", foreground: "#FFFFFF" },
-  { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9", foreground: "#FFFFFF" },
-  { id: "ruby", name: "الياقوت القاني", primary: "#7F1D1D", secondary: "#D4AF37", darkPrimary: "#991B1B", foreground: "#FFFFFF" },
+  { id: "turquoise", name: "الفيروزي المتألق", primary: "#0D9488", secondary: "#CCFBF1", darkPrimary: "#2DD4BF", foreground: "#FFFFFF" },
+  { id: "bronze", name: "البرونزي العتيق", primary: "#78350F", secondary: "#FEF3C7", darkPrimary: "#B45309", foreground: "#FFFFFF" },
+  { id: "velvet", name: "البنفسجي المخملي", primary: "#4C1D95", secondary: "#EDE9FE", darkPrimary: "#8B5CF6", foreground: "#FFFFFF" },
   { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC", foreground: "#FFFFFF" },
 ];
 

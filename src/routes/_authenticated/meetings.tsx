@@ -282,12 +282,12 @@ function MeetingsPage() {
               ) : (
                 <Carousel
                   plugins={[plugin.current]}
-                  className="w-full"
+                  className="w-full touch-pan-y"
                   onMouseEnter={plugin.current.stop}
                   onMouseLeave={plugin.current.reset}
-                  opts={{ direction: 'rtl', loop: true }}
+                  opts={{ direction: 'rtl', loop: true, watchDrag: true }}
                 >
-                  <CarouselContent>
+                  <CarouselContent className="touch-pan-y">
                     {upcoming.map((m) => (
                       <CarouselItem key={m.id}>
                         <MeetingInteractiveCard
