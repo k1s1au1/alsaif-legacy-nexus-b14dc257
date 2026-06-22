@@ -89,6 +89,98 @@ function MeetingsPage() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
 
+  const [showForm, setShowForm] = useState(false);
+  const [editing, setEditing] = useState<Meeting | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // form fields
+  const [fTitle, setFTitle] = useState("");
+  const [fDesc, setFDesc] = useState("");
+  const [fLocation, setFLocation] = useState("");
+  const [fLocationUrl, setFLocationUrl] = useState("");
+  const [fWhen, setFWhen] = useState("");
+  const [fDuration, setFDuration] = useState("");
+
+  const resetForm = useCallback(() => {
+    setFTitle("");
+    setFDesc("");
+    setFLocation("");
+    setFLocationUrl("");
+    setFWhen("");
+    setFDuration("");
+    setEditing(null);
+  }, []);
+
+  function openCreate() {
+    resetForm();
+    setShowForm(true);
+  }
+
+  function openEdit(m: Meeting) {
+    setEditing(m);
+    setFTitle(m.title);
+    setFDesc(m.description ?? "");
+    setFLocation(m.location ?? "");
+    setFLocationUrl(m.location_url ?? "");
+    const d = new Date(m.scheduled_at);
+    const pad = (n: number) => String(n).padStart(2, "0");
+    setFWhen(
+      `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
+    );
+    setFDuration(m.duration_minutes ? String(m.duration_minutes) : "");
+    setShowForm(true);
+  }
+
+  async function submitForm(e: FormEvent) {
+    e.preventDefault();
+    if (!userId) return;
+    if (!fTitle.trim() || !fWhen) {
+      toast.error("العنوان والموعد مطلوبان");
+      return;
+    }
+    setSubmitting(true);
+    const payload = {
+      title: fTitle.trim(),
+      description: fDesc.trim() || null,
+      location: fLocation.trim() || null,
+      location_url: fLocationUrl.trim() || null,
+      scheduled_at: new Date(fWhen).toISOString(),
+      duration_minutes: fDuration ? Number(fDuration) : null,
+    };
+    if (editing) {
+      const { error } = await supabase.from("meetings").update(payload).eq("id", editing.id);
+      if (error) toast.error("تعذر التحديث: " + error.message);
+      else {
+        toast.success("تم تحديث الاجتماع");
+        setShowForm(false);
+        resetForm();
+        loadAll();
+      }
+    } else {
+      const { error } = await supabase
+        .from("meetings")
+        .insert({ ...payload, created_by: userId });
+      if (error) toast.error("تعذر الإنشاء: " + error.message);
+      else {
+        toast.success("تم إنشاء الاجتماع");
+        setShowForm(false);
+        resetForm();
+        loadAll();
+      }
+    }
+    setSubmitting(false);
+  }
+
+  async function deleteMeeting(id: string) {
+    if (!confirm("هل تريد حذف هذا الاجتماع؟")) return;
+    const { error } = await supabase.from("meetings").delete().eq("id", id);
+    if (error) toast.error("تعذر الحذف");
+    else {
+      toast.success("تم الحذف");
+      loadAll();
+    }
+  }
+
   const canManage = userRole === "admin" || userRole === "manager";
 
   const loadAll = useCallback(async () => {
@@ -267,11 +359,133 @@ function MeetingsPage() {
       </div>
 
       {/* Reused Dialog for simplicity */}
-      {showForm && <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
-         {/* ... form content remains same or similar ... */}
-         <button onClick={() => setShowForm(false)} className="absolute top-10 right-10 text-white"><X size={40} /></button>
-         <div className="text-white text-3xl font-black">جاري تطوير واجهة الجدولة الجديدة...</div>
-      </div>}
+      <AnimatePresence>
+        {showForm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowForm(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative bg-card border border-border rounded-[48px] w-full max-w-2xl overflow-hidden shadow-2xl"
+              dir="rtl"
+            >
+              <div className="p-8 sm:p-12 space-y-8">
+                <div className="flex items-center justify-between">
+                   <div className="space-y-1">
+                      <h3 className="text-3xl font-black tracking-tight text-primary">
+                        {editing ? "تعديل اللقاء" : "جدولة لقاء عائلي"}
+                      </h3>
+                      <p className="text-muted-foreground font-bold text-sm">أدخل تفاصيل الاجتماع ليتم إخطار بقية الأعضاء.</p>
+                   </div>
+                   <button onClick={() => setShowForm(false)} className="size-12 rounded-full bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-muted hover:text-primary transition-all">
+                      <X size={24} />
+                   </button>
+                </div>
+
+                <form onSubmit={submitForm} className="space-y-6">
+                  <div className="grid gap-6">
+                    <div className="space-y-2">
+                       <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">عنوان الاجتماع</label>
+                       <input
+                        value={fTitle}
+                        onChange={(e) => setFTitle(e.target.value)}
+                        required
+                        placeholder="مثال: اجتماع العائلة السنوي"
+                        className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">وصف موجز</label>
+                       <textarea
+                        value={fDesc}
+                        onChange={(e) => setFDesc(e.target.value)}
+                        rows={3}
+                        placeholder="ماذا سنناقش في هذا اللقاء؟"
+                        className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none"
+                      />
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                         <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">موعد اللقاء</label>
+                         <input
+                          type="datetime-local"
+                          value={fWhen}
+                          onChange={(e) => setFWhen(e.target.value)}
+                          required
+                          className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                         <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">المدة التقريبية</label>
+                         <div className="relative">
+                            <input
+                              type="number"
+                              min="0"
+                              value={fDuration}
+                              onChange={(e) => setFDuration(e.target.value)}
+                              placeholder="60"
+                              className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                            />
+                            <span className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground font-black text-xs uppercase">دقيقة</span>
+                         </div>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                       <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">مكان الاجتماع / الرابط</label>
+                       <div className="grid gap-3">
+                          <input
+                            value={fLocation}
+                            onChange={(e) => setFLocation(e.target.value)}
+                            placeholder="مثال: مجلس العائلة / الرياض"
+                            className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                          />
+                          <input
+                            type="url"
+                            value={fLocationUrl}
+                            onChange={(e) => setFLocationUrl(e.target.value)}
+                            placeholder="رابط الموقع على خرائط جوجل"
+                            className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                          />
+                       </div>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 pt-4">
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className="flex-1 btn-gold py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                    >
+                      {submitting ? (
+                        <>
+                          <div className="size-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+                          <span>جاري الحفظ...</span>
+                        </>
+                      ) : (
+                        <span>{editing ? "حفظ التعديلات" : "تأكيد الجدولة"}</span>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowForm(false)}
+                      className="px-10 py-5 rounded-[28px] bg-muted/50 font-black text-muted-foreground hover:bg-muted transition-all"
+                    >
+                      إلغاء
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </AppShell>
   );
 }
