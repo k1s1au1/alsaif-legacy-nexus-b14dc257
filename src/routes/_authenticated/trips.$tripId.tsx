@@ -190,16 +190,31 @@ function TripDetail() {
             status
           }, { onConflict: 'trip_id,user_id' });
 
-        if (error) throw error;
-
-        setAttendanceStatus(status);
-        if (status === 'going') toast.success("تم تأكيد حضورك");
-        else toast.info("تم تسجيل اعتذارك عن الحضور");
+        if (error) {
+          // Fallback if migration hasn't run yet
+          if (error.message?.includes('column "status" does not exist')) {
+            if (status === 'going') {
+               await supabase.from("trip_attendees").upsert({ trip_id: tripId, user_id: userId }, { onConflict: 'trip_id,user_id' });
+               setAttendanceStatus('going');
+               toast.success("تم تأكيد حضورك");
+            } else {
+               await supabase.from("trip_attendees").delete().eq("trip_id", tripId).eq("user_id", userId);
+               setAttendanceStatus('not_going');
+               toast.info("تم تسجيل اعتذارك");
+            }
+          } else {
+            throw error;
+          }
+        } else {
+          setAttendanceStatus(status);
+          if (status === 'going') toast.success("تم تأكيد حضورك");
+          else toast.info("تم تسجيل اعتذارك عن الحضور");
+        }
       }
       await loadAttendees(tripId);
     } catch (err: any) {
       console.error("Attendance update error:", err);
-      toast.error("فشل تحديث حالة الحضور. يرجى المحاولة لاحقاً.");
+      toast.error("حدث خطأ أثناء تحديث حالة الحضور. يرجى المحاولة مرة أخرى.");
     } finally {
       setSaving(false);
     }
