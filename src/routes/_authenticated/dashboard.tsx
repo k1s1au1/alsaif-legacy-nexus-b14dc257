@@ -250,17 +250,17 @@ function Dashboard() {
                            </article>
 
                            {/* External Countdown Card */}
-                           <div className="hidden lg:flex flex-col items-center justify-center w-32 h-full rounded-[40px] rounded-r-none bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-6 text-center space-y-3 shrink-0 relative overflow-hidden">
+                           <div className="flex flex-col items-center justify-center w-24 md:w-32 h-full rounded-[40px] rounded-r-none bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-4 md:p-6 text-center space-y-2 md:space-y-3 shrink-0 relative overflow-hidden">
                               <div className="absolute inset-0 bg-gold-primary/5 animate-pulse" />
-                              <Timer className="size-6 text-gold-primary relative z-10" />
+                              <Timer className="size-5 md:size-6 text-gold-primary relative z-10" />
                               <div className="space-y-0 relative z-10">
-                                 <span className="text-5xl font-black text-gold-primary block tracking-tighter">
+                                 <span className="text-4xl md:text-5xl font-black text-gold-primary block tracking-tighter">
                                     {daysLeft > 0 ? daysLeft : 0}
                                  </span>
-                                 <span className="text-[10px] font-black text-gold-primary/50 uppercase tracking-[0.2em]">أيام متبقية</span>
+                                 <span className="text-[8px] md:text-[10px] font-black text-gold-primary/50 uppercase tracking-[0.2em]">أيام متبقية</span>
                               </div>
-                              <div className="w-12 h-1 bg-gold-primary/20 rounded-full relative z-10" />
-                              <p className="text-[10px] font-bold text-white/40 leading-relaxed relative z-10">تجهّز للمغامرة القادمة</p>
+                              <div className="w-8 md:w-12 h-0.5 md:h-1 bg-gold-primary/20 rounded-full relative z-10" />
+                              <p className="text-[8px] md:text-[10px] font-bold text-white/40 leading-relaxed relative z-10 line-clamp-2">تجهّز للمغامرة القادمة</p>
                            </div>
                          </div>
                        </CarouselItem>
