@@ -316,8 +316,8 @@ function TaskRow({ task, assignee, onToggle, onEdit, onDelete, canManage }: any)
              </div>
 
              <div className="flex flex-wrap items-center gap-4">
-                <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority])}>
-                   {priorityLabels[task.priority]}
+                <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority as TaskPriority])}>
+                   {priorityLabels[task.priority as TaskPriority]}
                 </div>
                 {task.due_date && (
                    <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground opacity-60 uppercase">
