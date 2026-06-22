@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "323002098054",
+    "project_id": "comalsaiffamilyhub",
+    "storage_bucket": "comalsaiffamilyhub.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:323002098054:android:c867519e7fe204d5658c07",
+        "android_client_info": {
+          "package_name": "com.alsaif.familyhub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDCrc76Yb7tX8CCLxRMVfSMsxiaL23rWrg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
