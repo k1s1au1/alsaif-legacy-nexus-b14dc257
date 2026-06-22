@@ -16,9 +16,7 @@ import {
   UserX,
   HelpCircle,
   Timer,
-  ChevronDown,
   Navigation,
-  Share2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -69,11 +67,6 @@ function formatDate(iso: string) {
     time: d.toLocaleString("ar-SA", { hour: "numeric", minute: "2-digit" }),
     year: d.getFullYear()
   };
-}
-
-function statusChip(status: string) {
-   if (status === "cancelled") return { label: "ملغي", className: "bg-rose-500 text-white" };
-   return { label: "قادم", className: "bg-emerald-500 text-white" };
 }
 
 function MeetingsPage() {
@@ -295,7 +288,7 @@ function MeetingsPage() {
                   opts={{ direction: 'rtl', loop: true }}
                 >
                   <CarouselContent>
-                    {upcoming.map((m, i) => (
+                    {upcoming.map((m) => (
                       <CarouselItem key={m.id}>
                         <MeetingInteractiveCard
                           meeting={m}
@@ -534,25 +527,5 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
           </div>
        </div>
     </article>
-  );
-}
-             {canManage && (
-                <div className="flex items-center gap-2 px-1">
-                   <button onClick={() => onEdit(meeting)} className="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-[10px] font-black flex items-center justify-center gap-2 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
-                   <button onClick={() => onDelete(meeting.id)} className="flex-1 py-3 rounded-2xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black flex items-center justify-center gap-2 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
-                </div>
-             )}
-          </div>
-       </div>
-    </article>
-  );
-}
-
-function RsvpInteractiveBtn({ active, onClick, label, color, icon }: any) {
-  return (
-    <button onClick={onClick} className={cn("flex-1 flex items-center justify-center gap-2 py-3.5 rounded-[22px] text-xs font-black transition-all duration-500", active ? cn(color, "text-white shadow-xl scale-[1.02]") : "text-white/40 hover:text-white hover:bg-white/5")}>
-       {icon}
-       <span>{label}</span>
-    </button>
   );
 }
