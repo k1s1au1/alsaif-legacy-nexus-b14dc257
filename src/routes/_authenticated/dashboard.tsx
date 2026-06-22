@@ -197,8 +197,8 @@ function Dashboard() {
                           </div>
 
                           {/* Decorative background mark */}
-                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none scale-[2.5] group-hover:scale-[2.8] transition-transform duration-1000 z-1">
-                             <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
+                          <div className="absolute left-8 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110">
+                             <img src={alsaifMark?.url || ""} className="size-24 md:size-32 object-contain brightness-0 invert" alt="" />
                           </div>
 
                           {/* Top Section: Badge & Icon */}
