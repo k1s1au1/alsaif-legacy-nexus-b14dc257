@@ -413,16 +413,20 @@ function TripDetail() {
             {/* Action Card */}
             <div className={cn(
               "card-surface p-8 rounded-[40px] border-none shadow-2xl transition-all duration-500 space-y-8 relative overflow-hidden group/action",
-              attendanceStatus === 'not_going' ? "bg-rose-900/40 border-rose-500/20" : "bg-primary text-primary-foreground"
+              attendanceStatus === 'not_going'
+                ? "bg-rose-700 text-white border-2 border-rose-500/50 shadow-rose-900/20"
+                : "bg-primary text-primary-foreground"
             )}>
-              <div className="absolute inset-0 bg-gold-primary/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/action:opacity-100 transition-opacity" />
 
               <div className="relative z-10 space-y-4">
                 {attendanceStatus === 'not_going' ? (
                   <>
-                    <X className="size-8 text-rose-400 opacity-60" />
-                    <h3 className="text-3xl font-black tracking-tight text-white">نعتذر لعدم حضورك</h3>
-                    <p className="text-sm font-bold text-white/70 leading-relaxed">يؤسفنا عدم تمكنك من التواجد معنا في هذه الرحلة. نتطلع لرؤيتك في مناسبات قادمة بإذن الله.</p>
+                    <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
+                      <X className="size-6 text-white" strokeWidth={3} />
+                    </div>
+                    <h3 className="text-3xl font-black tracking-tight">نعتذر لعدم حضورك</h3>
+                    <p className="text-sm font-bold text-white/90 leading-relaxed">يؤسفنا عدم تمكنك من التواجد معنا في هذه الرحلة. نتطلع لرؤيتك في مناسبات قادمة بإذن الله.</p>
                   </>
                 ) : (
                   <>
@@ -465,7 +469,7 @@ function TripDetail() {
                   className={cn(
                     "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
                     attendanceStatus === 'not_going'
-                      ? "bg-white/10 text-white border-white/20"
+                      ? "bg-white/20 text-white border-white/40"
                       : "bg-transparent text-white/60 border-white/10 hover:bg-white/5 hover:text-white"
                   )}
                 >
