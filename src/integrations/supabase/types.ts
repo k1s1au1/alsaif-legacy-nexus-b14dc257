@@ -377,6 +377,39 @@ export type Database = {
         }
         Relationships: []
       }
+      family_tree_extras: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          father_name: string | null
+          first_name: string
+          grandfather_name: string | null
+          id: string
+          parent_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          father_name?: string | null
+          first_name: string
+          grandfather_name?: string | null
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          father_name?: string | null
+          first_name?: string
+          grandfather_name?: string | null
+          id?: string
+          parent_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fund_transactions: {
         Row: {
           amount: number
@@ -741,15 +774,7 @@ export type Database = {
           terms_accepted_at?: string | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_parent_id_fkey"
-            columns: ["parent_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       tasks: {
         Row: {
