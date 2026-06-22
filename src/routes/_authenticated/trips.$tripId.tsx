@@ -77,6 +77,7 @@ function TripDetail() {
   const [attendees, setAttendees] = useState<
     { user_id: string; name: string; initial: string; avatarPath: string | null }[]
   >([]);
+  const [isPrivileged, setIsPrivileged] = useState(false);
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
@@ -165,9 +166,10 @@ function TripDetail() {
           p?.full_name?.trim() ||
           u.user.email?.split("@")[0] ||
           "عضو العائلة";
+        setIsPrivileged(priv);
         setProfile({
           name,
-          role: roleLabel(r?.role ?? null),
+          role: roleLabel(rs[0] ?? null),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
@@ -367,14 +369,51 @@ function TripDetail() {
               <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
-                    <Users size={18} /> تفاصيل المشاركين
+                    <Users size={18} /> المشاركون المؤكدون
                   </div>
+                  <span className="px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 text-xs font-black">
+                    {attendees.length} عضو
+                  </span>
                 </div>
 
-                <div className="py-12 flex flex-col items-center justify-center text-center gap-4 opacity-40 border-2 border-dashed border-border rounded-3xl">
-                  <Shield size={48} strokeWidth={1} />
-                  <p className="font-bold text-lg text-muted-foreground max-w-md px-6">قائمة المشاركين متاحة فقط لمشرفي ومسؤولي النظام في لوحة الإدارة.</p>
-                </div>
+                {attendees.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center gap-4 opacity-30 border-2 border-dashed border-border rounded-3xl">
+                    <Users size={48} strokeWidth={1} />
+                    <p className="font-bold text-lg text-muted-foreground">لم يقم أحد بتأكيد الحضور بعد.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {attendees.map((a) => (
+                      <div
+                        key={a.user_id}
+                        className="group flex items-center gap-4 p-4 rounded-[28px] bg-muted/30 hover:bg-gold-primary/5 border border-border/40 transition-all duration-300"
+                      >
+                        <div className="size-12 rounded-2xl overflow-hidden shadow-lg border-2 border-white/5 transition-transform group-hover:scale-110">
+                          <UserAvatar
+                            path={a.avatarPath}
+                            name={a.name}
+                            initial={a.initial}
+                            className="size-full"
+                            userId={a.user_id}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-base font-black text-foreground truncate block">{a.name}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">عضو مؤكد</span>
+                        </div>
+                        <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+                          <CheckCircle2 size={16} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {!isPrivileged && (
+                  <p className="text-[10px] text-center text-muted-foreground opacity-50 font-bold">
+                    ملاحظة: التفاصيل الكاملة للحضور متاحة للمشرفين فقط في لوحة الإدارة.
+                  </p>
+                )}
               </div>
             </div>
 
