@@ -13,12 +13,15 @@ import {
   Clock,
   Info,
   Share2,
-  ChevronLeft
+  ChevronLeft,
+  Loader2,
+  X
 } from "lucide-react";
 import { TripImage } from "@/components/trip-image";
 import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -166,33 +169,40 @@ function TripDetail() {
     if (!userId || saving) return;
     setSaving(true);
 
-    if (attendanceStatus === status) {
-      const { error } = await supabase
-        .from("trip_attendees")
-        .delete()
-        .eq("trip_id", tripId)
-        .eq("user_id", userId);
-      if (!error) {
+    try {
+      if (attendanceStatus === status) {
+        const { error } = await supabase
+          .from("trip_attendees")
+          .delete()
+          .eq("trip_id", tripId)
+          .eq("user_id", userId);
+
+        if (error) throw error;
+
         setAttendanceStatus(null);
         toast.success("تم إلغاء اختيارك");
-      }
-    } else {
-      const { error } = await supabase
-        .from("trip_attendees")
-        .upsert({
-          trip_id: tripId,
-          user_id: userId,
-          status
-        }, { onConflict: 'trip_id,user_id' });
+      } else {
+        const { error } = await supabase
+          .from("trip_attendees")
+          .upsert({
+            trip_id: tripId,
+            user_id: userId,
+            status
+          }, { onConflict: 'trip_id,user_id' });
 
-      if (!error) {
+        if (error) throw error;
+
         setAttendanceStatus(status);
         if (status === 'going') toast.success("تم تأكيد حضورك");
         else toast.info("تم تسجيل اعتذارك عن الحضور");
       }
+      await loadAttendees(tripId);
+    } catch (err: any) {
+      console.error("Attendance update error:", err);
+      toast.error("فشل تحديث حالة الحضور. يرجى المحاولة لاحقاً.");
+    } finally {
+      setSaving(false);
     }
-    await loadAttendees(tripId);
-    setSaving(false);
   }
 
   if (loading) {
@@ -467,8 +477,6 @@ function SidebarStat({ icon: Icon, label, value }: any) {
   );
 }
 
-// Add these to make it work
-import { Loader2 } from "lucide-react";
 function formatDate(iso: string | null) {
   if (!iso) return "—";
   try {
