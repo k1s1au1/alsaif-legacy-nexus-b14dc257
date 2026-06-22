@@ -2,9 +2,23 @@ import { createFileRoute, Link, useParams } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { ArrowRight, Calendar, MapPin, Users, CheckCircle2, Tent } from "lucide-react";
+import {
+  ArrowRight,
+  Calendar,
+  MapPin,
+  Users,
+  CheckCircle2,
+  Tent,
+  Compass,
+  Clock,
+  Info,
+  Share2,
+  ChevronLeft
+} from "lucide-react";
 import { TripImage } from "@/components/trip-image";
 import { UserAvatar } from "@/components/user-avatar";
+import { cn } from "@/lib/utils";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -193,119 +207,235 @@ function TripDetail() {
 
   return (
     <AppShell title={trip.title} user={profile}>
-      <div className="space-y-8 max-w-5xl">
-        <Link
-          to="/trips"
-          className="inline-flex items-center gap-2 text-xs text-muted-foreground hover:text-gold-primary transition"
-        >
-          <ArrowRight className="size-4" />
-          العودة إلى الرحلات
-        </Link>
+      <div className="max-w-6xl mx-auto space-y-8 pb-20" dir="rtl">
+        {/* Navigation Header */}
+        <div className="flex items-center justify-between px-4 md:px-0">
+          <Link
+            to="/trips"
+            className="group flex items-center gap-3 text-muted-foreground hover:text-gold-primary transition-all font-black text-xs uppercase tracking-widest"
+          >
+            <div className="size-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-gold-primary group-hover:text-black transition-all">
+              <ArrowRight className="size-4" />
+            </div>
+            العودة إلى الرحلات
+          </Link>
+          <div className="flex items-center gap-2">
+            <button className="size-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-gold-primary/20 transition-all text-gold-primary">
+              <Share2 size={18} />
+            </button>
+          </div>
+        </div>
 
-        <article className="card-surface overflow-hidden">
-          <div className="relative h-56 sm:h-64">
+        <article className="space-y-8">
+          {/* Immersive Hero Header */}
+          <div className="relative h-[400px] md:h-[500px] w-full overflow-hidden rounded-[48px] shadow-2xl border-4 border-white/5 group">
             <TripImage
               path={trip.image_url}
               alt={trip.title}
-              className="absolute inset-0 size-full object-cover"
+              className="absolute inset-0 size-full object-cover transition-transform duration-1000 group-hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-card via-card/40 to-transparent" />
-            <div className="absolute bottom-0 right-0 left-0 p-6">
-              {trip.badge && (
-                <span className="inline-block mb-2 px-2.5 py-1 bg-gold-primary/15 text-gold-primary text-[10px] rounded uppercase tracking-wider ring-1 ring-gold-primary/30">
-                  {trip.badge}
+            {/* Multi-layered overlays for better readability and style */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10" />
+
+            {/* Decorative Family Mark */}
+            <div className="absolute top-10 left-10 opacity-20 pointer-events-none z-20 hidden md:block">
+              <img src={alsaifMark?.url || ""} className="size-32 object-contain brightness-0 invert" alt="" />
+            </div>
+
+            <div className="absolute bottom-0 right-0 left-0 p-8 md:p-16 z-20 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="h-1 w-12 bg-gold-primary rounded-full" />
+                {trip.badge && (
+                  <span className="px-4 py-1.5 bg-gold-primary text-black text-[10px] font-black rounded-full uppercase tracking-[0.2em] shadow-xl">
+                    {trip.badge}
+                  </span>
+                )}
+                <span className={cn(
+                  "px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border backdrop-blur-md shadow-xl",
+                  trip.status === "upcoming" ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/20" : "bg-white/10 text-white border-white/10"
+                )}>
+                  {statusLabel(trip.status)}
                 </span>
-              )}
-              <h2 className="text-2xl sm:text-3xl font-medium text-ivory">{trip.title}</h2>
-            </div>
-          </div>
-
-          <div className="p-6 sm:p-8 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 border-b border-border">
-            <Stat icon={Calendar} label="التاريخ" value={formatRange(trip.start_date, trip.end_date)} />
-            <Stat icon={MapPin} label="الموقع" value={trip.location || "—"} />
-            <Stat icon={CheckCircle2} label="الحالة" value={statusLabel(trip.status)} />
-            <Stat icon={Users} label="المشاركون" value={`${attendees.length} مؤكدون`} />
-            <Stat icon={Tent} label="الإقامة" value="مخيم عائلي" />
-            {trip.badge && <Stat icon={CheckCircle2} label="الفئة" value={trip.badge} />}
-          </div>
-
-          {trip.location_url && (
-            <div className="px-6 sm:px-8 py-5 border-b border-border flex items-center justify-between gap-4 flex-wrap">
-              <div className="flex items-center gap-2 text-sm text-ivory/80">
-                <MapPin className="size-4 text-gold-primary" strokeWidth={1.5} />
-                <span>رابط موقع الرحلة</span>
               </div>
-              <a
-                href={trip.location_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-gold-primary/15 text-gold-primary text-xs ring-1 ring-gold-primary/30 hover:bg-gold-primary/25 transition"
-              >
-                <MapPin className="size-3.5" strokeWidth={1.5} />
-                فتح في الخريطة
-              </a>
-            </div>
-          )}
 
-          <div className="p-6 sm:p-8 space-y-6">
-            <div>
-              <div className="eyebrow mb-2">وصف الرحلة</div>
-              <p className="text-sm text-ivory/80 leading-relaxed whitespace-pre-line">
-                {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
-              </p>
+              <h2 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
+                {trip.title}
+              </h2>
+
+              <div className="flex flex-wrap items-center gap-6 text-white/80 font-bold">
+                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                  <MapPin className="size-5 text-gold-primary" />
+                  <span>{trip.location || "وجهة عائلية"}</span>
+                </div>
+                <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-sm">
+                  <Calendar className="size-5 text-gold-primary" />
+                  <span>{formatRange(trip.start_date, trip.end_date)}</span>
+                </div>
+              </div>
             </div>
-            <button
-              onClick={toggleAttendance}
-              disabled={saving || !userId}
-              className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-lg transition disabled:opacity-60 ${
-                going
-                  ? "bg-gold-primary/15 text-gold-primary ring-1 ring-gold-primary/30"
-                  : "bg-gold-primary text-navy-base hover:brightness-110"
-              }`}
-            >
-              <CheckCircle2 className="size-4" strokeWidth={2} />
-              {going ? "تم تأكيد حضورك — إلغاء" : "تأكيد الحضور"}
-            </button>
           </div>
 
-          <div className="p-6 sm:p-8 border-t border-border space-y-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <Users className="size-4 text-gold-primary" strokeWidth={1.5} />
-                <h3 className="text-sm font-medium text-ivory">المؤكدون للحضور</h3>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left Content Column */}
+            <div className="lg:col-span-2 space-y-8">
+              {/* Description Card */}
+              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-6 border-none shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                  <Info size={120} />
+                </div>
+                <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
+                  <Compass size={18} /> وصف الرحلة
+                </div>
+                <p className="text-lg md:text-xl font-bold text-foreground/80 leading-relaxed whitespace-pre-line relative z-10">
+                  {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
+                </p>
               </div>
-              <span className="text-xs text-muted-foreground">{attendees.length}</span>
+
+              {/* Attendees Section */}
+              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
+                    <Users size={18} /> المشاركون المؤكدون
+                  </div>
+                  <span className="px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 text-xs font-black">
+                    {attendees.length} عضو
+                  </span>
+                </div>
+
+                {attendees.length === 0 ? (
+                  <div className="py-12 flex flex-col items-center justify-center text-center gap-4 opacity-30 border-2 border-dashed border-border rounded-3xl">
+                    <Users size={48} strokeWidth={1} />
+                    <p className="font-bold text-lg text-muted-foreground">لم يقم أحد بتأكيد الحضور بعد.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {attendees.map((a) => (
+                      <div
+                        key={a.user_id}
+                        className="group flex items-center gap-4 p-4 rounded-[28px] bg-muted/30 hover:bg-gold-primary/5 border border-border/40 transition-all duration-300"
+                      >
+                        <div className="size-12 rounded-2xl overflow-hidden shadow-lg border-2 border-white/5 transition-transform group-hover:scale-110">
+                          <UserAvatar
+                            path={a.avatarPath}
+                            name={a.name}
+                            initial={a.initial}
+                            className="size-full"
+                            userId={a.user_id}
+                          />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-base font-black text-foreground truncate block">{a.name}</span>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">عضو العائلة</span>
+                        </div>
+                        <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <CheckCircle2 size={16} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
 
-            {attendees.length === 0 ? (
-              <p className="text-sm text-muted-foreground">لم يقم أحد بتأكيد الحضور بعد.</p>
-            ) : (
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                {attendees.map((a) => (
-                  <li
-                    key={a.user_id}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg bg-card/40 ring-1 ring-border"
-                  >
-                    <div className="size-9 rounded-full bg-gold-primary/15 ring-1 ring-gold-primary/30 grid place-items-center overflow-hidden text-gold-primary text-xs font-semibold">
-                      <UserAvatar
-                        path={a.avatarPath}
-                        name={a.name}
-                        initial={a.initial}
-                        className="size-full"
-                        fallbackClassName="text-xs"
-                        userId={a.user_id}
-                      />
+            {/* Right Sidebar Column */}
+            <div className="space-y-8">
+              {/* Action Card */}
+              <div className="card-surface p-8 rounded-[40px] border-none shadow-2xl bg-primary text-primary-foreground space-y-8 relative overflow-hidden group/action">
+                <div className="absolute inset-0 bg-gold-primary/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
+                <div className="relative z-10 space-y-4">
+                  <Clock className="size-8 opacity-40 animate-pulse" />
+                  <h3 className="text-3xl font-black tracking-tight">هل ستنضم إلينا؟</h3>
+                  <p className="text-sm font-bold opacity-70 leading-relaxed">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
+                </div>
+
+                <button
+                  onClick={toggleAttendance}
+                  disabled={saving || !userId}
+                  className={cn(
+                    "relative w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95",
+                    going
+                      ? "bg-white/10 text-white border border-white/20 hover:bg-white/20"
+                      : "bg-gold-primary text-black hover:scale-[1.02] hover:shadow-gold-primary/20"
+                  )}
+                >
+                  {saving ? (
+                    <Loader2 size={24} className="animate-spin" />
+                  ) : going ? (
+                    <>
+                      <CheckCircle2 size={20} strokeWidth={3} />
+                      تم تأكيد حضورك
+                    </>
+                  ) : (
+                    <>
+                      تأكيد الحضور
+                      <ChevronLeft size={20} strokeWidth={3} />
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {/* Trip Info Sidebar Card */}
+              <div className="card-surface p-8 rounded-[40px] space-y-8 border-none shadow-xl">
+                <div className="flex items-center gap-3 text-primary font-black uppercase tracking-[0.3em] text-xs">
+                  <Info size={18} /> تفاصيل إضافية
+                </div>
+
+                <div className="space-y-6">
+                  <SidebarStat icon={Tent} label="نوع الإقامة" value="مخيم عائلي فاخر" />
+                  <SidebarStat icon={Clock} label="آخر موعد للتسجيل" value={formatDate(trip.start_date)} />
+                  {trip.location_url && (
+                    <div className="pt-4 border-t border-border/40">
+                      <a
+                        href={trip.location_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 hover:bg-gold-primary/10 hover:text-gold-primary transition-all border border-transparent hover:border-gold-primary/20 group"
+                      >
+                        <div className="flex items-center gap-3">
+                          <MapPin size={20} />
+                          <span className="text-sm font-black">موقع الوجهة</span>
+                        </div>
+                        <ChevronLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                      </a>
                     </div>
-                    <span className="text-sm text-ivory truncate">{a.name}</span>
-                  </li>
-                ))}
-              </ul>
-            )}
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </article>
       </div>
     </AppShell>
   );
+}
+
+function SidebarStat({ icon: Icon, label, value }: any) {
+  return (
+    <div className="flex items-start gap-4">
+      <div className="size-10 rounded-xl bg-primary/5 flex items-center justify-center text-primary shrink-0 border border-primary/10">
+        <Icon size={20} />
+      </div>
+      <div className="space-y-0.5">
+        <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">{label}</p>
+        <p className="text-base font-black text-foreground tracking-tight">{value}</p>
+      </div>
+    </div>
+  );
+}
+
+// Add these to make it work
+import { Loader2 } from "lucide-react";
+function formatDate(iso: string | null) {
+  if (!iso) return "—";
+  try {
+    return new Date(iso).toLocaleDateString("ar-SA", {
+      day: "numeric",
+      month: "long",
+    });
+  } catch {
+    return "—";
+  }
 }
 
 function Stat({
