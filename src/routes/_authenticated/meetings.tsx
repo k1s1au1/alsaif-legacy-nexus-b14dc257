@@ -275,35 +275,34 @@ function MeetingsPage() {
   async function setRsvp(meetingId: string, rsvp: Rsvp) {
     if (!userId) return;
 
-    // Optimistic update
-    const oldAttendees = [...attendees];
-    const newAttendees = [...attendees];
-    const idx = newAttendees.findIndex(a => a.meeting_id === meetingId && a.user_id === userId);
+    const existing = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
 
-    if (idx >= 0) {
-      if (newAttendees[idx].rsvp === rsvp) {
-        // Toggle off if clicking the same status
-        newAttendees.splice(idx, 1);
-        setAttendees(newAttendees);
-        const { error } = await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
-        if (error) { toast.error("حدث خطأ"); setAttendees(oldAttendees); }
-        else toast.success("تم إلغاء التفضيل");
-      } else {
-        newAttendees[idx].rsvp = rsvp;
-        setAttendees(newAttendees);
-        const { error } = await supabase.from("meeting_attendees").update({ rsvp }).eq("meeting_id", meetingId).eq("user_id", userId);
-        if (error) { toast.error("حدث خطأ"); setAttendees(oldAttendees); }
-        else toast.success("تم تحديث حالتك");
-      }
+    // Optimistic Update
+    if (existing && existing.rsvp === rsvp) {
+      // Toggle off
+      setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
+      const { error } = await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
+      if (error) { toast.error("فشل التحديث"); loadAll(); }
+      else toast.success("تم إلغاء الاختيار");
     } else {
-      newAttendees.push({ meeting_id: meetingId, user_id: userId, rsvp });
-      setAttendees(newAttendees);
-      const { error } = await supabase.from("meeting_attendees").insert({ meeting_id: meetingId, user_id: userId, rsvp });
-      if (error) { toast.error("حدث خطأ"); setAttendees(oldAttendees); }
-      else toast.success("تم تسجيل حضورك");
+      // Update or Insert
+      const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
+      setAttendees(prev => {
+        const filtered = prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId));
+        return [...filtered, newEntry];
+      });
+
+      const { error } = await supabase.from("meeting_attendees").upsert(newEntry, { onConflict: "meeting_id,user_id" });
+      if (error) { toast.error("فشل التحديث"); loadAll(); }
+      else {
+        if (rsvp === 'going') toast.success("تم تأكيد حضورك");
+        else if (rsvp === 'not_going') toast.info("تم تسجيل اعتذارك");
+        else toast.success("تم تحديث الحالة");
+      }
     }
 
-    loadAll();
+    // Sync with server after a short delay
+    setTimeout(loadAll, 500);
   }
 
   function countsFor(meetingId: string) {
@@ -615,19 +614,23 @@ function MeetingCard({
         <div className="flex flex-col md:flex-row relative z-10 min-h-[320px]">
 
           {/* Date Column */}
-          <div className="w-full md:w-64 p-10 flex flex-col items-center justify-center text-center bg-gradient-to-b from-primary/5 to-primary/[0.02] border-b md:border-b-0 md:border-l border-border/40 shrink-0 relative overflow-hidden group-hover:bg-primary/[0.08] transition-colors">
+          <div className="w-full md:w-64 p-6 md:p-10 flex flex-row md:flex-col items-center justify-between md:justify-center text-center bg-gradient-to-br from-primary/5 to-primary/[0.02] border-b md:border-b-0 md:border-l border-border/40 shrink-0 relative overflow-hidden group-hover:bg-primary/[0.08] transition-colors gap-4">
              <div className="absolute inset-0 opacity-[0.03] pointer-events-none logo-royal scale-[1.5]" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
-             <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] mb-3 relative z-10">{date.weekday}</span>
-             <span className="text-7xl font-black tracking-tighter text-primary relative z-10 leading-none">{date.day}</span>
-             <span className="text-xl font-black text-primary opacity-50 mt-2 relative z-10">{date.month}</span>
-             <div className="mt-8 flex items-center gap-3 px-5 py-2.5 bg-white dark:bg-card border border-border/60 rounded-2xl shadow-xl relative z-10">
-                <Timer className="size-4 text-gold-primary animate-pulse" />
-                <span className="text-[14px] font-black text-primary">{date.time}</span>
+             <div className="flex flex-col md:items-center items-start relative z-10">
+                <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] mb-1 md:mb-3">{date.weekday}</span>
+                <div className="flex items-baseline gap-2 md:block">
+                   <span className="text-4xl md:text-7xl font-black tracking-tighter text-primary leading-none">{date.day}</span>
+                   <span className="text-lg md:text-xl font-black text-primary opacity-50 mt-1 md:mt-2">{date.month}</span>
+                </div>
+             </div>
+             <div className="flex items-center gap-2 md:gap-3 px-4 py-2 md:px-5 md:py-2.5 bg-white dark:bg-card border border-border/60 rounded-2xl shadow-xl relative z-10">
+                <Timer className="size-3.5 md:size-4 text-gold-primary animate-pulse" />
+                <span className="text-[12px] md:text-[14px] font-black text-primary">{date.time}</span>
              </div>
           </div>
 
           {/* Main Info Column */}
-          <div className="flex-1 p-10 md:p-14 flex flex-col justify-between space-y-10 relative overflow-hidden">
+          <div className="flex-1 p-6 md:p-14 flex flex-col justify-between space-y-8 md:space-y-10 relative overflow-hidden">
              {/* Large background info icon */}
              <div className="absolute top-1/2 right-10 -translate-y-1/2 opacity-[0.02] pointer-events-none rotate-12">
                 <Calendar size={300} strokeWidth={1} />
@@ -708,26 +711,26 @@ function MeetingCard({
 
              {/* RSVP Actions - Modern Bar */}
              {!isPast && (
-               <div className="pt-8 border-t border-border/40 flex flex-col lg:flex-row items-center gap-6 relative z-10">
-                 <div className="flex items-center gap-3 w-full lg:w-auto p-1.5 bg-muted/40 rounded-[28px] border border-border/40 backdrop-blur-sm shadow-inner">
+               <div className="pt-6 md:pt-8 border-t border-border/40 flex flex-col lg:flex-row items-center gap-6 relative z-10">
+                 <div className="flex flex-wrap items-center gap-2 md:gap-3 w-full lg:w-auto p-1.5 bg-muted/40 rounded-2xl md:rounded-[28px] border border-border/40 backdrop-blur-sm shadow-inner">
                     <RsvpButton
                       active={myRsvp === "going"}
                       onClick={() => onRsvp(meeting.id, "going")}
-                      icon={<UserCheck size={18} />}
+                      icon={<UserCheck className="size-4 md:size-[18px]" />}
                       label="سأحضر"
                       color="emerald"
                     />
                     <RsvpButton
                       active={myRsvp === "maybe"}
                       onClick={() => onRsvp(meeting.id, "maybe")}
-                      icon={<HelpCircle size={18} />}
+                      icon={<HelpCircle className="size-4 md:size-[18px]" />}
                       label="ربما"
                       color="amber"
                     />
                     <RsvpButton
                       active={myRsvp === "not_going"}
                       onClick={() => onRsvp(meeting.id, "not_going")}
-                      icon={<UserX size={18} />}
+                      icon={<UserX className="size-4 md:size-[18px]" />}
                       label="أعتذر"
                       color="rose"
                     />
