@@ -173,28 +173,28 @@ function Dashboard() {
                <Carousel
                  plugins={[tripsPlugin.current]}
                  className="w-full"
+                 orientation="vertical"
                  onMouseEnter={tripsPlugin.current.stop}
                  onMouseLeave={tripsPlugin.current.reset}
                  opts={{
-                   direction: 'rtl',
                    loop: true,
                  }}
                >
-                 <CarouselContent>
+                 <CarouselContent className="h-[500px]">
                    {upcomingTrips.map(trip => (
-                     <CarouselItem key={trip.id}>
-                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 bg-[#2C1810] text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full">
+                     <CarouselItem key={trip.id} className="h-full">
+                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 bg-[#2C1810] text-white p-8 md:p-12 flex flex-col items-center justify-center text-center gap-8 h-full w-full">
                           <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                          <div className="flex-1 space-y-6 relative z-10">
+                          <div className="space-y-6 relative z-10 flex flex-col items-center">
                              <div className="px-4 py-1 rounded-full bg-white/10 w-fit text-[10px] font-black uppercase tracking-widest">رحلة عائلية</div>
                              <h3 className="text-3xl md:text-5xl font-black">{trip.title}</h3>
-                             <div className="flex gap-6 text-sm font-bold opacity-80">
+                             <div className="flex flex-col gap-3 text-sm font-bold opacity-80 items-center">
                                 <span className="flex items-center gap-2"><MapPin className="size-4" /> {trip.location || "وجهة عائلية"}</span>
                                 <span className="flex items-center gap-2"><CalendarDays className="size-4" /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA") : "—"}</span>
                              </div>
                              <Link to="/trips" className="btn-gold px-10 py-4 rounded-full font-black inline-flex items-center gap-3">استكشاف <Compass size={20} /></Link>
                           </div>
-                          <div className="hidden lg:flex size-40 rounded-[50px] bg-white/10 items-center justify-center relative z-10"><Plane className="size-20 opacity-40" /></div>
+                          <div className="flex size-32 rounded-[50px] bg-white/10 items-center justify-center relative z-10"><Plane className="size-16 opacity-40" /></div>
                        </article>
                      </CarouselItem>
                    ))}
