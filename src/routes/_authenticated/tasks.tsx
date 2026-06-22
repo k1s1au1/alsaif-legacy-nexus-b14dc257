@@ -417,13 +417,13 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <SelectField label="الحالة" value={form.status} onChange={v => setForm({...form, status: v})} options={[{v:"todo", l:"بانتظار البدء"}, {v:"in_progress", l:"جاري التنفيذ"}, {v:"done", l:"مكتملة"}]} />
-               <SelectField label="الأولوية" value={form.priority} onChange={v => setForm({...form, priority: v})} options={[{v:"low", l:"منخفضة"}, {v:"medium", l:"متوسطة"}, {v:"high", l:"عالية"}]} />
+               <SelectField label="الحالة" value={form.status} onChange={(v: string) => setForm({...form, status: v})} options={[{v:"todo", l:"بانتظار البدء"}, {v:"in_progress", l:"جاري التنفيذ"}, {v:"done", l:"مكتملة"}]} />
+               <SelectField label="الأولوية" value={form.priority} onChange={(v: string) => setForm({...form, priority: v})} options={[{v:"low", l:"منخفضة"}, {v:"medium", l:"متوسطة"}, {v:"high", l:"عالية"}]} />
                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">تاريخ الاستحقاق</label>
                   <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
                </div>
-               <SelectField label="المسند إليه" value={form.assignee_id} onChange={v => setForm({...form, assignee_id: v})} options={[{v:"none", l:"— غير معيّن —"}, ...members.map((m:any)=>({v:m.id, l:m.name}))]} />
+               <SelectField label="المسند إليه" value={form.assignee_id} onChange={(v: string) => setForm({...form, assignee_id: v})} options={[{v:"none", l:"— غير معيّن —"}, ...members.map((m:any)=>({v:m.id, l:m.name}))]} />
             </div>
 
             <div className="flex gap-4 pt-6">
