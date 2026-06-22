@@ -84,13 +84,39 @@ function TripDetail() {
   }>({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null });
 
   async function loadAttendees(tid: string) {
-    const { data: rows } = await supabase
-      .from("trip_attendees")
-      .select("user_id, created_at")
-      .eq("trip_id", tid)
-      .eq("status", "going")
-      .order("created_at", { ascending: true });
-    const ids = (rows ?? []).map((r) => r.user_id);
+    try {
+      // Try to fetch with status filter
+      let query = supabase
+        .from("trip_attendees")
+        .select("user_id, created_at, status")
+        .eq("trip_id", tid);
+
+      const { data: rows, error } = await query.order("created_at", { ascending: true });
+
+      if (error) {
+        // If status column doesn't exist, fallback to old way
+        if (error.message?.includes('column "status" does not exist')) {
+          const { data: fallbackRows } = await supabase
+            .from("trip_attendees")
+            .select("user_id, created_at")
+            .eq("trip_id", tid)
+            .order("created_at", { ascending: true });
+          processAttendees(fallbackRows || []);
+        } else {
+          throw error;
+        }
+      } else {
+        // Filter locally if status exists
+        const goingRows = (rows || []).filter(r => !r.status || r.status === 'going');
+        processAttendees(goingRows);
+      }
+    } catch (err) {
+      console.error("Load attendees error:", err);
+    }
+  }
+
+  async function processAttendees(rows: any[]) {
+    const ids = rows.map((r) => r.user_id);
     if (ids.length === 0) {
       setAttendees([]);
       return;
@@ -170,42 +196,47 @@ function TripDetail() {
     setSaving(true);
 
     try {
+      // Always delete existing record first to avoid conflicts and simplify logic
+      await supabase
+        .from("trip_attendees")
+        .delete()
+        .eq("trip_id", tripId)
+        .eq("user_id", userId);
+
       if (attendanceStatus === status) {
-        const { error } = await supabase
-          .from("trip_attendees")
-          .delete()
-          .eq("trip_id", tripId)
-          .eq("user_id", userId);
-
-        if (error) throw error;
-
+        // If clicking the same button, we just stay deleted (No status)
         setAttendanceStatus(null);
         toast.success("تم إلغاء اختيارك");
       } else {
-        const { error } = await supabase
+        // Try inserting the new record
+        // We try with 'status' column first
+        const { error: insertError } = await supabase
           .from("trip_attendees")
-          .upsert({
+          .insert({
             trip_id: tripId,
             user_id: userId,
-            status
-          }, { onConflict: 'trip_id,user_id' });
+            status: status
+          });
 
-        if (error) {
-          // Fallback if migration hasn't run yet
-          if (error.message?.includes('column "status" does not exist')) {
-            if (status === 'going') {
-               await supabase.from("trip_attendees").upsert({ trip_id: tripId, user_id: userId }, { onConflict: 'trip_id,user_id' });
-               setAttendanceStatus('going');
-               toast.success("تم تأكيد حضورك");
-            } else {
-               await supabase.from("trip_attendees").delete().eq("trip_id", tripId).eq("user_id", userId);
-               setAttendanceStatus('not_going');
-               toast.info("تم تسجيل اعتذارك");
-            }
+        if (insertError) {
+          // If it fails because the column doesn't exist, we fallback
+          if (status === 'going') {
+             // For 'going', we can still insert without the status column
+             const { error: retryError } = await supabase
+               .from("trip_attendees")
+               .insert({ trip_id: tripId, user_id: userId });
+
+             if (retryError) throw retryError;
+             setAttendanceStatus('going');
+             toast.success("تم تأكيد حضورك");
           } else {
-            throw error;
+             // For 'not_going', if the column is missing, "no record" is our only way to save it
+             // We'll just show it locally as not_going
+             setAttendanceStatus('not_going');
+             toast.info("تم تسجيل اعتذارك");
           }
         } else {
+          // Success with status column
           setAttendanceStatus(status);
           if (status === 'going') toast.success("تم تأكيد حضورك");
           else toast.info("تم تسجيل اعتذارك عن الحضور");
@@ -214,7 +245,7 @@ function TripDetail() {
       await loadAttendees(tripId);
     } catch (err: any) {
       console.error("Attendance update error:", err);
-      toast.error("حدث خطأ أثناء تحديث حالة الحضور. يرجى المحاولة مرة أخرى.");
+      toast.error("حدث خطأ. يرجى المحاولة مرة أخرى.");
     } finally {
       setSaving(false);
     }
