@@ -396,7 +396,7 @@ function MajlisPage() {
                 comments={comments[post.id] ?? []}
                 isOpen={!!openComments[post.id]}
                 commentDraft={commentDraft[post.id] ?? ""}
-                onCommentChange={(v) => setCommentDraft(prev => ({...prev, [post.id]: v}))}
+                onCommentChange={(v: string) => setCommentDraft(prev => ({...prev, [post.id]: v}))}
                 onCommentSubmit={() => submitComment(post.id)}
                 onCommentDelete={deleteComment}
                 profiles={profiles}

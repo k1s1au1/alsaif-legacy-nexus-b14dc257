@@ -7,6 +7,7 @@ import {
   ListChecks,
   Plus,
   Calendar as CalendarIcon,
+  Clock,
   Flag,
   Trash2,
   CheckCircle2,
@@ -114,6 +115,22 @@ function TasksPage() {
     return m;
   }, [members]);
 
+  const loadMembers = useCallback(async () => {
+    const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
+    setMembers((data ?? []).map((p) => ({
+      id: p.id,
+      name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
+      avatar_url: p.avatar_url ?? null,
+    })));
+  }, []);
+
+  const loadTasks = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
+    setTasks((data ?? []) as Task[]);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -150,21 +167,6 @@ function TasksPage() {
     return () => { mounted = false; };
   }, [loadMembers, loadTasks]);
 
-  const loadMembers = useCallback(async () => {
-    const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
-    setMembers((data ?? []).map((p) => ({
-      id: p.id,
-      name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
-      avatar_url: p.avatar_url ?? null,
-    })));
-  }, []);
-
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
-    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
-    setTasks((data ?? []) as Task[]);
-    setLoading(false);
-  }, []);
 
   const filteredTasks = useMemo(() => {
     if (filter === "all") return tasks;
@@ -314,8 +316,8 @@ function TaskRow({ task, assignee, onToggle, onEdit, onDelete, canManage }: any)
              </div>
 
              <div className="flex flex-wrap items-center gap-4">
-                <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority])}>
-                   {priorityLabels[task.priority]}
+                <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority as TaskPriority])}>
+                   {priorityLabels[task.priority as TaskPriority]}
                 </div>
                 {task.due_date && (
                    <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground opacity-60 uppercase">
@@ -415,13 +417,13 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <SelectField label="الحالة" value={form.status} onChange={v => setForm({...form, status: v})} options={[{v:"todo", l:"بانتظار البدء"}, {v:"in_progress", l:"جاري التنفيذ"}, {v:"done", l:"مكتملة"}]} />
-               <SelectField label="الأولوية" value={form.priority} onChange={v => setForm({...form, priority: v})} options={[{v:"low", l:"منخفضة"}, {v:"medium", l:"متوسطة"}, {v:"high", l:"عالية"}]} />
+               <SelectField label="الحالة" value={form.status} onChange={(v: string) => setForm({...form, status: v})} options={[{v:"todo", l:"بانتظار البدء"}, {v:"in_progress", l:"جاري التنفيذ"}, {v:"done", l:"مكتملة"}]} />
+               <SelectField label="الأولوية" value={form.priority} onChange={(v: string) => setForm({...form, priority: v})} options={[{v:"low", l:"منخفضة"}, {v:"medium", l:"متوسطة"}, {v:"high", l:"عالية"}]} />
                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">تاريخ الاستحقاق</label>
                   <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
                </div>
-               <SelectField label="المسند إليه" value={form.assignee_id} onChange={v => setForm({...form, assignee_id: v})} options={[{v:"none", l:"— غير معيّن —"}, ...members.map((m:any)=>({v:m.id, l:m.name}))]} />
+               <SelectField label="المسند إليه" value={form.assignee_id} onChange={(v: string) => setForm({...form, assignee_id: v})} options={[{v:"none", l:"— غير معيّن —"}, ...members.map((m:any)=>({v:m.id, l:m.name}))]} />
             </div>
 
             <div className="flex gap-4 pt-6">
