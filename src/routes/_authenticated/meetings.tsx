@@ -413,92 +413,90 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
   const going = attendeesList.filter((a: any) => a.rsvp === 'going').map((a: any) => profiles[a.user_id]).filter(Boolean);
 
   return (
-    <article className="relative min-h-[500px] md:min-h-[550px] overflow-hidden rounded-[60px] bg-primary text-white p-8 md:p-16 flex flex-col justify-between group cursor-grab active:cursor-grabbing border-4 border-white/5 shadow-2xl mx-1 md:mx-0">
+    <article className="relative min-h-[420px] md:min-h-[500px] overflow-hidden rounded-[40px] md:rounded-[60px] bg-primary text-white p-6 md:p-16 flex flex-col justify-between group cursor-grab active:cursor-grabbing border-2 md:border-4 border-white/5 shadow-2xl mx-1 md:mx-0">
        <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black z-0" />
-       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[2.5] logo-royal z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
-       <div className="absolute -top-40 -right-40 size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
+       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-royal z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+       <div className="absolute -top-40 -right-40 size-[300px] md:size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 
-       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-8 w-full">
-          <div className="space-y-4">
-             <div className="flex items-center gap-3">
-                <span className="px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-black uppercase tracking-widest shadow-xl backdrop-blur-md">مناسبة قادمة</span>
-                <span className="px-4 py-1.5 rounded-full bg-white/5 text-white/60 border border-white/10 text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-2">
-                   <Clock className="size-3" /> {meeting.duration_minutes || "—"} دقيقة
+       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8 w-full">
+          <div className="space-y-2 md:space-y-4">
+             <div className="flex items-center gap-2 md:gap-3">
+                <span className="px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[8px] md:text-[10px] font-black uppercase tracking-widest shadow-xl backdrop-blur-md">مناسبة قادمة</span>
+                <span className="px-3 py-1 md:px-4 md:py-1.5 rounded-full bg-white/5 text-white/60 border border-white/10 text-[8px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1 md:gap-2">
+                   <Clock className="size-2.5 md:size-3" /> {meeting.duration_minutes || "—"} دقيقة
                 </span>
              </div>
-             <h3 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h3>
+             <h3 className="text-3xl md:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h3>
           </div>
 
-          <div className="flex flex-row md:flex-col md:items-end items-center justify-between md:justify-start w-full md:w-auto gap-4 shrink-0">
+          <div className="flex flex-row md:flex-col md:items-end items-center justify-between md:justify-start w-full md:w-auto gap-3 md:gap-4 shrink-0">
              <div className="text-right">
-                <span className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] mb-1 block">{date.weekday}</span>
-                <div className="flex items-baseline gap-2 md:block">
-                   <span className="text-5xl md:text-9xl font-black tracking-tighter text-white leading-none block">{date.day}</span>
-                   <span className="text-lg md:text-3xl font-black text-white/30 uppercase tracking-widest md:-mt-4 block">{date.month}</span>
+                <span className="text-gold-primary font-black uppercase tracking-[0.4em] text-[8px] md:text-[10px] mb-0.5 md:mb-1 block">{date.weekday}</span>
+                <div className="flex items-baseline gap-1.5 md:block">
+                   <span className="text-4xl md:text-9xl font-black tracking-tighter text-white leading-none block">{date.day}</span>
+                   <span className="text-base md:text-3xl font-black text-white/30 uppercase tracking-widest md:-mt-4 block">{date.month}</span>
                 </div>
              </div>
-             <div className="flex items-center gap-2 px-4 py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl">
-                <Timer className="size-3.5 text-gold-primary animate-pulse" />
-                <span className="text-sm font-black text-white">{date.time}</span>
+             <div className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg md:rounded-xl">
+                <Timer className="size-3 md:size-3.5 text-gold-primary animate-pulse" />
+                <span className="text-[12px] md:text-sm font-black text-white">{date.time}</span>
              </div>
           </div>
        </div>
 
-       <div className="relative z-10 flex flex-col md:flex-row items-end justify-between gap-10 w-full mt-10">
-          <div className="space-y-8 flex-1 w-full">
-             <p className="text-lg md:text-xl font-bold text-white/70 max-w-2xl leading-relaxed border-r-4 border-gold-primary/20 pr-8">{meeting.description || "لا يوجد وصف لهذه المناسبة."}</p>
+       <div className="relative z-10 flex flex-col md:flex-row items-end justify-between gap-6 md:gap-10 w-full mt-6 md:mt-10">
+          <div className="space-y-6 md:space-y-8 flex-1 w-full">
+             <p className="text-base md:text-xl font-bold text-white/70 max-w-2xl leading-relaxed border-r-4 border-gold-primary/20 pr-4 md:pr-8">{meeting.description || "لا يوجد وصف لهذه المناسبة."}</p>
 
-             <div className="flex flex-wrap items-center gap-6 md:gap-10">
+             <div className="flex flex-wrap items-center gap-4 md:gap-10">
                 {meeting.location && (
-                  <div className="flex items-center gap-4 group/loc">
-                     <div className="size-12 md:size-14 rounded-[20px] md:rounded-[24px] bg-white/5 flex items-center justify-center text-gold-primary border border-white/10 shadow-2xl group-hover/loc:bg-gold-primary group-hover/loc:text-black transition-all duration-500">
-                        <MapPin size={24} />
+                  <div className="flex items-center gap-3 md:gap-4 group/loc">
+                     <div className="size-10 md:size-14 rounded-xl md:rounded-[24px] bg-white/5 flex items-center justify-center text-gold-primary border border-white/10 shadow-2xl group-hover/loc:bg-gold-primary group-hover/loc:text-black transition-all duration-500">
+                        <MapPin className="size-5 md:size-6" />
                      </div>
-                     <div className="space-y-1">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-white/30">موقع اللقاء</p>
+                     <div className="space-y-0.5 md:space-y-1">
+                        <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">موقع اللقاء</p>
                         {meeting.location_url ? (
-                           <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-base md:text-lg font-black hover:text-gold-primary underline underline-offset-8 decoration-gold-primary/20 transition-all flex items-center gap-2">{meeting.location} <Navigation size={14} className="opacity-40" /></a>
+                           <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-sm md:text-lg font-black hover:text-gold-primary underline underline-offset-8 decoration-gold-primary/20 transition-all flex items-center gap-2">{meeting.location} <Navigation size={12} className="opacity-40" /></a>
                         ) : (
-                           <p className="text-base md:text-lg font-black">{meeting.location}</p>
+                           <p className="text-sm md:text-lg font-black">{meeting.location}</p>
                         )}
                      </div>
                   </div>
                 )}
 
-                <div className="flex items-center gap-4">
-                   <div className="flex -space-x-4 space-x-reverse">
+                <div className="flex items-center gap-3 md:gap-4">
+                   <div className="flex -space-x-3 md:-space-x-4 space-x-reverse">
                       {going.slice(0, 4).map((p: any) => (
-                        <div key={p.id} className="size-10 md:size-12 rounded-[15px] md:rounded-[18px] border-4 border-primary overflow-hidden shadow-2xl transition-transform hover:-translate-y-1">
+                        <div key={p.id} className="size-8 md:size-12 rounded-lg md:rounded-[18px] border-2 md:border-4 border-primary overflow-hidden shadow-2xl transition-transform hover:-translate-y-1">
                            <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
                         </div>
                       ))}
                       {going.length > 4 && (
-                        <div className="size-10 md:size-12 rounded-[15px] md:rounded-[18px] bg-gold-primary text-black text-[10px] font-black flex items-center justify-center border-4 border-primary shadow-2xl">+{going.length - 4}</div>
+                        <div className="size-8 md:size-12 rounded-lg md:rounded-[18px] bg-gold-primary text-black text-[8px] md:text-[10px] font-black flex items-center justify-center border-2 md:border-4 border-primary shadow-2xl">+{going.length - 4}</div>
                       )}
                    </div>
-                   <div className="space-y-1">
-                      <p className="text-[10px] font-black uppercase tracking-widest text-white/30">المشاركون</p>
-                      <p className="text-xs font-black text-white">{counts.going} حاضر مؤكد</p>
+                   <div className="space-y-0.5 md:space-y-1">
+                      <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">المشاركون</p>
+                      <p className="text-[10px] md:text-xs font-black text-white">{counts.going} حاضر</p>
                    </div>
                 </div>
              </div>
           </div>
 
-          <div className="flex flex-col gap-4 w-full md:w-auto min-w-full md:min-w-[320px]">
-             <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[32px] flex items-center shadow-2xl h-[64px] overflow-hidden">
-                {/* Sliding Background Indicator */}
+          <div className="flex flex-col gap-3 md:gap-4 w-full md:w-auto min-w-full md:min-w-[320px]">
+             <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1 rounded-[24px] md:rounded-[32px] flex items-center shadow-2xl h-[56px] md:h-[64px] overflow-hidden">
                 <AnimatePresence initial={false}>
                   {myRsvp && (
                     <motion.div
                       layoutId="rsvp-active-bg"
                       initial={false}
                       animate={{
-                        x: myRsvp === 'going' ? '0%' : '-100%',
+                        x: myRsvp === 'going' ? '0%' : (document.dir === 'rtl' ? '100%' : '-100%'),
                         backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
                       }}
-                      transition={{ type: "spring", stiffness: 300, damping: 30 }}
-                      className="absolute top-1.5 bottom-1.5 left-1.5 w-[calc(50%-6px)] rounded-[26px] z-0 shadow-lg"
-                      style={{ right: myRsvp === 'going' ? 'auto' : 'auto' }}
+                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
+                      className="absolute top-1 bottom-1 left-1 right-1 w-[calc(50%-4px)] rounded-[20px] md:rounded-[28px] z-0 shadow-lg shadow-black/20"
                     />
                   )}
                 </AnimatePresence>
@@ -507,26 +505,37 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                   <button
                     onClick={() => onRsvp(meeting.id, 'going')}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-3 transition-colors duration-500 font-black text-sm",
+                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm",
                       myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
-                    <UserCheck size={20} />
+                    <UserCheck size={16} md:size={20} />
                     <span>سأحضر</span>
                   </button>
 
                   <button
                     onClick={() => onRsvp(meeting.id, 'not_going')}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-3 transition-colors duration-500 font-black text-sm",
+                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm",
                       myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
-                    <UserX size={20} />
+                    <UserX size={16} md:size={20} />
                     <span>أعتذر</span>
                   </button>
                 </div>
              </div>
+             {canManage && (
+                <div className="flex items-center gap-2 px-1">
+                   <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-[9px] md:text-[10px] font-black flex items-center justify-center gap-2 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
+                   <button onClick={() => onDelete(meeting.id)} className="flex-1 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[9px] md:text-[10px] font-black flex items-center justify-center gap-2 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
+                </div>
+             )}
+          </div>
+       </div>
+    </article>
+  );
+}
              {canManage && (
                 <div className="flex items-center gap-2 px-1">
                    <button onClick={() => onEdit(meeting)} className="flex-1 py-3 rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-[10px] font-black flex items-center justify-center gap-2 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
