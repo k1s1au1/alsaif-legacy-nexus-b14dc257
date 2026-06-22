@@ -181,19 +181,19 @@ function Dashboard() {
                    loop: true,
                  }}
                >
-                 <CarouselContent className="h-[480px]">
+                 <CarouselContent className="h-[400px]">
                    {upcomingTrips.map(trip => (
                      <CarouselItem key={trip.id} className="h-full">
-                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-2 border-gold-primary/20 text-white p-10 flex flex-col items-center justify-between h-full w-full group">
+                       <article className="relative overflow-hidden rounded-[40px] shadow-2xl border-2 border-gold-primary/20 text-white p-8 flex flex-col items-center justify-between h-full w-full group">
                           {/* Background Destination Image */}
                           <div className="absolute inset-0 z-0">
                              <TripImage
                                path={trip.image_url}
                                alt={trip.title}
-                               className="size-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                               className="size-full object-cover object-center transition-transform duration-1000 group-hover:scale-110"
                              />
-                             <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f0a] via-[#1a0f0a]/60 to-transparent" />
-                             <div className="absolute inset-0 bg-black/40" />
+                             <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f0a] via-[#1a0f0a]/70 to-transparent" />
+                             <div className="absolute inset-0 bg-black/30" />
                           </div>
 
                           {/* Decorative background mark */}
