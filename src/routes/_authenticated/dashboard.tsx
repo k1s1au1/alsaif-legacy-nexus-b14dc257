@@ -32,6 +32,7 @@ import {
   CarouselContent,
   CarouselItem,
 } from "@/components/ui/carousel";
+import { TripImage } from "@/components/trip-image";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -185,19 +186,15 @@ function Dashboard() {
                      <CarouselItem key={trip.id} className="h-full">
                        <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-2 border-gold-primary/20 text-white p-10 flex flex-col items-center justify-between h-full w-full group">
                           {/* Background Destination Image */}
-                          {trip.image_url ? (
-                            <div className="absolute inset-0 z-0">
-                               <img
-                                 src={trip.image_url}
-                                 className="size-full object-cover transition-transform duration-1000 group-hover:scale-110"
-                                 alt={trip.title}
-                               />
-                               <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f0a] via-[#1a0f0a]/60 to-transparent" />
-                               <div className="absolute inset-0 bg-black/40" />
-                            </div>
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-br from-[#2C1810] via-[#1a0f0a] to-[#2C1810]" />
-                          )}
+                          <div className="absolute inset-0 z-0">
+                             <TripImage
+                               path={trip.image_url}
+                               alt={trip.title}
+                               className="size-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                             />
+                             <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f0a] via-[#1a0f0a]/60 to-transparent" />
+                             <div className="absolute inset-0 bg-black/40" />
+                          </div>
 
                           {/* Decorative background mark */}
                           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none scale-[2.5] group-hover:scale-[2.8] transition-transform duration-1000 z-1">
