@@ -216,62 +216,77 @@ function FamilyTreePage() {
     const isExtra = m?.kind === "extra";
 
     return (
-      <g>
+      <g className="node-group">
         <foreignObject
           width={NODE_W}
           height={NODE_H}
           x={-NODE_W / 2}
           y={-NODE_H / 2}
-          style={{ overflow: "visible" }}
         >
           <div
+            xmlns="http://www.w3.org/1999/xhtml"
             onClick={toggleNode}
-            className={cn(
-              "relative w-full h-full rounded-full border-[3px] p-1.5 flex items-center justify-center gap-2 cursor-pointer shadow-lg",
-              isRoot
-                ? "bg-[#1B4332] border-[#D4AF37] text-white"
-                : isMe
-                  ? "bg-[#1B4332] border-[#D4AF37] ring-4 ring-[#1B4332]/10"
-                  : isSearchMatch
-                    ? "bg-[#D4AF37] border-white ring-4 ring-[#D4AF37]/20 scale-110"
-                    : isExtra
-                      ? "bg-[#FFF8E7] border-[#D4AF37]/60"
-                      : "bg-white border-[#E5E4E0]",
-            )}
             style={{
-              // Safari fix: ensure proper display and overflow
+              width: `${NODE_W}px`,
+              height: `${NODE_H}px`,
               display: 'flex',
-              WebkitBackfaceVisibility: 'hidden',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '8px',
+              borderRadius: '999px',
+              border: '3px solid #E5E4E0',
+              backgroundColor: 'white',
+              boxSizing: 'border-box',
+              cursor: 'pointer'
             }}
+            className={cn(
+              "tree-node-content",
+              isRoot && "is-root",
+              isMe && "is-me",
+              isSearchMatch && "is-match",
+              isExtra && "is-extra"
+            )}
           >
             {isRoot ? (
-              <div className="flex flex-col items-center">
-                <Trees className="size-4 text-[#D4AF37] mb-0.5" />
-                <span className="text-[11px] font-black uppercase tracking-tighter">{nodeDatum.name}</span>
+              <div style={{ textAlign: 'center' }}>
+                <Trees size={16} color="#D4AF37" />
+                <div style={{ fontSize: '11px', fontWeight: 900, color: 'white' }}>{nodeDatum.name}</div>
               </div>
             ) : m ? (
-              <>
-                <div className="relative size-10 rounded-full overflow-hidden border border-[#D4AF37]/30 shadow-inner shrink-0">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', overflow: 'hidden' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '1px solid #D4AF37',
+                  flexShrink: 0
+                }}>
                   {isExtra ? (
-                    <div className="size-full bg-[#D4AF37]/20 flex items-center justify-center">
-                      <UserCircle2 className="size-6 text-[#8E7745]" />
-                    </div>
+                    <UserCircle2 size={40} color="#8E7745" />
                   ) : (
                     <UserAvatar name={m.first_name || "ع"} path={m.avatar_url} className="size-full" userId={m.id} />
                   )}
-                  {!isExtra && (
-                    <div className="absolute top-0 right-0 bg-white rounded-full p-0.5 shadow-sm border border-border translate-x-1/4 -translate-y-1/4">
-                      <ShieldCheck className="size-2.5 text-emerald-600" />
-                    </div>
-                  )}
                 </div>
-                <div className="flex-1 text-right overflow-hidden">
-                  <p className={cn("text-[13px] font-black truncate leading-tight", (isMe || isRoot) ? "text-white" : "text-[#1B4332]")}>
+                <div style={{ flex: 1, textAlign: 'right', overflow: 'hidden' }}>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 900,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: (isMe || isRoot) ? 'white' : '#1B4332'
+                  }}>
                     {m.first_name}
-                  </p>
-                  <p className={cn("text-[8px] font-bold opacity-60 truncate", (isMe || isRoot) ? "text-white" : "text-[#8E7745]")}>
+                  </div>
+                  <div style={{
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    opacity: 0.7,
+                    color: (isMe || isRoot) ? 'white' : '#8E7745'
+                  }}>
                     {isExtra ? "بدون حساب" : m.father_name || "آل سيف"}
-                  </p>
+                  </div>
                 </div>
                 {isPriv && (
                   <button
@@ -280,15 +295,12 @@ function FamilyTreePage() {
                       setEditing(m.id);
                       setDraftParent(m.parent_id);
                     }}
-                    className={cn(
-                      "p-1 rounded-lg hover:bg-gold-primary/10 transition-all",
-                      isMe || isRoot ? "text-white/80 hover:text-white" : "text-muted-foreground hover:text-gold-primary",
-                    )}
+                    style={{ padding: '4px', opacity: 0.5 }}
                   >
-                    <Pencil className="size-3" />
+                    <Pencil size={12} />
                   </button>
                 )}
-              </>
+              </div>
             ) : null}
           </div>
         </foreignObject>
@@ -506,6 +518,34 @@ function FamilyTreePage() {
           opacity: 0.15;
         }
         .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 20px 20px; }
+
+        /* iOS Safari Fixes */
+        .tree-node-content {
+          border-color: #E5E4E0;
+          background-color: white;
+        }
+        .tree-node-content.is-root {
+          background-color: #1B4332 !important;
+          border-color: #D4AF37 !important;
+        }
+        .tree-node-content.is-me {
+          background-color: #1B4332 !important;
+          border-color: #D4AF37 !important;
+        }
+        .tree-node-content.is-match {
+          background-color: #D4AF37 !important;
+          border-color: white !important;
+        }
+        .tree-node-content.is-extra {
+          background-color: #FFF8E7 !important;
+          border-color: #D4AF37 !important;
+        }
+
+        /* Force GPU rendering for SVG nodes on iOS */
+        foreignObject {
+          transform: translateZ(0);
+          -webkit-transform: translateZ(0);
+        }
       `}</style>
     </AppShell>
   );
