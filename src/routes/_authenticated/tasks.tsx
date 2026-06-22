@@ -114,6 +114,22 @@ function TasksPage() {
     return m;
   }, [members]);
 
+  const loadMembers = useCallback(async () => {
+    const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
+    setMembers((data ?? []).map((p) => ({
+      id: p.id,
+      name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
+      avatar_url: p.avatar_url ?? null,
+    })));
+  }, []);
+
+  const loadTasks = useCallback(async () => {
+    setLoading(true);
+    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
+    setTasks((data ?? []) as Task[]);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
     let mounted = true;
     (async () => {
@@ -150,21 +166,6 @@ function TasksPage() {
     return () => { mounted = false; };
   }, [loadMembers, loadTasks]);
 
-  const loadMembers = useCallback(async () => {
-    const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
-    setMembers((data ?? []).map((p) => ({
-      id: p.id,
-      name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
-      avatar_url: p.avatar_url ?? null,
-    })));
-  }, []);
-
-  const loadTasks = useCallback(async () => {
-    setLoading(true);
-    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
-    setTasks((data ?? []) as Task[]);
-    setLoading(false);
-  }, []);
 
   const filteredTasks = useMemo(() => {
     if (filter === "all") return tasks;
