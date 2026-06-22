@@ -182,6 +182,11 @@ function TasksPage() {
   }), [tasks, userId]);
 
   async function quickToggle(task: Task) {
+    if (task.assignee_id !== userId) {
+      toast.error("فقط الشخص المكلف بالمهمة يمكنه تغيير حالتها");
+      return;
+    }
+
     const next: TaskStatus = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
     const { error } = await supabase.from("tasks").update({
       status: next,
@@ -207,18 +212,18 @@ function TasksPage() {
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
         {/* Royal Tasks Header */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
+        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up px-4 md:px-0">
            <div className="space-y-2">
               <div className="flex items-center gap-3">
                  <div className="size-1 w-10 bg-gold-primary rounded-full" />
                  <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المسؤوليات</span>
               </div>
-              <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">المهام العائلية</h2>
-              <p className="text-muted-foreground font-bold text-lg opacity-70">نظّم ووزع المسؤوليات بين أعضاء المجلس بكل كفاءة.</p>
+              <h2 className="text-3xl md:text-5xl font-black tracking-tight text-primary leading-tight">المهام العائلية</h2>
+              <p className="text-muted-foreground font-bold text-base md:text-lg opacity-70">نظّم ووزع المسؤوليات بين أعضاء المجلس بكل كفاءة.</p>
            </div>
            <button
              onClick={() => { setEditingTask(null); setShowDialog(true); }}
-             className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
+             className="btn-gold px-6 py-4 md:px-8 md:py-4 flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 text-base w-full md:w-auto rounded-2xl md:rounded-full"
            >
               <Plus className="size-5" strokeWidth={3} />
               <span>إضافة مهمة جديدة</span>
@@ -226,20 +231,22 @@ function TasksPage() {
         </section>
 
         {/* Stats Grid */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 animate-fade-up" style={{ animationDelay: "100ms" }}>
-           <StatCard label="إجمالي المهام" value={stats.total} icon={<ListChecks />} />
-           <StatCard label="قيد الانتظار" value={stats.todo} icon={<Circle />} color="muted" />
-           <StatCard label="تحت التنفيذ" value={stats.doing} icon={<Loader2 className="animate-spin-slow" />} color="amber" />
-           <StatCard label="مهامي النشطة" value={stats.mine} icon={<LayoutGrid />} color="gold" />
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 animate-fade-up px-4 md:px-0" style={{ animationDelay: "100ms" }}>
+           <StatCard label="إجمالي المهام" value={stats.total} icon={<ListChecks className="size-4 md:size-5" />} />
+           <StatCard label="قيد الانتظار" value={stats.todo} icon={<Circle className="size-4 md:size-5" />} color="muted" />
+           <StatCard label="تحت التنفيذ" value={stats.doing} icon={<Loader2 className="size-4 md:size-5 animate-spin-slow" />} color="amber" />
+           <StatCard label="مهامي النشطة" value={stats.mine} icon={<LayoutGrid className="size-4 md:size-5" />} color="gold" />
         </section>
 
         {/* Tabs Filter */}
-        <section className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-muted/30 rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "200ms" }}>
-           <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" />
-           <NavTab active={filter === "mine"} onClick={() => setFilter("mine")} label="مهامي" />
-           <NavTab active={filter === "todo"} onClick={() => setFilter("todo")} label="بانتظار البدء" />
-           <NavTab active={filter === "in_progress"} onClick={() => setFilter("in_progress")} label="جاري العمل" />
-           <NavTab active={filter === "done"} onClick={() => setFilter("done")} label="المكتملة" />
+        <section className="px-4 md:px-0 overflow-hidden">
+          <div className="flex overflow-x-auto no-scrollbar items-center gap-2 p-1 md:p-1.5 bg-muted/30 rounded-[24px] md:rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "200ms" }}>
+             <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" />
+             <NavTab active={filter === "mine"} onClick={() => setFilter("mine")} label="مهامي" />
+             <NavTab active={filter === "todo"} onClick={() => setFilter("todo")} label="بانتظار البدء" />
+             <NavTab active={filter === "in_progress"} onClick={() => setFilter("in_progress")} label="جاري العمل" />
+             <NavTab active={filter === "done"} onClick={() => setFilter("done")} label="المكتملة" />
+          </div>
         </section>
 
         {/* Tasks List */}
@@ -248,12 +255,12 @@ function TasksPage() {
             <Loader2 className="size-8 animate-spin text-primary" />
           </div>
         ) : filteredTasks.length === 0 ? (
-          <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
-             <ListChecks size={60} strokeWidth={1} />
-             <p className="text-xl font-bold">لا توجد مهام في هذا القسم حالياً</p>
+          <div className="mx-4 md:mx-0 card-surface p-12 md:p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
+             <ListChecks size={48} md-size={60} strokeWidth={1} />
+             <p className="text-lg md:text-xl font-bold">لا توجد مهام في هذا القسم حالياً</p>
           </div>
         ) : (
-          <div className="grid gap-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
+          <div className="grid gap-3 md:gap-4 animate-fade-up px-4 md:px-0 pb-10" style={{ animationDelay: "300ms" }}>
             {filteredTasks.map((task) => (
               <TaskRow
                 key={task.id}
@@ -263,6 +270,7 @@ function TasksPage() {
                 onEdit={() => { setEditingTask(task); setShowDialog(true); }}
                 onDelete={() => deleteTask(task.id)}
                 canManage={isPrivileged || task.created_by === userId}
+                currentUserId={userId}
               />
             ))}
           </div>
@@ -285,52 +293,56 @@ function TasksPage() {
   );
 }
 
-function TaskRow({ task, assignee, onToggle, onEdit, onDelete, canManage }: any) {
+function TaskRow({ task, assignee, onToggle, onEdit, onDelete, canManage, currentUserId }: any) {
   const isDone = task.status === "done";
+  const isAssignee = task.assignee_id === currentUserId;
 
   return (
-    <motion.div layout className={cn("card-surface p-6 md:p-8 hover:bg-primary/5 transition-all group border-none shadow-xl", isDone && "opacity-60")}>
-       <div className="flex items-start gap-6">
+    <motion.div layout className={cn("card-surface p-4 md:p-8 hover:bg-primary/5 transition-all group border-none shadow-xl", isDone && "opacity-60")}>
+       <div className="flex items-start gap-3 md:gap-6">
           <button
             onClick={onToggle}
-            className={cn("mt-1 size-7 rounded-full border-2 flex items-center justify-center transition-all",
+            disabled={!isAssignee}
+            className={cn("mt-1 size-6 md:size-7 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
               isDone ? "bg-emerald-500 border-emerald-500 text-white" :
               task.status === "in_progress" ? "border-amber-500 text-amber-500" :
-              "border-border text-transparent hover:border-primary")}
+              "border-border text-transparent hover:border-primary",
+              !isAssignee && "opacity-50 cursor-not-allowed")}
+            title={!isAssignee ? "فقط الشخص المكلف يمكنه تغيير الحالة" : ""}
           >
-             <CheckCircle2 size={16} strokeWidth={3} />
+             <CheckCircle2 className="size-3 md:size-4" strokeWidth={3} />
           </button>
 
           <div className="flex-1 min-w-0 space-y-4">
              <div className="flex items-start justify-between gap-4">
                 <div className="space-y-1">
-                   <h4 className={cn("text-xl font-black text-primary tracking-tight", isDone && "line-through")}>{task.title}</h4>
-                   {task.description && <p className="text-sm font-bold text-muted-foreground leading-relaxed">{task.description}</p>}
+                   <h4 className={cn("text-lg md:text-xl font-black text-primary tracking-tight truncate md:whitespace-normal", isDone && "line-through")}>{task.title}</h4>
+                   {task.description && <p className="text-xs md:text-sm font-bold text-muted-foreground leading-relaxed line-clamp-2 md:line-clamp-none">{task.description}</p>}
                 </div>
                 {canManage && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                     <button onClick={onEdit} className="size-9 rounded-xl bg-muted/50 flex items-center justify-center hover:bg-primary hover:text-white transition-all"><Pencil size={14} /></button>
-                     <button onClick={onDelete} className="size-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={14} /></button>
+                  <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                     <button onClick={onEdit} className="size-8 md:size-9 rounded-xl bg-muted/50 flex items-center justify-center hover:bg-primary hover:text-white transition-all"><Pencil size={12} /></button>
+                     <button onClick={onDelete} className="size-8 md:size-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={12} /></button>
                   </div>
                 )}
              </div>
 
-             <div className="flex flex-wrap items-center gap-4">
-                <div className={cn("px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority as TaskPriority])}>
+             <div className="flex flex-wrap items-center gap-3 md:gap-4">
+                <div className={cn("px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority as TaskPriority])}>
                    {priorityLabels[task.priority as TaskPriority]}
                 </div>
                 {task.due_date && (
-                   <div className="flex items-center gap-1.5 text-[10px] font-black text-muted-foreground opacity-60 uppercase">
-                      <Clock size={12} /> {formatDate(task.due_date)}
+                   <div className="flex items-center gap-1 md:gap-1.5 text-[9px] md:text-[10px] font-black text-muted-foreground opacity-60 uppercase">
+                      <Clock size={10} /> {formatDate(task.due_date)}
                    </div>
                 )}
-                <div className="flex-1" />
+                <div className="flex-1 hidden sm:block" />
                 {assignee && (
-                  <div className="flex items-center gap-2 bg-white/40 dark:bg-black/20 pr-1 pl-4 py-1 rounded-full border border-border/40 shadow-sm">
-                     <div className="size-6 rounded-full overflow-hidden border border-border shadow-inner bg-muted">
+                  <div className="flex items-center gap-2 bg-white/40 dark:bg-black/20 pr-1 pl-3 md:pl-4 py-0.5 md:py-1 rounded-full border border-border/40 shadow-sm ml-auto md:ml-0">
+                     <div className="size-5 md:size-6 rounded-full overflow-hidden border border-border shadow-inner bg-muted shrink-0">
                         <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
                      </div>
-                     <span className="text-[11px] font-black text-primary">{assignee.name}</span>
+                     <span className="text-[10px] md:text-[11px] font-black text-primary truncate max-w-[80px] md:max-w-none">{assignee.name}</span>
                   </div>
                 )}
              </div>
@@ -348,11 +360,11 @@ function StatCard({ label, value, icon, color }: any) {
     default: "text-primary bg-primary/5 border-primary/20",
   };
   return (
-    <div className={cn("card-surface p-6 border flex flex-col gap-4 shadow-lg transition-transform hover:-translate-y-1", styles[color] || styles.default)}>
-       <div className="size-10 rounded-2xl bg-white/50 dark:bg-black/20 flex items-center justify-center shadow-inner">{icon}</div>
+    <div className={cn("card-surface p-4 md:p-6 border flex flex-col gap-2 md:gap-4 shadow-lg transition-transform hover:-translate-y-1", styles[color] || styles.default)}>
+       <div className="size-8 md:size-10 rounded-xl md:rounded-2xl bg-white/50 dark:bg-black/20 flex items-center justify-center shadow-inner">{icon}</div>
        <div>
-          <p className="text-[10px] font-black uppercase tracking-widest opacity-60">{label}</p>
-          <p className="text-3xl font-black tracking-tight mt-1">{value}</p>
+          <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60">{label}</p>
+          <p className="text-2xl md:text-3xl font-black tracking-tight mt-1">{value}</p>
        </div>
     </div>
   );
@@ -360,7 +372,7 @@ function StatCard({ label, value, icon, color }: any) {
 
 function NavTab({ active, onClick, label }: any) {
   return (
-    <button onClick={onClick} className={cn("px-6 py-3 rounded-full text-xs font-black transition-all whitespace-nowrap", active ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-muted-foreground hover:text-primary hover:bg-white")}>
+    <button onClick={onClick} className={cn("px-4 py-2.5 md:px-6 md:py-3 rounded-full text-[10px] md:text-xs font-black transition-all whitespace-nowrap", active ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-muted-foreground hover:text-primary hover:bg-white")}>
        {label}
     </button>
   );

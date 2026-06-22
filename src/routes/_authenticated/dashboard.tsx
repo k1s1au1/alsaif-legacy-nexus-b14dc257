@@ -189,9 +189,9 @@ function Dashboard() {
 
                      return (
                        <CarouselItem key={trip.id} className="h-full">
-                         <div className="flex items-center gap-6 h-full w-full">
+                         <div className="flex items-center gap-0 h-full w-full group/container">
                            {/* Trip Banner */}
-                           <article className="flex-1 relative overflow-hidden rounded-[40px] shadow-2xl border-2 border-gold-primary/20 text-white p-8 flex flex-col items-center justify-between h-full group">
+                           <article className="flex-1 relative overflow-hidden rounded-[40px] rounded-l-none shadow-2xl border-2 border-gold-primary/20 border-l-0 text-white p-8 flex flex-col items-center justify-between h-full group">
                               {/* Background Destination Image */}
                               <div className="absolute inset-0 z-0">
                                  <TripImage
@@ -250,7 +250,7 @@ function Dashboard() {
                            </article>
 
                            {/* External Countdown Card */}
-                           <div className="hidden lg:flex flex-col items-center justify-center w-32 h-full rounded-[40px] bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-6 text-center space-y-3 shrink-0 relative overflow-hidden">
+                           <div className="hidden lg:flex flex-col items-center justify-center w-32 h-full rounded-[40px] rounded-r-none bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-6 text-center space-y-3 shrink-0 relative overflow-hidden">
                               <div className="absolute inset-0 bg-gold-primary/5 animate-pulse" />
                               <Timer className="size-6 text-gold-primary relative z-10" />
                               <div className="space-y-0 relative z-10">
