@@ -13,6 +13,7 @@ import {
   Clock,
   Info,
   Share2,
+  Shield,
   ChevronLeft,
   Loader2,
   X
@@ -366,45 +367,14 @@ function TripDetail() {
               <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
-                    <Users size={18} /> المشاركون المؤكدون
+                    <Users size={18} /> تفاصيل المشاركين
                   </div>
-                  <span className="px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 text-xs font-black">
-                    {attendees.length} عضو
-                  </span>
                 </div>
 
-                {attendees.length === 0 ? (
-                  <div className="py-12 flex flex-col items-center justify-center text-center gap-4 opacity-30 border-2 border-dashed border-border rounded-3xl">
-                    <Users size={48} strokeWidth={1} />
-                    <p className="font-bold text-lg text-muted-foreground">لم يقم أحد بتأكيد الحضور بعد.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {attendees.map((a) => (
-                      <div
-                        key={a.user_id}
-                        className="group flex items-center gap-4 p-4 rounded-[28px] bg-muted/30 hover:bg-gold-primary/5 border border-border/40 transition-all duration-300"
-                      >
-                        <div className="size-12 rounded-2xl overflow-hidden shadow-lg border-2 border-white/5 transition-transform group-hover:scale-110">
-                          <UserAvatar
-                            path={a.avatarPath}
-                            name={a.name}
-                            initial={a.initial}
-                            className="size-full"
-                            userId={a.user_id}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <span className="text-base font-black text-foreground truncate block">{a.name}</span>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">عضو العائلة</span>
-                        </div>
-                        <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <CheckCircle2 size={16} />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="py-12 flex flex-col items-center justify-center text-center gap-4 opacity-40 border-2 border-dashed border-border rounded-3xl">
+                  <Shield size={48} strokeWidth={1} />
+                  <p className="font-bold text-lg text-muted-foreground max-w-md px-6">قائمة المشاركين متاحة فقط لمشرفي ومسؤولي النظام في لوحة الإدارة.</p>
+                </div>
               </div>
             </div>
 
@@ -414,19 +384,19 @@ function TripDetail() {
             <div className={cn(
               "card-surface p-8 rounded-[40px] border-none shadow-2xl transition-all duration-500 space-y-8 relative overflow-hidden group/action",
               attendanceStatus === 'not_going'
-                ? "bg-rose-700 text-white border-2 border-rose-500/50 shadow-rose-900/20"
+                ? "bg-rose-600 text-white ring-4 ring-rose-500/30 shadow-rose-900/40"
                 : "bg-primary text-primary-foreground"
             )}>
-              <div className="absolute inset-0 bg-white/5 opacity-0 group-hover/action:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
 
               <div className="relative z-10 space-y-4">
                 {attendanceStatus === 'not_going' ? (
                   <>
-                    <div className="size-12 rounded-2xl bg-white/20 flex items-center justify-center mb-4">
-                      <X className="size-6 text-white" strokeWidth={3} />
+                    <div className="size-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 shadow-inner">
+                      <X className="size-8 text-white" strokeWidth={4} />
                     </div>
-                    <h3 className="text-3xl font-black tracking-tight">نعتذر لعدم حضورك</h3>
-                    <p className="text-sm font-bold text-white/90 leading-relaxed">يؤسفنا عدم تمكنك من التواجد معنا في هذه الرحلة. نتطلع لرؤيتك في مناسبات قادمة بإذن الله.</p>
+                    <h3 className="text-4xl font-black tracking-tight">نعتذر لعدم حضورك</h3>
+                    <p className="text-base font-bold text-white/90 leading-relaxed">يؤسفنا جداً عدم تمكنك من التواجد معنا في هذه الرحلة. مكانك سيظل خالياً، ونتطلع لرؤيتك في مناسبات قادمة بإذن الله.</p>
                   </>
                 ) : (
                   <>

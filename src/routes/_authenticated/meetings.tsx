@@ -601,18 +601,22 @@ function MeetingCard({
         <div className="flex flex-col md:flex-row divide-y md:divide-y-0 md:divide-x md:divide-x-reverse divide-border/40 relative z-10">
 
           {/* Left Side - Date Box */}
-          <div className="md:w-56 p-8 flex flex-col items-center justify-center text-center bg-primary/5 group-hover:bg-primary/10 transition-colors shrink-0">
-             <span className="text-gold-primary font-black uppercase tracking-[0.2em] text-[10px] mb-2">{date.weekday}</span>
-             <span className="text-6xl font-black tracking-tighter text-primary">{date.day}</span>
-             <span className="text-lg font-black text-primary opacity-60 mt-1">{date.month}</span>
-             <div className="mt-6 flex items-center gap-2 px-3 py-1 bg-white dark:bg-card border border-border/60 rounded-full shadow-sm">
-                <Clock className="size-3 text-gold-primary" />
-                <span className="text-[12px] font-black text-primary">{date.time}</span>
+          <div className="w-full md:w-56 p-6 md:p-8 flex flex-row md:flex-col items-center justify-between md:justify-center text-center bg-primary/5 group-hover:bg-primary/10 transition-colors shrink-0 gap-4 md:gap-2">
+             <div className="flex flex-col md:items-center items-start">
+               <span className="text-gold-primary font-black uppercase tracking-[0.2em] text-[10px] mb-1">{date.weekday}</span>
+               <div className="flex items-baseline gap-2 md:block">
+                 <span className="text-4xl md:text-6xl font-black tracking-tighter text-primary">{date.day}</span>
+                 <span className="text-base md:text-lg font-black text-primary opacity-60 mt-1">{date.month}</span>
+               </div>
+             </div>
+             <div className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-card border border-border/60 rounded-full shadow-sm">
+                <Clock className="size-3.5 md:size-3 text-gold-primary" />
+                <span className="text-[12px] md:text-[12px] font-black text-primary">{date.time}</span>
              </div>
           </div>
 
           {/* Main Content Area */}
-          <div className="flex-1 p-8 md:p-10 space-y-8">
+          <div className="flex-1 p-6 md:p-10 space-y-6 md:space-y-8">
              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                 <div className="space-y-2">
                    <div className="flex items-center gap-3">

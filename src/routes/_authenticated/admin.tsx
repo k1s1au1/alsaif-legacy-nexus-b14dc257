@@ -26,6 +26,10 @@ import {
   Search,
   ImagePlus,
   Plus,
+  ClipboardList,
+  Plane,
+  CalendarDays,
+  UserCheck
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -84,7 +88,7 @@ const REQ_TABS: { key: ReqRow["status"]; label: string }[] = [
   { key: "rejected", label: "مرفوضة" },
 ];
 
-type Section = "requests" | "roles" | "site";
+type Section = "requests" | "roles" | "attendance" | "site";
 
 function AdminPage() {
   const [profile, setProfile] = useState({
@@ -316,6 +320,12 @@ function AdminPage() {
                 />
               )}
               <NavTab
+                active={section === "attendance"}
+                onClick={() => setSection("attendance")}
+                icon={<ClipboardList className="size-4" />}
+                label="الحضور"
+              />
+              <NavTab
                 active={section === "site"}
                 onClick={() => setSection("site")}
                 icon={<Palette className="size-4" />}
@@ -418,6 +428,8 @@ function AdminPage() {
                     ))}
                   </div>
                 </motion.div>
+              ) : section === "attendance" ? (
+                <AttendanceSection />
               ) : (
                 <motion.div
                   key="site"
@@ -478,7 +490,98 @@ function AdminPage() {
   );
 }
 
-function NavTab({ active, onClick, icon, label, badge }: any) {
+function AttendanceSection() {
+  const [tab, setTab] = useState<"trips" | "meetings">("trips");
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<{ id: string; title: string; attendees: any[] }[]>([]);
+
+  const loadAttendance = useCallback(async () => {
+    setLoading(true);
+    try {
+      if (tab === "trips") {
+        const { data: trips } = await supabase.from("trips").select("id, title").order("start_date", { ascending: false });
+        const { data: attendees } = await supabase.from("trip_attendees").select("trip_id, user_id, status");
+        const { data: profiles } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url");
+
+        const profMap = new Map((profiles || []).map(p => [p.id, p]));
+
+        const result = (trips || []).map(t => ({
+          id: t.id,
+          title: t.title,
+          attendees: (attendees || [])
+            .filter(a => a.trip_id === t.id && (!a.status || a.status === 'going'))
+            .map(a => profMap.get(a.user_id))
+            .filter(Boolean)
+        }));
+        setData(result);
+      } else {
+        const { data: meetings } = await supabase.from("meetings").select("id, title").order("scheduled_at", { ascending: false });
+        const { data: attendees } = await supabase.from("meeting_attendees").select("meeting_id, user_id, rsvp");
+        const { data: profiles } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url");
+
+        const profMap = new Map((profiles || []).map(p => [p.id, p]));
+
+        const result = (meetings || []).map(m => ({
+          id: m.id,
+          title: m.title,
+          attendees: (attendees || [])
+            .filter(a => a.meeting_id === m.id && a.rsvp === 'going')
+            .map(a => profMap.get(a.user_id))
+            .filter(Boolean)
+        }));
+        setData(result);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    setLoading(false);
+  }, [tab]);
+
+  useEffect(() => {
+    loadAttendance();
+  }, [loadAttendance]);
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+      <div className="flex items-center gap-2 bg-muted/30 p-1 rounded-2xl w-fit">
+        <button onClick={() => setTab("trips")} className={cn("px-6 py-2 rounded-xl text-xs font-black transition-all", tab === "trips" ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}>الرحلات</button>
+        <button onClick={() => setTab("meetings")} className={cn("px-6 py-2 rounded-xl text-xs font-black transition-all", tab === "meetings" ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}>الاجتماعات</button>
+      </div>
+
+      {loading ? (
+        <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-primary" /></div>
+      ) : data.length === 0 ? (
+        <div className="card-surface p-20 text-center opacity-40 border-dashed">لا توجد بيانات حالياً</div>
+      ) : (
+        <div className="grid gap-6">
+          {data.map(item => (
+            <div key={item.id} className="card-surface p-8 space-y-6">
+              <div className="flex items-center justify-between border-b border-border/40 pb-4">
+                <h4 className="text-xl font-black text-primary">{item.title}</h4>
+                <span className="px-4 py-1 bg-gold-primary/10 text-gold-primary rounded-full text-xs font-black">{item.attendees.length} حاضر</span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {item.attendees.length === 0 ? (
+                  <p className="text-sm text-muted-foreground italic col-span-full">لا يوجد مؤكدون للحضور بعد.</p>
+                ) : (
+                  item.attendees.map((p: any) => (
+                    <div key={p.id} className="flex items-center gap-3 p-3 rounded-2xl bg-muted/30 border border-border/40">
+                      <div className="size-10 rounded-xl overflow-hidden border-2 border-white/5 shadow-md shrink-0">
+                        <UserAvatar path={p.avatar_url} name={p.arabic_name || p.full_name} className="size-full" userId={p.id} />
+                      </div>
+                      <span className="text-sm font-black text-primary truncate">{p.arabic_name || p.full_name}</span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  );
+}
   return (
     <button
       onClick={onClick}
