@@ -67,7 +67,7 @@ function TripDetail() {
   const { tripId } = useParams({ from: "/_authenticated/trips/$tripId" });
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
-  const [going, setGoing] = useState(false);
+  const [attendanceStatus, setAttendanceStatus] = useState<'going' | 'not_going' | null>(null);
   const [saving, setSaving] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<
@@ -85,6 +85,7 @@ function TripDetail() {
       .from("trip_attendees")
       .select("user_id, created_at")
       .eq("trip_id", tid)
+      .eq("status", "going")
       .order("created_at", { ascending: true });
     const ids = (rows ?? []).map((r) => r.user_id);
     if (ids.length === 0) {
@@ -143,11 +144,11 @@ function TripDetail() {
 
         const { data: mine } = await supabase
           .from("trip_attendees")
-          .select("id")
+          .select("status")
           .eq("trip_id", tripId)
           .eq("user_id", u.user.id)
           .maybeSingle();
-        setGoing(!!mine);
+        setAttendanceStatus((mine as any)?.status || null);
       }
 
       const { data: t } = await supabase
@@ -161,21 +162,34 @@ function TripDetail() {
     })();
   }, [tripId]);
 
-  async function toggleAttendance() {
+  async function updateAttendance(status: 'going' | 'not_going') {
     if (!userId || saving) return;
     setSaving(true);
-    if (going) {
+
+    if (attendanceStatus === status) {
       const { error } = await supabase
         .from("trip_attendees")
         .delete()
         .eq("trip_id", tripId)
         .eq("user_id", userId);
-      if (!error) setGoing(false);
+      if (!error) {
+        setAttendanceStatus(null);
+        toast.success("تم إلغاء اختيارك");
+      }
     } else {
       const { error } = await supabase
         .from("trip_attendees")
-        .insert({ trip_id: tripId, user_id: userId });
-      if (!error) setGoing(true);
+        .upsert({
+          trip_id: tripId,
+          user_id: userId,
+          status
+        }, { onConflict: 'trip_id,user_id' });
+
+      if (!error) {
+        setAttendanceStatus(status);
+        if (status === 'going') toast.success("تم تأكيد حضورك");
+        else toast.info("تم تسجيل اعتذارك عن الحضور");
+      }
     }
     await loadAttendees(tripId);
     setSaving(false);
@@ -340,40 +354,69 @@ function TripDetail() {
 
             {/* Right Sidebar Column */}
             <div className="space-y-8">
-              {/* Action Card */}
-              <div className="card-surface p-8 rounded-[40px] border-none shadow-2xl bg-primary text-primary-foreground space-y-8 relative overflow-hidden group/action">
-                <div className="absolute inset-0 bg-gold-primary/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
-                <div className="relative z-10 space-y-4">
-                  <Clock className="size-8 opacity-40 animate-pulse" />
-                  <h3 className="text-3xl font-black tracking-tight">هل ستنضم إلينا؟</h3>
-                  <p className="text-sm font-bold opacity-70 leading-relaxed">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
-                </div>
+            {/* Action Card */}
+            <div className={cn(
+              "card-surface p-8 rounded-[40px] border-none shadow-2xl transition-all duration-500 space-y-8 relative overflow-hidden group/action",
+              attendanceStatus === 'not_going' ? "bg-rose-900/40 border-rose-500/20" : "bg-primary text-primary-foreground"
+            )}>
+              <div className="absolute inset-0 bg-gold-primary/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
 
+              <div className="relative z-10 space-y-4">
+                {attendanceStatus === 'not_going' ? (
+                  <>
+                    <X className="size-8 text-rose-400 opacity-60" />
+                    <h3 className="text-3xl font-black tracking-tight text-white">نعتذر لعدم حضورك</h3>
+                    <p className="text-sm font-bold text-white/70 leading-relaxed">يؤسفنا عدم تمكنك من التواجد معنا في هذه الرحلة. نتطلع لرؤيتك في مناسبات قادمة بإذن الله.</p>
+                  </>
+                ) : (
+                  <>
+                    <Clock className="size-8 opacity-40 animate-pulse" />
+                    <h3 className="text-3xl font-black tracking-tight">هل ستنضم إلينا؟</h3>
+                    <p className="text-sm font-bold opacity-70 leading-relaxed">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
+                  </>
+                )}
+              </div>
+
+              <div className="flex flex-col gap-3">
                 <button
-                  onClick={toggleAttendance}
+                  onClick={() => updateAttendance('going')}
                   disabled={saving || !userId}
                   className={cn(
                     "relative w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95",
-                    going
+                    attendanceStatus === 'going'
                       ? "bg-white/10 text-white border border-white/20 hover:bg-white/20"
                       : "bg-gold-primary text-black hover:scale-[1.02] hover:shadow-gold-primary/20"
                   )}
                 >
                   {saving ? (
                     <Loader2 size={24} className="animate-spin" />
-                  ) : going ? (
+                  ) : attendanceStatus === 'going' ? (
                     <>
                       <CheckCircle2 size={20} strokeWidth={3} />
                       تم تأكيد حضورك
                     </>
                   ) : (
                     <>
-                      تأكيد الحضور
+                      سأحضر
                       <ChevronLeft size={20} strokeWidth={3} />
                     </>
                   )}
                 </button>
+
+                <button
+                  onClick={() => updateAttendance('not_going')}
+                  disabled={saving || !userId}
+                  className={cn(
+                    "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
+                    attendanceStatus === 'not_going'
+                      ? "bg-white/10 text-white border-white/20"
+                      : "bg-transparent text-white/60 border-white/10 hover:bg-white/5 hover:text-white"
+                  )}
+                >
+                  {attendanceStatus === 'not_going' ? "تراجع (سأحضر)" : "لن أحضر"}
+                </button>
               </div>
+            </div>
 
               {/* Trip Info Sidebar Card */}
               <div className="card-surface p-8 rounded-[40px] space-y-8 border-none shadow-xl">
