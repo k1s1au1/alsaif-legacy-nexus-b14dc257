@@ -18,9 +18,12 @@ import {
   X,
   ChevronLeft,
   LayoutGrid,
+  Check,
+  AlertCircle,
+  GripVertical
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
@@ -28,8 +31,8 @@ export const Route = createFileRoute("/_authenticated/tasks")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "المهام — السيف" },
-      { name: "description", content: "مهام ومسؤوليات أعضاء العائلة." },
+      { title: "المسؤوليات — السيف" },
+      { name: "description", content: "إدارة مهام ومسؤوليات أعضاء عائلة السيف." },
     ],
   }),
   component: TasksPage,
@@ -57,49 +60,21 @@ type Member = {
   avatar_url: string | null;
 };
 
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
-  return "عضو";
-}
-
-const statusLabels: Record<TaskStatus, string> = {
-  todo: "قيد الانتظار",
-  in_progress: "قيد التنفيذ",
-  done: "مكتملة",
-};
-
-const priorityLabels: Record<TaskPriority, string> = {
-  low: "منخفضة",
-  medium: "متوسطة",
-  high: "عالية",
-};
-
-const priorityStyles: Record<TaskPriority, string> = {
-  low: "bg-blue-500/10 text-blue-500 border-blue-500/20",
-  medium: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-  high: "bg-rose-500/10 text-rose-500 border-rose-500/20",
+const priorityConfig: Record<TaskPriority, { label: string; color: string; icon: any }> = {
+  low: { label: "عادية", color: "bg-emerald-500", icon: Check },
+  medium: { label: "متوسطة", color: "bg-amber-500", icon: Clock },
+  high: { label: "عاجلة", color: "bg-rose-500", icon: AlertCircle },
 };
 
 function formatDate(iso: string | null) {
-  if (!iso) return "—";
+  if (!iso) return "بدون موعد";
   try {
-    return new Date(iso).toLocaleDateString("ar-SA", {
-      day: "numeric",
-      month: "short",
-    });
-  } catch {
-    return "—";
-  }
+    return new Date(iso).toLocaleDateString("ar-SA", { day: "numeric", month: "short" });
+  } catch { return "—"; }
 }
 
 function TasksPage() {
-  const [profile, setProfile] = useState({
-    name: "...",
-    role: "...",
-    initial: "ص",
-    avatarPath: null as string | null,
-  });
+  const [profile, setProfile] = useState({ name: "...", role: "عضو", initial: "ص", avatarPath: null as string | null });
   const [userId, setUserId] = useState<string | null>(null);
   const [isPrivileged, setIsPrivileged] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -109,175 +84,141 @@ function TasksPage() {
   const [showDialog, setShowDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
-  const memberMap = useMemo(() => {
-    const m = new Map<string, Member>();
-    members.forEach((mb) => m.set(mb.id, mb));
-    return m;
-  }, [members]);
-
-  const loadMembers = useCallback(async () => {
-    const { data } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").order("arabic_name");
-    setMembers((data ?? []).map((p) => ({
-      id: p.id,
-      name: p.arabic_name?.trim() || p.full_name?.trim() || "عضو",
-      avatar_url: p.avatar_url ?? null,
-    })));
-  }, []);
-
-  const loadTasks = useCallback(async () => {
+  const loadAll = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("tasks").select("*").order("created_at", { ascending: false });
-    setTasks((data ?? []) as Task[]);
+    const [tRes, mRes] = await Promise.all([
+      supabase.from("tasks").select("*").order("priority", { ascending: false }),
+      supabase.from("profiles").select("id, arabic_name, full_name, avatar_url")
+    ]);
+
+    setTasks((tRes.data ?? []) as Task[]);
+    setMembers((mRes.data ?? []).map(p => ({
+      id: p.id,
+      name: p.arabic_name || p.full_name || "عضو",
+      avatar_url: p.avatar_url
+    })));
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    let mounted = true;
     (async () => {
-      try {
-        const { data: u } = await supabase.auth.getUser();
-        if (!u.user || !mounted) return;
-        setUserId(u.user.id);
+      const { data: uRes } = await supabase.auth.getUser();
+      if (!uRes.user) return;
+      const u = uRes.user;
+      setUserId(u.id);
 
-        const [{ data: p }, { data: roles }] = await Promise.all([
-          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle(),
-          supabase.from("user_roles").select("role").eq("user_id", u.user.id),
-        ]);
+      const [{ data: p }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", u.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", u.id),
+      ]);
 
-        if (!mounted) return;
+      const r = (roles ?? []).map(x => x.role);
+      setIsPrivileged(r.includes("admin") || r.includes("manager"));
 
-        const r = (roles ?? []).map((x) => x.role);
-        setIsPrivileged(r.includes("admin") || r.includes("manager"));
+      const name = p?.arabic_name || p?.full_name || "عضو";
+      setProfile({
+        name,
+        role: r.includes("admin") ? "مسؤول النظام" : r.includes("manager") ? "مدير" : "عضو",
+        initial: name[0].toUpperCase(),
+        avatarPath: p?.avatar_url ?? null
+      });
 
-        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
-        const char = name ? name[0] : "ع";
-
-        setProfile({
-          name,
-          role: roleLabel(r[0] || null),
-          initial: (char || "ع").toUpperCase(),
-          avatarPath: p?.avatar_url ?? null,
-        });
-
-        await Promise.all([loadMembers(), loadTasks()]);
-      } catch (err) {
-        console.error("Tasks init failed:", err);
-      }
+      await loadAll();
     })();
-    return () => { mounted = false; };
-  }, [loadMembers, loadTasks]);
-
+  }, [loadAll]);
 
   const filteredTasks = useMemo(() => {
-    if (filter === "all") return tasks;
-    if (filter === "mine") return tasks.filter((t) => t.assignee_id === userId);
-    return tasks.filter((t) => t.status === filter);
+    let list = tasks;
+    if (filter === "mine") list = tasks.filter(t => t.assignee_id === userId);
+    else if (filter !== "all") list = tasks.filter(t => t.status === filter);
+    return list;
   }, [tasks, filter, userId]);
 
-  const stats = useMemo(() => ({
-    total: tasks.length,
-    todo: tasks.filter(t => t.status === "todo").length,
-    doing: tasks.filter(t => t.status === "in_progress").length,
-    mine: tasks.filter(t => t.assignee_id === userId && t.status !== "done").length,
-  }), [tasks, userId]);
-
-  async function quickToggle(task: Task) {
-    if (task.assignee_id !== userId) {
-      toast.error("فقط الشخص المكلف بالمهمة يمكنه تغيير حالتها");
-      return;
-    }
-
-    const next: TaskStatus = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
+  const updateStatus = async (id: string, status: TaskStatus) => {
     const { error } = await supabase.from("tasks").update({
-      status: next,
-      completed_at: next === "done" ? new Date().toISOString() : null
-    }).eq("id", task.id);
+      status,
+      completed_at: status === "done" ? new Date().toISOString() : null
+    }).eq("id", id);
     if (!error) {
       toast.success("تم تحديث حالة المهمة");
-      loadTasks();
+      loadAll();
     }
-  }
+  };
 
-  async function deleteTask(id: string) {
-    if (!confirm("هل أنت متأكد من حذف هذه المهمة؟")) return;
+  const deleteTask = async (id: string) => {
+    if (!confirm("هل أنت متأكد من الحذف؟")) return;
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (!error) {
       toast.success("تم حذف المهمة");
-      loadTasks();
+      loadAll();
     }
-  }
+  };
 
   return (
     <AppShell title="المهام" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Alsaif Tasks Header */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up px-4 md:px-0">
-           <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                 <div className="size-1 w-10 bg-gold-primary rounded-full" />
-                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المسؤوليات</span>
+        {/* Radical Header */}
+        <section className="relative overflow-hidden rounded-[40px] md:rounded-[60px] bg-primary p-8 md:p-16 text-white shadow-2xl">
+           <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black z-0" />
+           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-150 logo-alsaif" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+
+           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
+              <div className="space-y-4 text-center md:text-right">
+                 <div className="flex items-center justify-center md:justify-start gap-3">
+                    <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">مركز المهام</span>
+                 </div>
+                 <h2 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">مبادرات<br/><span className="text-white/40">آل سيف</span></h2>
               </div>
-              <h2 className="text-3xl md:text-5xl font-black tracking-tight text-primary leading-tight">المهام العائلية</h2>
-              <p className="text-muted-foreground font-bold text-base md:text-lg opacity-70">نظّم ووزع المسؤوليات بين أعضاء المجلس بكل كفاءة.</p>
+
+              {isPrivileged && (
+                <button
+                  onClick={() => { setEditingTask(null); setShowDialog(true); }}
+                  className="btn-gold px-10 py-5 rounded-full text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center gap-3 hover:scale-105 active:scale-95 transition-all group"
+                >
+                   <Plus className="group-hover:rotate-90 transition-transform duration-500" />
+                   إضافة مهمة
+                </button>
+              )}
            </div>
-           {isPrivileged && (
-             <button
-               onClick={() => { setEditingTask(null); setShowDialog(true); }}
-               className="btn-gold px-6 py-4 md:px-8 md:py-4 flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 text-base w-full md:w-auto rounded-2xl md:rounded-full"
-             >
-                <Plus className="size-5" strokeWidth={3} />
-                <span>إضافة مهمة جديدة</span>
-             </button>
-           )}
         </section>
 
-        {/* Stats Grid */}
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 animate-fade-up px-4 md:px-0" style={{ animationDelay: "100ms" }}>
-           <StatCard label="إجمالي المهام" value={stats.total} icon={<ListChecks className="size-4 md:size-5" />} />
-           <StatCard label="قيد الانتظار" value={stats.todo} icon={<Circle className="size-4 md:size-5" />} color="muted" />
-           <StatCard label="تحت التنفيذ" value={stats.doing} icon={<Loader2 className="size-4 md:size-5 animate-spin-slow" />} color="amber" />
-           <StatCard label="مهامي النشطة" value={stats.mine} icon={<LayoutGrid className="size-4 md:size-5" />} color="gold" />
+        {/* Filters & Interactive Nav */}
+        <section className="px-4 md:px-0">
+           <div className="flex flex-wrap items-center gap-3">
+              <FilterTab active={filter === "all"} onClick={() => setFilter("all")} label="كافة المبادرات" />
+              <FilterTab active={filter === "mine"} onClick={() => setFilter("mine")} label="مسؤولياتي" />
+              <div className="h-8 w-px bg-border/40 mx-2 hidden md:block" />
+              <FilterTab active={filter === "todo"} onClick={() => setFilter("todo")} label="الانتظار" />
+              <FilterTab active={filter === "in_progress"} onClick={() => setFilter("in_progress")} label="قيد التنفيذ" />
+              <FilterTab active={filter === "done"} onClick={() => setFilter("done")} label="المكتملة" />
+           </div>
         </section>
 
-        {/* Tabs Filter */}
-        <section className="px-4 md:px-0 overflow-hidden">
-          <div className="flex overflow-x-auto no-scrollbar items-center gap-2 p-1 md:p-1.5 bg-muted/30 rounded-[24px] md:rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "200ms" }}>
-             <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" />
-             <NavTab active={filter === "mine"} onClick={() => setFilter("mine")} label="مهامي" />
-             <NavTab active={filter === "todo"} onClick={() => setFilter("todo")} label="بانتظار البدء" />
-             <NavTab active={filter === "in_progress"} onClick={() => setFilter("in_progress")} label="جاري العمل" />
-             <NavTab active={filter === "done"} onClick={() => setFilter("done")} label="المكتملة" />
-          </div>
-        </section>
-
-        {/* Tasks List */}
+        {/* Board Style List */}
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20 opacity-30">
-            <Loader2 className="size-8 animate-spin text-primary" />
-          </div>
-        ) : filteredTasks.length === 0 ? (
-          <div className="mx-4 md:mx-0 card-surface p-12 md:p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
-             <ListChecks size={48} md-size={60} strokeWidth={1} />
-             <p className="text-lg md:text-xl font-bold">لا توجد مهام في هذا القسم حالياً</p>
+          <div className="flex flex-col items-center justify-center py-20 opacity-20">
+             <Loader2 className="size-10 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid gap-3 md:gap-4 animate-fade-up px-4 md:px-0 pb-10" style={{ animationDelay: "300ms" }}>
-            {filteredTasks.map((task) => (
-              <TaskRow
-                key={task.id}
-                task={task}
-                assignee={task.assignee_id ? memberMap.get(task.assignee_id) : null}
-                onToggle={() => quickToggle(task)}
-                onEdit={() => { setEditingTask(task); setShowDialog(true); }}
-                onDelete={() => deleteTask(task.id)}
-                canManage={isPrivileged || task.created_by === userId}
-                currentUserId={userId}
-              />
-            ))}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+             <AnimatePresence mode="popLayout">
+                {filteredTasks.map((t) => (
+                  <TaskCard
+                    key={t.id}
+                    task={t}
+                    userId={userId}
+                    members={members}
+                    onStatusChange={updateStatus}
+                    onDelete={deleteTask}
+                    onEdit={() => { setEditingTask(t); setShowDialog(true); }}
+                    canManage={isPrivileged || t.created_by === userId}
+                  />
+                ))}
+             </AnimatePresence>
           </div>
         )}
-
       </div>
 
       <AnimatePresence>
@@ -287,7 +228,7 @@ function TasksPage() {
             members={members}
             userId={userId}
             onClose={() => setShowDialog(false)}
-            onSaved={loadTasks}
+            onSaved={loadAll}
           />
         )}
       </AnimatePresence>
@@ -295,86 +236,99 @@ function TasksPage() {
   );
 }
 
-function TaskRow({ task, assignee, onToggle, onEdit, onDelete, canManage, currentUserId }: any) {
+function TaskCard({ task, userId, members, onStatusChange, onDelete, onEdit, canManage }: any) {
+  const priority = priorityConfig[task.priority as TaskPriority];
+  const assignee = members.find((m: any) => m.id === task.assignee_id);
+  const isAssignee = task.assignee_id === userId;
   const isDone = task.status === "done";
-  const isAssignee = task.assignee_id === currentUserId;
 
   return (
-    <motion.div layout className={cn("card-surface p-4 md:p-8 hover:bg-primary/5 transition-all group border-none shadow-xl", isDone && "opacity-60")}>
-       <div className="flex items-start gap-3 md:gap-6">
-          <button
-            onClick={onToggle}
-            disabled={!isAssignee}
-            className={cn("mt-1 size-6 md:size-7 rounded-full border-2 flex items-center justify-center transition-all shrink-0",
-              isDone ? "bg-emerald-500 border-emerald-500 text-white" :
-              task.status === "in_progress" ? "border-amber-500 text-amber-500" :
-              "border-border text-transparent hover:border-primary",
-              !isAssignee && "opacity-50 cursor-not-allowed")}
-            title={!isAssignee ? "فقط الشخص المكلف يمكنه تغيير الحالة" : ""}
-          >
-             <CheckCircle2 className="size-3 md:size-4" strokeWidth={3} />
-          </button>
+    <motion.article
+      layout
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className={cn(
+        "relative group bg-white dark:bg-card border border-border/40 rounded-[32px] p-6 shadow-xl transition-all hover:shadow-2xl overflow-hidden",
+        isDone && "opacity-60 grayscale-[0.5]"
+      )}
+    >
+       {/* Priority Strip */}
+       <div className={cn("absolute top-0 right-0 w-2 bottom-0", priority.color)} />
 
-          <div className="flex-1 min-w-0 space-y-4">
-             <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                   <h4 className={cn("text-lg md:text-xl font-black text-primary tracking-tight truncate md:whitespace-normal", isDone && "line-through")}>{task.title}</h4>
-                   {task.description && <p className="text-xs md:text-sm font-bold text-muted-foreground leading-relaxed line-clamp-2 md:line-clamp-none">{task.description}</p>}
-                </div>
-                {canManage && (
-                  <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                     <button onClick={onEdit} className="size-8 md:size-9 rounded-xl bg-muted/50 flex items-center justify-center hover:bg-primary hover:text-white transition-all"><Pencil size={12} /></button>
-                     <button onClick={onDelete} className="size-8 md:size-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={12} /></button>
-                  </div>
-                )}
+       <div className="space-y-6">
+          <div className="flex items-start justify-between gap-4">
+             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 border border-border/40">
+                <priority.icon size={10} className={priority.color.replace('bg-', 'text-')} />
+                <span className="text-[10px] font-black uppercase tracking-widest">{priority.label}</span>
              </div>
-
-             <div className="flex flex-wrap items-center gap-3 md:gap-4">
-                <div className={cn("px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[9px] md:text-[10px] font-black uppercase tracking-widest border", priorityStyles[task.priority as TaskPriority])}>
-                   {priorityLabels[task.priority as TaskPriority]}
+             {canManage && (
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button onClick={onEdit} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-colors"><Pencil size={14} /></button>
+                   <button onClick={() => onDelete(task.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-500 transition-colors"><Trash2 size={14} /></button>
                 </div>
-                {task.due_date && (
-                   <div className="flex items-center gap-1 md:gap-1.5 text-[9px] md:text-[10px] font-black text-muted-foreground opacity-60 uppercase">
-                      <Clock size={10} /> {formatDate(task.due_date)}
-                   </div>
-                )}
-                <div className="flex-1 hidden sm:block" />
-                {assignee && (
-                  <div className="flex items-center gap-2 bg-white/40 dark:bg-black/20 pr-1 pl-3 md:pl-4 py-0.5 md:py-1 rounded-full border border-border/40 shadow-sm ml-auto md:ml-0">
-                     <div className="size-5 md:size-6 rounded-full overflow-hidden border border-border shadow-inner bg-muted shrink-0">
+             )}
+          </div>
+
+          <div className="space-y-2">
+             <h4 className={cn("text-xl font-black text-primary leading-tight tracking-tight", isDone && "line-through")}>{task.title}</h4>
+             {task.description && <p className="text-sm font-bold text-muted-foreground leading-relaxed line-clamp-2">{task.description}</p>}
+          </div>
+
+          <div className="flex items-center justify-between pt-4 border-t border-border/40">
+             <div className="flex items-center gap-3">
+                {assignee ? (
+                  <div className="flex items-center gap-2 pr-1 pl-3 py-1 bg-primary/5 rounded-full border border-primary/10">
+                     <div className="size-6 rounded-full overflow-hidden border-2 border-white shadow-sm">
                         <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
                      </div>
-                     <span className="text-[10px] md:text-[11px] font-black text-primary truncate max-w-[80px] md:max-w-none">{assignee.name}</span>
+                     <span className="text-[10px] font-black text-primary truncate max-w-[80px]">{assignee.name}</span>
                   </div>
+                ) : (
+                  <span className="text-[10px] font-black text-muted-foreground/40 italic">غير مسندة</span>
                 )}
              </div>
+
+             <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground opacity-60">
+                <CalendarIcon size={12} />
+                <span>{formatDate(task.due_date)}</span>
+             </div>
           </div>
+
+          {/* Action Button */}
+          <button
+            onClick={() => {
+               if (!isAssignee) {
+                 toast.info("فقط المكلف بالمهمة يمكنه تغيير حالتها");
+                 return;
+               }
+               const next: TaskStatus = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
+               onStatusChange(task.id, next);
+            }}
+            className={cn(
+              "w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-xs transition-all border-2",
+              isDone ? "bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/20" :
+              task.status === "in_progress" ? "bg-amber-500 border-amber-500 text-white shadow-amber-500/20" :
+              "bg-white dark:bg-black/20 border-border hover:border-primary text-primary"
+            )}
+          >
+             {isDone ? <CheckCircle2 size={18} /> : task.status === "in_progress" ? <Loader2 size={18} className="animate-spin" /> : <Circle size={18} />}
+             <span>{isDone ? "تمت المهمة" : task.status === "in_progress" ? "جاري العمل" : "ابدأ المهمة"}</span>
+          </button>
        </div>
-    </motion.div>
+    </motion.article>
   );
 }
 
-function StatCard({ label, value, icon, color }: any) {
-  const styles: any = {
-    gold: "text-gold-primary bg-gold-primary/5 border-gold-primary/20",
-    amber: "text-amber-500 bg-amber-500/5 border-amber-500/20",
-    muted: "text-muted-foreground bg-muted/30 border-border/40",
-    default: "text-primary bg-primary/5 border-primary/20",
-  };
+function FilterTab({ active, onClick, label }: any) {
   return (
-    <div className={cn("card-surface p-4 md:p-6 border flex flex-col gap-2 md:gap-4 shadow-lg transition-transform hover:-translate-y-1", styles[color] || styles.default)}>
-       <div className="size-8 md:size-10 rounded-xl md:rounded-2xl bg-white/50 dark:bg-black/20 flex items-center justify-center shadow-inner">{icon}</div>
-       <div>
-          <p className="text-[9px] md:text-[10px] font-black uppercase tracking-widest opacity-60">{label}</p>
-          <p className="text-2xl md:text-3xl font-black tracking-tight mt-1">{value}</p>
-       </div>
-    </div>
-  );
-}
-
-function NavTab({ active, onClick, label }: any) {
-  return (
-    <button onClick={onClick} className={cn("px-4 py-2.5 md:px-6 md:py-3 rounded-full text-[10px] md:text-xs font-black transition-all whitespace-nowrap", active ? "bg-primary text-white shadow-xl shadow-primary/20" : "text-muted-foreground hover:text-primary hover:bg-white")}>
+    <button
+      onClick={onClick}
+      className={cn(
+        "px-6 py-3 rounded-full text-xs font-black transition-all border",
+        active ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-105" : "bg-white dark:bg-card border-border/60 text-muted-foreground hover:bg-muted"
+      )}
+    >
        {label}
     </button>
   );
@@ -415,50 +369,51 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card-surface w-full max-w-2xl p-8 sm:p-12 space-y-8 shadow-2xl rounded-[48px]">
          <div className="flex items-center justify-between">
-            <h3 className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المهمة" : "إضافة مهمة جديدة"}</h3>
+            <h3 className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المسؤولية" : "مبادرة جديدة"}</h3>
             <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
          </div>
 
          <form onSubmit={submit} className="space-y-6">
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">عنوان المهمة</label>
-               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="مثال: تجهيز استراحة الجمعة" className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">عنوان المبادرة</label>
+               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ما هي المهمة؟" className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
             </div>
 
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">التفاصيل</label>
-               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل تفاصيل إضافية للمهمة..." rows={3} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">التفاصيل والأهداف</label>
+               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل وصفاً تفصيلياً..." rows={3} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-               <SelectField label="الحالة" value={form.status} onChange={(v: string) => setForm({...form, status: v})} options={[{v:"todo", l:"بانتظار البدء"}, {v:"in_progress", l:"جاري التنفيذ"}, {v:"done", l:"مكتملة"}]} />
-               <SelectField label="الأولوية" value={form.priority} onChange={(v: string) => setForm({...form, priority: v})} options={[{v:"low", l:"منخفضة"}, {v:"medium", l:"متوسطة"}, {v:"high", l:"عالية"}]} />
                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">تاريخ الاستحقاق</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">المستوى</label>
+                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+                     <option value="low">عادية</option>
+                     <option value="medium">متوسطة الأهمية</option>
+                     <option value="high">عاجلة جداً</option>
+                  </select>
+               </div>
+               <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">تاريخ الإنجاز</label>
                   <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
                </div>
-               <SelectField label="المسند إليه" value={form.assignee_id} onChange={(v: string) => setForm({...form, assignee_id: v})} options={[{v:"none", l:"— غير معيّن —"}, ...members.map((m:any)=>({v:m.id, l:m.name}))]} />
+               <div className="space-y-2 md:col-span-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">المسؤول عن التنفيذ</label>
+                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+                     <option value="none">— اختر الفرد المسؤول —</option>
+                     {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  </select>
+               </div>
             </div>
 
             <div className="flex gap-4 pt-6">
-               <button type="button" onClick={onClose} className="flex-1 py-5 rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+               <button type="button" onClick={onClose} className="flex-1 py-5 rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
                <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-3xl font-black text-lg shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
-                 {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد المهمة</span>}
+                 {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد المبادرة</span>}
                </button>
             </div>
          </form>
       </motion.div>
-    </div>
-  );
-}
-
-function SelectField({ label, value, onChange, options }: any) {
-  return (
-    <div className="space-y-2">
-       <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">{label}</label>
-       <select value={value} onChange={e => onChange(e.target.value)} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
-          {options.map((o:any) => <option key={o.v} value={o.v}>{o.l}</option>)}
-       </select>
     </div>
   );
 }

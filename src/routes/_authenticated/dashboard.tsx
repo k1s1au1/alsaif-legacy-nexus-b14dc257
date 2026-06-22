@@ -312,11 +312,11 @@ function Dashboard() {
                                   تأكيد الحضور <ChevronLeft size={20} />
                                </Link>
                             </div>
-                            <div className="hidden md:flex flex-col items-center justify-center p-10 bg-white/5 backdrop-blur-md rounded-[40px] border border-white/10 relative z-10 min-w-[180px]">
-                               <Timer className="size-10 mb-3 text-gold-primary animate-pulse" />
+                            <div className="flex flex-col items-center justify-center p-6 md:p-10 bg-white/5 backdrop-blur-md rounded-[32px] md:rounded-[40px] border border-white/10 relative z-10 min-w-[120px] md:min-w-[180px]">
+                               <Timer className="size-6 md:size-10 mb-2 md:mb-3 text-gold-primary animate-pulse" />
                                <div className="text-center">
-                                  <p className="text-5xl font-black tracking-tighter text-white">{daysLeft > 0 ? daysLeft : 0}</p>
-                                  <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">أيام متبقية</p>
+                                  <p className="text-3xl md:text-5xl font-black tracking-tighter text-white">{daysLeft > 0 ? daysLeft : 0}</p>
+                                  <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">أيام متبقية</p>
                                </div>
                             </div>
                          </article>
