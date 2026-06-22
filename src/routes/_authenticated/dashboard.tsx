@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -26,6 +26,12 @@ import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "@/components/user-avatar";
+import Autoplay from "embla-carousel-autoplay";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+} from "@/components/ui/carousel";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -103,6 +109,10 @@ function Dashboard() {
     { label: "مهام قيد التنفيذ", value: tasksCount, suffix: "مهمة", color: "bg-rose-700", icon: <ListChecks className="size-16" />, link: "/tasks" },
   ];
 
+  const plugin = useRef(
+    Autoplay({ delay: 5000, stopOnInteraction: true })
+  );
+
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20">
@@ -149,42 +159,61 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* Dynamic Event Banners */}
-        <section className="px-4 space-y-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
-           {upcomingTrips.map(trip => (
-             <article key={trip.id} className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 bg-[#2C1810] text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
-                <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                <div className="flex-1 space-y-6 relative z-10">
-                   <div className="px-4 py-1 rounded-full bg-white/10 w-fit text-[10px] font-black uppercase tracking-widest">رحلة مرتقبة</div>
-                   <h3 className="text-3xl md:text-5xl font-black">{trip.title}</h3>
-                   <div className="flex gap-6 text-sm font-bold opacity-80">
-                      <span className="flex items-center gap-2"><MapPin className="size-4" /> {trip.location || "وجهة عائلية"}</span>
-                      <span className="flex items-center gap-2"><CalendarDays className="size-4" /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA") : "—"}</span>
-                   </div>
-                   <Link to="/trips" className="btn-gold px-10 py-4 rounded-full font-black inline-flex items-center gap-3">استكشاف <Compass size={20} /></Link>
-                </div>
-                <div className="hidden lg:flex size-40 rounded-[50px] bg-white/10 items-center justify-center relative z-10"><Plane className="size-20 opacity-40" /></div>
-             </article>
-           ))}
+        {/* Dynamic Event Banners - Carousel */}
+        <section className="px-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
+           {(upcomingTrips.length > 0 || upcomingMeetings.length > 0) && (
+             <Carousel
+               plugins={[plugin.current]}
+               className="w-full"
+               onMouseEnter={plugin.current.stop}
+               onMouseLeave={plugin.current.reset}
+               opts={{
+                 direction: 'rtl',
+                 loop: true,
+               }}
+             >
+               <CarouselContent>
+                 {upcomingTrips.map(trip => (
+                   <CarouselItem key={trip.id}>
+                     <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 bg-[#2C1810] text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full">
+                        <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
+                        <div className="flex-1 space-y-6 relative z-10">
+                           <div className="px-4 py-1 rounded-full bg-white/10 w-fit text-[10px] font-black uppercase tracking-widest">رحلة مرتقبة</div>
+                           <h3 className="text-3xl md:text-5xl font-black">{trip.title}</h3>
+                           <div className="flex gap-6 text-sm font-bold opacity-80">
+                              <span className="flex items-center gap-2"><MapPin className="size-4" /> {trip.location || "وجهة عائلية"}</span>
+                              <span className="flex items-center gap-2"><CalendarDays className="size-4" /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA") : "—"}</span>
+                           </div>
+                           <Link to="/trips" className="btn-gold px-10 py-4 rounded-full font-black inline-flex items-center gap-3">استكشاف <Compass size={20} /></Link>
+                        </div>
+                        <div className="hidden lg:flex size-40 rounded-[50px] bg-white/10 items-center justify-center relative z-10"><Plane className="size-20 opacity-40" /></div>
+                     </article>
+                   </CarouselItem>
+                 ))}
 
-           {upcomingMeetings.map(meeting => {
-             const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-             return (
-               <article key={meeting.id} className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-primary/20 bg-primary text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8">
-                  <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                  <div className="flex-1 space-y-6 relative z-10">
-                     <span className="text-xs font-black uppercase tracking-widest opacity-60">الحدث القادم</span>
-                     <h3 className="text-3xl md:text-5xl font-black">{meeting.title}</h3>
-                     <p className="text-lg font-black">{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
-                     <Link to="/meetings" className="btn-gold px-10 py-4 rounded-full font-black inline-block">تأكيد الحضور</Link>
-                  </div>
-                  <div className="hidden md:flex flex-col items-center justify-center p-8 bg-white/5 rounded-[40px] border border-white/10 relative z-10">
-                     <Timer className="size-8 mb-2 animate-pulse" />
-                     <p className="text-4xl font-black tracking-tighter">{daysLeft > 0 ? daysLeft : 0} أيام</p>
-                  </div>
-               </article>
-             );
-           })}
+                 {upcomingMeetings.map(meeting => {
+                   const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                   return (
+                     <CarouselItem key={meeting.id}>
+                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-primary/20 bg-primary text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full">
+                          <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
+                          <div className="flex-1 space-y-6 relative z-10">
+                             <span className="text-xs font-black uppercase tracking-widest opacity-60">الحدث القادم</span>
+                             <h3 className="text-3xl md:text-5xl font-black">{meeting.title}</h3>
+                             <p className="text-lg font-black">{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                             <Link to="/meetings" className="btn-gold px-10 py-4 rounded-full font-black inline-block">تأكيد الحضور</Link>
+                          </div>
+                          <div className="hidden md:flex flex-col items-center justify-center p-8 bg-white/5 rounded-[40px] border border-white/10 relative z-10">
+                             <Timer className="size-8 mb-2 animate-pulse" />
+                             <p className="text-4xl font-black tracking-tighter">{daysLeft > 0 ? daysLeft : 0} أيام</p>
+                          </div>
+                       </article>
+                     </CarouselItem>
+                   );
+                 })}
+               </CarouselContent>
+             </Carousel>
+           )}
         </section>
 
         {/* Stats Slider */}
