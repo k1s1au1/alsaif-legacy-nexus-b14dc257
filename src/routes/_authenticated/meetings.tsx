@@ -330,62 +330,67 @@ function MeetingsPage() {
     <AppShell title="الاجتماعات" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Immersive Header */}
-        <section className="relative overflow-hidden rounded-[48px] bg-gradient-to-br from-primary via-[#1a2b3c] to-primary p-12 md:p-20 text-white shadow-2xl animate-fade-up">
-           <div className="absolute top-0 left-0 size-96 opacity-[0.05] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-royal"
+        {/* Hero Section */}
+        <section className="relative overflow-hidden rounded-[48px] bg-[#1a2b3c] p-12 md:p-20 text-white shadow-2xl animate-fade-up">
+           <div className="absolute inset-0 bg-gradient-to-br from-primary/80 via-primary/40 to-transparent z-10" />
+           <div className="absolute top-0 left-0 size-96 opacity-[0.08] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-royal"
                 style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
 
-           <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-10">
+           <div className="relative z-20 flex flex-col md:flex-row md:items-end justify-between gap-10">
               <div className="space-y-6">
                  <div className="flex items-center gap-3">
-                    <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_15px_rgba(142,119,69,0.5)]" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold-primary">مركز الاجتماعات</span>
+                    <div className="h-1.5 w-16 bg-gold-primary rounded-full shadow-[0_0_20px_rgba(142,119,69,0.6)]" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.6em] text-gold-primary">ديوانية آل سيف</span>
                  </div>
-                 <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-tight">اللقاءات العائلية</h2>
-                 <p className="text-xl text-white/60 font-bold max-w-xl">مساحة للتواصل، تقوية الروابط، ومناقشة مستقبل العائلة.</p>
+                 <h2 className="text-5xl md:text-8xl font-black tracking-tighter leading-[0.9]">اللقاءات<br/>العائلية</h2>
+                 <p className="text-xl text-white/70 font-bold max-w-md leading-relaxed">حيث يجتمع الإرث بالحاضر، لنرسم معاً ملامح المستقبل.</p>
               </div>
 
               {canManage && (
                 <button
                   onClick={openCreate}
-                  className="btn-gold px-10 py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/30 flex items-center justify-center gap-4 group/btn"
+                  className="btn-gold px-12 py-6 rounded-[32px] text-xl font-black shadow-2xl shadow-gold-primary/30 flex items-center justify-center gap-4 group/btn hover:scale-105 active:scale-95 transition-all duration-500"
                 >
-                  <Plus className="size-6 group-hover/btn:rotate-90 transition-transform duration-500" strokeWidth={3} />
-                  <span>جدولة اجتماع جديد</span>
+                  <Plus className="size-7 group-hover/btn:rotate-180 transition-transform duration-700" strokeWidth={3} />
+                  <span>جدولة لقاء</span>
                 </button>
               )}
            </div>
         </section>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
-             <div className="size-16 rounded-full border-4 border-primary/20 border-t-gold-primary animate-spin" />
-             <p className="font-black text-primary uppercase tracking-widest text-xs">جاري تحضير الجدول...</p>
+          <div className="flex flex-col items-center justify-center py-32 space-y-6 opacity-40">
+             <div className="size-20 rounded-full border-4 border-primary/10 border-t-gold-primary animate-spin" />
+             <p className="font-black text-primary uppercase tracking-[0.3em] text-xs">جاري تجهيز المجلس...</p>
           </div>
         ) : (
-          <div className="space-y-24">
+          <div className="space-y-24 px-4 md:px-0">
             {/* Upcoming Section */}
-            <section className="space-y-10 animate-fade-up" style={{ animationDelay: "100ms" }}>
-              <div className="flex items-center gap-6 px-4">
-                 <h3 className="text-xs font-black text-primary uppercase tracking-[0.4em] whitespace-nowrap">الفعاليات القادمة</h3>
-                 <div className="h-px flex-1 bg-gradient-to-l from-border/60 to-transparent" />
-                 <div className="flex items-center gap-2 bg-primary/5 px-4 py-1.5 rounded-full border border-primary/10">
-                    <span className="text-[10px] font-black text-primary">{upcoming.length} اجتماع</span>
+            <section className="space-y-12">
+              <div className="flex items-center gap-8">
+                 <div className="flex items-center gap-3 text-primary">
+                    <CalendarDays className="size-5" />
+                    <h3 className="text-sm font-black uppercase tracking-[0.4em] whitespace-nowrap">الفعاليات القادمة</h3>
+                 </div>
+                 <div className="h-px flex-1 bg-gradient-to-l from-primary/20 to-transparent" />
+                 <div className="hidden sm:flex items-center gap-2 bg-primary/5 px-5 py-2 rounded-full border border-primary/10 backdrop-blur-sm">
+                    <span className="text-[10px] font-black text-primary opacity-60">إجمالي المجدول:</span>
+                    <span className="text-xs font-black text-primary">{upcoming.length}</span>
                  </div>
               </div>
 
               {upcoming.length === 0 ? (
-                <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed border-2 opacity-50 mx-4 rounded-[48px]">
-                   <div className="size-24 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground shadow-inner">
-                      <CalendarDays size={48} strokeWidth={1.5} />
+                <div className="card-surface p-24 flex flex-col items-center text-center gap-8 border-dashed border-4 opacity-40 rounded-[56px] bg-muted/20">
+                   <div className="size-28 rounded-[48px] bg-white dark:bg-card flex items-center justify-center text-muted-foreground shadow-2xl border border-border/40">
+                      <CalendarDays size={56} strokeWidth={1.5} className="opacity-20" />
                    </div>
-                   <div className="space-y-2">
-                      <p className="text-2xl font-black text-primary">لا يوجد لقاءات مجدولة</p>
-                      <p className="text-base font-bold text-muted-foreground opacity-60">سيتم إخطارك فور تحديد موعد اجتماع جديد.</p>
+                   <div className="space-y-3">
+                      <p className="text-3xl font-black text-primary tracking-tight">المجلس بانتظاركم</p>
+                      <p className="text-lg font-bold text-muted-foreground max-w-sm">لا توجد اجتماعات مجدولة حالياً. ترقبوا الإشعارات لأي جديد.</p>
                    </div>
                 </div>
               ) : (
-                <div className="grid gap-8 px-4 md:px-0">
+                <div className="grid gap-10">
                   {upcoming.map((m, i) => (
                     <MeetingCard
                       key={m.id}
@@ -405,14 +410,17 @@ function MeetingsPage() {
               )}
             </section>
 
-            {/* Past Section */}
+            {/* Archive Section */}
             {past.length > 0 && (
-              <section className="space-y-10 animate-fade-up" style={{ animationDelay: "200ms" }}>
-                <div className="flex items-center gap-6 px-4 opacity-50">
-                   <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.4em] whitespace-nowrap">الأرشيف</h3>
-                   <div className="h-px flex-1 bg-gradient-to-l from-border/30 to-transparent" />
+              <section className="space-y-12">
+                <div className="flex items-center gap-8 opacity-40">
+                   <div className="flex items-center gap-3">
+                      <Clock className="size-5" />
+                      <h3 className="text-sm font-black uppercase tracking-[0.4em] whitespace-nowrap">سجل اللقاءات</h3>
+                   </div>
+                   <div className="h-px flex-1 bg-gradient-to-l from-border to-transparent" />
                 </div>
-                <div className="grid gap-6 px-4 md:px-0 opacity-60 grayscale hover:grayscale-0 hover:opacity-100 transition-all duration-700">
+                <div className="grid gap-6 opacity-60 grayscale-[0.5] hover:grayscale-0 hover:opacity-100 transition-all duration-1000">
                   {past.map((m) => (
                     <MeetingCard
                       key={m.id}
