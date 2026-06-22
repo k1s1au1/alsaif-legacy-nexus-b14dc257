@@ -102,7 +102,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden">
 
-      {/* Royal Background Decoration */}
+      {/* Alsaif Background Decoration */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
         <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-primary/5 blur-[120px]" />
         <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-gold-primary/5 blur-[120px]" />
@@ -130,7 +130,7 @@ function AuthPage() {
             >
               <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div
-                className="size-full relative z-10 logo-royal"
+                className="size-full relative z-10 logo-alsaif"
                 style={{
                   '--logo-url': `url(${logoAsset?.url || ""})`,
                   backgroundColor: 'var(--primary)'

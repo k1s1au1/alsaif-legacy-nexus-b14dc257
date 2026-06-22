@@ -131,7 +131,7 @@ function Dashboard() {
              <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full animate-pulse" />
              <div className="absolute -inset-4 bg-gradient-to-br from-gold-primary/20 to-transparent rounded-full blur-2xl" />
              <div
-               className="size-40 md:size-56 relative z-10 logo-royal hover:scale-105 transition-transform duration-700"
+               className="size-40 md:size-56 relative z-10 logo-alsaif hover:scale-105 transition-transform duration-700"
                style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
              />
            </div>

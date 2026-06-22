@@ -277,7 +277,7 @@ function AdminPage() {
     <AppShell title="الإدارة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Royal Header Section */}
+        {/* Alsaif Header Section */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
           <div className="space-y-2">
             <div className="flex items-center gap-3">
@@ -438,7 +438,7 @@ function AdminPage() {
                 >
                   <div className="card-surface p-8 sm:p-10 space-y-8 relative overflow-hidden">
                     <div
-                      className="absolute top-0 left-0 size-64 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-royal"
+                      className="absolute top-0 left-0 size-64 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-alsaif"
                       style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
                     />
                     <div className="space-y-2 relative z-10">

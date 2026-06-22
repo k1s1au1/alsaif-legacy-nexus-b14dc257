@@ -327,7 +327,7 @@ function FamilyTreePage() {
               <Trees className="size-6 md:size-8 text-white" />
             </div>
             <div className="flex-1">
-              <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة النسب الملكية</h1>
+              <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة عائلة آل سيف</h1>
               <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">
                 استكشف تفرعات وجذور عائلة آل سيف العريقة
               </p>

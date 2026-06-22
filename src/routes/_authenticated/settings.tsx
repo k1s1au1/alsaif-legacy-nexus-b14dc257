@@ -31,13 +31,13 @@ const FONTS = [
 ];
 
 const THEME_COLORS = [
-  { id: "emerald", name: "الأخضر الملكي", primary: "#1B4332", secondary: "#D4AF37", darkPrimary: "#D4AF37" },
+  { id: "emerald", name: "الأخضر الفاخر", primary: "#1B4332", secondary: "#D4AF37", darkPrimary: "#D4AF37" },
   { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA" },
   { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185" },
   { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9" },
   { id: "ruby", name: "الياقوت الأحمر", primary: "#991B1B", secondary: "#FCA5A5", darkPrimary: "#F87171" },
   { id: "forest", name: "الغابة العميقة", primary: "#064E3B", secondary: "#6EE7B7", darkPrimary: "#34D399" },
-  { id: "royal-purple", name: "الأرجوان الملكي", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC" },
+  { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC" },
   { id: "chocolate", name: "البني الفاخر", primary: "#451A03", secondary: "#FCD34D", darkPrimary: "#FBBF24" },
 ];
 

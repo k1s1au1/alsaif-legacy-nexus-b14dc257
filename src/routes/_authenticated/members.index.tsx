@@ -117,7 +117,7 @@ function MembersPage() {
     <AppShell title="الأعضاء" user={{ name: me.name, role: "عضو", initial: me.initial, avatarPath: me.avatarPath }}>
       <div className="max-w-7xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Royal Header */}
+        {/* Alsaif Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
           <div className="space-y-2">
             <div className="flex items-center gap-3">

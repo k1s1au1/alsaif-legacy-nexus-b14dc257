@@ -210,7 +210,7 @@ function ProfilePage() {
     <AppShell title="ملفي الشخصي" user={{ name: displayName, role: "عضو العائلة", initial, avatarPath: avatarUrl }}>
       <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Royal Profile Header */}
+        {/* Alsaif Profile Header */}
         <section className="flex flex-col md:flex-row items-center gap-10 animate-fade-up">
            <div className="relative group">
               <div className="absolute inset-0 bg-gold-primary/20 blur-[60px] rounded-full group-hover:bg-gold-primary/30 transition-all duration-700" />

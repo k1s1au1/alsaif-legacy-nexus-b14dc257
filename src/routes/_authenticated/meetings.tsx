@@ -36,7 +36,7 @@ export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "المناسبات الملكية — السيف" },
+      { title: "المناسبات العائلية — السيف" },
       { name: "description", content: "جدول اجتماعات وفعاليات عائلة آل سيف." },
     ],
   }),
@@ -408,7 +408,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
   return (
     <article className="relative min-h-[420px] md:min-h-[500px] overflow-hidden rounded-[40px] md:rounded-[60px] bg-primary text-white p-6 md:p-16 flex flex-col justify-between group cursor-grab active:cursor-grabbing border-2 md:border-4 border-white/5 shadow-2xl mx-1 md:mx-0">
        <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black z-0" />
-       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-royal z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
        <div className="absolute -top-40 -right-40 size-[300px] md:size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 
        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8 w-full">

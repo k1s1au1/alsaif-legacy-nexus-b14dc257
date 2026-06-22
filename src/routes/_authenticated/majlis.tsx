@@ -280,7 +280,7 @@ function MajlisPage() {
     <AppShell title="المجلس" user={{ name: me.name, role: me.role, initial: me.initial, avatarPath: me.avatarPath }}>
       <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Royal Majlis Header */}
+        {/* Alsaif Majlis Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
           <div className="space-y-2">
             <div className="flex items-center gap-3">

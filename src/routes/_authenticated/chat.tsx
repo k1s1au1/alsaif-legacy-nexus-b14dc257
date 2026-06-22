@@ -381,7 +381,7 @@ function ChatLayout() {
                <div className="relative group">
                  <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full" />
                  <div
-                   className="size-48 md:size-64 relative z-10 logo-royal opacity-40"
+                   className="size-48 md:size-64 relative z-10 logo-alsaif opacity-40"
                    style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
                  />
                </div>
