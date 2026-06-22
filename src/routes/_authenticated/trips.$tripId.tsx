@@ -156,20 +156,21 @@ function TripDetail() {
           supabase
             .from("user_roles")
             .select("role")
-            .eq("user_id", u.user.id)
-            .order("role")
-            .limit(1)
-            .maybeSingle(),
+            .eq("user_id", u.user.id),
         ]);
         const name =
           p?.arabic_name?.trim() ||
           p?.full_name?.trim() ||
           u.user.email?.split("@")[0] ||
           "عضو العائلة";
+
+        const roles = (r ?? []).map(x => x.role);
+        const priv = roles.includes("admin") || roles.includes("manager");
+
         setIsPrivileged(priv);
         setProfile({
           name,
-          role: roleLabel(rs[0] ?? null),
+          role: roleLabel(roles[0] || null),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
