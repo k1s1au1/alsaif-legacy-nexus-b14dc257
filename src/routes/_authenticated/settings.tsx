@@ -34,15 +34,15 @@ const FONTS = [
 ];
 
 const THEME_COLORS = [
-  { id: "emerald", name: "الأخضر الماسي", primary: "#064E3B", secondary: "#D4AF37", darkPrimary: "#059669" },
-  { id: "pure-white", name: "الأبيض اللؤلؤي", primary: "#F8FAFC", secondary: "#1B4332", darkPrimary: "#F1F5F9" },
-  { id: "champagne", name: "شامبين الذهب", primary: "#F3E5AB", secondary: "#451A03", darkPrimary: "#FDE68A" },
-  { id: "platinum", name: "البلاتين الفخم", primary: "#E5E7EB", secondary: "#111827", darkPrimary: "#D1D5DB" },
-  { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA" },
-  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185" },
-  { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9" },
-  { id: "ruby", name: "الياقوت الأحمر", primary: "#991B1B", secondary: "#FCA5A5", darkPrimary: "#F87171" },
-  { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC" },
+  { id: "emerald", name: "الأخضر الماسي", primary: "#064E3B", secondary: "#D4AF37", darkPrimary: "#059669", foreground: "#FFFFFF" },
+  { id: "pure-white", name: "الأبيض اللؤلؤي", primary: "#F8FAFC", secondary: "#064E3B", darkPrimary: "#F1F5F9", foreground: "#064E3B" },
+  { id: "champagne", name: "شامبين الذهب", primary: "#F3E5AB", secondary: "#451A03", darkPrimary: "#FDE68A", foreground: "#451A03" },
+  { id: "platinum", name: "البلاتين الفخم", primary: "#E5E7EB", secondary: "#111827", darkPrimary: "#D1D5DB", foreground: "#111827" },
+  { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA", foreground: "#FFFFFF" },
+  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185", foreground: "#FFFFFF" },
+  { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9", foreground: "#FFFFFF" },
+  { id: "ruby", name: "الياقوت الأحمر", primary: "#991B1B", secondary: "#FCA5A5", darkPrimary: "#F87171", foreground: "#FFFFFF" },
+  { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC", foreground: "#FFFFFF" },
 ];
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -127,9 +127,11 @@ function SettingsPage() {
   const applyThemeColors = (colors: typeof THEME_COLORS[0]) => {
     const root = document.documentElement;
     root.style.setProperty("--primary", colors.primary);
+    root.style.setProperty("--primary-foreground", colors.foreground);
     root.style.setProperty("--gold-primary", colors.secondary);
     if (root.classList.contains("dark")) {
       root.style.setProperty("--primary", colors.darkPrimary);
+      root.style.setProperty("--primary-foreground", colors.foreground === "#FFFFFF" ? "#FFFFFF" : "#0A0C10");
     }
   };
 
@@ -289,11 +291,11 @@ function SettingsPage() {
 
 function ThemeCard({ active, label, icon, onClick }: any) {
   return (
-    <button onClick={onClick} className={cn("p-8 rounded-[40px] border-4 transition-all duration-500 flex flex-col items-center gap-4 text-center", active ? "bg-primary border-gold-primary text-white shadow-2xl scale-105" : "bg-card border-transparent text-muted-foreground hover:bg-muted")}>
-       <div className={cn("size-16 rounded-[28px] flex items-center justify-center transition-all duration-700", active ? "bg-white/10 text-gold-primary rotate-12" : "bg-muted text-primary")}>
+    <button onClick={onClick} className={cn("p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-4 transition-all duration-500 flex flex-col items-center gap-3 md:gap-4 text-center", active ? "bg-primary border-gold-primary text-primary-foreground shadow-2xl scale-105" : "bg-card border-transparent text-muted-foreground hover:bg-muted")}>
+       <div className={cn("size-12 md:size-16 rounded-[22px] md:rounded-[28px] flex items-center justify-center transition-all duration-700", active ? "bg-white/10 text-gold-primary rotate-12" : "bg-muted text-primary")}>
           {icon}
        </div>
-       <span className="text-lg font-black tracking-tight">{label}</span>
+       <span className="text-base md:text-lg font-black tracking-tight">{label}</span>
     </button>
   );
 }
