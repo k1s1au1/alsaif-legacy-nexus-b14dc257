@@ -22,15 +22,14 @@ import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { motion, AnimatePresence } from "framer-motion";
 
 const FONTS = [
-  { id: "Tajawal", name: "تجوال", family: "'Tajawal', sans-serif", desc: "خط عصري وأنيق" },
-  { id: "Cairo", name: "كايـرو", family: "'Cairo', sans-serif", desc: "وضوح عالي للقراءة" },
-  { id: "Almarai", name: "المراعي", family: "'Almarai', sans-serif", desc: "بساطة وجمالية" },
-  { id: "ElMessiri", name: "المسيري", family: "'El Messiri', sans-serif", desc: "لمسة فنية مميزة" },
-  { id: "Amiri", name: "الأميري", family: "'Amiri', serif", desc: "طابع كلاسيكي فاخر" },
-  { id: "Vazirmatn", name: "وزير", family: "'Vazirmatn', sans-serif", desc: "بساطة تقنية حديثة" },
-  { id: "ReadexPro", name: "ريديكس", family: "'Readex Pro', sans-serif", desc: "خط هندسي مريح" },
-  { id: "IBM-Plex", name: "آي بي إم", family: "'IBM Plex Sans Arabic', sans-serif", desc: "طابع رسمي احترافي" },
-  { id: "NotoSans", name: "نوتو", family: "'Noto Sans Arabic', sans-serif", desc: "خط جوجل العالمي" },
+  { id: "Tajawal", name: "تجوال (عصري)", family: "'Tajawal', sans-serif", desc: "خط ناعم وأنيق" },
+  { id: "Cairo", name: "كايـرو (عريض)", family: "'Cairo', sans-serif", desc: "وضوح عالي جداً" },
+  { id: "Lalezar", name: "لاليزار (فني)", family: "'Lalezar', cursive", desc: "خط عريض ومميز" },
+  { id: "Amiri", name: "الأميري (تراثي)", family: "'Amiri', serif", desc: "طابع كلاسيكي فاخر" },
+  { id: "Changa", name: "شانغا (هندسي)", family: "'Changa', sans-serif", desc: "زوايا حادة وقوية" },
+  { id: "ReemKufi", name: "ريم كوفي (كوفي)", family: "'Reem Kufi', sans-serif", desc: "أصالة الخط الكوفي" },
+  { id: "Markazi", name: "مركزي (أدبي)", family: "'Markazi Text', serif", desc: "خط الكتب والروايات" },
+  { id: "Vazirmatn", name: "وزير (بسيط)", family: "'Vazirmatn', sans-serif", desc: "بساطة تقنية حديثة" },
 ];
 
 const THEME_COLORS = [
@@ -263,19 +262,19 @@ function SettingsPage() {
       <AnimatePresence>
         {showFontPicker && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-8 space-y-8 shadow-2xl rounded-[48px]">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-6 space-y-6 shadow-2xl rounded-[40px]">
                <div className="flex items-center justify-between">
-                  <h3 className="text-2xl font-black text-primary tracking-tight">تخصيص الخط</h3>
-                  <button onClick={() => setShowFontPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
+                  <h3 className="text-xl font-black text-primary tracking-tight">تخصيص الخط</h3>
+                  <button onClick={() => setShowFontPicker(false)} className="size-8 rounded-full bg-muted flex items-center justify-center"><X size={16} /></button>
                </div>
-               <div className="space-y-3">
+               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                   {FONTS.map(f => (
-                    <button key={f.id} onClick={() => handleFontChange(f.id)} style={{ fontFamily: f.family }} className={cn("w-full p-6 rounded-3xl border-2 transition-all text-right flex items-center justify-between group", font === f.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50")}>
-                       <div>
-                          <p className="text-lg font-bold">{f.name}</p>
-                          <p className="text-xs opacity-60">{f.desc}</p>
+                    <button key={f.id} onClick={() => handleFontChange(f.id)} style={{ fontFamily: f.family }} className={cn("p-4 rounded-2xl border-2 transition-all text-right flex items-center justify-between group", font === f.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50")}>
+                       <div className="overflow-hidden">
+                          <p className="text-sm font-bold truncate">{f.name}</p>
+                          <p className="text-[10px] opacity-60 truncate">{f.desc}</p>
                        </div>
-                       <span className="text-2xl opacity-20 font-black group-hover:opacity-100 transition-opacity tracking-widest">أبج</span>
+                       <span className="text-xl opacity-20 font-black group-hover:opacity-100 transition-opacity shrink-0">أبج</span>
                     </button>
                   ))}
                </div>

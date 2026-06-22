@@ -430,10 +430,19 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                    <span className="text-base md:text-3xl font-black text-white/30 uppercase tracking-widest md:-mt-4 block">{date.month}</span>
                 </div>
              </div>
-             <div className="flex items-center gap-1.5 md:gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-lg md:rounded-xl">
-                <Timer className="size-3 md:size-3.5 text-gold-primary animate-pulse" />
-                <span className="text-[12px] md:text-sm font-black text-white">{date.time}</span>
-             </div>
+
+             {/* Countdown Days - Now always visible */}
+             {new Date(meeting.scheduled_at).getTime() > new Date().getTime() && (
+               <div className="flex flex-col items-center justify-center p-2 md:p-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl md:rounded-2xl min-w-[80px] md:min-w-[120px]">
+                  <Timer className="size-4 md:size-6 text-gold-primary animate-pulse mb-0.5 md:mb-1" />
+                  <div className="text-center">
+                    <span className="text-lg md:text-3xl font-black text-white leading-none block">
+                      {Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
+                    </span>
+                    <span className="text-[7px] md:text-[10px] font-black uppercase tracking-widest text-white/40 block mt-0.5">أيام متبقية</span>
+                  </div>
+               </div>
+             )}
           </div>
        </div>
 
@@ -478,18 +487,19 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
           </div>
 
           <div className="flex flex-col gap-3 md:gap-4 w-full md:w-auto min-w-full md:min-w-[320px]">
-             <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1 rounded-[24px] md:rounded-[32px] flex items-center shadow-2xl h-[56px] md:h-[64px] overflow-hidden">
+             <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[32px] flex items-center shadow-2xl h-[64px] overflow-hidden">
+                {/* Sliding Background Indicator */}
                 <AnimatePresence initial={false}>
                   {myRsvp && (
                     <motion.div
                       layoutId="rsvp-active-bg"
                       initial={false}
                       animate={{
-                        x: myRsvp === 'going' ? '0%' : (document.dir === 'rtl' ? '100%' : '-100%'),
+                        left: myRsvp === 'going' ? '6px' : 'calc(50% + 2px)',
                         backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
                       }}
                       transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                      className="absolute top-1 bottom-1 left-1 right-1 w-[calc(50%-4px)] rounded-[20px] md:rounded-[28px] z-0 shadow-lg shadow-black/20"
+                      className="absolute top-1.5 bottom-1.5 w-[calc(50%-8px)] rounded-[26px] z-0 shadow-lg shadow-black/20"
                     />
                   )}
                 </AnimatePresence>
