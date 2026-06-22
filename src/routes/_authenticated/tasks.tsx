@@ -8,22 +8,17 @@ import {
   Plus,
   Calendar as CalendarIcon,
   Clock,
-  Flag,
   Trash2,
   CheckCircle2,
-  Circle,
   Loader2,
   Pencil,
-  Filter,
   X,
-  ChevronLeft,
-  LayoutGrid,
-  Check,
   AlertCircle,
-  GripVertical
+  TrendingUp,
+  Award,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence, LayoutGroup } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
@@ -38,14 +33,13 @@ export const Route = createFileRoute("/_authenticated/tasks")({
   component: TasksPage,
 });
 
-type TaskStatus = "todo" | "in_progress" | "done";
 type TaskPriority = "low" | "medium" | "high";
 
 type Task = {
   id: string;
   title: string;
   description: string | null;
-  status: TaskStatus;
+  progress: number; // 0, 10, 20, 40, 50, 70, 100
   priority: TaskPriority;
   due_date: string | null;
   assignee_id: string | null;
@@ -60,8 +54,10 @@ type Member = {
   avatar_url: string | null;
 };
 
+const PROGRESS_STEPS = [0, 10, 20, 40, 50, 70, 100];
+
 const priorityConfig: Record<TaskPriority, { label: string; color: string; icon: any }> = {
-  low: { label: "عادية", color: "bg-emerald-500", icon: Check },
+  low: { label: "عادية", color: "bg-emerald-500", icon: TrendingUp },
   medium: { label: "متوسطة", color: "bg-amber-500", icon: Clock },
   high: { label: "عاجلة", color: "bg-rose-500", icon: AlertCircle },
 };
@@ -80,7 +76,7 @@ function TasksPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "mine" | TaskStatus>("all");
+  const [filter, setFilter] = useState<"all" | "mine" | "todo" | "doing" | "done">("all");
   const [showDialog, setShowDialog] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
 
@@ -91,7 +87,14 @@ function TasksPage() {
       supabase.from("profiles").select("id, arabic_name, full_name, avatar_url")
     ]);
 
-    setTasks((tRes.data ?? []) as Task[]);
+    // Transform potential legacy 'status' to progress if necessary,
+    // though we assume the schema will be updated or handled gracefully.
+    const mappedTasks = (tRes.data ?? []).map((t: any) => ({
+      ...t,
+      progress: t.progress ?? (t.status === 'done' ? 100 : t.status === 'in_progress' ? 40 : 0)
+    }));
+
+    setTasks(mappedTasks as Task[]);
     setMembers((mRes.data ?? []).map(p => ({
       id: p.id,
       name: p.arabic_name || p.full_name || "عضو",
@@ -130,17 +133,20 @@ function TasksPage() {
   const filteredTasks = useMemo(() => {
     let list = tasks;
     if (filter === "mine") list = tasks.filter(t => t.assignee_id === userId);
-    else if (filter !== "all") list = tasks.filter(t => t.status === filter);
+    else if (filter === "todo") list = tasks.filter(t => t.progress === 0);
+    else if (filter === "doing") list = tasks.filter(t => t.progress > 0 && t.progress < 100);
+    else if (filter === "done") list = tasks.filter(t => t.progress === 100);
     return list;
   }, [tasks, filter, userId]);
 
-  const updateStatus = async (id: string, status: TaskStatus) => {
+  const updateProgress = async (id: string, progress: number) => {
     const { error } = await supabase.from("tasks").update({
-      status,
-      completed_at: status === "done" ? new Date().toISOString() : null
+      progress,
+      status: progress === 100 ? 'done' : progress === 0 ? 'todo' : 'in_progress',
+      completed_at: progress === 100 ? new Date().toISOString() : null
     }).eq("id", id);
     if (!error) {
-      toast.success("تم تحديث حالة المهمة");
+      toast.success(`تم تحديث الإنجاز إلى ${progress}%`);
       loadAll();
     }
   };
@@ -155,21 +161,21 @@ function TasksPage() {
   };
 
   return (
-    <AppShell title="المهام" user={profile}>
+    <AppShell title="المسؤوليات" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Radical Header */}
-        <section className="relative overflow-hidden rounded-[40px] md:rounded-[60px] bg-primary p-8 md:p-16 text-white shadow-2xl">
-           <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black z-0" />
-           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-150 logo-alsaif" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+        {/* Modern Header */}
+        <section className="relative overflow-hidden rounded-[40px] md:rounded-[60px] bg-[#0A0C10] p-8 md:p-16 text-white shadow-2xl border border-white/5">
+           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent z-0" />
+           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-5 pointer-events-none scale-150 logo-alsaif" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
 
            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
               <div className="space-y-4 text-center md:text-right">
                  <div className="flex items-center justify-center md:justify-start gap-3">
                     <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">مركز المهام</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">متابعة الإنجاز</span>
                  </div>
-                 <h2 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">مبادرات<br/><span className="text-white/40">آل سيف</span></h2>
+                 <h2 className="text-4xl md:text-7xl font-black tracking-tighter leading-none">مبادرات<br/><span className="text-white/40">السيف</span></h2>
               </div>
 
               {isPrivileged && (
@@ -178,39 +184,39 @@ function TasksPage() {
                   className="btn-gold px-10 py-5 rounded-full text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center gap-3 hover:scale-105 active:scale-95 transition-all group"
                 >
                    <Plus className="group-hover:rotate-90 transition-transform duration-500" />
-                   إضافة مهمة
+                   إضافة مبادرة
                 </button>
               )}
            </div>
         </section>
 
-        {/* Filters & Interactive Nav */}
+        {/* Filters */}
         <section className="px-4 md:px-0">
            <div className="flex flex-wrap items-center gap-3">
-              <FilterTab active={filter === "all"} onClick={() => setFilter("all")} label="كافة المبادرات" />
+              <FilterTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" />
               <FilterTab active={filter === "mine"} onClick={() => setFilter("mine")} label="مسؤولياتي" />
               <div className="h-8 w-px bg-border/40 mx-2 hidden md:block" />
-              <FilterTab active={filter === "todo"} onClick={() => setFilter("todo")} label="الانتظار" />
-              <FilterTab active={filter === "in_progress"} onClick={() => setFilter("in_progress")} label="قيد التنفيذ" />
-              <FilterTab active={filter === "done"} onClick={() => setFilter("done")} label="المكتملة" />
+              <FilterTab active={filter === "todo"} onClick={() => setFilter("todo")} label="لم تبدأ" />
+              <FilterTab active={filter === "doing"} onClick={() => setFilter("doing")} label="قيد التنفيذ" />
+              <FilterTab active={filter === "done"} onClick={() => setFilter("done")} label="مكتملة" />
            </div>
         </section>
 
-        {/* Board Style List */}
+        {/* Progress Board */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 opacity-20">
              <Loader2 className="size-10 animate-spin text-primary" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 px-4 md:px-0">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-4 md:px-0">
              <AnimatePresence mode="popLayout">
                 {filteredTasks.map((t) => (
-                  <TaskCard
+                  <ProgressTaskCard
                     key={t.id}
                     task={t}
                     userId={userId}
                     members={members}
-                    onStatusChange={updateStatus}
+                    onProgressChange={updateProgress}
                     onDelete={deleteTask}
                     onEdit={() => { setEditingTask(t); setShowDialog(true); }}
                     canManage={isPrivileged || t.created_by === userId}
@@ -236,86 +242,106 @@ function TasksPage() {
   );
 }
 
-function TaskCard({ task, userId, members, onStatusChange, onDelete, onEdit, canManage }: any) {
+function ProgressTaskCard({ task, userId, members, onProgressChange, onDelete, onEdit, canManage }: any) {
   const priority = priorityConfig[task.priority as TaskPriority];
   const assignee = members.find((m: any) => m.id === task.assignee_id);
   const isAssignee = task.assignee_id === userId;
-  const isDone = task.status === "done";
+  const isDone = task.progress === 100;
 
   return (
     <motion.article
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
       className={cn(
-        "relative group bg-white dark:bg-card border border-border/40 rounded-[32px] p-6 shadow-xl transition-all hover:shadow-2xl overflow-hidden",
-        isDone && "opacity-60 grayscale-[0.5]"
+        "relative bg-white dark:bg-[#12141C] border border-border/40 rounded-[40px] p-8 shadow-xl transition-all hover:shadow-2xl overflow-hidden group",
+        isDone && "border-emerald-500/30"
       )}
     >
-       {/* Priority Strip */}
-       <div className={cn("absolute top-0 right-0 w-2 bottom-0", priority.color)} />
-
-       <div className="space-y-6">
-          <div className="flex items-start justify-between gap-4">
-             <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted/50 border border-border/40">
-                <priority.icon size={10} className={priority.color.replace('bg-', 'text-')} />
-                <span className="text-[10px] font-black uppercase tracking-widest">{priority.label}</span>
+       <div className="space-y-8">
+          <div className="flex items-start justify-between">
+             <div className={cn("px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] border shadow-sm", priority.color.replace('bg-', 'text-').replace('text-', 'border-').replace('border-', 'bg-') + "/10")}>
+                {priority.label}
              </div>
              {canManage && (
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button onClick={onEdit} className="p-2 rounded-lg hover:bg-muted text-muted-foreground transition-colors"><Pencil size={14} /></button>
-                   <button onClick={() => onDelete(task.id)} className="p-2 rounded-lg hover:bg-rose-50 text-rose-500 transition-colors"><Trash2 size={14} /></button>
+                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                   <button onClick={onEdit} className="size-9 rounded-xl bg-muted/50 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all"><Pencil size={14} /></button>
+                   <button onClick={() => onDelete(task.id)} className="size-9 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={14} /></button>
                 </div>
              )}
           </div>
 
-          <div className="space-y-2">
-             <h4 className={cn("text-xl font-black text-primary leading-tight tracking-tight", isDone && "line-through")}>{task.title}</h4>
+          <div className="space-y-3">
+             <h4 className={cn("text-2xl font-black text-primary leading-tight tracking-tight", isDone && "text-emerald-600")}>{task.title}</h4>
              {task.description && <p className="text-sm font-bold text-muted-foreground leading-relaxed line-clamp-2">{task.description}</p>}
           </div>
 
-          <div className="flex items-center justify-between pt-4 border-t border-border/40">
-             <div className="flex items-center gap-3">
-                {assignee ? (
-                  <div className="flex items-center gap-2 pr-1 pl-3 py-1 bg-primary/5 rounded-full border border-primary/10">
-                     <div className="size-6 rounded-full overflow-hidden border-2 border-white shadow-sm">
-                        <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
-                     </div>
-                     <span className="text-[10px] font-black text-primary truncate max-w-[80px]">{assignee.name}</span>
-                  </div>
-                ) : (
-                  <span className="text-[10px] font-black text-muted-foreground/40 italic">غير مسندة</span>
-                )}
+          {/* Luxury Progress Section */}
+          <div className="space-y-6">
+             <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black text-primary/40 uppercase tracking-widest">مستوى الإنجاز</span>
+                <span className={cn("text-xl font-black tracking-tighter", isDone ? "text-emerald-500" : "text-primary")}>{task.progress}%</span>
              </div>
 
-             <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground opacity-60">
-                <CalendarIcon size={12} />
-                <span>{formatDate(task.due_date)}</span>
+             <div className="h-3 w-full bg-muted rounded-full overflow-hidden p-0.5 border border-border/20">
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${task.progress}%` }}
+                  className={cn("h-full rounded-full shadow-lg", isDone ? "bg-emerald-500" : "bg-gold-primary")}
+                />
+             </div>
+
+             {/* Interactive Step Buttons */}
+             <div className="flex justify-between items-center gap-1">
+                {PROGRESS_STEPS.map((step) => (
+                  <button
+                    key={step}
+                    disabled={!isAssignee}
+                    onClick={() => onProgressChange(task.id, step)}
+                    className={cn(
+                      "flex-1 h-8 rounded-lg text-[9px] font-black transition-all border",
+                      task.progress === step
+                        ? (step === 100 ? "bg-emerald-500 border-emerald-500 text-white shadow-lg" : "bg-primary border-primary text-white shadow-lg scale-110 z-10")
+                        : "bg-muted/30 border-transparent text-muted-foreground hover:border-primary/30",
+                      !isAssignee && "cursor-not-allowed opacity-30"
+                    )}
+                  >
+                    {step === 100 ? <Check size={12} className="mx-auto" /> : step + "%"}
+                  </button>
+                ))}
              </div>
           </div>
 
-          {/* Action Button */}
-          <button
-            onClick={() => {
-               if (!isAssignee) {
-                 toast.info("فقط المكلف بالمهمة يمكنه تغيير حالتها");
-                 return;
-               }
-               const next: TaskStatus = task.status === "todo" ? "in_progress" : task.status === "in_progress" ? "done" : "todo";
-               onStatusChange(task.id, next);
-            }}
-            className={cn(
-              "w-full py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-xs transition-all border-2",
-              isDone ? "bg-emerald-500 border-emerald-500 text-white shadow-emerald-500/20" :
-              task.status === "in_progress" ? "bg-amber-500 border-amber-500 text-white shadow-amber-500/20" :
-              "bg-white dark:bg-black/20 border-border hover:border-primary text-primary"
-            )}
-          >
-             {isDone ? <CheckCircle2 size={18} /> : task.status === "in_progress" ? <Loader2 size={18} className="animate-spin" /> : <Circle size={18} />}
-             <span>{isDone ? "تمت المهمة" : task.status === "in_progress" ? "جاري العمل" : "ابدأ المهمة"}</span>
-          </button>
+          <div className="flex items-center justify-between pt-6 border-t border-border/40">
+             {assignee ? (
+                <div className="flex items-center gap-3">
+                   <div className="size-10 rounded-2xl overflow-hidden border-2 border-background shadow-md ring-1 ring-border/40">
+                      <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
+                   </div>
+                   <div className="space-y-0.5">
+                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">المكلف</p>
+                      <p className="text-xs font-black text-primary">{assignee.name}</p>
+                   </div>
+                </div>
+             ) : (
+                <div className="flex items-center gap-2 text-muted-foreground/30 italic text-[10px] font-bold">
+                   <X size={12} /> غير مسندة
+                </div>
+             )}
+
+             <div className="text-left">
+                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest">الموعد</p>
+                <p className="text-xs font-black text-primary/60">{formatDate(task.due_date)}</p>
+             </div>
+          </div>
        </div>
+
+       {isDone && (
+         <div className="absolute top-4 left-4 size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+            <Award size={18} />
+         </div>
+       )}
     </motion.article>
   );
 }
@@ -325,8 +351,8 @@ function FilterTab({ active, onClick, label }: any) {
     <button
       onClick={onClick}
       className={cn(
-        "px-6 py-3 rounded-full text-xs font-black transition-all border",
-        active ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-105" : "bg-white dark:bg-card border-border/60 text-muted-foreground hover:bg-muted"
+        "px-8 py-4 rounded-3xl text-xs font-black transition-all border",
+        active ? "bg-[#0A0C10] text-white border-[#0A0C10] shadow-2xl scale-105" : "bg-white dark:bg-card border-border/60 text-muted-foreground hover:bg-muted"
       )}
     >
        {label}
@@ -339,7 +365,7 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
   const [form, setForm] = useState({
     title: task?.title ?? "",
     description: task?.description ?? "",
-    status: task?.status ?? "todo",
+    progress: task?.progress ?? 0,
     priority: task?.priority ?? "medium",
     due_date: task?.due_date ? task.due_date.slice(0, 10) : "",
     assignee_id: task?.assignee_id ?? "none",
@@ -351,9 +377,10 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
     setSaving(true);
     const payload = {
       ...form,
+      status: form.progress === 100 ? 'done' : form.progress === 0 ? 'todo' : 'in_progress',
       assignee_id: form.assignee_id === "none" ? null : form.assignee_id,
       due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
-      completed_at: form.status === "done" ? new Date().toISOString() : null,
+      completed_at: form.progress === 100 ? new Date().toISOString() : null,
     };
     let error;
     if (task) {
@@ -366,50 +393,50 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
-      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card-surface w-full max-w-2xl p-8 sm:p-12 space-y-8 shadow-2xl rounded-[48px]">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl" dir="rtl">
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="card-surface w-full max-w-2xl p-8 sm:p-14 space-y-10 shadow-2xl rounded-[60px]">
          <div className="flex items-center justify-between">
-            <h3 className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المسؤولية" : "مبادرة جديدة"}</h3>
-            <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
+            <h3 className="text-3xl font-black text-primary tracking-tight">{task ? "تعديل المبادرة" : "مبادرة جديدة"}</h3>
+            <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={24} /></button>
          </div>
 
-         <form onSubmit={submit} className="space-y-6">
+         <form onSubmit={submit} className="space-y-8">
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">عنوان المبادرة</label>
-               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ما هي المهمة؟" className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-2">عنوان المبادرة</label>
+               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ما هي المهمة؟" className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border font-bold text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" />
             </div>
 
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">التفاصيل والأهداف</label>
-               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل وصفاً تفصيلياً..." rows={3} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
+               <label className="text-[10px] font-black uppercase tracking-widest text-primary px-2">التفاصيل والأهداف</label>
+               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل وصفاً تفصيلياً..." rows={3} className="w-full p-8 rounded-3xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">المستوى</label>
-                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-2">المستوى</label>
+                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
                      <option value="low">عادية</option>
                      <option value="medium">متوسطة الأهمية</option>
                      <option value="high">عاجلة جداً</option>
                   </select>
                </div>
                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">تاريخ الإنجاز</label>
-                  <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all" />
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-2">تاريخ الإنجاز</label>
+                  <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" />
                </div>
                <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-1">المسؤول عن التنفيذ</label>
-                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-primary px-2">المسؤول عن التنفيذ</label>
+                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
                      <option value="none">— اختر الفرد المسؤول —</option>
                      {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                </div>
             </div>
 
-            <div className="flex gap-4 pt-6">
-               <button type="button" onClick={onClose} className="flex-1 py-5 rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
-               <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-3xl font-black text-lg shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
-                 {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد المبادرة</span>}
+            <div className="flex gap-4 pt-8">
+               <button type="button" onClick={onClose} className="flex-1 py-6 rounded-[32px] font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
+               <button disabled={saving} type="submit" className="flex-[2] btn-gold py-6 rounded-[32px] font-black text-xl shadow-2xl shadow-gold-primary/30 flex items-center justify-center gap-3">
+                 {saving ? <Loader2 className="size-7 animate-spin" /> : <span>تأكيد المبادرة</span>}
                </button>
             </div>
          </form>
