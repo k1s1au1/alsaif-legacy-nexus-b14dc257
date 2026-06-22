@@ -27,18 +27,22 @@ const FONTS = [
   { id: "Almarai", name: "المراعي", family: "'Almarai', sans-serif", desc: "بساطة وجمالية" },
   { id: "ElMessiri", name: "المسيري", family: "'El Messiri', sans-serif", desc: "لمسة فنية مميزة" },
   { id: "Amiri", name: "الأميري", family: "'Amiri', serif", desc: "طابع كلاسيكي فاخر" },
-  { id: "Hussen", name: "ديواني", family: "'Amiri', serif", desc: "زخرفة عربية أصيلة" },
+  { id: "Vazirmatn", name: "وزير", family: "'Vazirmatn', sans-serif", desc: "بساطة تقنية حديثة" },
+  { id: "ReadexPro", name: "ريديكس", family: "'Readex Pro', sans-serif", desc: "خط هندسي مريح" },
+  { id: "IBM-Plex", name: "آي بي إم", family: "'IBM Plex Sans Arabic', sans-serif", desc: "طابع رسمي احترافي" },
+  { id: "NotoSans", name: "نوتو", family: "'Noto Sans Arabic', sans-serif", desc: "خط جوجل العالمي" },
 ];
 
 const THEME_COLORS = [
-  { id: "emerald", name: "الأخضر الفاخر", primary: "#1B4332", secondary: "#D4AF37", darkPrimary: "#D4AF37" },
+  { id: "emerald", name: "الأخضر الماسي", primary: "#064E3B", secondary: "#D4AF37", darkPrimary: "#059669" },
+  { id: "pure-white", name: "الأبيض اللؤلؤي", primary: "#F8FAFC", secondary: "#1B4332", darkPrimary: "#F1F5F9" },
+  { id: "champagne", name: "شامبين الذهب", primary: "#F3E5AB", secondary: "#451A03", darkPrimary: "#FDE68A" },
+  { id: "platinum", name: "البلاتين الفخم", primary: "#E5E7EB", secondary: "#111827", darkPrimary: "#D1D5DB" },
   { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA" },
   { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185" },
   { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9" },
   { id: "ruby", name: "الياقوت الأحمر", primary: "#991B1B", secondary: "#FCA5A5", darkPrimary: "#F87171" },
-  { id: "forest", name: "الغابة العميقة", primary: "#064E3B", secondary: "#6EE7B7", darkPrimary: "#34D399" },
   { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC" },
-  { id: "chocolate", name: "البني الفاخر", primary: "#451A03", secondary: "#FCD34D", darkPrimary: "#FBBF24" },
 ];
 
 export const Route = createFileRoute("/_authenticated/settings")({
