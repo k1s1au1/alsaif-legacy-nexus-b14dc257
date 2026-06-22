@@ -221,13 +221,15 @@ function TasksPage() {
               <h2 className="text-3xl md:text-5xl font-black tracking-tight text-primary leading-tight">المهام العائلية</h2>
               <p className="text-muted-foreground font-bold text-base md:text-lg opacity-70">نظّم ووزع المسؤوليات بين أعضاء المجلس بكل كفاءة.</p>
            </div>
-           <button
-             onClick={() => { setEditingTask(null); setShowDialog(true); }}
-             className="btn-gold px-6 py-4 md:px-8 md:py-4 flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 text-base w-full md:w-auto rounded-2xl md:rounded-full"
-           >
-              <Plus className="size-5" strokeWidth={3} />
-              <span>إضافة مهمة جديدة</span>
-           </button>
+           {isPrivileged && (
+             <button
+               onClick={() => { setEditingTask(null); setShowDialog(true); }}
+               className="btn-gold px-6 py-4 md:px-8 md:py-4 flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 text-base w-full md:w-auto rounded-2xl md:rounded-full"
+             >
+                <Plus className="size-5" strokeWidth={3} />
+                <span>إضافة مهمة جديدة</span>
+             </button>
+           )}
         </section>
 
         {/* Stats Grid */}
