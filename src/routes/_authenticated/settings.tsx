@@ -39,9 +39,9 @@ const THEME_COLORS = [
   { id: "champagne", name: "شامبين الذهب", primary: "#F3E5AB", secondary: "#451A03", darkPrimary: "#FDE68A", foreground: "#451A03" },
   { id: "platinum", name: "البلاتين الفخم", primary: "#E5E7EB", secondary: "#111827", darkPrimary: "#D1D5DB", foreground: "#111827" },
   { id: "sapphire", name: "الأزرق الصافي", primary: "#1E3A8A", secondary: "#60A5FA", darkPrimary: "#60A5FA", foreground: "#FFFFFF" },
-  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#FB7185", darkPrimary: "#FB7185", foreground: "#FFFFFF" },
+  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#D4AF37", darkPrimary: "#800000", foreground: "#FFFFFF" },
   { id: "obsidian", name: "الأسود الفخم", primary: "#0F172A", secondary: "#94A3B8", darkPrimary: "#F1F5F9", foreground: "#FFFFFF" },
-  { id: "ruby", name: "الياقوت الأحمر", primary: "#991B1B", secondary: "#FCA5A5", darkPrimary: "#F87171", foreground: "#FFFFFF" },
+  { id: "ruby", name: "الياقوت القاني", primary: "#7F1D1D", secondary: "#D4AF37", darkPrimary: "#991B1B", foreground: "#FFFFFF" },
   { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC", foreground: "#FFFFFF" },
 ];
 
