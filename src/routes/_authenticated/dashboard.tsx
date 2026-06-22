@@ -180,21 +180,54 @@ function Dashboard() {
                    loop: true,
                  }}
                >
-                 <CarouselContent className="h-[500px]">
+                 <CarouselContent className="h-[550px]">
                    {upcomingTrips.map(trip => (
                      <CarouselItem key={trip.id} className="h-full">
-                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-[#8E7745]/20 bg-[#2C1810] text-white p-8 md:p-12 flex flex-col items-center justify-center text-center gap-8 h-full w-full">
-                          <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                          <div className="space-y-6 relative z-10 flex flex-col items-center">
-                             <div className="px-4 py-1 rounded-full bg-white/10 w-fit text-[10px] font-black uppercase tracking-widest">رحلة عائلية</div>
-                             <h3 className="text-3xl md:text-5xl font-black">{trip.title}</h3>
-                             <div className="flex flex-col gap-3 text-sm font-bold opacity-80 items-center">
-                                <span className="flex items-center gap-2"><MapPin className="size-4" /> {trip.location || "وجهة عائلية"}</span>
-                                <span className="flex items-center gap-2"><CalendarDays className="size-4" /> {trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA") : "—"}</span>
-                             </div>
-                             <Link to="/trips" className="btn-gold px-10 py-4 rounded-full font-black inline-flex items-center gap-3">استكشاف <Compass size={20} /></Link>
+                       <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-2 border-gold-primary/20 bg-gradient-to-br from-[#2C1810] via-[#1a0f0a] to-[#2C1810] text-white p-10 flex flex-col items-center justify-between h-full w-full group">
+                          {/* Decorative background mark */}
+                          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-5 pointer-events-none scale-[2.5] group-hover:scale-[2.8] transition-transform duration-1000">
+                             <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
                           </div>
-                          <div className="flex size-32 rounded-[50px] bg-white/10 items-center justify-center relative z-10"><Plane className="size-16 opacity-40" /></div>
+
+                          {/* Top Section: Badge & Icon */}
+                          <div className="relative z-10 w-full flex justify-between items-start">
+                             <div className="px-5 py-2 rounded-2xl bg-gold-primary/10 border border-gold-primary/20 backdrop-blur-md text-gold-primary text-[10px] font-black uppercase tracking-[0.2em]">
+                                رحلة مرتقبة
+                             </div>
+                             <div className="size-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-gold-primary animate-pulse">
+                                <Plane size={24} />
+                             </div>
+                          </div>
+
+                          {/* Middle Section: Title & Location */}
+                          <div className="relative z-10 space-y-4 text-center">
+                             <h3 className="text-4xl md:text-6xl font-black bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent leading-tight">
+                                {trip.title}
+                             </h3>
+                             <div className="flex items-center justify-center gap-4 text-sm font-medium text-gold-primary/80">
+                                <span className="flex items-center gap-2 bg-white/5 px-4 py-1.5 rounded-full"><MapPin size={14} /> {trip.location || "وجهة عائلية"}</span>
+                             </div>
+                          </div>
+
+                          {/* Bottom Section: Date & CTA */}
+                          <div className="relative z-10 w-full space-y-8 flex flex-col items-center">
+                             <div className="flex items-center gap-10">
+                                <div className="text-center">
+                                   <p className="text-[10px] uppercase tracking-widest opacity-40 mb-1">التاريخ</p>
+                                   <p className="text-xl font-black">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { day: 'numeric', month: 'short' }) : "—"}</p>
+                                </div>
+                                <div className="h-10 w-px bg-white/10" />
+                                <div className="text-center">
+                                   <p className="text-[10px] uppercase tracking-widest opacity-40 mb-1">اليوم</p>
+                                   <p className="text-xl font-black">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { weekday: 'long' }) : "—"}</p>
+                                </div>
+                             </div>
+
+                             <Link to="/trips" className="group/btn relative px-12 py-5 overflow-hidden rounded-full font-black text-black transition-all hover:scale-105 active:scale-95">
+                                <div className="absolute inset-0 bg-gold-primary" />
+                                <span className="relative flex items-center gap-3">تفاصيل الرحلة <Compass size={20} /></span>
+                             </Link>
+                          </div>
                        </article>
                      </CarouselItem>
                    ))}
