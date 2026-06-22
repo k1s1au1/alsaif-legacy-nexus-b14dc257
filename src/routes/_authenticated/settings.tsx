@@ -38,8 +38,10 @@ const THEME_COLORS = [
   { id: "pure-white", name: "الأبيض اللؤلؤي", primary: "#F8FAFC", secondary: "#064E3B", darkPrimary: "#F1F5F9", foreground: "#064E3B" },
   { id: "turquoise", name: "الفيروزي المتألق", primary: "#0D9488", secondary: "#CCFBF1", darkPrimary: "#2DD4BF", foreground: "#FFFFFF" },
   { id: "bronze", name: "البرونزي العتيق", primary: "#78350F", secondary: "#FEF3C7", darkPrimary: "#B45309", foreground: "#FFFFFF" },
-  { id: "velvet", name: "البنفسجي المخملي", primary: "#4C1D95", secondary: "#EDE9FE", darkPrimary: "#8B5CF6", foreground: "#FFFFFF" },
-  { id: "Alsaif-purple", name: "الأرجوان المميز", primary: "#581C87", secondary: "#D8B4FE", darkPrimary: "#C084FC", foreground: "#FFFFFF" },
+  { id: "midnight", name: "الكحلي الوقور", primary: "#1E293B", secondary: "#94A3B8", darkPrimary: "#334155", foreground: "#FFFFFF" },
+  { id: "sand", name: "الرملي الأصيل", primary: "#C2B280", secondary: "#451A03", darkPrimary: "#D2B48C", foreground: "#451A03" },
+  { id: "silver", name: "الفضي النبيل", primary: "#94A3B8", secondary: "#1E293B", darkPrimary: "#CBD5E1", foreground: "#1E293B" },
+  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#D4AF37", darkPrimary: "#800000", foreground: "#FFFFFF" },
 ];
 
 export const Route = createFileRoute("/_authenticated/settings")({
