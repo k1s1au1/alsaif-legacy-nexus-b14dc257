@@ -28,6 +28,7 @@ import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import Autoplay from "embla-carousel-autoplay";
