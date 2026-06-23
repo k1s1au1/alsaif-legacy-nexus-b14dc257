@@ -72,12 +72,12 @@ function formatDate(iso: string) {
 
 function MeetingsPage() {
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null as string | null });
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [loading, setLoading] = useState(true);
+  const [savingRsvp, setSavingRsvp] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
@@ -91,7 +91,7 @@ function MeetingsPage() {
   const [fWhen, setFWhen] = useState("");
   const [fDuration, setFDuration] = useState("");
 
-  const canManage = userRole === "admin" || userRole === "manager";
+  const canManage = canManageSection("meetings");
   const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
 
   const resetForm = useCallback(() => {
