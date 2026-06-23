@@ -200,20 +200,29 @@ function MeetingsPage() {
   };
 
   const setRsvp = async (meetingId: string, rsvp: Rsvp) => {
-    if (!userId) return;
+    if (!userId || savingRsvp === meetingId) return;
+    setSavingRsvp(meetingId);
     const current = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
-
-    if (current?.rsvp === rsvp) {
-      setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
-      await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
-      toast.success("تم الإلغاء");
-    } else {
-      const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
-      setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
-      await supabase.from("meeting_attendees").upsert(newEntry);
-      toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
+    const isToggleOff = current?.rsvp === rsvp;
+    try {
+      if (isToggleOff) {
+        setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
+        const { error } = await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
+        if (error) throw error;
+        toast.success("تم الإلغاء");
+      } else {
+        const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
+        setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
+        const { error } = await supabase.from("meeting_attendees").upsert(newEntry, { onConflict: "meeting_id,user_id" });
+        if (error) throw error;
+        toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
+      }
+    } catch (e: any) {
+      toast.error("تعذر تحديث ردك");
+      await loadAll();
+    } finally {
+      setSavingRsvp(null);
     }
-    loadAll();
   };
 
   const upcoming = meetings.filter(m => new Date(m.scheduled_at) >= new Date());
