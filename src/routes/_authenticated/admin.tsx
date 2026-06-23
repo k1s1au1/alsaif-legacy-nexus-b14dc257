@@ -514,10 +514,11 @@ function AttendanceSection() {
         const result = (trips || []).map(t => ({
           id: t.id,
           title: t.title,
-          attendees: finalAttendees
-            .filter(a => a.trip_id === t.id && (!a.status || a.status === 'going'))
-            .map(a => profMap.get(a.user_id))
+          attendees: (finalAttendees as any[])
+            .filter((a: any) => a.trip_id === t.id && (!a.status || a.status === 'going'))
+            .map((a: any) => profMap.get(a.user_id))
             .filter(Boolean)
+
         }));
         setData(result);
       } else {
