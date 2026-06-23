@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
+import { NewsTicker } from "@/components/news-ticker";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
@@ -64,6 +65,8 @@ function Dashboard() {
   const [statIndex, setStatIndex] = useState(0);
   const [showBugReport, setShowBugReport] = useState(false);
   const [bugBody, setBugBody] = useState("");
+  const [bugImage, setBugImage] = useState<File | null>(null);
+  const [bugImagePreview, setBugImagePreview] = useState<string | null>(null);
   const [bugSending, setBugSending] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -129,11 +132,24 @@ function Dashboard() {
     if (!bugBody.trim()) return;
     setBugSending(true);
     const { data: u } = await supabase.auth.getUser();
+    if (!u.user) return;
+
+    let imageUrl = "";
+    if (bugImage) {
+      const ext = bugImage.name.split(".").pop();
+      const path = `bugs/${u.user.id}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("trip-images").upload(path, bugImage);
+      if (!upErr) {
+        const { data: sign } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+        imageUrl = sign?.signedUrl || "";
+      }
+    }
+
     const { error } = await supabase.from("majlis_posts").insert({
-      author_id: u.user?.id,
+      author_id: u.user.id,
       kind: "complaint",
       title: "تقرير خطأ في النظام",
-      body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}`,
+      body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}${imageUrl ? `\n\n[رابط الصورة المصاحبة]: ${imageUrl}` : ""}`,
     } as any);
 
     if (error) {
@@ -141,6 +157,8 @@ function Dashboard() {
     } else {
        toast.success("تم إرسال البلاغ للمشرفين بنجاح");
        setBugBody("");
+       setBugImage(null);
+       setBugImagePreview(null);
        setShowBugReport(false);
     }
     setBugSending(false);
@@ -148,6 +166,7 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
+      <NewsTicker />
       <div className="max-w-6xl mx-auto space-y-12 pb-20">
 
         {/* Hero Section */}
@@ -386,6 +405,32 @@ function Dashboard() {
                       rows={5}
                       className="w-full p-6 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner"
                     />
+
+                    <div className="space-y-2">
+                       <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-1">صورة الخطأ (اختياري)</label>
+                       <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload">
+                          {bugImagePreview ? (
+                             <img src={bugImagePreview} className="h-32 w-full object-contain rounded-xl shadow-lg" alt="Preview" />
+                          ) : (
+                             <>
+                                <ImageIcon className="size-8 text-muted-foreground opacity-30 group-hover/upload:scale-110 transition-transform" />
+                                <span className="text-xs font-bold text-muted-foreground">اضغط لرفع لقطة شاشة</span>
+                             </>
+                          )}
+                          <input
+                            type="file"
+                            hidden
+                            accept="image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) {
+                                setBugImage(f);
+                                setBugImagePreview(URL.createObjectURL(f));
+                              }
+                            }}
+                          />
+                       </label>
+                    </div>
                  </div>
                  <div className="flex gap-3">
                     <button onClick={() => setShowBugReport(false)} className="flex-1 py-4 rounded-2xl font-black text-sm text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
