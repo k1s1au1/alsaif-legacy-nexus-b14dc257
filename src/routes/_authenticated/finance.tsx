@@ -98,21 +98,19 @@ function FinancePage() {
   async function load() {
     setLoading(true);
     const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
-    setUserId(u.user.id);
-    const [{ data: p }, { data: r }, { data: tx }, { data: bt }] = await Promise.all([
+    if (!u.user) {
+      setLoading(false);
+      return;
+    }
+    const [{ data: p }, { data: tx }, { data: bt }] = await Promise.all([
       supabase.from("profiles").select("arabic_name, full_name").eq("id", u.user.id).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", u.user.id),
       supabase.from("fund_transactions").select("*").order("occurred_at", { ascending: false }),
       supabase.from("bank_transfers").select("*").order("created_at", { ascending: false }),
     ]);
-    const roles = (r ?? []).map((x) => x.role);
-    const role = roles.includes("admin") ? "admin" : roles.includes("manager") ? "manager" : "member";
-    setCanManage(role === "admin" || role === "manager");
     const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
     setProfile({
       name,
-      role: role === "admin" ? "مسؤول النظام" : role === "manager" ? "مدير" : "عضو",
+      role: roleLabel(primaryRole),
       initial: (name[0] ?? "س").toUpperCase(),
     });
     setRows((tx ?? []) as Tx[]);
