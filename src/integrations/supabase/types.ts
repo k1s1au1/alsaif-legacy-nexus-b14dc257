@@ -786,6 +786,7 @@ export type Database = {
           due_date: string | null
           id: string
           priority: Database["public"]["Enums"]["task_priority"]
+          progress: number
           status: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at: string
@@ -799,6 +800,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          progress?: number
           status?: Database["public"]["Enums"]["task_status"]
           title: string
           updated_at?: string
@@ -812,6 +814,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           priority?: Database["public"]["Enums"]["task_priority"]
+          progress?: number
           status?: Database["public"]["Enums"]["task_status"]
           title?: string
           updated_at?: string
@@ -970,7 +973,15 @@ export type Database = {
     }
     Enums: {
       account_request_status: "pending" | "approved" | "rejected"
-      app_role: "admin" | "manager" | "member"
+      app_role:
+        | "admin"
+        | "manager"
+        | "member"
+        | "chairman"
+        | "head_meetings"
+        | "head_events"
+        | "head_trips"
+        | "head_finance"
       archive_media_type: "image" | "video"
       archive_section: "family" | "meetings" | "events" | "trips"
       bank_transfer_status: "pending" | "approved" | "rejected"
@@ -1122,7 +1133,16 @@ export const Constants = {
   public: {
     Enums: {
       account_request_status: ["pending", "approved", "rejected"],
-      app_role: ["admin", "manager", "member"],
+      app_role: [
+        "admin",
+        "manager",
+        "member",
+        "chairman",
+        "head_meetings",
+        "head_events",
+        "head_trips",
+        "head_finance",
+      ],
       archive_media_type: ["image", "video"],
       archive_section: ["family", "meetings", "events", "trips"],
       bank_transfer_status: ["pending", "approved", "rejected"],

@@ -63,7 +63,17 @@ type ReqRow = {
   created_at: string;
 };
 
-type AppRole = "admin" | "manager" | "member";
+type AppRole = "admin" | "manager" | "member" | "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
+
+type SpecialRole = "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
+
+const SPECIAL_ROLES: { key: SpecialRole; label: string; desc: string }[] = [
+  { key: "chairman", label: "رئيس المجلس", desc: "شخص واحد فقط" },
+  { key: "head_meetings", label: "مسؤول الاجتماعات", desc: "شخص واحد فقط" },
+  { key: "head_events", label: "مسؤول الفعاليات", desc: "شخص واحد فقط" },
+  { key: "head_trips", label: "مسؤول الرحلات", desc: "شخص واحد فقط" },
+  { key: "head_finance", label: "مسؤول المالية", desc: "شخص واحد فقط" },
+];
 
 type MemberRow = {
   id: string;
@@ -79,6 +89,11 @@ type MemberRow = {
 function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول النظام";
   if (role === "manager") return "مشرف";
+  if (role === "chairman") return "رئيس المجلس";
+  if (role === "head_meetings") return "مسؤول الاجتماعات";
+  if (role === "head_events") return "مسؤول الفعاليات";
+  if (role === "head_trips") return "مسؤول الرحلات";
+  if (role === "head_finance") return "مسؤول المالية";
   return "عضو";
 }
 
@@ -215,21 +230,40 @@ function AdminPage() {
     if (userId === meId && role !== "admin") {
       if (!confirm("سيتم تعديل صلاحياتك الشخصية. هل أنت متأكد؟")) return;
     }
-    const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
+    // Only remove base roles (admin/manager/member); keep special roles intact
+    const { error: delErr } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .in("role", ["admin", "manager", "member"] as any);
     if (delErr) {
       toast.error("تعذر تحديث الصلاحيات");
       return;
     }
-    if (role !== "member") {
-      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role });
-      if (insErr) {
-        toast.error("تعذر تعيين الدور");
-        return;
-      }
-    } else {
-      await supabase.from("user_roles").insert({ user_id: userId, role: "member" });
+    const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role } as any);
+    if (insErr) {
+      toast.error("تعذر تعيين الدور");
+      return;
     }
     toast.success("تم تحديث الصلاحيات");
+    loadMembers();
+  }
+
+  async function assignSpecialRole(role: SpecialRole, userId: string | null) {
+    // Remove the role from everyone first (singleton)
+    const { error: delErr } = await supabase.from("user_roles").delete().eq("role", role as any);
+    if (delErr) {
+      toast.error("تعذر تحديث المنصب");
+      return;
+    }
+    if (userId) {
+      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role } as any);
+      if (insErr) {
+        toast.error("تعذر تعيين المنصب");
+        return;
+      }
+    }
+    toast.success("تم تحديث المنصب");
     loadMembers();
   }
 
@@ -411,6 +445,42 @@ function AdminPage() {
                         onChange={(e) => setMemberSearch(e.target.value)}
                         className="w-full bg-muted/30 border border-border rounded-2xl pr-11 pl-4 py-3.5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
                       />
+                    </div>
+                  </div>
+
+                  {/* Special positions (singleton roles) */}
+                  <div className="card-surface p-6 sm:p-8 space-y-6 border-2 border-gold-primary/20">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                        <Crown className="size-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black text-primary">المناصب الخاصة</h4>
+                        <p className="text-xs font-bold text-muted-foreground opacity-60">رئيس المجلس ومسؤولو الأقسام — لكل منصب شخص واحد فقط.</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-3">
+                      {SPECIAL_ROLES.map((sr) => {
+                        const holder = members.find((m) => m.roles.includes(sr.key));
+                        return (
+                          <div key={sr.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-primary">{sr.label}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">{sr.desc}</p>
+                            </div>
+                            <select
+                              value={holder?.id ?? ""}
+                              onChange={(e) => assignSpecialRole(sr.key, e.target.value || null)}
+                              className="bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary min-w-[220px]"
+                            >
+                              <option value="">— غير معيّن —</option>
+                              {members.map((m) => (
+                                <option key={m.id} value={m.id}>{memberFullName(m)}</option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
