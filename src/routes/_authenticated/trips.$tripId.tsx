@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { TripImage } from "@/components/trip-image";
 import { UserAvatar } from "@/components/user-avatar";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { toast } from "sonner";
@@ -151,14 +152,23 @@ function TripDetail() {
           avatarPath: p?.avatar_url ?? null,
         });
 
-        const { data: mine } = await supabase
+        const { data: mine, error: mineErr } = await supabase
           .from("trip_attendees")
           .select("status")
           .eq("trip_id", tripId)
           .eq("user_id", userId)
           .maybeSingle();
 
-        if (mine) {
+        if (mineErr) {
+          // Fallback if status column is missing
+          const { data: fallbackMine } = await supabase
+            .from("trip_attendees")
+            .select("user_id")
+            .eq("trip_id", tripId)
+            .eq("user_id", u.user.id)
+            .maybeSingle();
+          setAttendanceStatus(fallbackMine ? 'going' : null);
+        } else if (mine) {
           setAttendanceStatus((mine as any).status || 'going');
         } else {
           setAttendanceStatus(null);
@@ -177,23 +187,31 @@ function TripDetail() {
     })();
   }, [tripId, userId, primaryRole]);
 
+    const channel = supabase
+      .channel(`trip-${tripId}-realtime`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees", filter: `trip_id=eq.${tripId}` }, () => loadAttendees(tripId))
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [tripId, userId, primaryRole]);
+
   async function updateAttendance(status: 'going' | 'not_going') {
     if (!userId || saving) return;
     setSaving(true);
 
     try {
-      // 1. Update local state immediately for fast feedback
       const isRemoving = attendanceStatus === status;
-      const newStatus = isRemoving ? null : status;
 
-      // Update locally first
-      setAttendanceStatus(newStatus);
-
-      // 2. Sync with database
-      // Always delete first to ensure a clean state
+      // Always clear existing attendance for this trip
       await supabase.from("trip_attendees").delete().eq("trip_id", tripId).eq("user_id", userId);
 
-      if (!isRemoving) {
+      if (isRemoving) {
+        setAttendanceStatus(null);
+        toast.success("تم إلغاء اختيارك");
+      } else {
+        setAttendanceStatus(status);
         const { error } = await supabase
           .from("trip_attendees")
           .insert({ trip_id: tripId, user_id: userId, status: status } as any);
@@ -205,15 +223,12 @@ function TripDetail() {
 
         if (status === 'going') toast.success("تم تأكيد حضورك");
         else toast.info("تم تسجيل اعتذارك");
-      } else {
-        toast.success("تم إلغاء اختيارك");
       }
 
-      // 3. Refresh list to show everyone
       await loadAttendees(tripId);
     } catch (err: any) {
       console.error("Attendance update error:", err);
-      toast.error("حدث خطأ بسيط. يرجى تحديث الصفحة.");
+      toast.error("حدث خطأ أثناء تحديث حالة الحضور");
     } finally {
       setSaving(false);
     }
@@ -246,6 +261,8 @@ function TripDetail() {
   return (
     <AppShell title={trip.title} user={profile}>
       <div className="max-w-6xl mx-auto space-y-8 pb-20" dir="rtl">
+        <QuickActionsBanner />
+
         {/* Navigation Header */}
         <div className="flex items-center justify-between px-4 md:px-0">
           <Link
@@ -387,14 +404,24 @@ function TripDetail() {
             {/* Action Card */}
             <div className={cn(
               "card-surface p-8 rounded-[40px] border-none shadow-2xl transition-all duration-500 space-y-8 relative overflow-hidden group/action",
-              attendanceStatus === 'not_going'
+              attendanceStatus === 'going'
+                ? "bg-emerald-600 text-white ring-4 ring-emerald-500/30 shadow-emerald-900/40"
+                : attendanceStatus === 'not_going'
                 ? "bg-rose-600 text-white ring-4 ring-rose-500/30 shadow-rose-900/40"
                 : "bg-primary text-primary-foreground"
             )}>
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
 
               <div className="relative z-10 space-y-4">
-                {attendanceStatus === 'not_going' ? (
+                {attendanceStatus === 'going' ? (
+                  <>
+                    <div className="size-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 shadow-inner">
+                      <CheckCircle2 className="size-8 text-white" strokeWidth={4} />
+                    </div>
+                    <h3 className="text-4xl font-black tracking-tight">ننتظر تشريفك!</h3>
+                    <p className="text-base font-bold text-white/90 leading-relaxed">تم تأكيد حضورك للرحلة. يسعدنا جداً انضمامك إلينا، ونتطلع لقضاء وقت ممتع سوياً.</p>
+                  </>
+                ) : attendanceStatus === 'not_going' ? (
                   <>
                     <div className="size-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 shadow-inner">
                       <X className="size-8 text-white" strokeWidth={4} />

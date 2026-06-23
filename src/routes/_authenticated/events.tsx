@@ -22,6 +22,8 @@ import {
   Star,
 } from "lucide-react";
 import { toast } from "sonner";
+import { sendTelegramNotification } from "@/lib/telegram";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 
 export const Route = createFileRoute("/_authenticated/events")({
   ssr: false,
@@ -248,6 +250,19 @@ function EventsPage() {
       if (error) toast.error("تعذر الإنشاء: " + error.message);
       else {
         toast.success("تم إنشاء المناسبة");
+
+        // Send Telegram notification
+        const msg = `🔔 <b>مناسبة جديدة مضافة</b>\n\n` +
+          `📅 <b>العنوان:</b> ${payload.title}\n` +
+          `👤 <b>بواسطة:</b> ${profile.name}\n` +
+          `📝 <b>الوصف:</b> ${payload.description || "لا يوجد"}\n` +
+          `📍 <b>المكان:</b> ${payload.location || "غير محدد"}\n` +
+          `⏰ <b>الوقت:</b> ${new Date(payload.starts_at).toLocaleString("ar-SA")}`;
+
+        sendTelegramNotification({ data: { message: msg } }).catch((err) =>
+          console.error("Telegram notification failed", err),
+        );
+
         setShowForm(false);
         resetForm();
       }
@@ -304,6 +319,7 @@ function EventsPage() {
   return (
     <AppShell title="المناسبات" user={profile}>
       <div className="space-y-8" dir="rtl">
+        <QuickActionsBanner />
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">مناسبات العائلة</h2>

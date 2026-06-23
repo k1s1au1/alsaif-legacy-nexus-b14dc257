@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { toast } from "sonner";
 import {
   Wallet,
@@ -248,6 +249,7 @@ function FinancePage() {
   return (
     <AppShell title="صندوق العائلة" user={profile}>
       <div className="space-y-8">
+        <QuickActionsBanner />
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-surface p-6 ring-1 ring-gold-primary/30">

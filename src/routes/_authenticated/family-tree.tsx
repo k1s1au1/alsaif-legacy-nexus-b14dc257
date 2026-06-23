@@ -6,6 +6,7 @@ import type { RawNodeDatum, CustomNodeElementProps } from "react-d3-tree";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import {
   setMemberParent,
   addExtraMember,
@@ -321,6 +322,7 @@ function FamilyTreePage() {
   return (
     <AppShell title="شجرة عائلة السيف" user={me}>
       <div className="space-y-4 px-1 md:px-0">
+        <QuickActionsBanner />
         <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
           <div className="flex items-center gap-3">
             <div className="size-10 md:size-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">

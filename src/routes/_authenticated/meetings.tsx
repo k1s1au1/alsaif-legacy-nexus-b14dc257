@@ -21,8 +21,10 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { sendTelegramNotification } from "@/lib/telegram";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { UserAvatar } from "@/components/user-avatar";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
@@ -133,6 +135,17 @@ function MeetingsPage() {
     })();
   }, [loadAll, userId, primaryRole]);
 
+    const channel = supabase
+      .channel("meetings-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "meetings" }, () => loadAll())
+      .on("postgres_changes", { event: "*", schema: "public", table: "meeting_attendees" }, () => loadAll())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadAll, userId, primaryRole]);
+
   const openCreate = () => {
     resetForm();
     setShowForm(true);
@@ -181,6 +194,19 @@ function MeetingsPage() {
       if (error) toast.error("تعذر الإنشاء");
       else {
         toast.success("تم الإنشاء");
+
+        // Send Telegram notification
+        const msg = `📅 <b>اجتماع عائلي جديد</b>\n\n` +
+          `📌 <b>العنوان:</b> ${payload.title}\n` +
+          `👤 <b>بواسطة:</b> ${profile.name}\n` +
+          `📝 <b>الوصف:</b> ${payload.description || "لا يوجد"}\n` +
+          `📍 <b>المكان:</b> ${payload.location || "غير محدد"}\n` +
+          `⏰ <b>الوقت:</b> ${new Date(payload.scheduled_at).toLocaleString("ar-SA")}`;
+
+        sendTelegramNotification({ data: { message: msg } }).catch((err) =>
+          console.error("Telegram notification failed", err),
+        );
+
         setShowForm(false);
         resetForm();
         loadAll();
@@ -203,25 +229,32 @@ function MeetingsPage() {
     if (!userId || savingRsvp === meetingId) return;
     setSavingRsvp(meetingId);
     const current = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
-    const isToggleOff = current?.rsvp === rsvp;
     try {
-      if (isToggleOff) {
+      // Always remove any existing RSVP first to ensure a clean state
+      await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
+
+      if (current?.rsvp === rsvp) {
+        // Toggle off: if they clicked the same button, we just leave it deleted
         setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
-        const { error } = await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
-        if (error) throw error;
         toast.success("تم الإلغاء");
       } else {
+        // Set new RSVP
         const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
-        setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
-        const { error } = await supabase.from("meeting_attendees").upsert(newEntry, { onConflict: "meeting_id,user_id" });
+        const { error } = await supabase.from("meeting_attendees").insert(newEntry);
         if (error) throw error;
+
+        setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
         toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
       }
-    } catch (e: any) {
-      toast.error("تعذر تحديث ردك");
+      // Refresh to sync everything
       await loadAll();
+    } catch (error) {
+      console.error("Meeting RSVP error:", error);
+      toast.error("تعذر تحديث حالة الحضور");
+      loadAll();
     } finally {
       setSavingRsvp(null);
+    }
     }
   };
 
@@ -245,6 +278,7 @@ function MeetingsPage() {
   return (
     <AppShell title="الاجتماعات" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
+        <QuickActionsBanner />
 
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
@@ -414,8 +448,16 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
   const going = attendeesList.filter((a: any) => a.rsvp === 'going').map((a: any) => profiles[a.user_id]).filter(Boolean);
 
   return (
-    <article className="relative min-h-[420px] md:min-h-[500px] overflow-hidden rounded-[40px] md:rounded-[60px] bg-primary text-white p-6 md:p-16 flex flex-col justify-between group cursor-grab active:cursor-grabbing border-2 md:border-4 border-white/5 shadow-2xl mx-1 md:mx-0">
-       <div className="absolute inset-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black z-0" />
+    <article className={cn(
+      "relative min-h-[420px] md:min-h-[500px] overflow-hidden rounded-[40px] md:rounded-[60px] text-white p-6 md:p-16 flex flex-col justify-between group cursor-grab active:cursor-grabbing border-2 md:border-4 border-white/5 shadow-2xl mx-1 md:mx-0 transition-all duration-700",
+      myRsvp === 'going' ? "bg-emerald-950" : myRsvp === 'not_going' ? "bg-rose-950" : "bg-primary"
+    )}>
+       <div className={cn(
+         "absolute inset-0 transition-opacity duration-700 z-0",
+         myRsvp === 'going' ? "bg-gradient-to-br from-emerald-900 via-emerald-950 to-black" :
+         myRsvp === 'not_going' ? "bg-gradient-to-br from-rose-900 via-rose-950 to-black" :
+         "bg-gradient-to-br from-primary via-[#1a2b3c] to-black"
+       )} />
        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
        <div className="absolute -top-40 -right-40 size-[300px] md:size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 

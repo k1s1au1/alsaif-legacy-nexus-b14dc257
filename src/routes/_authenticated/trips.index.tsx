@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2, Pencil, Save, Compass, Clock, MapPinned, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { sendTelegramNotification } from "@/lib/telegram";
 import { TripImage } from "@/components/trip-image";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -108,6 +110,7 @@ function TripsPage() {
   return (
     <AppShell title="الرحلات" user={profile}>
       <div className="max-w-7xl mx-auto space-y-12 pb-24" dir="rtl">
+        <QuickActionsBanner />
 
         {/* Alsaif Trips Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
@@ -311,6 +314,19 @@ function TripDialog({ trip, onClose, onSaved }: any) {
       ({ error } = await supabase.from("trips").update(payload).eq("id", trip.id));
     } else {
       ({ error } = await supabase.from("trips").insert({ ...payload, created_by: u.user.id }));
+      if (!error) {
+        // Send Telegram notification
+        const msg = `✈️ <b>رحلة عائلية جديدة</b>\n\n` +
+          `🗺️ <b>الوجهة:</b> ${payload.title}\n` +
+          `📍 <b>المكان:</b> ${payload.location || "غير محدد"}\n` +
+          `👤 <b>بواسطة:</b> ${profile.name}\n` +
+          `📅 <b>التاريخ:</b> ${payload.start_date || "قريباً"}\n` +
+          `📝 <b>الوصف:</b> ${payload.description || "لا يوجد"}`;
+
+        sendTelegramNotification({ data: { message: msg } }).catch((err) =>
+          console.error("Telegram notification failed", err),
+        );
+      }
     }
 
     setSaving(false);

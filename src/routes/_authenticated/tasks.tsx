@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import {
   ListChecks,
   Plus,
@@ -161,6 +162,7 @@ function TasksPage() {
   return (
     <AppShell title="المسؤوليات" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
+        <QuickActionsBanner />
 
         {/* Balanced Theme Header */}
         <section className="relative overflow-hidden rounded-[32px] md:rounded-[60px] bg-gradient-to-br from-primary via-[#1a2b3c] to-primary p-6 md:p-16 text-white shadow-2xl border border-white/5">
