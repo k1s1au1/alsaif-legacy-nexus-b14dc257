@@ -463,18 +463,18 @@ function TripDetail() {
                   )}
                 </button>
 
-                <button
-                  onClick={() => updateAttendance('not_going')}
-                  disabled={saving || !userId || !attendanceLoaded || rolesLoading}
-                  className={cn(
-                    "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
-                    attendanceStatus === 'not_going'
-                      ? "bg-white/20 text-white border-white/40"
-                      : "bg-transparent text-white/60 border-white/10 hover:bg-white/5 hover:text-white"
-                  )}
-                >
-                  {attendanceStatus === 'not_going' ? "تراجع (سأحضر)" : "لن أحضر"}
-                </button>
+                {attendanceStatus !== 'not_going' && (
+                  <button
+                    onClick={() => updateAttendance('not_going')}
+                    disabled={saving || !userId || !attendanceLoaded || rolesLoading}
+                    className={cn(
+                      "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
+                      "bg-transparent text-white/60 border-white/10 hover:bg-white/5 hover:text-white"
+                    )}
+                  >
+                    لن أحضر
+                  </button>
+                )}
               </div>
             </div>
 

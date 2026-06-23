@@ -531,20 +531,23 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
           <div className="flex flex-col gap-3 md:gap-4 w-full md:w-auto min-w-full md:min-w-[320px]">
              <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[32px] flex items-center shadow-2xl h-[64px] overflow-hidden">
                 {/* Sliding Background Indicator */}
-                <AnimatePresence initial={false}>
-                  {myRsvp && (
-                    <motion.div
-                      layoutId="rsvp-active-bg"
-                      initial={false}
-                      animate={{
-                        left: myRsvp === 'going' ? '6px' : 'calc(50% + 2px)',
-                        backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
-                      }}
-                      transition={{ type: "spring", stiffness: 400, damping: 35 }}
-                      className="absolute top-1.5 bottom-1.5 w-[calc(50%-8px)] rounded-[26px] z-0 shadow-lg shadow-black/20"
-                    />
-                  )}
-                </AnimatePresence>
+                <div className="absolute inset-1.5 flex z-0">
+                  <AnimatePresence initial={false}>
+                    {myRsvp && (
+                      <motion.div
+                        layoutId={`rsvp-active-bg-${meeting.id}`}
+                        initial={false}
+                        animate={{
+                          x: myRsvp === 'going' ? 0 : 'calc(-100% - 4px)',
+                          backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
+                        }}
+                        transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                        className="h-full w-[calc(50%-2px)] rounded-[26px] shadow-lg shadow-black/20"
+                        style={{ marginLeft: 'auto' }}
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 <div className="relative z-10 flex w-full h-full">
                   <button
@@ -556,7 +559,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                     )}
                   >
                     <UserCheck size={20} />
-                    <span>{saving && myRsvp !== 'going' ? "..." : "سأحضر"}</span>
+                    <span>{saving && myRsvp === 'going' ? "..." : "سأحضر"}</span>
                   </button>
 
                   <button
@@ -568,7 +571,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                     )}
                   >
                     <UserX size={20} />
-                    <span>{saving && myRsvp !== 'not_going' ? "..." : "أعتذر"}</span>
+                    <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
                   </button>
                 </div>
              </div>
