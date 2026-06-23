@@ -9,15 +9,17 @@ export type AppRole =
   | "head_meetings"
   | "head_events"
   | "head_trips"
-  | "head_finance";
+  | "head_finance"
+  | "head_heritage";
 
-export type Section = "meetings" | "events" | "trips" | "finance";
+export type Section = "meetings" | "events" | "trips" | "finance" | "heritage";
 
 const HEAD: Record<Section, AppRole> = {
   meetings: "head_meetings",
   events: "head_events",
   trips: "head_trips",
   finance: "head_finance",
+  heritage: "head_heritage",
 };
 
 export function roleLabel(role: AppRole | string | null): string {
@@ -29,6 +31,7 @@ export function roleLabel(role: AppRole | string | null): string {
     case "head_events": return "مسؤول الفعاليات";
     case "head_trips": return "مسؤول الرحلات";
     case "head_finance": return "مسؤول المالية";
+    case "head_heritage": return "مسؤول إرث السيف";
     default: return "عضو";
   }
 }
@@ -70,7 +73,7 @@ export function useUserRole() {
 
   const primaryRole: AppRole | null =
     (roles.find((r) =>
-      ["admin", "chairman", "manager", "head_meetings", "head_events", "head_trips", "head_finance", "member"].includes(r),
+      ["admin", "chairman", "manager", "head_meetings", "head_events", "head_trips", "head_finance", "head_heritage", "member"].includes(r),
     ) as AppRole) || null;
 
   return { userId, roles, isLoading, isAdmin, isManager, isChairman, canManage, primaryRole };

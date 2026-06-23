@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { AppShell } from "@/components/app-shell";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import {
@@ -14,20 +14,24 @@ import {
   Heart,
   ChevronLeft,
   Loader2,
-  Image as ImageIcon
+  Image as ImageIcon,
+  Trash2,
+  Pencil,
+  Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useUserRole } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/heritage")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "إرث العائلة — السيف" },
-      { name: "description", content: "قصائد، قصص، وموروثات عائلة آل سيف." },
+      { title: "إرث السيف — السيف" },
+      { name: "description", content: "قصائد، قصص، وموروثات عائلة السيف." },
     ],
   }),
   component: HeritagePage,
@@ -40,6 +44,7 @@ interface HeritageItem {
   kind: HeritageKind;
   title: string;
   content: string;
+  image_url: string | null;
   author_name: string | null;
   created_at: string;
   author_id: string;
@@ -53,6 +58,9 @@ const KIND_META: Record<HeritageKind, { label: string; icon: any; color: string;
 };
 
 function HeritagePage() {
+  const { userId, canManage: canManageSection, isAdmin, isChairman } = useUserRole();
+  const canManage = canManageSection("heritage") || isAdmin || isChairman;
+
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "س", avatarPath: null as string | null });
   const [items, setItems] = useState<HeritageItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -60,8 +68,8 @@ function HeritagePage() {
   const [search, setSearch] = useState("");
   const [showForm, setShowCompose] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   const [draft, setDraft] = useState({
     kind: "poem" as HeritageKind,
@@ -72,11 +80,6 @@ function HeritagePage() {
 
   const loadAll = useCallback(async () => {
     setLoading(true);
-    // We use majlis_posts with a special naming convention or just a new logic if we had the table
-    // For now, I'll simulate heritage using majlis_posts with kind="discussion" but filtered by a prefix in title if needed
-    // OR just use a dedicated set of static items for now until the user confirms the DB structure.
-    // However, I will check if I can use majlis_posts.
-
     const { data: posts, error } = await supabase
       .from("majlis_posts")
       .select("*")
@@ -87,18 +90,29 @@ function HeritagePage() {
     if (error) {
       toast.error("تعذر تحميل الإرث");
     } else {
-      const mapped: HeritageItem[] = (posts ?? []).map(p => {
-        const kind = p.body.startsWith("---kind:") ? p.body.split("\n")[0].replace("---kind:", "").trim() as HeritageKind : "story";
+      const mapped: HeritageItem[] = await Promise.all((posts ?? []).map(async p => {
+        const kindMatch = p.body.match(/^---kind:(.*)\n/);
+        const imageMatch = p.body.match(/---image:(.*)\n/);
+
+        const kind = (kindMatch ? kindMatch[1].trim() : "story") as HeritageKind;
+        let image_url = imageMatch ? imageMatch[1].trim() : null;
+
+        if (image_url && !image_url.startsWith('http')) {
+           const { data } = await supabase.storage.from("trip-images").createSignedUrl(image_url, 60 * 60);
+           image_url = data?.signedUrl || null;
+        }
+
         return {
           id: p.id,
           kind: kind,
           title: p.title.replace("[إرث]", "").trim(),
-          content: p.body.replace(/---kind:.*\n/, ""),
-          author_name: null, // Could be parsed from body
+          content: p.body.replace(/---kind:.*\n/, "").replace(/---image:.*\n/, ""),
+          image_url: image_url,
+          author_name: null,
           created_at: p.created_at,
           author_id: p.author_id
         };
-      });
+      }));
       setItems(mapped);
     }
     setLoading(false);
@@ -106,26 +120,19 @@ function HeritagePage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        setUserId(u.user.id);
-        const [{ data: p }, { data: roles }] = await Promise.all([
-          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle(),
-          supabase.from("user_roles").select("role").eq("user_id", u.user.id),
-        ]);
+      if (userId) {
+        const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle();
         const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
-        const rs = (roles ?? []).map(r => r.role);
-        setIsAdmin(rs.includes("admin") || rs.includes("chairman"));
         setProfile({
           name,
-          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
+          role: isAdmin ? "مسؤول النظام" : isChairman ? "رئيس المجلس" : "عضو",
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
       }
       await loadAll();
     })();
-  }, [loadAll]);
+  }, [loadAll, userId, isAdmin, isChairman]);
 
   const submitHeritage = async () => {
     if (!userId) return;
@@ -135,8 +142,16 @@ function HeritagePage() {
     }
     setSubmitting(true);
 
-    // Store metadata in the body to distinguish heritage from normal posts
-    const finalBody = `---kind:${draft.kind}\n${draft.content.trim()}${draft.author_name ? `\n\n— بقلم: ${draft.author_name}` : ""}`;
+    let uploadedImagePath = "";
+    if (imageFile) {
+      const ext = imageFile.name.split(".").pop();
+      const path = `heritage/${userId}/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("trip-images").upload(path, imageFile);
+      if (!upErr) uploadedImagePath = path;
+    }
+
+    const finalBody = `---kind:${draft.kind}\n${uploadedImagePath ? `---image:${uploadedImagePath}\n` : ""}${draft.content.trim()}${draft.author_name ? `\n\n— بقلم: ${draft.author_name}` : ""}`;
+
     const { error } = await supabase.from("majlis_posts").insert({
       author_id: userId,
       kind: "discussion",
@@ -149,10 +164,22 @@ function HeritagePage() {
     } else {
       toast.success("تمت إضافة الإرث بنجاح");
       setDraft({ kind: "poem", title: "", content: "", author_name: "" });
+      setImageFile(null);
+      setImagePreview(null);
       setShowCompose(false);
       loadAll();
     }
     setSubmitting(false);
+  };
+
+  const deleteItem = async (id: string) => {
+     if (!confirm("هل تريد حذف هذا الموروث؟")) return;
+     const { error } = await supabase.from("majlis_posts").delete().eq("id", id);
+     if (error) toast.error("تعذر الحذف");
+     else {
+        toast.success("تم الحذف");
+        loadAll();
+     }
   };
 
   const filteredItems = items.filter(it => {
@@ -162,7 +189,7 @@ function HeritagePage() {
   });
 
   return (
-    <AppShell title="إرث العائلة" user={profile}>
+    <AppShell title="إرث السيف" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
         <QuickActionsBanner />
 
@@ -177,17 +204,19 @@ function HeritagePage() {
                     <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
                     <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">موروث الأجيال</span>
                  </div>
-                 <h2 className="text-4xl md:text-8xl font-black tracking-tighter leading-none">إرث<br/><span className="text-white/30">آل سيف</span></h2>
+                 <h2 className="text-4xl md:text-8xl font-black tracking-tighter leading-none">إرث<br/><span className="text-white/30">السيف</span></h2>
                  <p className="text-white/60 font-bold text-lg md:text-2xl max-w-xl">نحفظ قصص الأجداد، لتبقى فخراً للأحفاد.</p>
               </div>
 
-              <button
-                onClick={() => setShowCompose(true)}
-                className="btn-gold px-10 py-5 md:px-14 md:py-7 rounded-[32px] text-lg md:text-xl font-black shadow-2xl shadow-gold-primary/30 flex items-center gap-4 hover:scale-105 active:scale-95 transition-all group w-full md:w-auto justify-center"
-              >
-                 <Scroll className="size-6 group-hover:rotate-12 transition-transform duration-500" />
-                 إضافة موروث جديد
-              </button>
+              {canManage && (
+                <button
+                  onClick={() => setShowCompose(true)}
+                  className="btn-gold px-10 py-5 md:px-14 md:py-7 rounded-[32px] text-lg md:text-xl font-black shadow-2xl shadow-gold-primary/30 flex items-center gap-4 hover:scale-105 active:scale-95 transition-all group w-full md:w-auto justify-center"
+                >
+                   <Scroll className="size-6 group-hover:rotate-12 transition-transform duration-500" />
+                   إضافة موروث جديد
+                </button>
+              )}
            </div>
         </section>
 
@@ -230,13 +259,13 @@ function HeritagePage() {
              <Scroll size={80} className="text-muted-foreground opacity-20" />
              <div className="space-y-2">
                 <p className="text-3xl font-black text-primary">لا توجد موروثات حالياً</p>
-                <p className="text-lg font-bold opacity-60">كن أول من يدون قصة أو قصيدة في تاريخ العائلة.</p>
+                <p className="text-lg font-bold opacity-60">سيتم إضافة المحتوى قريباً من قبل مسؤولي الإرث.</p>
              </div>
           </div>
         ) : (
           <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
              {filteredItems.map((item, idx) => (
-                <HeritageCard key={item.id} item={item} index={idx} />
+                <HeritageCard key={item.id} item={item} index={idx} canDelete={canManage} onDelete={() => deleteItem(item.id)} />
              ))}
           </div>
         )}
@@ -290,6 +319,33 @@ function HeritagePage() {
                           className="w-full h-16 px-8 rounded-[24px] bg-muted/30 border border-border/60 font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
                         />
                      </div>
+
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">صورة مرافقة (اختياري)</label>
+                        <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload">
+                           {imagePreview ? (
+                              <img src={imagePreview} className="h-40 w-full object-contain rounded-2xl shadow-xl" alt="Preview" />
+                           ) : (
+                              <>
+                                 <Upload className="size-8 text-muted-foreground opacity-30 group-hover/upload:scale-110 transition-transform" />
+                                 <span className="text-xs font-bold text-muted-foreground">اضغط لرفع صورة مرافقة</span>
+                              </>
+                           )}
+                           <input
+                             type="file"
+                             hidden
+                             accept="image/*"
+                             onChange={(e) => {
+                               const f = e.target.files?.[0];
+                               if (f) {
+                                 setImageFile(f);
+                                 setImagePreview(URL.createObjectURL(f));
+                               }
+                             }}
+                           />
+                        </label>
+                     </div>
+
                      <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">الاسم المرتبط (صاحب الموروث)</label>
                         <input
@@ -333,7 +389,7 @@ function HeritagePage() {
   );
 }
 
-function HeritageCard({ item, index }: { item: HeritageItem; index: number }) {
+function HeritageCard({ item, index, canDelete, onDelete }: { item: HeritageItem; index: number; canDelete: boolean; onDelete: () => void }) {
   const meta = KIND_META[item.kind];
 
   return (
@@ -350,12 +406,24 @@ function HeritageCard({ item, index }: { item: HeritageItem; index: number }) {
                 <meta.icon size={10} />
                 {meta.label}
              </div>
-             <button className="text-muted-foreground hover:text-rose-500 transition-colors">
-                <Heart size={16} />
-             </button>
+             <div className="flex items-center gap-2">
+                <button className="text-muted-foreground hover:text-rose-500 transition-colors">
+                   <Heart size={16} />
+                </button>
+                {canDelete && (
+                  <button onClick={onDelete} className="text-muted-foreground hover:text-rose-600 transition-colors">
+                     <Trash2 size={16} />
+                  </button>
+                )}
+             </div>
           </div>
 
           <div className="space-y-4">
+             {item.image_url && (
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-border/20">
+                   <img src={item.image_url} alt={item.title} className="w-full h-auto object-cover max-h-64" />
+                </div>
+             )}
              <h3 className="text-2xl font-black text-primary leading-tight tracking-tight">{item.title}</h3>
              <div className={cn(
                "text-base font-bold text-muted-foreground leading-relaxed whitespace-pre-wrap",

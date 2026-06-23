@@ -65,7 +65,7 @@ type ReqRow = {
 
 type AppRole = "admin" | "manager" | "member" | "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
 
-type SpecialRole = "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
+type SpecialRole = "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance" | "head_heritage";
 
 const SPECIAL_ROLES: { key: SpecialRole; label: string; desc: string }[] = [
   { key: "chairman", label: "رئيس المجلس", desc: "شخص واحد فقط" },
@@ -73,6 +73,7 @@ const SPECIAL_ROLES: { key: SpecialRole; label: string; desc: string }[] = [
   { key: "head_events", label: "مسؤول الفعاليات", desc: "أكثر من مسؤول متاح" },
   { key: "head_trips", label: "مسؤول الرحلات", desc: "أكثر من مسؤول متاح" },
   { key: "head_finance", label: "مسؤول المالية", desc: "أكثر من مسؤول متاح" },
+  { key: "head_heritage", label: "مسؤول إرث السيف", desc: "أكثر من مسؤول متاح" },
 ];
 
 type MemberRow = {

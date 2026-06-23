@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Megaphone, Plane, CalendarDays, ListChecks, Sparkles } from "lucide-react";
+import { Megaphone, Plane, CalendarDays, ListChecks, Sparkles, History } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,7 @@ interface NewsItem {
   text: string;
   icon: any;
   color: string;
+  bg: string;
 }
 
 export function NewsTicker() {
@@ -17,10 +18,11 @@ export function NewsTicker() {
 
   useEffect(() => {
     (async () => {
-      const [{ data: trips }, { data: tasks }, { data: meetings }] = await Promise.all([
+      const [{ data: trips }, { data: tasks }, { data: meetings }, { data: heritage }] = await Promise.all([
         supabase.from("trips").select("id, title").order("created_at", { ascending: false }).limit(2),
         supabase.from("tasks").select("id, title").order("created_at", { ascending: false }).limit(2),
         supabase.from("meetings").select("id, title").order("created_at", { ascending: false }).limit(2),
+        supabase.from("majlis_posts").select("id, title").eq("kind", "discussion").ilike("title", "[إرث]%").order("created_at", { ascending: false }).limit(2),
       ]);
 
       const news: NewsItem[] = [];
@@ -29,25 +31,36 @@ export function NewsTicker() {
         id: `trip-${t.id}`,
         text: `وجهة جديدة: ${t.title}`,
         icon: Plane,
-        color: "text-blue-400"
+        color: "text-blue-500",
+        bg: "bg-blue-500/5"
       }));
 
       (tasks ?? []).forEach(t => news.push({
         id: `task-${t.id}`,
         text: `مبادرة قيد العمل: ${t.title}`,
         icon: ListChecks,
-        color: "text-rose-400"
+        color: "text-rose-500",
+        bg: "bg-rose-500/5"
       }));
 
       (meetings ?? []).forEach(m => news.push({
         id: `meeting-${m.id}`,
         text: `اجتماع مجدول: ${m.title}`,
         icon: CalendarDays,
-        color: "text-amber-400"
+        color: "text-amber-500",
+        bg: "bg-amber-500/5"
+      }));
+
+      (heritage ?? []).forEach(h => news.push({
+        id: `heritage-${h.id}`,
+        text: `إضافة في الإرث: ${h.title.replace("[إرث]", "").trim()}`,
+        icon: History,
+        color: "text-indigo-500",
+        bg: "bg-indigo-500/5"
       }));
 
       if (news.length === 0) {
-        news.push({ id: 'welcome', text: 'أهلاً بك في فضاء عائلة آل سيف الرقمي', icon: Sparkles, color: 'text-gold-primary' });
+        news.push({ id: 'welcome', text: 'أهلاً بك في فضاء عائلة السيف الرقمي', icon: Sparkles, color: 'text-gold-primary', bg: 'bg-gold-primary/5' });
       }
 
       setItems(news);
@@ -55,7 +68,7 @@ export function NewsTicker() {
 
     const interval = setInterval(() => {
       setIndex(prev => (prev + 1) % (items.length || 1));
-    }, 5000);
+    }, 6000);
 
     return () => clearInterval(interval);
   }, [items.length]);
@@ -66,26 +79,44 @@ export function NewsTicker() {
   const Icon = current.icon;
 
   return (
-    <div className="w-full bg-primary/5 border-y border-primary/10 overflow-hidden h-10 flex items-center px-4 md:px-8">
-       <div className="flex items-center gap-3 shrink-0 border-l border-primary/10 pl-4 ml-4">
-          <Megaphone className="size-4 text-gold-primary animate-bounce" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-primary/60">آخر الأخبار</span>
+    <div className="w-full bg-white dark:bg-card border-b border-border/40 overflow-hidden h-12 flex items-center px-4 md:px-12 shadow-sm relative z-40">
+       <div className="flex items-center gap-3 shrink-0 border-l border-border/40 pl-6 ml-6">
+          <div className="size-8 rounded-xl bg-gold-primary/10 flex items-center justify-center">
+             <Megaphone className="size-4 text-gold-primary" />
+          </div>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 hidden sm:block">نبض السيف</span>
        </div>
 
        <div className="relative flex-1 h-full overflow-hidden flex items-center">
           <AnimatePresence mode="wait">
              <motion.div
                key={current.id}
-               initial={{ y: 20, opacity: 0 }}
-               animate={{ y: 0, opacity: 1 }}
-               exit={{ y: -20, opacity: 0 }}
-               transition={{ duration: 0.5, ease: "circOut" }}
-               className="flex items-center gap-3 w-full"
+               initial={{ x: 50, opacity: 0 }}
+               animate={{ x: 0, opacity: 1 }}
+               exit={{ x: -50, opacity: 0 }}
+               transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+               className={cn("flex items-center gap-4 px-4 py-1.5 rounded-2xl w-full", current.bg)}
              >
-                <Icon className={cn("size-3.5", current.color)} />
-                <p className="text-xs font-bold text-primary/80 truncate">{current.text}</p>
+                <div className={cn("size-6 rounded-lg flex items-center justify-center shrink-0 shadow-sm bg-white dark:bg-card", current.color)}>
+                   <Icon size={14} />
+                </div>
+                <p className="text-sm font-black text-primary/80 truncate leading-none pt-0.5" style={{ fontFamily: '"IBM Plex Sans Arabic", sans-serif' }}>
+                   {current.text}
+                </p>
              </motion.div>
           </AnimatePresence>
+       </div>
+
+       <div className="flex items-center gap-1.5 mr-6 pr-6 border-r border-border/40">
+          {items.map((_, i) => (
+             <div
+               key={i}
+               className={cn(
+                 "size-1 rounded-full transition-all duration-500",
+                 i === index ? "w-4 bg-gold-primary" : "bg-border/60"
+               )}
+             />
+          ))}
        </div>
     </div>
   );
