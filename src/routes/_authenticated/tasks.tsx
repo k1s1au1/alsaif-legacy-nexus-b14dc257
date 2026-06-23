@@ -141,7 +141,8 @@ function TasksPage() {
       progress,
       status: progress === 100 ? 'done' : progress === 0 ? 'todo' : 'in_progress',
       completed_at: progress === 100 ? new Date().toISOString() : null
-    }).eq("id", id);
+    } as any).eq("id", id);
+
     if (!error) {
       toast.success(`تم تحديث الإنجاز إلى ${progress}%`);
       loadAll();
