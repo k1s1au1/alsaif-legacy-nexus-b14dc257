@@ -306,6 +306,8 @@ function MeetingsPage() {
                           canManage={canManage}
                           onEdit={openEdit}
                           onDelete={deleteMeeting}
+                          saving={savingRsvp === m.id}
+                          ready={!rolesLoading && !!userId}
                         />
                       </CarouselItem>
                     ))}
