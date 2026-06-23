@@ -213,33 +213,40 @@ function MeetingsPage() {
 
   const setRsvp = async (meetingId: string, rsvp: Rsvp) => {
     if (!userId || savingRsvp === meetingId) return;
-    setSavingRsvp(meetingId);
+
+    const prevAttendees = [...attendees];
     const current = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
+    const isRemoving = current?.rsvp === rsvp;
+
+    setSavingRsvp(meetingId);
+
+    // Optimistic Update: Update UI immediately to prevent flickering
+    if (isRemoving) {
+      setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
+    } else {
+      const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
+      setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
+    }
+
     try {
-      // Always remove any existing RSVP first to ensure a clean state
+      // Step 1: Always clear existing attendance for this meeting
       await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
 
-      if (current?.rsvp === rsvp) {
-        // Toggle off: if they clicked the same button, we just leave it deleted
-        setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
-        toast.success("تم الإلغاء");
-      } else {
-        // Set new RSVP
-        const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
-        const { error } = await supabase.from("meeting_attendees").insert(newEntry);
+      if (!isRemoving) {
+        // Step 2: Insert new RSVP status
+        const { error } = await supabase.from("meeting_attendees").insert({ meeting_id: meetingId, user_id: userId, rsvp });
         if (error) throw error;
-
-        setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
         toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
+      } else {
+        toast.success("تم الإلغاء");
       }
-      // Refresh to sync everything
-      await loadAll();
     } catch (error) {
       console.error("Meeting RSVP error:", error);
       toast.error("تعذر تحديث حالة الحضور");
-      loadAll();
+      setAttendees(prevAttendees); // Rollback on failure
     } finally {
       setSavingRsvp(null);
+      // Realtime subscription will sync any other background changes
     }
   };
 
