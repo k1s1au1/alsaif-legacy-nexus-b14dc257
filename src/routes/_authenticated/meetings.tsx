@@ -255,7 +255,6 @@ function MeetingsPage() {
     } finally {
       setSavingRsvp(null);
     }
-    }
   };
 
   const upcoming = meetings.filter(m => new Date(m.scheduled_at) >= new Date());

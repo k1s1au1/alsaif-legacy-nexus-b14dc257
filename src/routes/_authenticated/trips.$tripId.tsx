@@ -185,7 +185,6 @@ function TripDetail() {
       await loadAttendees(tripId);
       setLoading(false);
     })();
-  }, [tripId, userId, primaryRole]);
 
     const channel = supabase
       .channel(`trip-${tripId}-realtime`)
