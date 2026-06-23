@@ -224,8 +224,8 @@ function FamilyTreePage() {
           y={-NODE_H / 2}
         >
           <div
-            xmlns="http://www.w3.org/1999/xhtml"
             onClick={toggleNode}
+
             style={{
               width: `${NODE_W}px`,
               height: `${NODE_H}px`,

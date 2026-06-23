@@ -399,7 +399,8 @@ function TripDialog({ trip, onClose, onSaved }: any) {
     </div>
   );
 }
-}
+
+
 
 function Field({ label, value, onChange, placeholder, type = "text" }: any) {
   return (
