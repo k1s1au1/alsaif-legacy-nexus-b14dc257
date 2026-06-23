@@ -515,24 +515,26 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                 <div className="relative z-10 flex w-full h-full">
                   <button
                     onClick={() => onRsvp(meeting.id, 'going')}
+                    disabled={!ready || saving}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm",
+                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
                       myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
                     <UserCheck size={20} />
-                    <span>سأحضر</span>
+                    <span>{saving && myRsvp !== 'going' ? "..." : "سأحضر"}</span>
                   </button>
 
                   <button
                     onClick={() => onRsvp(meeting.id, 'not_going')}
+                    disabled={!ready || saving}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm",
+                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
                       myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
                     <UserX size={20} />
-                    <span>أعتذر</span>
+                    <span>{saving && myRsvp !== 'not_going' ? "..." : "أعتذر"}</span>
                   </button>
                 </div>
              </div>
