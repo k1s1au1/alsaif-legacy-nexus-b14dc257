@@ -212,7 +212,7 @@ function TripDetail() {
       if (!isRemoving) {
         const { error } = await supabase
           .from("trip_attendees")
-          .insert({ trip_id: tripId, user_id: userId, status: status });
+          .insert({ trip_id: tripId, user_id: userId, status: status } as any);
 
         if (error) {
           // Fallback if status column is missing
