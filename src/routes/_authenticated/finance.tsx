@@ -14,6 +14,7 @@ import {
   X,
   Clock,
 } from "lucide-react";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/finance")({
   ssr: false,
