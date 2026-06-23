@@ -63,7 +63,17 @@ type ReqRow = {
   created_at: string;
 };
 
-type AppRole = "admin" | "manager" | "member";
+type AppRole = "admin" | "manager" | "member" | "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
+
+type SpecialRole = "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
+
+const SPECIAL_ROLES: { key: SpecialRole; label: string; desc: string }[] = [
+  { key: "chairman", label: "رئيس المجلس", desc: "شخص واحد فقط" },
+  { key: "head_meetings", label: "مسؤول الاجتماعات", desc: "شخص واحد فقط" },
+  { key: "head_events", label: "مسؤول الفعاليات", desc: "شخص واحد فقط" },
+  { key: "head_trips", label: "مسؤول الرحلات", desc: "شخص واحد فقط" },
+  { key: "head_finance", label: "مسؤول المالية", desc: "شخص واحد فقط" },
+];
 
 type MemberRow = {
   id: string;
@@ -79,6 +89,11 @@ type MemberRow = {
 function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول النظام";
   if (role === "manager") return "مشرف";
+  if (role === "chairman") return "رئيس المجلس";
+  if (role === "head_meetings") return "مسؤول الاجتماعات";
+  if (role === "head_events") return "مسؤول الفعاليات";
+  if (role === "head_trips") return "مسؤول الرحلات";
+  if (role === "head_finance") return "مسؤول المالية";
   return "عضو";
 }
 
