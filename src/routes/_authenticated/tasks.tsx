@@ -425,7 +425,7 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">المسؤول عن التنفيذ</label>
                   <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
                      <option value="none">— اختر الفرد المسؤول —</option>
-                     {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                     {members.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                </div>
             </div>
