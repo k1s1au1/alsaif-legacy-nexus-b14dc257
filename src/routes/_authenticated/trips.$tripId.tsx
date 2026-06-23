@@ -102,7 +102,7 @@ function TripDetail() {
         processAttendees(fallbackRows || []);
       } else {
         // Show everyone who is 'going' or has no status (default attending)
-        const goingRows = (rows || []).filter(r => !r.status || r.status === 'going');
+        const goingRows = ((rows || []) as any[]).filter((r: any) => !r.status || r.status === 'going');
         processAttendees(goingRows);
       }
     } catch (err) {
