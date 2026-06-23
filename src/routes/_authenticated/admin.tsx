@@ -230,21 +230,40 @@ function AdminPage() {
     if (userId === meId && role !== "admin") {
       if (!confirm("سيتم تعديل صلاحياتك الشخصية. هل أنت متأكد؟")) return;
     }
-    const { error: delErr } = await supabase.from("user_roles").delete().eq("user_id", userId);
+    // Only remove base roles (admin/manager/member); keep special roles intact
+    const { error: delErr } = await supabase
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .in("role", ["admin", "manager", "member"] as any);
     if (delErr) {
       toast.error("تعذر تحديث الصلاحيات");
       return;
     }
-    if (role !== "member") {
-      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role });
-      if (insErr) {
-        toast.error("تعذر تعيين الدور");
-        return;
-      }
-    } else {
-      await supabase.from("user_roles").insert({ user_id: userId, role: "member" });
+    const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role } as any);
+    if (insErr) {
+      toast.error("تعذر تعيين الدور");
+      return;
     }
     toast.success("تم تحديث الصلاحيات");
+    loadMembers();
+  }
+
+  async function assignSpecialRole(role: SpecialRole, userId: string | null) {
+    // Remove the role from everyone first (singleton)
+    const { error: delErr } = await supabase.from("user_roles").delete().eq("role", role as any);
+    if (delErr) {
+      toast.error("تعذر تحديث المنصب");
+      return;
+    }
+    if (userId) {
+      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role } as any);
+      if (insErr) {
+        toast.error("تعذر تعيين المنصب");
+        return;
+      }
+    }
+    toast.success("تم تحديث المنصب");
     loadMembers();
   }
 
