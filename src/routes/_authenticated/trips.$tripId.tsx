@@ -23,6 +23,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { toast } from "sonner";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -31,12 +32,6 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   }),
   component: TripDetail,
 });
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
-  return "عضو";
-}
 
 function statusLabel(status: string) {
   if (status === "upcoming") return "قادمة";
