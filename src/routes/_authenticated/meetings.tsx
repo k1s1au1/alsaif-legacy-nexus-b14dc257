@@ -31,6 +31,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
