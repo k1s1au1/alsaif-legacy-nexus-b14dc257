@@ -448,6 +448,42 @@ function AdminPage() {
                     </div>
                   </div>
 
+                  {/* Special positions (singleton roles) */}
+                  <div className="card-surface p-6 sm:p-8 space-y-6 border-2 border-gold-primary/20">
+                    <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                        <Crown className="size-5" />
+                      </div>
+                      <div>
+                        <h4 className="text-lg font-black text-primary">المناصب الخاصة</h4>
+                        <p className="text-xs font-bold text-muted-foreground opacity-60">رئيس المجلس ومسؤولو الأقسام — لكل منصب شخص واحد فقط.</p>
+                      </div>
+                    </div>
+                    <div className="grid gap-3">
+                      {SPECIAL_ROLES.map((sr) => {
+                        const holder = members.find((m) => m.roles.includes(sr.key));
+                        return (
+                          <div key={sr.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-black text-primary">{sr.label}</p>
+                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">{sr.desc}</p>
+                            </div>
+                            <select
+                              value={holder?.id ?? ""}
+                              onChange={(e) => assignSpecialRole(sr.key, e.target.value || null)}
+                              className="bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary min-w-[220px]"
+                            >
+                              <option value="">— غير معيّن —</option>
+                              {members.map((m) => (
+                                <option key={m.id} value={m.id}>{memberFullName(m)}</option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   <div className="grid gap-4">
                     {filteredMembers.map((m) => (
                       <MemberAdminRow
