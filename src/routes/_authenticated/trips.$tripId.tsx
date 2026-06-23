@@ -165,7 +165,7 @@ function TripDetail() {
             .from("trip_attendees")
             .select("user_id")
             .eq("trip_id", tripId)
-            .eq("user_id", u.user.id)
+            .eq("user_id", userId)
             .maybeSingle();
           setAttendanceStatus(fallbackMine ? 'going' : null);
         } else if (mine) {

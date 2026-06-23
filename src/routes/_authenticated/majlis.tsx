@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { toast } from "sonner";
 import {
   Megaphone,
@@ -279,6 +280,7 @@ function MajlisPage() {
   return (
     <AppShell title="المجلس" user={{ name: me.name, role: me.role, initial: me.initial, avatarPath: me.avatarPath }}>
       <div className="max-w-5xl mx-auto space-y-12 pb-24" dir="rtl">
+        <QuickActionsBanner />
 
         {/* Alsaif Majlis Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">

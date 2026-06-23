@@ -1,3 +1,4 @@
+import React from "react";
 import { Link } from "@tanstack/react-router";
 import {
   MessageCircle,
@@ -14,7 +15,7 @@ import { cn } from "@/lib/utils";
 interface QuickActionProps {
   to: string;
   label: string;
-  icon: React.ReactNode;
+  icon: any;
   color: string;
 }
 
@@ -42,7 +43,7 @@ export function QuickActionsBanner() {
           <QuickAction to="/trips" label="رحلات" icon={<Plane />} color="bg-indigo-500" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-amber-500" />
           <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-rose-500" />
-          <QuickAction to="/events" label="إعلان" icon={<Megaphone />} color="bg-emerald-500" />
+          <QuickAction to="/majlis" label="إعلان" icon={<Megaphone />} color="bg-emerald-500" />
           <QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-teal-500" />
           <QuickAction to="/finance" label="الصندوق" icon={<Wallet />} color="bg-green-600" />
           <QuickAction to="/profile" label="ملفي" icon={<User />} color="bg-slate-500" />

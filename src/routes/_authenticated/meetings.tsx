@@ -21,7 +21,6 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { sendTelegramNotification } from "@/lib/telegram";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
@@ -133,7 +132,6 @@ function MeetingsPage() {
       }
       await loadAll();
     })();
-  }, [loadAll, userId, primaryRole]);
 
     const channel = supabase
       .channel("meetings-realtime")
@@ -194,18 +192,6 @@ function MeetingsPage() {
       if (error) toast.error("تعذر الإنشاء");
       else {
         toast.success("تم الإنشاء");
-
-        // Send Telegram notification
-        const msg = `📅 <b>اجتماع عائلي جديد</b>\n\n` +
-          `📌 <b>العنوان:</b> ${payload.title}\n` +
-          `👤 <b>بواسطة:</b> ${profile.name}\n` +
-          `📝 <b>الوصف:</b> ${payload.description || "لا يوجد"}\n` +
-          `📍 <b>المكان:</b> ${payload.location || "غير محدد"}\n` +
-          `⏰ <b>الوقت:</b> ${new Date(payload.scheduled_at).toLocaleString("ar-SA")}`;
-
-        sendTelegramNotification({ data: { message: msg } }).catch((err) =>
-          console.error("Telegram notification failed", err),
-        );
 
         setShowForm(false);
         resetForm();
