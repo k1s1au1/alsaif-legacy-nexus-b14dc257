@@ -414,7 +414,7 @@ function TripDetail() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => updateAttendance('going')}
-                  disabled={saving || !userId}
+                  disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                   className={cn(
                     "relative w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95",
                     attendanceStatus === 'going'
@@ -439,7 +439,7 @@ function TripDetail() {
 
                 <button
                   onClick={() => updateAttendance('not_going')}
-                  disabled={saving || !userId}
+                  disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                   className={cn(
                     "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
                     attendanceStatus === 'not_going'
