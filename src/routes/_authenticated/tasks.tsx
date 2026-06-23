@@ -374,9 +374,10 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
     };
     let error;
     if (task) {
-      ({ error } = await supabase.from("tasks").update(payload).eq("id", task.id));
+      ({ error } = await supabase.from("tasks").update(payload as any).eq("id", task.id));
     } else {
-      ({ error } = await supabase.from("tasks").insert({ ...payload, created_by: userId }));
+      ({ error } = await supabase.from("tasks").insert({ ...payload, created_by: userId } as any));
+
     }
     setSaving(false);
     if (!error) { toast.success("تم الحفظ بنجاح"); onSaved(); onClose(); }
