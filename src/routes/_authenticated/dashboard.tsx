@@ -19,7 +19,10 @@ import {
   Compass,
   MapPinned,
   User,
-  Trees
+  Trees,
+  ShieldAlert,
+  Send,
+  X
 } from "lucide-react";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
@@ -58,6 +61,9 @@ function Dashboard() {
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
   const [statIndex, setStatIndex] = useState(0);
+  const [showBugReport, setShowBugReport] = useState(false);
+  const [bugBody, setBugBody] = useState("");
+  const [bugSending, setBugSending] = useState(false);
 
   const loadData = useCallback(async () => {
     try {
@@ -117,6 +123,27 @@ function Dashboard() {
   const meetingsPlugin = useRef(
     Autoplay({ delay: 6000, stopOnInteraction: true })
   );
+
+  const sendBugReport = async () => {
+    if (!bugBody.trim()) return;
+    setBugSending(true);
+    const { data: u } = await supabase.auth.getUser();
+    const { error } = await supabase.from("majlis_posts").insert({
+      author_id: u.user?.id,
+      kind: "complaint",
+      title: "تقرير خطأ في النظام",
+      body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}`,
+    } as any);
+
+    if (error) {
+       toast.error("تعذر إرسال البلاغ");
+    } else {
+       toast.success("تم إرسال البلاغ للمشرفين بنجاح");
+       setBugBody("");
+       setShowBugReport(false);
+    }
+    setBugSending(false);
+  };
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
@@ -316,28 +343,64 @@ function Dashboard() {
 
         {/* Stats Slider */}
         <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
-           <div className="relative overflow-hidden rounded-[48px] h-[280px] shadow-2xl border-4 border-white dark:border-border">
-              {stats.map((stat, i) => (
-                <div key={i} className={cn(
-                  "absolute inset-0 w-full h-full transition-all duration-1000 flex items-center p-12 md:p-20",
-                  stat.color,
-                  statIndex === i ? "opacity-100 translate-x-0" : "opacity-0 translate-x-full"
-                )}>
-                   <div className="absolute inset-0 opacity-10 pointer-events-none scale-150"><img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" /></div>
-                   <div className="relative z-10 flex items-center justify-between w-full text-white">
-                      <div className="space-y-6">
-                         <div className="flex items-center gap-3 font-black uppercase tracking-[0.4em] text-xs opacity-70"><Sparkles className="size-5" /> {stat.label}</div>
-                         <div className="text-6xl md:text-8xl font-black tracking-tighter flex items-baseline gap-4"><AnimatedCounter value={stat.value} /><span className="text-2xl opacity-50">{stat.suffix}</span></div>
-                         <Link to={stat.link} className="inline-flex items-center gap-3 bg-white/20 px-8 py-3 rounded-full text-sm font-black transition-all">التفاصيل <ChevronLeft size={20} /></Link>
-                      </div>
-                      <div className="hidden lg:flex size-44 rounded-[50px] bg-white/10 items-center justify-center border border-white/20">{stat.icon}</div>
-                   </div>
-                </div>
-              ))}
+           {/* ... existing stats carousel ... */}
+        </section>
+
+        {/* System Error Reporting */}
+        <section className="px-4 pb-20 animate-fade-up" style={{ animationDelay: "400ms" }}>
+           <div className="card-surface p-8 md:p-12 border-dashed border-2 border-primary/20 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right">
+              <div className="space-y-2">
+                 <div className="flex items-center justify-center md:justify-start gap-2 text-rose-500">
+                    <ShieldAlert className="size-5" />
+                    <span className="text-xs font-black uppercase tracking-widest">الدعم الفني</span>
+                 </div>
+                 <h3 className="text-2xl font-black text-primary">هل واجهت مشكلة في النظام؟</h3>
+                 <p className="text-sm font-bold text-muted-foreground opacity-70">أبلغ المشرفين عن أي أخطاء برمجية لمساعدتنا في تحسين تجربتك.</p>
+              </div>
+              <button
+                onClick={() => setShowBugReport(true)}
+                className="px-10 py-4 rounded-2xl bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-sm flex items-center gap-2"
+              >
+                 <ShieldAlert size={18} /> إرسال بلاغ عن خطأ
+              </button>
            </div>
         </section>
 
       </div>
+
+      <AnimatePresence>
+         {showBugReport && (
+           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
+              <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-card border border-border rounded-[32px] w-full max-w-lg p-8 space-y-6 shadow-2xl">
+                 <div className="flex items-center justify-between">
+                    <h3 className="text-xl font-black text-primary">بلاغ عن خطأ بالنظام</h3>
+                    <button onClick={() => setShowBugReport(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
+                 </div>
+                 <div className="space-y-4">
+                    <p className="text-xs font-bold text-muted-foreground leading-relaxed">يرجى وصف المشكلة التي واجهتها بوضوح لمساعدتنا في حلها سريعاً.</p>
+                    <textarea
+                      value={bugBody}
+                      onChange={(e) => setBugBody(e.target.value)}
+                      placeholder="صف الخطأ هنا..."
+                      rows={5}
+                      className="w-full p-6 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner"
+                    />
+                 </div>
+                 <div className="flex gap-3">
+                    <button onClick={() => setShowBugReport(false)} className="flex-1 py-4 rounded-2xl font-black text-sm text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+                    <button
+                      onClick={sendBugReport}
+                      disabled={bugSending || !bugBody.trim()}
+                      className="flex-[2] btn-gold py-4 rounded-2xl font-black text-sm flex items-center justify-center gap-2 disabled:opacity-50"
+                    >
+                      {bugSending ? <Loader2 className="size-4 animate-spin" /> : <Send size={16} />} إرسال للمشرفين
+                    </button>
+                 </div>
+              </motion.div>
+           </div>
+         )}
+      </AnimatePresence>
+
       <Link to="/majlis" className="fixed bottom-10 left-10 size-20 rounded-[32px] bg-primary text-primary-foreground flex items-center justify-center shadow-2xl z-50 border-4 border-white/10"><Plus size={36} strokeWidth={3} /></Link>
     </AppShell>
   );

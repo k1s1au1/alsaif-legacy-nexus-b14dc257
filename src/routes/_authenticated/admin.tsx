@@ -69,10 +69,10 @@ type SpecialRole = "chairman" | "head_meetings" | "head_events" | "head_trips" |
 
 const SPECIAL_ROLES: { key: SpecialRole; label: string; desc: string }[] = [
   { key: "chairman", label: "رئيس المجلس", desc: "شخص واحد فقط" },
-  { key: "head_meetings", label: "مسؤول الاجتماعات", desc: "شخص واحد فقط" },
-  { key: "head_events", label: "مسؤول الفعاليات", desc: "شخص واحد فقط" },
-  { key: "head_trips", label: "مسؤول الرحلات", desc: "شخص واحد فقط" },
-  { key: "head_finance", label: "مسؤول المالية", desc: "شخص واحد فقط" },
+  { key: "head_meetings", label: "مسؤول الاجتماعات", desc: "أكثر من مسؤول متاح" },
+  { key: "head_events", label: "مسؤول الفعاليات", desc: "أكثر من مسؤول متاح" },
+  { key: "head_trips", label: "مسؤول الرحلات", desc: "أكثر من مسؤول متاح" },
+  { key: "head_finance", label: "مسؤول المالية", desc: "أكثر من مسؤول متاح" },
 ];
 
 type MemberRow = {
@@ -249,21 +249,21 @@ function AdminPage() {
     loadMembers();
   }
 
-  async function assignSpecialRole(role: SpecialRole, userId: string | null) {
-    // Remove the role from everyone first (singleton)
-    const { error: delErr } = await supabase.from("user_roles").delete().eq("role", role as any);
-    if (delErr) {
-      toast.error("تعذر تحديث المنصب");
-      return;
+  async function assignSpecialRole(role: SpecialRole, userId: string, action: 'add' | 'remove') {
+    if (role === "chairman" && action === "add") {
+      // Remove previous chairman first
+      await supabase.from("user_roles").delete().eq("role", "chairman" as any);
     }
-    if (userId) {
-      const { error: insErr } = await supabase.from("user_roles").insert({ user_id: userId, role } as any);
-      if (insErr) {
-        toast.error("تعذر تعيين المنصب");
-        return;
-      }
+
+    if (action === "add") {
+      const { error } = await supabase.from("user_roles").insert({ user_id: userId, role } as any);
+      if (error) toast.error("تعذر تعيين المنصب");
+      else toast.success("تم تعيين المنصب بنجاح");
+    } else {
+      const { error } = await supabase.from("user_roles").delete().eq("user_id", userId).eq("role", role as any);
+      if (error) toast.error("تعذر إزالة المنصب");
+      else toast.success("تمت الإزالة");
     }
-    toast.success("تم تحديث المنصب");
     loadMembers();
   }
 
@@ -461,23 +461,38 @@ function AdminPage() {
                     </div>
                     <div className="grid gap-3">
                       {SPECIAL_ROLES.map((sr) => {
-                        const holder = members.find((m) => m.roles.includes(sr.key));
+                        const holders = members.filter((m) => m.roles.includes(sr.key));
                         return (
-                          <div key={sr.key} className="flex flex-col sm:flex-row sm:items-center gap-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-black text-primary">{sr.label}</p>
-                              <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">{sr.desc}</p>
+                          <div key={sr.key} className="flex flex-col gap-3 p-4 rounded-2xl bg-muted/30 border border-border/40">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                               <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-black text-primary">{sr.label}</p>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground opacity-50">{sr.desc}</p>
+                               </div>
+                               <select
+                                 value=""
+                                 onChange={(e) => e.target.value && assignSpecialRole(sr.key, e.target.value, 'add')}
+                                 className="bg-white border border-border rounded-xl px-4 py-2 text-xs font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary min-w-[200px]"
+                               >
+                                 <option value="">+ إضافة مسؤول...</option>
+                                 {members.filter(m => !m.roles.includes(sr.key)).map((m) => (
+                                   <option key={m.id} value={m.id}>{memberFullName(m)}</option>
+                                 ))}
+                               </select>
                             </div>
-                            <select
-                              value={holder?.id ?? ""}
-                              onChange={(e) => assignSpecialRole(sr.key, e.target.value || null)}
-                              className="bg-white border border-border rounded-xl px-4 py-2.5 text-sm font-bold text-primary focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary min-w-[220px]"
-                            >
-                              <option value="">— غير معيّن —</option>
-                              {members.map((m) => (
-                                <option key={m.id} value={m.id}>{memberFullName(m)}</option>
-                              ))}
-                            </select>
+
+                            {holders.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                 {holders.map(h => (
+                                   <div key={h.id} className="flex items-center gap-2 bg-primary/10 text-primary px-3 py-1.5 rounded-full border border-primary/10">
+                                      <span className="text-[10px] font-black">{memberFullName(h)}</span>
+                                      <button onClick={() => assignSpecialRole(sr.key, h.id, 'remove')} className="hover:text-rose-500 transition-colors">
+                                         <X size={12} strokeWidth={3} />
+                                      </button>
+                                   </div>
+                                 ))}
+                              </div>
+                            )}
                           </div>
                         );
                       })}

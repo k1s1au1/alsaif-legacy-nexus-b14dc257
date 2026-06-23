@@ -308,36 +308,46 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
           <div className="space-y-6">
              <div className="flex items-end justify-between">
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">الحالة الراهنة</p>
-                   <p className={cn("text-lg font-black tracking-tighter", isDone ? "text-emerald-500" : "text-primary")}>{isDone ? "تم الإنجاز بنجاح" : "قيد العمل"}</p>
+                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">مرحلة الإنجاز</p>
+                   <p className={cn("text-lg font-black tracking-tighter",
+                     isDone ? "text-emerald-500" :
+                     task.progress >= 80 ? "text-amber-500" :
+                     task.progress >= 40 ? "text-blue-500" : "text-primary"
+                   )}>
+                     {isDone ? "مكتملة" :
+                      task.progress >= 80 ? "قيد المراجعة" :
+                      task.progress >= 40 ? "قيد التنفيذ" : "بانتظار البدء"}
+                   </p>
                 </div>
-                <span className={cn("text-4xl font-black tracking-tighter leading-none", isDone ? "text-emerald-500" : "text-primary")}>{task.progress}%</span>
+                <span className={cn("text-3xl font-black tracking-tighter leading-none", isDone ? "text-emerald-500" : "text-primary")}>{task.progress}%</span>
              </div>
 
-             {/* Functional Slider */}
-             <div className="relative h-10 flex items-center">
-                <div className="absolute inset-0 h-3 my-auto bg-muted rounded-full overflow-hidden border border-border/10">
-                   <motion.div
-                     initial={{ width: 0 }}
-                     animate={{ width: `${task.progress}%` }}
-                     className={cn("h-full transition-colors duration-500", isDone ? "bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.4)]" : "bg-gold-primary shadow-[0_0_15px_rgba(142,119,69,0.4)]")}
-                   />
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="10"
-                  value={task.progress}
+             {/* Functional Professional Toggle */}
+             <div className="flex items-center gap-1.5 p-1 bg-muted/40 rounded-2xl border border-border/10">
+                <StatusStep
+                  active={task.progress === 0}
                   disabled={!isAssignee}
-                  onChange={(e) => onProgressChange(task.id, parseInt(e.target.value))}
-                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed z-10"
+                  onClick={() => onProgressChange(task.id, 0)}
+                  label="انتظار"
                 />
-                {isAssignee && (
-                  <div className="absolute -bottom-6 w-full text-center">
-                     <span className="text-[8px] font-black text-gold-primary uppercase tracking-[0.3em] animate-bounce">اسحب للتحديث</span>
-                  </div>
-                )}
+                <StatusStep
+                  active={task.progress > 0 && task.progress < 80}
+                  disabled={!isAssignee}
+                  onClick={() => onProgressChange(task.id, 40)}
+                  label="تنفيذ"
+                />
+                <StatusStep
+                  active={task.progress >= 80 && task.progress < 100}
+                  disabled={!isAssignee}
+                  onClick={() => onProgressChange(task.id, 80)}
+                  label="مراجعة"
+                />
+                <StatusStep
+                  active={isDone}
+                  disabled={!isAssignee}
+                  onClick={() => onProgressChange(task.id, 100)}
+                  label="إكمال"
+                />
              </div>
           </div>
 
@@ -395,6 +405,23 @@ function FilterTab({ active, onClick, label, count, color }: any) {
        {color && <span className={cn("size-1.5 rounded-full", color)} />}
        <span>{label}</span>
        {count !== undefined && <span className={cn("min-w-[18px] h-4 px-1 rounded-md text-[8px] flex items-center justify-center", active ? "bg-white/20 text-white" : "bg-muted text-muted-foreground")}>{count}</span>}
+    </button>
+  );
+}
+
+function StatusStep({ active, disabled, onClick, label }: any) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={cn(
+        "flex-1 py-2 px-1 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all",
+        active
+          ? "bg-white dark:bg-card text-primary shadow-sm"
+          : "text-muted-foreground opacity-60 hover:opacity-100 disabled:cursor-not-allowed"
+      )}
+    >
+      {label}
     </button>
   );
 }

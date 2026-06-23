@@ -33,7 +33,7 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-arabic: var(--app-font, "Tajawal", "Cairo", sans-serif);
+  --font-arabic: var(--app-font, "IBM Plex Sans Arabic", "Tajawal", sans-serif);
 
   --radius-sm: 10px;
   --radius-md: 14px;

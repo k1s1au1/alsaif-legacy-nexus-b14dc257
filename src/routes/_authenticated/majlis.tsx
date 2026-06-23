@@ -156,7 +156,8 @@ function MajlisPage() {
       const r = (roles ?? []).map((x) => x.role);
       const isAdmin = r.includes("admin");
       const isManager = r.includes("manager");
-      const primary = isAdmin ? "admin" : isManager ? "manager" : "member";
+      const isChairman = r.includes("chairman");
+      const primary = isAdmin ? "admin" : isManager ? "manager" : isChairman ? "chairman" : "member";
       const name = p?.arabic_name?.trim() || p?.full_name?.trim() || u.user.email?.split("@")[0] || "عضو";
       setMe({
         id: u.user.id,
@@ -166,6 +167,7 @@ function MajlisPage() {
         avatarPath: p?.avatar_url ?? null,
         isAdmin,
         isManager,
+        isChairman,
       });
       await loadPosts();
       setLoading(false);
@@ -262,9 +264,17 @@ function MajlisPage() {
   }
 
   const filteredPosts = useMemo(() => {
-    if (filter === "all") return posts;
-    return posts.filter((p) => p.kind === filter);
-  }, [posts, filter]);
+    let list = posts;
+    // Privacy filter for 'complaint' (Requests)
+    list = list.filter(p => {
+      if (p.kind !== 'complaint') return true;
+      if (!me) return false;
+      return me.isAdmin || me.isChairman || p.author_id === me.id;
+    });
+
+    if (filter === "all") return list;
+    return list.filter((p) => p.kind === filter);
+  }, [posts, filter, me]);
 
   if (!me) {
     return (
@@ -300,16 +310,16 @@ function MajlisPage() {
             className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
           >
             {showCompose ? <X className="size-5" strokeWidth={3} /> : <Plus className="size-5" strokeWidth={3} />}
-            <span>{showCompose ? "إلغاء الكتابة" : canPostOfficial ? "كتابة إعلان جديد" : "إرسال شكوى جديدة"}</span>
+            <span>{showCompose ? "إلغاء الكتابة" : canPostOfficial ? "كتابة إعلان جديد" : "إرسال طلب جديد"}</span>
           </button>
         </section>
 
         {/* Filters Bar */}
         <section className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-muted/30 rounded-[32px] border border-border/40 w-fit animate-fade-up" style={{ animationDelay: "100ms" }}>
-           <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" count={posts.length} />
+          <NavTab active={filter === "all"} onClick={() => setFilter("all")} label="الكل" count={posts.length} />
            <NavTab active={filter === "announcement"} onClick={() => setFilter("announcement")} label="الإعلانات" count={posts.filter(p => p.kind === "announcement").length} />
            <NavTab active={filter === "discussion"} onClick={() => setFilter("discussion")} label="النقاشات" count={posts.filter(p => p.kind === "discussion").length} />
-           <NavTab active={filter === "complaint"} onClick={() => setFilter("complaint")} label="الشكاوى" count={posts.filter(p => p.kind === "complaint").length} />
+           <NavTab active={filter === "complaint"} onClick={() => setFilter("complaint")} label="الطلبات" count={posts.filter(p => p.kind === "complaint").length} />
         </section>
 
         {/* Compose Section */}
@@ -332,14 +342,14 @@ function MajlisPage() {
                       <div className="flex flex-wrap gap-3">
                          <TypeBtn active={draft.kind === "announcement"} onClick={() => setDraft(d => ({...d, kind: "announcement"}))} label="إعلان رسمي" color="gold" />
                          <TypeBtn active={draft.kind === "discussion"} onClick={() => setDraft(d => ({...d, kind: "discussion"}))} label="فتح نقاش" color="emerald" />
-                         <TypeBtn active={draft.kind === "complaint"} onClick={() => setDraft(d => ({...d, kind: "complaint"}))} label="شكوى خاصة" color="rose" />
+                         <TypeBtn active={draft.kind === "complaint"} onClick={() => setDraft(d => ({...d, kind: "complaint"}))} label="طلب خاص" color="rose" />
                       </div>
                     )}
 
                     {draft.kind === "complaint" && (
                       <div className="p-4 rounded-2xl bg-amber-500/5 border border-amber-500/20 flex items-center gap-3 text-amber-600">
                          <ShieldAlert className="size-5 shrink-0" />
-                         <p className="text-xs font-bold leading-relaxed">تنبيه: الشكاوى تظهر فقط لمسؤولي النظام والمشرفين لضمان الخصوصية.</p>
+                         <p className="text-xs font-bold leading-relaxed">تنبيه: الطلبات تظهر فقط لرئيس المجلس لضمان الخصوصية وسرعة المعالجة.</p>
                       </div>
                     )}
 
@@ -439,7 +449,7 @@ function PostCard({ post, me, author, onTogglePin, onDelete, onToggleComments, c
                   <div className="flex items-center gap-3 flex-wrap">
                      <h4 className="text-lg font-black text-primary tracking-tight">{authorName}</h4>
                      {isAnnouncement && <span className="px-3 py-0.5 rounded-full bg-gold-primary text-white text-[10px] font-black uppercase tracking-widest shadow-md shadow-gold-primary/20">إعلان رسمي</span>}
-                     {post.kind === "complaint" && <span className="px-3 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest">شكوى إدارية</span>}
+                     {post.kind === "complaint" && <span className="px-3 py-0.5 rounded-full bg-rose-500/10 text-rose-600 border border-rose-500/20 text-[10px] font-black uppercase tracking-widest">طلب خاص</span>}
                   </div>
                   <div className="flex items-center gap-2 text-[10px] font-black text-muted-foreground opacity-60 uppercase tracking-tighter">
                      <Clock className="size-3" /> {formatDate(post.created_at)}
