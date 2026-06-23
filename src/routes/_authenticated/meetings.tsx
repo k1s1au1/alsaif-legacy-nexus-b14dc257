@@ -120,22 +120,18 @@ function MeetingsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        setUserId(u.user.id);
-        const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id).maybeSingle();
-        const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle();
+      if (userId) {
+        const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle();
         setProfile({
           name: p?.arabic_name || p?.full_name || "عضو العائلة",
-          role: r?.role || "member",
+          role: roleLabel(primaryRole),
           initial: "ع",
           avatarPath: p?.avatar_url || null
         });
-        setUserRole(r?.role || null);
       }
       await loadAll();
     })();
-  }, [loadAll]);
+  }, [loadAll, userId, primaryRole]);
 
   const openCreate = () => {
     resetForm();
