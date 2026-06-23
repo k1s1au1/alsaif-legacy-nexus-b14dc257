@@ -59,8 +59,8 @@ function fmt(n: number) {
 
 function FinancePage() {
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "س" });
-  const [userId, setUserId] = useState<string | null>(null);
-  const [canManage, setCanManage] = useState(false);
+  const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
+  const canManage = canManageSection("finance");
   const [rows, setRows] = useState<Tx[]>([]);
   const [transfers, setTransfers] = useState<BankTransfer[]>([]);
   const [tab, setTab] = useState<"transactions" | "transfers">("transactions");
