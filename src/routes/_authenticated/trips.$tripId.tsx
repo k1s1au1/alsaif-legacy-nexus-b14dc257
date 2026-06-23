@@ -64,15 +64,16 @@ function formatRange(start: string | null, end: string | null) {
 
 function TripDetail() {
   const { tripId } = useParams({ from: "/_authenticated/trips/$tripId" });
+  const { userId, isLoading: rolesLoading, canManage, primaryRole } = useUserRole();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
+  const [attendanceLoaded, setAttendanceLoaded] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState<'going' | 'not_going' | null>(null);
   const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<
     { user_id: string; name: string; initial: string; avatarPath: string | null }[]
   >([]);
-  const [isPrivileged, setIsPrivileged] = useState(false);
+  const isPrivileged = canManage("trips");
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
