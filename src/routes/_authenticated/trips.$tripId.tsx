@@ -133,33 +133,20 @@ function TripDetail() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        setUserId(u.user.id);
-        const [{ data: p }, { data: r }] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("arabic_name, full_name, avatar_url")
-            .eq("id", u.user.id)
-            .maybeSingle(),
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", u.user.id),
-        ]);
+      if (userId) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("arabic_name, full_name, avatar_url")
+          .eq("id", userId)
+          .maybeSingle();
         const name =
           p?.arabic_name?.trim() ||
           p?.full_name?.trim() ||
-          u.user.email?.split("@")[0] ||
           "عضو العائلة";
 
-        const roles = (r ?? []).map(x => x.role);
-        const priv = roles.includes("admin") || roles.includes("manager");
-
-        setIsPrivileged(priv);
         setProfile({
           name,
-          role: roleLabel(roles[0] || null),
+          role: roleLabel(primaryRole),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
@@ -168,7 +155,7 @@ function TripDetail() {
           .from("trip_attendees")
           .select("status")
           .eq("trip_id", tripId)
-          .eq("user_id", u.user.id)
+          .eq("user_id", userId)
           .maybeSingle();
 
         if (mine) {
@@ -176,6 +163,7 @@ function TripDetail() {
         } else {
           setAttendanceStatus(null);
         }
+        setAttendanceLoaded(true);
       }
 
       const { data: t } = await supabase
@@ -187,7 +175,7 @@ function TripDetail() {
       await loadAttendees(tripId);
       setLoading(false);
     })();
-  }, [tripId]);
+  }, [tripId, userId, primaryRole]);
 
   async function updateAttendance(status: 'going' | 'not_going') {
     if (!userId || saving) return;
