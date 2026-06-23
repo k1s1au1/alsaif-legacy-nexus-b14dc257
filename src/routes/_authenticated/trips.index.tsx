@@ -61,6 +61,10 @@ function TripsPage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const { userId, canManage: canManageSection, primaryRole } = useUserRole();
+  const canManage = canManageSection("trips");
+  const [showAdd, setShowAdd] = useState(false);
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const canManage = userRole === "admin" || userRole === "manager";
 
