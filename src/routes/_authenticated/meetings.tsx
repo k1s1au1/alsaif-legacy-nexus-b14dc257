@@ -523,7 +523,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                       myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
-                    <UserX size={16} md:size={20} />
+                    <UserX size={20} />
                     <span>أعتذر</span>
                   </button>
                 </div>
