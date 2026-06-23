@@ -512,7 +512,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                       myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
-                    <UserCheck size={16} md:size={20} />
+                    <UserCheck size={20} />
                     <span>سأحضر</span>
                   </button>
 
