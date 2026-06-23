@@ -103,7 +103,7 @@ function TripsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userId, primaryRole]);
 
   return (
     <AppShell title="الرحلات" user={profile}>
