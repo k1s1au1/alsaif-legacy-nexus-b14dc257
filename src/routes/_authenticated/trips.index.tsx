@@ -8,6 +8,7 @@ import { TripImage } from "@/components/trip-image";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
@@ -19,12 +20,6 @@ export const Route = createFileRoute("/_authenticated/trips/")({
   }),
   component: TripsPage,
 });
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
-  return "عضو";
-}
 
 type Trip = {
   id: string;
