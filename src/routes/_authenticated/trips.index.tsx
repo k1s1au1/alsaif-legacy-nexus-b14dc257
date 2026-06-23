@@ -8,6 +8,7 @@ import { TripImage } from "@/components/trip-image";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
@@ -19,12 +20,6 @@ export const Route = createFileRoute("/_authenticated/trips/")({
   }),
   component: TripsPage,
 });
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
-  return "عضو";
-}
 
 type Trip = {
   id: string;
@@ -66,8 +61,8 @@ function TripsPage() {
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const canManage = userRole === "admin" || userRole === "manager";
+  const { userId, canManage: canManageSection, primaryRole } = useUserRole();
+  const canManage = canManageSection("trips");
 
   async function loadTrips() {
     const { data, error } = await supabase
@@ -84,30 +79,19 @@ function TripsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        const [{ data: p }, { data: r }] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("arabic_name, full_name, avatar_url")
-            .eq("id", u.user.id)
-            .maybeSingle(),
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", u.user.id)
-            .order("role")
-            .limit(1)
-            .maybeSingle(),
-        ]);
-        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || u.user.email?.split("@")[0] || "عضو العائلة";
+      if (userId) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("arabic_name, full_name, avatar_url")
+          .eq("id", userId)
+          .maybeSingle();
+        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
         setProfile({
           name,
-          role: roleLabel(r?.role ?? null),
+          role: roleLabel(primaryRole),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
-        setUserRole(r?.role ?? null);
       }
       await loadTrips();
     })();
@@ -119,7 +103,7 @@ function TripsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userId, primaryRole]);
 
   return (
     <AppShell title="الرحلات" user={profile}>

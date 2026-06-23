@@ -946,6 +946,10 @@ export type Database = {
     }
     Functions: {
       archive_cleanup_expired: { Args: never; Returns: undefined }
+      can_manage_section: {
+        Args: { _section: string; _user: string }
+        Returns: boolean
+      }
       can_user_send: {
         Args: { _conv: string; _user: string }
         Returns: boolean

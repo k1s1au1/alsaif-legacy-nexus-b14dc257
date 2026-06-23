@@ -31,6 +31,7 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -71,12 +72,12 @@ function formatDate(iso: string) {
 
 function MeetingsPage() {
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null as string | null });
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
   const [profiles, setProfiles] = useState<Record<string, ProfileLite>>({});
   const [loading, setLoading] = useState(true);
+  const [savingRsvp, setSavingRsvp] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Meeting | null>(null);
@@ -90,7 +91,7 @@ function MeetingsPage() {
   const [fWhen, setFWhen] = useState("");
   const [fDuration, setFDuration] = useState("");
 
-  const canManage = userRole === "admin" || userRole === "manager";
+  const canManage = canManageSection("meetings");
   const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
 
   const resetForm = useCallback(() => {
@@ -119,22 +120,18 @@ function MeetingsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        setUserId(u.user.id);
-        const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id).maybeSingle();
-        const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.user.id).maybeSingle();
+      if (userId) {
+        const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle();
         setProfile({
           name: p?.arabic_name || p?.full_name || "عضو العائلة",
-          role: r?.role || "member",
+          role: roleLabel(primaryRole),
           initial: "ع",
           avatarPath: p?.avatar_url || null
         });
-        setUserRole(r?.role || null);
       }
       await loadAll();
     })();
-  }, [loadAll]);
+  }, [loadAll, userId, primaryRole]);
 
   const openCreate = () => {
     resetForm();
@@ -203,20 +200,29 @@ function MeetingsPage() {
   };
 
   const setRsvp = async (meetingId: string, rsvp: Rsvp) => {
-    if (!userId) return;
+    if (!userId || savingRsvp === meetingId) return;
+    setSavingRsvp(meetingId);
     const current = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
-
-    if (current?.rsvp === rsvp) {
-      setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
-      await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
-      toast.success("تم الإلغاء");
-    } else {
-      const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
-      setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
-      await supabase.from("meeting_attendees").upsert(newEntry);
-      toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
+    const isToggleOff = current?.rsvp === rsvp;
+    try {
+      if (isToggleOff) {
+        setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
+        const { error } = await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
+        if (error) throw error;
+        toast.success("تم الإلغاء");
+      } else {
+        const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
+        setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
+        const { error } = await supabase.from("meeting_attendees").upsert(newEntry, { onConflict: "meeting_id,user_id" });
+        if (error) throw error;
+        toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
+      }
+    } catch (e: any) {
+      toast.error("تعذر تحديث ردك");
+      await loadAll();
+    } finally {
+      setSavingRsvp(null);
     }
-    loadAll();
   };
 
   const upcoming = meetings.filter(m => new Date(m.scheduled_at) >= new Date());
@@ -300,6 +306,8 @@ function MeetingsPage() {
                           canManage={canManage}
                           onEdit={openEdit}
                           onDelete={deleteMeeting}
+                          saving={savingRsvp === m.id}
+                          ready={!rolesLoading && !!userId}
                         />
                       </CarouselItem>
                     ))}
@@ -401,7 +409,7 @@ function MeetingsPage() {
   );
 }
 
-function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete }: any) {
+function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete, saving, ready }: any) {
   const date = formatDate(meeting.scheduled_at);
   const going = attendeesList.filter((a: any) => a.rsvp === 'going').map((a: any) => profiles[a.user_id]).filter(Boolean);
 
@@ -507,24 +515,26 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                 <div className="relative z-10 flex w-full h-full">
                   <button
                     onClick={() => onRsvp(meeting.id, 'going')}
+                    disabled={!ready || saving}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm",
+                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
                       myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
                     <UserCheck size={20} />
-                    <span>سأحضر</span>
+                    <span>{saving && myRsvp !== 'going' ? "..." : "سأحضر"}</span>
                   </button>
 
                   <button
                     onClick={() => onRsvp(meeting.id, 'not_going')}
+                    disabled={!ready || saving}
                     className={cn(
-                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm",
+                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
                       myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
                     )}
                   >
                     <UserX size={20} />
-                    <span>أعتذر</span>
+                    <span>{saving && myRsvp !== 'not_going' ? "..." : "أعتذر"}</span>
                   </button>
                 </div>
              </div>

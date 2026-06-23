@@ -23,6 +23,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { toast } from "sonner";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -31,12 +32,6 @@ export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   }),
   component: TripDetail,
 });
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
-  return "عضو";
-}
 
 function statusLabel(status: string) {
   if (status === "upcoming") return "قادمة";
@@ -69,15 +64,16 @@ function formatRange(start: string | null, end: string | null) {
 
 function TripDetail() {
   const { tripId } = useParams({ from: "/_authenticated/trips/$tripId" });
+  const { userId, isLoading: rolesLoading, canManage, primaryRole } = useUserRole();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
+  const [attendanceLoaded, setAttendanceLoaded] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState<'going' | 'not_going' | null>(null);
   const [saving, setSaving] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const [attendees, setAttendees] = useState<
     { user_id: string; name: string; initial: string; avatarPath: string | null }[]
   >([]);
-  const [isPrivileged, setIsPrivileged] = useState(false);
+  const isPrivileged = canManage("trips");
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
@@ -137,33 +133,20 @@ function TripDetail() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        setUserId(u.user.id);
-        const [{ data: p }, { data: r }] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("arabic_name, full_name, avatar_url")
-            .eq("id", u.user.id)
-            .maybeSingle(),
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", u.user.id),
-        ]);
+      if (userId) {
+        const { data: p } = await supabase
+          .from("profiles")
+          .select("arabic_name, full_name, avatar_url")
+          .eq("id", userId)
+          .maybeSingle();
         const name =
           p?.arabic_name?.trim() ||
           p?.full_name?.trim() ||
-          u.user.email?.split("@")[0] ||
           "عضو العائلة";
 
-        const roles = (r ?? []).map(x => x.role);
-        const priv = roles.includes("admin") || roles.includes("manager");
-
-        setIsPrivileged(priv);
         setProfile({
           name,
-          role: roleLabel(roles[0] || null),
+          role: roleLabel(primaryRole),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
@@ -172,7 +155,7 @@ function TripDetail() {
           .from("trip_attendees")
           .select("status")
           .eq("trip_id", tripId)
-          .eq("user_id", u.user.id)
+          .eq("user_id", userId)
           .maybeSingle();
 
         if (mine) {
@@ -180,6 +163,7 @@ function TripDetail() {
         } else {
           setAttendanceStatus(null);
         }
+        setAttendanceLoaded(true);
       }
 
       const { data: t } = await supabase
@@ -191,7 +175,7 @@ function TripDetail() {
       await loadAttendees(tripId);
       setLoading(false);
     })();
-  }, [tripId]);
+  }, [tripId, userId, primaryRole]);
 
   async function updateAttendance(status: 'going' | 'not_going') {
     if (!userId || saving) return;
@@ -430,7 +414,7 @@ function TripDetail() {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => updateAttendance('going')}
-                  disabled={saving || !userId}
+                  disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                   className={cn(
                     "relative w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95",
                     attendanceStatus === 'going'
@@ -455,7 +439,7 @@ function TripDetail() {
 
                 <button
                   onClick={() => updateAttendance('not_going')}
-                  disabled={saving || !userId}
+                  disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                   className={cn(
                     "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
                     attendanceStatus === 'not_going'
