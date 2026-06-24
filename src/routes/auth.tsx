@@ -132,8 +132,7 @@ function AuthPage() {
               <div
                 className="size-full relative z-10 logo-alsaif"
                 style={{
-                  '--logo-url': `url(${logoAsset.url})`,
-                  backgroundColor: 'var(--primary)'
+                  '--logo-url': `url(${logoAsset.url})`
                 } as any}
               />
             </motion.div>

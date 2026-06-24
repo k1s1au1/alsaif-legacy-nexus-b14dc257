@@ -84,7 +84,7 @@
   }
 }
 
-/* Alsaif Logo - Optimized for Map Logo with White Background */
+/* Alsaif Logo - Premium Rendering */
 @utility logo-alsaif {
   transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   background-image: var(--logo-url);
@@ -92,21 +92,20 @@
   background-repeat: no-repeat;
   background-position: center;
   display: inline-block;
-  /* Removal of white background in light mode */
   mix-blend-mode: multiply;
-  filter: contrast(1.1) brightness(0.9) sepia(0.2) hue-rotate(120deg); /* Emerald tint */
+  filter: contrast(1.1) brightness(0.9) sepia(0.3) hue-rotate(100deg);
 }
 
 .dark .logo-alsaif {
-  mix-blend-mode: screen; /* Keep darks, remove whites */
-  /* This filter turns black lines into glowing gold on dark backgrounds */
-  filter: invert(1) brightness(1.5) sepia(1) saturate(5) hue-rotate(350deg) drop-shadow(0 0 12px rgba(212, 175, 55, 0.4));
+  mix-blend-mode: screen;
+  background-image: var(--logo-url);
+  filter: invert(1) brightness(1.4) sepia(1) saturate(4) hue-rotate(340deg) drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
   animation: alsaif-glow 6s infinite alternate ease-in-out;
 }
 
 @keyframes alsaif-glow {
-  0% { transform: scale(1); opacity: 0.9; filter: invert(1) brightness(1.2) sepia(1) saturate(4) drop-shadow(0 0 5px rgba(212, 175, 55, 0.3)); }
-  100% { transform: scale(1.02); opacity: 1; filter: invert(1) brightness(1.6) sepia(1) saturate(6) drop-shadow(0 0 20px rgba(212, 175, 55, 0.6)); }
+  0% { transform: scale(1); opacity: 0.9; filter: invert(1) brightness(1.2) sepia(1) saturate(3) drop-shadow(0 0 8px rgba(212, 175, 55, 0.3)); }
+  100% { transform: scale(1.03); opacity: 1; filter: invert(1) brightness(1.6) sepia(1) saturate(5) drop-shadow(0 0 25px rgba(212, 175, 55, 0.7)); }
 }
 
 @utility shimmer-gold {
