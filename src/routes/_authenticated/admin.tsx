@@ -63,17 +63,17 @@ type ReqRow = {
   created_at: string;
 };
 
-type AppRole = "admin" | "manager" | "member" | "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance";
+type AppRole = "admin" | "manager" | "member" | "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance" | "head_heritage";
 
 type SpecialRole = "chairman" | "head_meetings" | "head_events" | "head_trips" | "head_finance" | "head_heritage";
 
 const SPECIAL_ROLES: { key: SpecialRole; label: string; desc: string }[] = [
   { key: "chairman", label: "رئيس المجلس", desc: "شخص واحد فقط" },
-  { key: "head_meetings", label: "مسؤول الاجتماعات", desc: "أكثر من مسؤول متاح" },
-  { key: "head_events", label: "مسؤول الفعاليات", desc: "أكثر من مسؤول متاح" },
-  { key: "head_trips", label: "مسؤول الرحلات", desc: "أكثر من مسؤول متاح" },
-  { key: "head_finance", label: "مسؤول المالية", desc: "أكثر من مسؤول متاح" },
-  { key: "head_heritage", label: "مسؤول إرث السيف", desc: "أكثر من مسؤول متاح" },
+  { key: "head_meetings", label: "مسؤول الاجتماعات", desc: "يمكن تعيين أكثر من شخص" },
+  { key: "head_events", label: "مسؤول الفعاليات", desc: "يمكن تعيين أكثر من شخص" },
+  { key: "head_trips", label: "مسؤول الرحلات", desc: "يمكن تعيين أكثر من شخص" },
+  { key: "head_finance", label: "مسؤول المالية", desc: "يمكن تعيين أكثر من شخص" },
+  { key: "head_heritage", label: "مسؤول إرث السيف", desc: "يمكن تعيين أكثر من شخص" },
 ];
 
 type MemberRow = {
@@ -95,6 +95,7 @@ function roleLabel(role: string | null) {
   if (role === "head_events") return "مسؤول الفعاليات";
   if (role === "head_trips") return "مسؤول الرحلات";
   if (role === "head_finance") return "مسؤول المالية";
+  if (role === "head_heritage") return "مسؤول إرث السيف";
   return "عضو";
 }
 

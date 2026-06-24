@@ -89,6 +89,7 @@ function MajlisPage() {
     avatarPath: string | null;
     isAdmin: boolean;
     isManager: boolean;
+    isChairman: boolean;
   } | null>(null);
 
   const [posts, setPosts] = useState<Post[]>([]);
