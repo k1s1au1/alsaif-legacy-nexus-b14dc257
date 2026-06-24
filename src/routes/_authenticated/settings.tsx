@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/app-shell";
+import { BackgroundUploader } from "@/components/background-uploader";
+import { supabase } from "@/integrations/supabase/client";
 import {
   Moon,
   Sun,
@@ -14,7 +16,8 @@ import {
   Palette,
   Type,
   X,
-  Sparkles
+  Sparkles,
+  ImagePlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -56,6 +59,17 @@ function SettingsPage() {
   const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
+  const [canCustomizeBg, setCanCustomizeBg] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      const rs = (roles ?? []).map(r => r.role);
+      setCanCustomizeBg(rs.includes("admin") || rs.includes("chairman"));
+    })();
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
