@@ -22,8 +22,12 @@ import {
   Trees,
   ShieldAlert,
   Send,
-  X
+  X,
+  Image as ImageIcon,
+  Loader2,
+  Pin,
 } from "lucide-react";
+import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
