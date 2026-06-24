@@ -101,6 +101,8 @@ function Dashboard() {
       const now = new Date().toISOString();
       supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(2).then(r => setUpcomingMeetings(r.data || []));
       supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(2).then(r => setUpcomingTrips(r.data || []));
+      supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5).then(r => setAnnouncements(r.data || []));
+
 
       supabase.from("fund_transactions").select("amount, type").then(r => {
         const bal = (r.data || []).reduce((acc, t) => {
@@ -119,6 +121,12 @@ function Dashboard() {
     const timer = setInterval(() => setStatIndex(prev => (prev + 1) % 4), 6000);
     return () => clearInterval(timer);
   }, [loadData]);
+
+  useEffect(() => {
+    if (announcements.length < 2) return;
+    const t = setInterval(() => setAnnIndex(p => (p + 1) % announcements.length), 7000);
+    return () => clearInterval(t);
+  }, [announcements.length]);
 
   const stats = [
     { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
