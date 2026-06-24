@@ -182,6 +182,7 @@ function MembersPage() {
                       presenceTime={presence[m.id]}
                       meId={me.id}
                       canDelete={isAdmin}
+                      dynamicLogo={dynamicLogo}
                       onDelete={async (id, name) => {
                         if (!confirm(`هل أنت متأكد من حذف حساب "${name}" نهائياً؟`)) return;
                         try {
@@ -204,7 +205,7 @@ function MembersPage() {
   );
 }
 
-function MemberCard({ member, index, presenceTime, meId, canDelete, onDelete }: { member: MemberRow; index: number; presenceTime?: string; meId: string; canDelete: boolean; onDelete: (id: string, name: string) => void }) {
+function MemberCard({ member, index, presenceTime, meId, canDelete, dynamicLogo, onDelete }: { member: MemberRow; index: number; presenceTime?: string; meId: string; canDelete: boolean; dynamicLogo: string | null; onDelete: (id: string, name: string) => void }) {
   const displayName = member.arabic_name?.trim() || member.full_name?.trim() || "عضو العائلة";
   const state: PresenceState = presenceFromLastSeen(presenceTime);
   const isMe = member.id === meId;

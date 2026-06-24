@@ -409,6 +409,7 @@ function ChatLayout() {
             mode={showNew}
             meId={meId}
             profiles={profiles}
+            dynamicLogo={dynamicLogo}
             onClose={() => setShowNew(null)}
           />
         )}
@@ -561,11 +562,13 @@ function NewConversationDialog({
   mode,
   meId,
   profiles,
+  dynamicLogo,
   onClose,
 }: {
   mode: "chat" | "group";
   meId: string;
   profiles: Record<string, Profile>;
+  dynamicLogo: string | null;
   onClose: () => void;
 }) {
   const navigate = useNavigate();
