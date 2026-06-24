@@ -512,7 +512,6 @@ function AdminPage() {
               ) : (
                 <AttendanceSection />
               )}
-              )}
             </AnimatePresence>
           </>
         )}
