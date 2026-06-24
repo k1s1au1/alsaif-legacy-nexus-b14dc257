@@ -9,6 +9,7 @@ import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
@@ -58,6 +59,7 @@ function TripsPage() {
     initial: string;
     avatarPath?: string | null;
   }>({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null });
+  const dynamicLogo = useSiteLogo();
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);

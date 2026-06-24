@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
@@ -52,6 +53,7 @@ export function AppShell({
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const queryClient = useQueryClient();
+  const dynamicLogo = useSiteLogo();
 
   useEffect(() => {
     if (sidebarOpen) {
@@ -116,7 +118,7 @@ export function AppShell({
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
           <div
             className="absolute top-4 right-4 size-8 z-10 logo-alsaif opacity-40 hover:opacity-100 transition-opacity"
-            style={{ '--logo-url': `url(${alsaifMark.url})` } as any}
+            style={{ '--logo-url': `url(${dynamicLogo || alsaifMark.url})` } as any}
           />
           <div className="relative">
             <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">

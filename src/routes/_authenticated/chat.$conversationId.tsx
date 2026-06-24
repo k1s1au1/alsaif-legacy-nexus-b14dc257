@@ -69,6 +69,7 @@ import {
 } from "@/lib/chat";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/chat/$conversationId")({
@@ -79,6 +80,7 @@ export const Route = createFileRoute("/_authenticated/chat/$conversationId")({
 function ConversationRoute() {
   const { conversationId } = Route.useParams();
   const navigate = useNavigate();
+  const dynamicLogo = useSiteLogo();
 
   const [meId, setMeId] = useState<string | null>(null);
   const [conv, setConv] = useState<Conversation | null>(null);

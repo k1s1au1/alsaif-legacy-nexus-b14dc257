@@ -32,6 +32,7 @@ import {
 } from "@/lib/chat";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -58,6 +59,7 @@ type ConversationListItem = {
 function ChatLayout() {
   const path = useRouterState({ select: (s) => s.location.pathname });
   const isConvOpen = /^\/chat\/[^/]+/.test(path);
+  const dynamicLogo = useSiteLogo();
 
   const [meId, setMeId] = useState<string | null>(null);
   const [shellUser, setShellUser] = useState<{ name: string; role: string; initial: string; avatarPath: string | null }>({ name: "عضو", role: "عضو", initial: "ص", avatarPath: null });
@@ -382,7 +384,7 @@ function ChatLayout() {
                  <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full" />
                  <div
                    className="size-48 md:size-64 relative z-10 logo-alsaif opacity-40"
-                   style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
+                   style={{ '--logo-url': `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
                  />
                </div>
                <div className="space-y-2 max-w-sm">
@@ -656,7 +658,7 @@ function NewConversationDialog({
         dir="rtl"
       >
         <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150 transition-opacity duration-700">
-           <img src={alsaifMark.url} className="size-64" alt="" />
+           <img src={dynamicLogo || alsaifMark.url} className="size-64" alt="" />
         </div>
 
         <div className="p-6 sm:p-10 space-y-6 flex flex-col flex-1 min-h-0 relative z-10">

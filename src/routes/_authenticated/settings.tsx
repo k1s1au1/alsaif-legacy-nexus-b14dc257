@@ -22,6 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { motion, AnimatePresence } from "framer-motion";
 
 const FONTS = [
@@ -60,6 +61,7 @@ function SettingsPage() {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
   const [canCustomizeBg, setCanCustomizeBg] = useState(false);
+  const dynamicLogo = useSiteLogo();
 
   useEffect(() => {
     (async () => {
@@ -244,7 +246,7 @@ function SettingsPage() {
              <SettingRow icon={<ShieldCheck />} title="الأمان" desc="التحقق من الهوية مفعل" />
              <div className="p-8 flex items-center justify-between text-muted-foreground/40 italic">
                 <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
-                <img src={alsaifMark.url} className="size-6 grayscale opacity-20" alt="" />
+                <img src={dynamicLogo || alsaifMark.url} className="size-6 grayscale opacity-20" alt="" />
              </div>
           </div>
         </section>
@@ -266,7 +268,11 @@ function SettingsPage() {
                   <p className="text-xs font-bold text-muted-foreground opacity-60">متاح لمسؤولي النظام ورئيس المجلس فقط.</p>
                 </div>
               </div>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">شعار المنصة</p>
+                  <BackgroundUploader inline settingKey="site_logo" label="تحديث الشعار الرسمي" />
+                </div>
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-50">صفحة الدخول</p>
                   <BackgroundUploader inline settingKey="auth_bg" label="خلفية تسجيل الدخول" />

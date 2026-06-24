@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User, Quote } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { paletteToCssVars } from "@/lib/bg-palette";
 import { motion, AnimatePresence } from "framer-motion";
@@ -30,6 +31,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const dynamicLogo = useSiteLogo();
 
   // Request form fields
   const [reqFirstName, setReqFirstName] = useState("");
@@ -132,7 +134,7 @@ function AuthPage() {
               <div
                 className="size-full relative z-10 logo-alsaif"
                 style={{
-                  '--logo-url': `url(${logoAsset.url})`
+                  '--logo-url': `url(${dynamicLogo || logoAsset.url})`
                 } as any}
               />
             </motion.div>

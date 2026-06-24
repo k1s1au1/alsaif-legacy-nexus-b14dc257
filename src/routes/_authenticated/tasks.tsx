@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   ssr: false,
@@ -71,8 +72,9 @@ function formatDate(iso: string | null) {
 
 function TasksPage() {
   const [profile, setProfile] = useState({ name: "...", role: "عضو", initial: "ص", avatarPath: null as string | null });
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isPrivileged, setIsPrivileged] = useState(false);
+  const { userId, isAdmin, isManager, isChairman, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
+  const isPrivileged = isAdmin || isManager || isChairman;
+  const dynamicLogo = useSiteLogo();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,20 +105,19 @@ function TasksPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: uRes } = await supabase.auth.getUser();
-      if (!uRes.user) return;
-      const u = uRes.user.id;
-      setUserId(u);
-
-      const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", u).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u),
-      ]);
-
-      const r = (roles ?? []).map(x => x.role);
-      setIsPrivileged(r.includes("admin") || r.includes("manager"));
-
-      const name = p?.arabic_name || p?.full_name || "عضو";
+      if (userId) {
+        const { data: p } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+        const name = p?.arabic_name || p?.full_name || "عضو";
+        setProfile({
+          name,
+          role: roleLabel(primaryRole),
+          initial: name[0].toUpperCase(),
+          avatarPath: p?.avatar_url ?? null
+        });
+      }
+      await loadAll();
+    })();
+  }, [loadAll, userId, primaryRole]);
       setProfile({
         name,
         role: r.includes("admin") ? "مسؤول النظام" : r.includes("manager") ? "مدير" : "عضو",
@@ -167,7 +168,7 @@ function TasksPage() {
         {/* Dynamic Header */}
         <section className="relative overflow-hidden rounded-[40px] md:rounded-[64px] bg-[#064E3B] p-8 md:p-20 text-white shadow-2xl group border border-white/5">
            <div className="absolute inset-0 bg-gradient-to-br from-[#064E3B] via-[#0A5A3E] to-black opacity-90 z-0" />
-           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-150 logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-150 logo-alsaif z-1" style={{ '--logo-url': `url(${dynamicLogo || alsaifMark.url})` } as any} />
            <div className="absolute -top-24 -right-24 size-96 bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 
            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">

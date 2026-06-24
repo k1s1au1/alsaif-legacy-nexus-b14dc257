@@ -23,6 +23,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
@@ -66,6 +67,7 @@ function formatRange(start: string | null, end: string | null) {
 function TripDetail() {
   const { tripId } = useParams({ from: "/_authenticated/trips/$tripId" });
   const { userId, isLoading: rolesLoading, canManage, primaryRole } = useUserRole();
+  const dynamicLogo = useSiteLogo();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [loading, setLoading] = useState(true);
   const [attendanceLoaded, setAttendanceLoaded] = useState(false);
@@ -294,7 +296,7 @@ function TripDetail() {
 
             {/* Decorative Family Mark */}
             <div className="absolute top-10 left-10 opacity-20 pointer-events-none z-20 hidden md:block">
-              <img src={alsaifMark?.url || ""} className="size-32 object-contain brightness-0 invert" alt="" />
+              <img src={dynamicLogo || alsaifMark?.url || ""} className="size-32 object-contain brightness-0 invert" alt="" />
             </div>
 
             <div className="absolute bottom-0 right-0 left-0 p-8 md:p-16 z-20 space-y-6">

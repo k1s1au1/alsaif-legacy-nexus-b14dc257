@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,7 @@ function Dashboard() {
   const [bugImage, setBugImage] = useState<File | null>(null);
   const [bugImagePreview, setBugImagePreview] = useState<string | null>(null);
   const [bugSending, setBugSending] = useState(false);
+  const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
     try {
@@ -195,7 +197,7 @@ function Dashboard() {
              <div className="absolute -inset-8 bg-gradient-to-br from-gold-primary/20 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
              <div
                className="size-48 md:size-64 relative z-10 logo-alsaif hover:scale-110 transition-transform duration-1000 cursor-pointer"
-               style={{ '--logo-url': `url(${alsaifMark.url})` } as any}
+               style={{ '--logo-url': `url(${dynamicLogo || alsaifMark.url})` } as any}
              />
            </div>
 
@@ -227,7 +229,7 @@ function Dashboard() {
                   )}
 
                   <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-1">
-                    <img src={alsaifMark?.url || ""} className="absolute -left-10 -top-10 size-64 object-contain brightness-0 invert" alt="" />
+                    <img src={dynamicLogo || alsaifMark?.url || ""} className="absolute -left-10 -top-10 size-64 object-contain brightness-0 invert" alt="" />
                   </div>
                   <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 z-1" />
 
@@ -321,7 +323,7 @@ function Dashboard() {
 
                               {/* Decorative family mark - smaller and on the left */}
                               <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110">
-                                 <img src={alsaifMark?.url || ""} className="size-20 md:size-28 object-contain brightness-0 invert" alt="" />
+                                 <img src={dynamicLogo || alsaifMark?.url || ""} className="size-20 md:size-28 object-contain brightness-0 invert" alt="" />
                               </div>
 
                               {/* Top Section: Badge & Icon */}
@@ -410,7 +412,7 @@ function Dashboard() {
                        <CarouselItem key={meeting.id}>
                          <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-white/5 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full group">
                             <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 group-hover:scale-110 transition-transform duration-1000">
-                               <img src={alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
+                               <img src={dynamicLogo || alsaifMark?.url || ""} className="size-full object-contain brightness-0 invert" alt="" />
                             </div>
                             <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
 
