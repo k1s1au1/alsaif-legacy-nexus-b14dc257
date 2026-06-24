@@ -248,6 +248,37 @@ function SettingsPage() {
              </div>
           </div>
         </section>
+
+        {/* Backgrounds — admin/chairman only */}
+        {canCustomizeBg && (
+          <section className="space-y-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
+            <div className="flex items-center gap-4">
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">خلفيات الواجهة</h3>
+              <div className="h-px flex-1 bg-border/60" />
+            </div>
+            <div className="card-surface p-8 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                  <ImagePlus className="size-6" />
+                </div>
+                <div>
+                  <h4 className="text-lg font-black text-primary">تخصيص الخلفيات</h4>
+                  <p className="text-xs font-bold text-muted-foreground opacity-60">متاح لمسؤولي النظام ورئيس المجلس فقط.</p>
+                </div>
+              </div>
+              <div className="grid gap-6 md:grid-cols-2">
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">صفحة الدخول</p>
+                  <BackgroundUploader inline settingKey="auth_bg" label="خلفية تسجيل الدخول" />
+                </div>
+                <div className="space-y-3">
+                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">لوحة التحكم</p>
+                  <BackgroundUploader inline settingKey="dashboard_bg" label="خلفية اللوحة الرئيسية" />
+                </div>
+              </div>
+            </div>
+          </section>
+        )}
       </div>
 
       {/* Color Picker Overlay */}
