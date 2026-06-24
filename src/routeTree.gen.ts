@@ -20,6 +20,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedMeetingsRouteImport } from './routes/_authenticated/meetings'
 import { Route as AuthenticatedMajlisRouteImport } from './routes/_authenticated/majlis'
+import { Route as AuthenticatedHeritageRouteImport } from './routes/_authenticated/heritage'
 import { Route as AuthenticatedFinanceRouteImport } from './routes/_authenticated/finance'
 import { Route as AuthenticatedFamilyTreeRouteImport } from './routes/_authenticated/family-tree'
 import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
@@ -87,6 +88,11 @@ const AuthenticatedMeetingsRoute = AuthenticatedMeetingsRouteImport.update({
 const AuthenticatedMajlisRoute = AuthenticatedMajlisRouteImport.update({
   id: '/majlis',
   path: '/majlis',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedHeritageRoute = AuthenticatedHeritageRouteImport.update({
+  id: '/heritage',
+  path: '/heritage',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFinanceRoute = AuthenticatedFinanceRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/events': typeof AuthenticatedEventsRoute
   '/family-tree': typeof AuthenticatedFamilyTreeRoute
   '/finance': typeof AuthenticatedFinanceRoute
+  '/heritage': typeof AuthenticatedHeritageRoute
   '/majlis': typeof AuthenticatedMajlisRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -194,6 +201,7 @@ export interface FileRoutesByTo {
   '/events': typeof AuthenticatedEventsRoute
   '/family-tree': typeof AuthenticatedFamilyTreeRoute
   '/finance': typeof AuthenticatedFinanceRoute
+  '/heritage': typeof AuthenticatedHeritageRoute
   '/majlis': typeof AuthenticatedMajlisRoute
   '/meetings': typeof AuthenticatedMeetingsRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -221,6 +229,7 @@ export interface FileRoutesById {
   '/_authenticated/events': typeof AuthenticatedEventsRoute
   '/_authenticated/family-tree': typeof AuthenticatedFamilyTreeRoute
   '/_authenticated/finance': typeof AuthenticatedFinanceRoute
+  '/_authenticated/heritage': typeof AuthenticatedHeritageRoute
   '/_authenticated/majlis': typeof AuthenticatedMajlisRoute
   '/_authenticated/meetings': typeof AuthenticatedMeetingsRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -248,6 +257,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/family-tree'
     | '/finance'
+    | '/heritage'
     | '/majlis'
     | '/meetings'
     | '/notifications'
@@ -272,6 +282,7 @@ export interface FileRouteTypes {
     | '/events'
     | '/family-tree'
     | '/finance'
+    | '/heritage'
     | '/majlis'
     | '/meetings'
     | '/notifications'
@@ -298,6 +309,7 @@ export interface FileRouteTypes {
     | '/_authenticated/events'
     | '/_authenticated/family-tree'
     | '/_authenticated/finance'
+    | '/_authenticated/heritage'
     | '/_authenticated/majlis'
     | '/_authenticated/meetings'
     | '/_authenticated/notifications'
@@ -397,6 +409,13 @@ declare module '@tanstack/react-router' {
       path: '/majlis'
       fullPath: '/majlis'
       preLoaderRoute: typeof AuthenticatedMajlisRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/heritage': {
+      id: '/_authenticated/heritage'
+      path: '/heritage'
+      fullPath: '/heritage'
+      preLoaderRoute: typeof AuthenticatedHeritageRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/finance': {
@@ -514,6 +533,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedEventsRoute: typeof AuthenticatedEventsRoute
   AuthenticatedFamilyTreeRoute: typeof AuthenticatedFamilyTreeRoute
   AuthenticatedFinanceRoute: typeof AuthenticatedFinanceRoute
+  AuthenticatedHeritageRoute: typeof AuthenticatedHeritageRoute
   AuthenticatedMajlisRoute: typeof AuthenticatedMajlisRoute
   AuthenticatedMeetingsRoute: typeof AuthenticatedMeetingsRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -535,6 +555,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedEventsRoute: AuthenticatedEventsRoute,
   AuthenticatedFamilyTreeRoute: AuthenticatedFamilyTreeRoute,
   AuthenticatedFinanceRoute: AuthenticatedFinanceRoute,
+  AuthenticatedHeritageRoute: AuthenticatedHeritageRoute,
   AuthenticatedMajlisRoute: AuthenticatedMajlisRoute,
   AuthenticatedMeetingsRoute: AuthenticatedMeetingsRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -560,3 +581,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
