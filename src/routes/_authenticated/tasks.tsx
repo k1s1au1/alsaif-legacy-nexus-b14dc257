@@ -24,6 +24,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   ssr: false,
@@ -118,16 +119,6 @@ function TasksPage() {
       await loadAll();
     })();
   }, [loadAll, userId, primaryRole]);
-      setProfile({
-        name,
-        role: r.includes("admin") ? "مسؤول النظام" : r.includes("manager") ? "مدير" : "عضو",
-        initial: name[0].toUpperCase(),
-        avatarPath: p?.avatar_url ?? null
-      });
-
-      await loadAll();
-    })();
-  }, [loadAll]);
 
   const filteredTasks = useMemo(() => {
     let list = tasks;
@@ -281,99 +272,99 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
       layout
       initial={{ opacity: 0, scale: 0.9, y: 30 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
-      transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 30 }}
+      transition={{ delay: index * 0.05, type: \"spring\", stiffness: 400, damping: 30 }}
       className={cn(
-        "group relative bg-white dark:bg-[#0D0F14] border-2 border-border/30 rounded-[44px] p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold-primary/30 hover:shadow-gold-primary/5",
-        isDone && "border-emerald-500/20 bg-emerald-500/[0.02]"
+        \"group relative bg-white dark:bg-[#0D0F14] border-2 border-border/30 rounded-[44px] p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold-primary/30 hover:shadow-gold-primary/5\",
+        isDone && \"border-emerald-500/20 bg-emerald-500/[0.02]\"
       )}
     >
-       <div className="space-y-8">
-          <header className="flex items-start justify-between">
-             <div className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm flex items-center gap-2", priority.color.replace('bg-', 'text-').replace('text-', 'border-').replace('border-', 'bg-') + "/10")}>
-                <span className={cn("size-1.5 rounded-full animate-pulse", priority.color)} />
+       <div className=\"space-y-8\">
+          <header className=\"flex items-start justify-between\">
+             <div className={cn(\"px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm flex items-center gap-2\", priority.color.replace(\'bg-\', \'text-\').replace(\'text-\', \'border-\').replace(\'border-\', \'bg-\') + \"/10\")}>
+                <span className={cn(\"size-1.5 rounded-full animate-pulse\", priority.color)} />
                 {priority.label}
              </div>
              {canManage && (
-                <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
-                   <button onClick={onEdit} className="size-10 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm"><Pencil size={16} /></button>
-                   <button onClick={() => onDelete(task.id)} className="size-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>
+                <div className=\"flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300\">
+                   <button onClick={onEdit} className=\"size-10 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm\"><Pencil size={16} /></button>
+                   <button onClick={() => onDelete(task.id)} className=\"size-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm\"><Trash2 size={16} /></button>
                 </div>
              )}
           </header>
 
-          <div className="space-y-3">
-             <h4 className={cn("text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors", isDone && "text-emerald-600")}>{task.title}</h4>
-             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity">{task.description}</p>}
+          <div className=\"space-y-3\">
+             <h4 className={cn(\"text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors\", isDone && \"text-emerald-600\")}>{task.title}</h4>
+             {task.description && <p className=\"text-sm md:text-base font-bold text-muted-foreground leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity\">{task.description}</p>}
           </div>
 
-          <div className="space-y-6">
-             <div className="flex items-end justify-between">
-                <div className="space-y-1">
-                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">مرحلة الإنجاز</p>
-                   <p className={cn("text-lg font-black tracking-tighter",
-                     isDone ? "text-emerald-500" :
-                     task.progress >= 80 ? "text-amber-500" :
-                     task.progress >= 40 ? "text-blue-500" : "text-primary"
+          <div className=\"space-y-6\">
+             <div className=\"flex items-end justify-between\">
+                <div className=\"space-y-1\">
+                   <p className=\"text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50\">مرحلة الإنجاز</p>
+                   <p className={cn(\"text-lg font-black tracking-tighter\",
+                     isDone ? \"text-emerald-500\" :
+                     task.progress >= 80 ? \"text-amber-500\" :
+                     task.progress >= 40 ? \"text-blue-500\" : \"text-primary\"
                    )}>
-                     {isDone ? "مكتملة" :
-                      task.progress >= 80 ? "قيد المراجعة" :
-                      task.progress >= 40 ? "قيد التنفيذ" : "بانتظار البدء"}
+                     {isDone ? \"مكتملة\" :
+                      task.progress >= 80 ? \"قيد المراجعة\" :
+                      task.progress >= 40 ? \"قيد التنفيذ\" : \"بانتظار البدء\"}
                    </p>
                 </div>
-                <span className={cn("text-3xl font-black tracking-tighter leading-none", isDone ? "text-emerald-500" : "text-primary")}>{task.progress}%</span>
+                <span className={cn(\"text-3xl font-black tracking-tighter leading-none\", isDone ? \"text-emerald-500\" : \"text-primary\")}>{task.progress}%</span>
              </div>
 
              {/* Functional Professional Toggle */}
-             <div className="flex items-center gap-1.5 p-1 bg-muted/40 rounded-2xl border border-border/10">
+             <div className=\"flex items-center gap-1.5 p-1 bg-muted/40 rounded-2xl border border-border/10\">
                 <StatusStep
                   active={task.progress === 0}
                   disabled={!isAssignee}
                   onClick={() => onProgressChange(task.id, 0)}
-                  label="انتظار"
+                  label=\"انتظار\"
                 />
                 <StatusStep
                   active={task.progress > 0 && task.progress < 80}
                   disabled={!isAssignee}
                   onClick={() => onProgressChange(task.id, 40)}
-                  label="تنفيذ"
+                  label=\"تنفيذ\"
                 />
                 <StatusStep
                   active={task.progress >= 80 && task.progress < 100}
                   disabled={!isAssignee}
                   onClick={() => onProgressChange(task.id, 80)}
-                  label="مراجعة"
+                  label=\"مراجعة\"
                 />
                 <StatusStep
                   active={isDone}
                   disabled={!isAssignee}
                   onClick={() => onProgressChange(task.id, 100)}
-                  label="إكمال"
+                  label=\"إكمال\"
                 />
              </div>
           </div>
 
-          <div className="flex items-center justify-between pt-8 border-t border-border/40">
+          <div className=\"flex items-center justify-between pt-8 border-t border-border/40\">
              {assignee ? (
-                <div className="flex items-center gap-3">
-                   <div className="size-12 rounded-[18px] overflow-hidden border-2 border-white shadow-xl ring-1 ring-border/20 group-hover:scale-110 transition-transform">
-                      <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
+                <div className=\"flex items-center gap-3\">
+                   <div className=\"size-12 rounded-[18px] overflow-hidden border-2 border-white shadow-xl ring-1 ring-border/20 group-hover:scale-110 transition-transform\">
+                      <UserAvatar path={assignee.avatar_url} name={assignee.name} className=\"size-full\" userId={assignee.id} />
                    </div>
-                   <div className="space-y-0.5">
-                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">المسؤول</p>
-                      <p className="text-xs font-black text-primary">{assignee.name}</p>
+                   <div className=\"space-y-0.5\">
+                      <p className=\"text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50\">المسؤول</p>
+                      <p className=\"text-xs font-black text-primary\">{assignee.name}</p>
                    </div>
                 </div>
              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground/30 italic text-[10px] font-black uppercase tracking-widest">
+                <div className=\"flex items-center gap-2 text-muted-foreground/30 italic text-[10px] font-black uppercase tracking-widest\">
                    <X size={12} strokeWidth={3} /> بانتظار تكليف
                 </div>
              )}
 
-             <div className="text-left bg-muted/30 px-4 py-2 rounded-2xl border border-border/20">
-                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">الاستحقاق</p>
-                <div className="flex items-center gap-2">
-                   <Clock className="size-3 text-gold-primary" />
-                   <span className="text-xs font-black text-primary/80">{formatDate(task.due_date)}</span>
+             <div className=\"text-left bg-muted/30 px-4 py-2 rounded-2xl border border-border/20\">
+                <p className=\"text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50\">الاستحقاق</p>
+                <div className=\"flex items-center gap-2\">
+                   <Clock className=\"size-3 text-gold-primary\" />
+                   <span className=\"text-xs font-black text-primary/80\">{formatDate(task.due_date)}</span>
                 </div>
              </div>
           </div>
@@ -383,7 +374,7 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
          <motion.div
            initial={{ scale: 0 }}
            animate={{ scale: 1 }}
-           className="absolute -top-4 -left-4 size-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xl border-4 border-white dark:border-[#0D0F14] z-20"
+           className=\"absolute -top-4 -left-4 size-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xl border-4 border-white dark:border-[#0D0F14] z-20\"
          >
             <Check size={28} strokeWidth={4} />
          </motion.div>
@@ -397,15 +388,15 @@ function FilterTab({ active, onClick, label, count, color }: any) {
     <button
       onClick={onClick}
       className={cn(
-        "px-6 py-3 rounded-2xl md:rounded-3xl text-[10px] md:text-xs font-black transition-all border flex items-center gap-2 shrink-0",
+        \"px-6 py-3 rounded-2xl md:rounded-3xl text-[10px] md:text-xs font-black transition-all border flex items-center gap-2 shrink-0\",
         active
-          ? "bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-105"
-          : "bg-white dark:bg-card/50 border-border/40 text-muted-foreground hover:bg-muted hover:border-border"
+          ? \"bg-primary text-white border-primary shadow-xl shadow-primary/20 scale-105\"
+          : \"bg-white dark:bg-card/50 border-border/40 text-muted-foreground hover:bg-muted hover:border-border\"
       )}
     >
-       {color && <span className={cn("size-1.5 rounded-full", color)} />}
+       {color && <span className={cn(\"size-1.5 rounded-full\", color)} />}
        <span>{label}</span>
-       {count !== undefined && <span className={cn("min-w-[18px] h-4 px-1 rounded-md text-[8px] flex items-center justify-center", active ? "bg-white/20 text-white" : "bg-muted text-muted-foreground")}>{count}</span>}
+       {count !== undefined && <span className={cn(\"min-w-[18px] h-4 px-1 rounded-md text-[8px] flex items-center justify-center\", active ? \"bg-white/20 text-white\" : \"bg-muted text-muted-foreground\")}>{count}</span>}
     </button>
   );
 }
@@ -416,10 +407,10 @@ function StatusStep({ active, disabled, onClick, label }: any) {
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex-1 py-2 px-1 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all",
+        \"flex-1 py-2 px-1 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all\",
         active
-          ? "bg-white dark:bg-card text-primary shadow-sm"
-          : "text-muted-foreground opacity-60 hover:opacity-100 disabled:cursor-not-allowed"
+          ? \"bg-white dark:bg-card text-primary shadow-sm\"
+          : \"text-muted-foreground opacity-60 hover:opacity-100 disabled:cursor-not-allowed\"
       )}
     >
       {label}
@@ -430,12 +421,12 @@ function StatusStep({ active, disabled, onClick, label }: any) {
 function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    title: task?.title ?? "",
-    description: task?.description ?? "",
+    title: task?.title ?? \"\",
+    description: task?.description ?? \"\",
     progress: task?.progress ?? 0,
-    priority: task?.priority ?? "medium",
-    due_date: task?.due_date ? task.due_date.slice(0, 10) : "",
-    assignee_id: task?.assignee_id ?? "none",
+    priority: task?.priority ?? \"medium\",
+    due_date: task?.due_date ? task.due_date.slice(0, 10) : \"\",
+    assignee_id: task?.assignee_id ?? \"none\",
   });
 
   const submit = async (e: any) => {
@@ -444,73 +435,72 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
     setSaving(true);
     const payload = {
       ...form,
-      status: form.progress === 100 ? 'done' : form.progress === 0 ? 'todo' : 'in_progress',
-      assignee_id: form.assignee_id === "none" ? null : form.assignee_id,
+      status: form.progress === 100 ? \'done\' : form.progress === 0 ? \'todo\' : \'in_progress\',
+      assignee_id: form.assignee_id === \"none\" ? null : form.assignee_id,
       due_date: form.due_date ? new Date(form.due_date).toISOString() : null,
       completed_at: form.progress === 100 ? new Date().toISOString() : null,
     };
     let error;
     if (task) {
-      ({ error } = await supabase.from("tasks").update(payload as any).eq("id", task.id));
+      ({ error } = await supabase.from(\"tasks\").update(payload as any).eq(\"id\", task.id));
     } else {
-      ({ error } = await supabase.from("tasks").insert({ ...payload, created_by: userId } as any));
-
+      ({ error } = await supabase.from(\"tasks\").insert({ ...payload, created_by: userId } as any));
     }
     setSaving(false);
-    if (!error) { toast.success("تم الحفظ بنجاح"); onSaved(); onClose(); }
-    else { toast.error("فشل الحفظ: " + error.message); }
+    if (!error) { toast.success(\"تم الحفظ بنجاح\"); onSaved(); onClose(); }
+    else { toast.error(\"فشل الحفظ: \" + error.message); }
   };
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 md:p-4 bg-black/90 backdrop-blur-2xl" dir="rtl">
+    <div className=\"fixed inset-0 z-[100] flex items-center justify-center p-3 md:p-4 bg-black/90 backdrop-blur-2xl\" dir=\"rtl\">
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0F1116] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-14 space-y-8 md:space-y-10 shadow-2xl rounded-[32px] md:rounded-[60px] relative custom-scrollbar"
+        className=\"bg-white dark:bg-[#0F1116] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-14 space-y-8 md:space-y-10 shadow-2xl rounded-[32px] md:rounded-[60px] relative custom-scrollbar\"
         onClick={(e) => e.stopPropagation()}
       >
-         <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-[#0F1116] z-10 pb-4 border-b border-border/20">
-            <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">{task ? "تعديل المبادرة" : "مبادرة جديدة"}</h3>
-            <button onClick={onClose} className="size-10 md:size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
+         <div className=\"flex items-center justify-between sticky top-0 bg-white dark:bg-[#0F1116] z-10 pb-4 border-b border-border/20\">
+            <h3 className=\"text-2xl md:text-3xl font-black text-primary tracking-tight\">{task ? \"تعديل المبادرة\" : \"مبادرة جديدة\"}</h3>
+            <button onClick={onClose} className=\"size-10 md:size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all\"><X size={20} /></button>
          </div>
 
-         <form onSubmit={submit} className="space-y-6 md:space-y-8">
-            <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان المبادرة</label>
-               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ما هي المهمة؟" className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-base md:text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" required />
+         <form onSubmit={submit} className=\"space-y-6 md:space-y-8\">
+            <div className=\"space-y-2\">
+               <label className=\"text-[10px] font-black uppercase tracking-widest text-primary/60 px-2\">عنوان المبادرة</label>
+               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder=\"ما هي المهمة؟\" className=\"w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-base md:text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner\" required />
             </div>
 
-            <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">التفاصيل والأهداف</label>
-               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل وصفاً تفصيلياً..." rows={3} className="w-full p-5 md:p-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner" />
+            <div className=\"space-y-2\">
+               <label className=\"text-[10px] font-black uppercase tracking-widest text-primary/60 px-2\">التفاصيل والأهداف</label>
+               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder=\"أدخل وصفاً تفصيلياً...\" rows={3} className=\"w-full p-5 md:p-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner\" />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
-               <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">المستوى</label>
-                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
-                     <option value="low">عادية</option>
-                     <option value="medium">متوسطة الأهمية</option>
-                     <option value="high">عاجلة جداً</option>
+            <div className=\"grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8\">
+               <div className=\"space-y-2\">
+                  <label className=\"text-[10px] font-black uppercase tracking-widest text-primary/60 px-2\">المستوى</label>
+                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className=\"w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner\">
+                     <option value=\"low\">عادية</option>
+                     <option value=\"medium\">متوسطة الأهمية</option>
+                     <option value=\"high\">عاجلة جداً</option>
                   </select>
                </div>
-               <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تاريخ الإنجاز</label>
-                  <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" />
+               <div className=\"space-y-2\">
+                  <label className=\"text-[10px] font-black uppercase tracking-widest text-primary/60 px-2\">تاريخ الإنجاز</label>
+                  <input type=\"date\" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className=\"w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner\" />
                </div>
-               <div className="space-y-2 md:col-span-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">المسؤول عن التنفيذ</label>
-                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
-                     <option value="none">— اختر الفرد المسؤول —</option>
+               <div className=\"space-y-2 md:col-span-2\">
+                  <label className=\"text-[10px] font-black uppercase tracking-widest text-primary/60 px-2\">المسؤول عن التنفيذ</label>
+                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className=\"w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner\">
+                     <option value=\"none\">— اختر الفرد المسؤول —</option>
                      {members.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                </div>
             </div>
 
-            <div className="flex gap-4 pt-4 md:pt-8 sticky bottom-0 bg-white dark:bg-[#0F1116] py-4 border-t border-border/20">
-               <button type="button" onClick={onClose} className="flex-1 py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
-               <button disabled={saving} type="submit" className="flex-[2] btn-gold py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
-                 {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد المبادرة</span>}
+            <div className=\"flex gap-4 pt-4 md:pt-8 sticky bottom-0 bg-white dark:bg-[#0F1116] py-4 border-t border-border/20\">
+               <button type=\"button\" onClick={onClose} className=\"flex-1 py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-muted-foreground hover:bg-muted transition-all\">تراجع</button>
+               <button disabled={saving} type=\"submit\" className=\"flex-[2] btn-gold py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3\">
+                 {saving ? <Loader2 className=\"size-6 animate-spin\" /> : <span>تأكيد المبادرة</span>}
                </button>
             </div>
          </form>

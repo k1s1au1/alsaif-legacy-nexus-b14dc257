@@ -70,7 +70,6 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/chat/$conversationId")({
   ssr: false,

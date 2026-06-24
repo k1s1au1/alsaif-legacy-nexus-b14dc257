@@ -40,7 +40,6 @@ import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
