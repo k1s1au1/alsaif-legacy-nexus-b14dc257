@@ -986,6 +986,7 @@ export type Database = {
         | "head_events"
         | "head_trips"
         | "head_finance"
+        | "head_heritage"
       archive_media_type: "image" | "video"
       archive_section: "family" | "meetings" | "events" | "trips"
       bank_transfer_status: "pending" | "approved" | "rejected"
@@ -1146,6 +1147,7 @@ export const Constants = {
         "head_events",
         "head_trips",
         "head_finance",
+        "head_heritage",
       ],
       archive_media_type: ["image", "video"],
       archive_section: ["family", "meetings", "events", "trips"],
