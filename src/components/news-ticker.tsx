@@ -79,15 +79,15 @@ export function NewsTicker() {
   const Icon = current.icon;
 
   return (
-    <div className="w-full bg-white dark:bg-card border-b border-border/40 overflow-hidden h-12 flex items-center px-4 md:px-12 shadow-sm relative z-40">
-       <div className="flex items-center gap-3 shrink-0 border-l border-border/40 pl-6 ml-6">
-          <div className="size-8 rounded-xl bg-gold-primary/10 flex items-center justify-center">
-             <Megaphone className="size-4 text-gold-primary" />
+    <div className="w-full overflow-hidden h-10 sm:h-12 flex items-center px-2 sm:px-4 md:px-12 relative z-40 bg-white/40 dark:bg-card/30 backdrop-blur-xl border-b border-white/30 dark:border-white/5 shadow-[0_4px_24px_-12px_rgba(0,0,0,0.1)]">
+       <div className="flex items-center gap-2 sm:gap-3 shrink-0 sm:border-l sm:border-border/40 sm:pl-4 sm:ml-4">
+          <div className="size-6 sm:size-8 rounded-lg sm:rounded-xl bg-gold-primary/15 backdrop-blur-md flex items-center justify-center border border-gold-primary/20">
+             <Megaphone className="size-3 sm:size-4 text-gold-primary" />
           </div>
-          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/40 hidden sm:block">نبض السيف</span>
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-primary/50 hidden md:block">نبض السيف</span>
        </div>
 
-       <div className="relative flex-1 h-full overflow-hidden flex items-center">
+       <div className="relative flex-1 h-full overflow-hidden flex items-center min-w-0">
           <AnimatePresence mode="wait">
              <motion.div
                key={current.id}
@@ -95,19 +95,19 @@ export function NewsTicker() {
                animate={{ x: 0, opacity: 1 }}
                exit={{ x: -50, opacity: 0 }}
                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-               className={cn("flex items-center gap-4 px-4 py-1.5 rounded-2xl w-full", current.bg)}
+               className={cn("flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-1 sm:py-1.5 rounded-xl sm:rounded-2xl w-full backdrop-blur-md border border-white/30 dark:border-white/5", current.bg)}
              >
-                <div className={cn("size-6 rounded-lg flex items-center justify-center shrink-0 shadow-sm bg-white dark:bg-card", current.color)}>
-                   <Icon size={14} />
+                <div className={cn("size-5 sm:size-6 rounded-md sm:rounded-lg flex items-center justify-center shrink-0 shadow-sm bg-white/70 dark:bg-card/70 backdrop-blur-sm", current.color)}>
+                   <Icon size={12} className="sm:size-3.5" />
                 </div>
-                <p className="text-sm font-black text-primary/80 truncate leading-none pt-0.5" style={{ fontFamily: '"IBM Plex Sans Arabic", sans-serif' }}>
+                <p className="text-[11px] sm:text-sm font-black text-primary/80 truncate leading-none pt-0.5" style={{ fontFamily: '"IBM Plex Sans Arabic", sans-serif' }}>
                    {current.text}
                 </p>
              </motion.div>
           </AnimatePresence>
        </div>
 
-       <div className="flex items-center gap-1.5 mr-6 pr-6 border-r border-border/40">
+       <div className="hidden sm:flex items-center gap-1.5 mr-4 pr-4 border-r border-border/40">
           {items.map((_, i) => (
              <div
                key={i}

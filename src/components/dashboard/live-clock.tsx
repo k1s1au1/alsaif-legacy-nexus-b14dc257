@@ -22,12 +22,12 @@ export function LiveClock() {
     h = h % 12 || 12;
 
     return (
-      <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-xs text-muted-foreground">
-        <span className="font-medium text-gold-primary tabular-nums text-sm tracking-wider">
+      <div className="flex flex-wrap items-baseline justify-center gap-x-2 sm:gap-x-4 gap-y-1 text-[10px] sm:text-xs text-muted-foreground">
+        <span className="font-medium text-gold-primary tabular-nums text-xs sm:text-sm tracking-wider">
           {h.toString().padStart(2, "0")}:{m}
-          <span className="text-muted-foreground/60">:{s}</span> {suffix}
+          <span className="text-muted-foreground/60 hidden sm:inline">:{s}</span> {suffix}
         </span>
-        <span>
+        <span className="truncate">
           {AR_DAYS[now.getDay()]}، {now.getDate()} {AR_MONTHS[now.getMonth()]} {now.getFullYear()}
         </span>
       </div>
