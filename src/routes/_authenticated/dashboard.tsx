@@ -21,7 +21,7 @@ import {
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-final-mark.png";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
@@ -195,7 +195,7 @@ function Dashboard() {
              <div className="absolute -inset-8 bg-gradient-to-br from-gold-primary/20 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
              <div
                className="size-48 md:size-64 relative z-10 logo-alsaif hover:scale-110 transition-transform duration-1000 cursor-pointer"
-               style={{ '--logo-url': `url(${alsaifMark})` } as any}
+               style={{ '--logo-url': `url(${alsaifMark.url})` } as any}
              />
            </div>
 
