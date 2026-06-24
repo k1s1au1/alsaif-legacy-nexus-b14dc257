@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-mark.png";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { motion, AnimatePresence } from "framer-motion";
 
 const FONTS = [
@@ -244,7 +244,7 @@ function SettingsPage() {
              <SettingRow icon={<ShieldCheck />} title="الأمان" desc="التحقق من الهوية مفعل" />
              <div className="p-8 flex items-center justify-between text-muted-foreground/40 italic">
                 <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
-                <img src={alsaifMark} className="size-6 grayscale opacity-20" alt="" />
+                <img src={alsaifMark.url} className="size-6 grayscale opacity-20" alt="" />
              </div>
           </div>
         </section>

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User, Quote } from "lucide-react";
-import logoAsset from "@/assets/alsaif-mark.png";
+import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { paletteToCssVars } from "@/lib/bg-palette";
 import { motion, AnimatePresence } from "framer-motion";
@@ -132,7 +132,7 @@ function AuthPage() {
               <div
                 className="size-full relative z-10 logo-alsaif"
                 style={{
-                  '--logo-url': `url(${logoAsset})`,
+                  '--logo-url': `url(${logoAsset?.url || ""})`,
                   backgroundColor: 'var(--primary)'
                 } as any}
               />

@@ -34,7 +34,7 @@ import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/chat")({
   ssr: false,
@@ -382,7 +382,7 @@ function ChatLayout() {
                  <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full" />
                  <div
                    className="size-48 md:size-64 relative z-10 logo-alsaif opacity-40"
-                   style={{ '--logo-url': `url(${alsaifMark})` } as any}
+                   style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
                  />
                </div>
                <div className="space-y-2 max-w-sm">

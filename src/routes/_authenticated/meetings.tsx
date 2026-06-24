@@ -21,7 +21,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-mark.png";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import Autoplay from "embla-carousel-autoplay";
@@ -450,7 +450,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
          myRsvp === 'not_going' ? "bg-gradient-to-br from-rose-900 via-rose-950 to-black" :
          "bg-gradient-to-br from-primary via-[#1a2b3c] to-black"
        )} />
-       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark})` } as any} />
+       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
        <div className="absolute -top-40 -right-40 size-[300px] md:size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 
        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8 w-full">

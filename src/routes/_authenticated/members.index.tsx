@@ -7,7 +7,7 @@ import { Loader2, Search, Users, ShieldCheck, Mail, MapPin, ChevronLeft, Trash2 
 import { PresenceDot, presenceFromLastSeen, type PresenceState } from "@/lib/presence";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { toast } from "sonner";
@@ -223,7 +223,7 @@ function MemberCard({ member, index, presenceTime, meId, canDelete, onDelete }: 
 
             {/* Background Mark Decor */}
             <div className="absolute top-0 left-0 opacity-[0.02] -translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:opacity-[0.05] transition-opacity duration-700">
-                <img src={alsaifMark} className="size-32" alt="" />
+                <img src={alsaifMark.url} className="size-32" alt="" />
             </div>
 
             {/* Avatar Section */}
