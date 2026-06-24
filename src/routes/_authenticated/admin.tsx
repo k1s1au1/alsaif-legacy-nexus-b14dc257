@@ -509,59 +509,9 @@ function AdminPage() {
                     ))}
                   </div>
                 </motion.div>
-              ) : section === "attendance" ? (
-                <AttendanceSection />
               ) : (
-                <motion.div
-                  key="site"
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                  className="grid grid-cols-1 md:grid-cols-2 gap-8"
-                >
-                  <div className="card-surface p-8 sm:p-10 space-y-8 relative overflow-hidden">
-                    <div
-                      className="absolute top-0 left-0 size-64 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none logo-alsaif"
-                      style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
-                    />
-                    <div className="space-y-2 relative z-10">
-                      <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary mb-4 shadow-inner">
-                        <ImagePlus className="size-6" />
-                      </div>
-                      <h3 className="text-2xl font-black text-primary">تخصيص الواجهة</h3>
-                      <p className="text-sm font-bold text-muted-foreground opacity-60">تغيير الصور الخلفية لصفحات المجلس.</p>
-                    </div>
-                    <div className="grid gap-6 relative z-10">
-                       <div className="space-y-4">
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">صفحة الدخول</p>
-                          <BackgroundUploader inline settingKey="auth_bg" label="خلفية تسجيل الدخول" />
-                       </div>
-                       <div className="space-y-4 pt-6 border-t border-border/40">
-                          <p className="text-[10px] font-black uppercase tracking-widest opacity-40">لوحة التحكم</p>
-                          <BackgroundUploader inline settingKey="dashboard_bg" label="خلفية اللوحة الرئيسية" />
-                       </div>
-                    </div>
-                  </div>
-
-                  {/* Meetings Actions Card */}
-                  <div className="card-surface p-8 sm:p-10 space-y-8 flex flex-col justify-between">
-                    <div className="space-y-6">
-                      <div className="space-y-2">
-                        <div className="size-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-4 shadow-inner">
-                          <CalendarPlus className="size-6" />
-                        </div>
-                        <h3 className="text-2xl font-black text-primary">الاجتماعات</h3>
-                        <p className="text-sm font-bold text-muted-foreground opacity-60">جدولة لقاءات عائلية جديدة ودعوة الأعضاء.</p>
-                      </div>
-                    </div>
-                    <Link
-                      to="/meetings"
-                      hash="new"
-                      className="btn-gold w-full py-5 rounded-[28px] text-center text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3"
-                    >
-                      <Plus className="size-6" strokeWidth={3} />
-                      إنشاء اجتماع جديد
-                    </Link>
-                  </div>
-                </motion.div>
+                <AttendanceSection />
+              )}
               )}
             </AnimatePresence>
           </>
