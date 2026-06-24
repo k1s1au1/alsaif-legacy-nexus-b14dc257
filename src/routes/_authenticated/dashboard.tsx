@@ -63,6 +63,8 @@ function Dashboard() {
   const [fundBalance, setFundBalance] = useState<number>(0);
   const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
   const [upcomingTrips, setUpcomingTrips] = useState<any[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [annIndex, setAnnIndex] = useState(0);
   const [tripsCount, setTripsCount] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
