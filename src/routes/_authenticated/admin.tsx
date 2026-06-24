@@ -105,7 +105,7 @@ const REQ_TABS: { key: ReqRow["status"]; label: string }[] = [
   { key: "rejected", label: "مرفوضة" },
 ];
 
-type Section = "requests" | "roles" | "attendance" | "site";
+type Section = "requests" | "roles" | "attendance";
 
 function AdminPage() {
   const [profile, setProfile] = useState({
