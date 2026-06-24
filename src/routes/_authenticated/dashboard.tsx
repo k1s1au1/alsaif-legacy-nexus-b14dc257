@@ -35,7 +35,6 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
-import { NewsTicker } from "@/components/news-ticker";
 import Autoplay from "embla-carousel-autoplay";
 import {
   Carousel,
@@ -180,7 +179,6 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
-      <NewsTicker />
       <div className="max-w-6xl mx-auto space-y-12 pb-20">
 
         {/* Hero Section */}
