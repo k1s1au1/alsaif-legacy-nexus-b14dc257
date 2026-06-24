@@ -361,12 +361,6 @@ function AdminPage() {
                 icon={<ClipboardList className="size-4" />}
                 label="الحضور"
               />
-              <NavTab
-                active={section === "site"}
-                onClick={() => setSection("site")}
-                icon={<Palette className="size-4" />}
-                label="التخصيص"
-              />
             </div>
 
             <AnimatePresence mode="wait">
