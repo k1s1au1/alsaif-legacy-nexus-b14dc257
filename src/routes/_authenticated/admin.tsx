@@ -807,3 +807,123 @@ function RoleToggleBtn({ active, onClick, icon, label, activeClass }: any) {
   );
 }
 
+function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, setDraft, imagePreview, onPickImage, onSave, onEdit, onDelete, saving }: any) {
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <div className="space-y-1">
+          <h3 className="text-xl font-black text-primary tracking-tight">إدارة الإعلانات</h3>
+          <p className="text-sm font-bold text-muted-foreground opacity-60">نشر وتعديل الإعلانات التي تظهر في اللوحة الرئيسية للمجلس.</p>
+        </div>
+        <button
+          onClick={onOpenForm}
+          className="btn-gold px-6 py-3 rounded-2xl flex items-center gap-2 text-sm font-black shadow-xl shadow-gold-primary/20"
+        >
+          <Plus size={18} strokeWidth={3} />
+          <span>إعلان جديد</span>
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {formOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="card-surface p-8 space-y-6 border-gold-primary/20">
+              <div className="flex items-center justify-between">
+                 <h4 className="text-lg font-black text-primary">تفاصيل الإعلان</h4>
+                 <button onClick={onCloseForm} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
+              </div>
+
+              <div className="space-y-4">
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان الإعلان</label>
+                    <input
+                      value={draft.title}
+                      onChange={e => setDraft({ ...draft, title: e.target.value })}
+                      placeholder="عنوان جذاب..."
+                      className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-black text-base focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all"
+                    />
+                 </div>
+
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">نص الإعلان</label>
+                    <textarea
+                      value={draft.body}
+                      onChange={e => setDraft({ ...draft, body: e.target.value })}
+                      placeholder="اكتب المحتوى هنا..."
+                      rows={4}
+                      className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none"
+                    />
+                 </div>
+
+                 <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">صورة الإعلان (اختياري)</label>
+                    <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload">
+                       {imagePreview ? (
+                          <img src={imagePreview} className="h-40 w-full object-contain rounded-2xl shadow-xl" alt="Preview" />
+                       ) : (
+                          <>
+                             <ImageIcon className="size-8 text-muted-foreground opacity-30 group-hover/upload:scale-110 transition-transform" />
+                             <span className="text-xs font-bold text-muted-foreground">اضغط لرفع صورة الإعلان</span>
+                          </>
+                       )}
+                       <input
+                         type="file"
+                         hidden
+                         accept="image/*"
+                         onChange={(e) => {
+                           const f = e.target.files?.[0];
+                           if (f) onPickImage(f);
+                         }}
+                       />
+                    </label>
+                 </div>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4">
+                 <button onClick={onCloseForm} className="px-8 py-3 rounded-xl font-black text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
+                 <button
+                   disabled={saving}
+                   onClick={onSave}
+                   className="btn-gold px-12 py-3 rounded-xl font-black flex items-center gap-2 shadow-xl shadow-gold-primary/20 disabled:opacity-50"
+                 >
+                   {saving ? <Loader2 className="animate-spin size-5" /> : <Check size={20} strokeWidth={3} />}
+                   <span>نشر الإعلان</span>
+                 </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {list.map((a: any) => (
+          <div key={a.id} className="card-surface p-6 flex flex-col justify-between group">
+             <div className="space-y-4">
+                <div className="flex items-start justify-between gap-4">
+                   <h4 className="text-lg font-black text-primary line-clamp-2">{a.title}</h4>
+                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => onEdit(a)} className="size-9 rounded-lg bg-muted flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all"><Pencil size={16} /></button>
+                      <button onClick={() => onDelete(a.id)} className="size-9 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={16} /></button>
+                   </div>
+                </div>
+                <p className="text-sm font-bold text-muted-foreground line-clamp-3 leading-relaxed opacity-70">{a.body.replace(/^---image:.*\n/, "")}</p>
+             </div>
+             <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/40">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{new Date(a.created_at).toLocaleDateString("ar-SA")}</span>
+                <div className="flex items-center gap-2 text-gold-primary">
+                   <Megaphone className="size-4" />
+                   <span className="text-[10px] font-black uppercase tracking-widest">إعلان منشور</span>
+                </div>
+             </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
