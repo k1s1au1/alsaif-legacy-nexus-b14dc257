@@ -209,6 +209,68 @@ function Dashboard() {
         {/* Quick Actions */}
         <QuickActionsBanner />
 
+        {/* Majlis Announcements Banner */}
+        {announcements.length > 0 && (() => {
+          const a = announcements[annIndex % announcements.length];
+          return (
+            <section className="px-4 animate-fade-up" style={{ animationDelay: "150ms" }}>
+              <Link to="/majlis" className="block group">
+                <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl">
+                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none">
+                    <img src={alsaifMark?.url || ""} className="absolute -left-10 -top-10 size-64 object-contain brightness-0 invert" alt="" />
+                  </div>
+                  <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+
+                  <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-8">
+                    <div className="flex items-center gap-3 shrink-0">
+                      <div className="size-14 md:size-16 rounded-2xl md:rounded-[20px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0">
+                        <Megaphone className="size-7 md:size-8" />
+                      </div>
+                      <div className="md:hidden flex flex-col">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">إعلانات المجلس</span>
+                        {a.pinned && <span className="text-[9px] font-black text-white/40 flex items-center gap-1 mt-0.5"><Pin size={9} /> مثبّت</span>}
+                      </div>
+                    </div>
+
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <div className="hidden md:flex items-center gap-3">
+                        <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">إعلانات المجلس</span>
+                        {a.pinned && <span className="text-[10px] font-black text-white/40 flex items-center gap-1"><Pin size={10} /> مثبّت</span>}
+                      </div>
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={a.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          transition={{ duration: 0.4 }}
+                        >
+                          <h3 className="text-lg md:text-2xl font-black text-white tracking-tight leading-tight line-clamp-1">{a.title}</h3>
+                          <p className="text-xs md:text-sm text-white/60 font-bold line-clamp-2 mt-1">{a.body}</p>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+
+                    <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                      {announcements.length > 1 && (
+                        <div className="flex items-center gap-1">
+                          {announcements.map((_, i) => (
+                            <div key={i} className={cn("size-1.5 rounded-full transition-all", i === annIndex % announcements.length ? "w-5 bg-gold-primary" : "bg-white/20")} />
+                          ))}
+                        </div>
+                      )}
+                      <div className="size-10 md:size-12 rounded-full bg-gold-primary text-black flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                        <ChevronLeft size={20} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            </section>
+          );
+        })()}
+
+
         {/* Dynamic Event Banners - Carousels */}
         <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
            {/* Trips Carousel */}
