@@ -121,6 +121,7 @@ function MajlisPage() {
     const { data, error } = await supabase
       .from("majlis_posts")
       .select("*")
+      .not("title", "ilike", "[إرث]%")
       .order("pinned", { ascending: false })
       .order("created_at", { ascending: false });
     if (error) {
