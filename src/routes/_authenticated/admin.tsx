@@ -452,7 +452,7 @@ function AdminPage() {
                       </div>
                       <div>
                         <h4 className="text-lg font-black text-primary">المناصب الخاصة</h4>
-                        <p className="text-xs font-bold text-muted-foreground opacity-60">رئيس المجلس ومسؤولو الأقسام — لكل منصب شخص واحد فقط.</p>
+                        <p className="text-xs font-bold text-muted-foreground opacity-60">رئيس المجلس شخص واحد، أما مسؤولو الأقسام فيمكن تعيين أكثر من شخص لكل قسم.</p>
                       </div>
                     </div>
                     <div className="grid gap-3">
