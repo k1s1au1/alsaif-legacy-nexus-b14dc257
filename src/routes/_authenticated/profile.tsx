@@ -8,7 +8,7 @@ import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar, Phone, CheckCi
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import alsaifMark from "@/assets/alsaif-mark.png";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,
@@ -325,7 +325,7 @@ function ProfilePage() {
            <div className="space-y-8">
               <div className="card-surface p-8 space-y-6 relative overflow-hidden bg-primary text-white border-none shadow-2xl animate-fade-up" style={{ animationDelay: "300ms" }}>
                  <div className="absolute top-0 left-0 opacity-10 -translate-x-1/3 -translate-y-1/3 pointer-events-none scale-150 rotate-12">
-                    <img src={alsaifMark.url} className="size-48 brightness-0 invert" alt="" />
+                    <img src={alsaifMark} className="size-48 brightness-0 invert" alt="" />
                  </div>
                  <h4 className="text-lg font-black tracking-tight relative z-10">إرث آل سيف الرقمي</h4>
                  <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">هذا الحساب موثق لدى مجلس العائلة. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا لأعضاء المجلس المعتمدين.</p>

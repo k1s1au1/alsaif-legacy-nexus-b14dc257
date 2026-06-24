@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import alsaifMark from "@/assets/alsaif-mark.png";
 
 export const Route = createFileRoute("/_authenticated/majlis")({
   ssr: false,

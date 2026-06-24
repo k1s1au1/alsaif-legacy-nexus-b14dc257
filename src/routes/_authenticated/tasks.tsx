@@ -22,7 +22,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import alsaifMark from "@/assets/alsaif-mark.png";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   ssr: false,
@@ -167,7 +167,7 @@ function TasksPage() {
         {/* Dynamic Header */}
         <section className="relative overflow-hidden rounded-[40px] md:rounded-[64px] bg-[#064E3B] p-8 md:p-20 text-white shadow-2xl group border border-white/5">
            <div className="absolute inset-0 bg-gradient-to-br from-[#064E3B] via-[#0A5A3E] to-black opacity-90 z-0" />
-           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-150 logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-150 logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark})` } as any} />
            <div className="absolute -top-24 -right-24 size-96 bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 
            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">

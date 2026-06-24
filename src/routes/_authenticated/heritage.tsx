@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import alsaifMark from "@/assets/alsaif-mark.png";
 import { useUserRole } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/heritage")({
@@ -196,7 +196,7 @@ function HeritagePage() {
         {/* Heritage Header */}
         <section className="relative overflow-hidden rounded-[40px] md:rounded-[64px] bg-[#1a2b3c] p-8 md:p-20 text-white shadow-2xl border border-white/5 group">
            <div className="absolute inset-0 bg-gradient-to-br from-[#1a2b3c] via-[#0f172a] to-black opacity-90 z-0" />
-           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-[2] logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark.url})` } as any} />
+           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-[2] logo-alsaif z-1" style={{ '--logo-url': `url(${alsaifMark})` } as any} />
 
            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
               <div className="space-y-4 text-center md:text-right">
