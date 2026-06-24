@@ -11,21 +11,14 @@ import {
   Users,
   CalendarDays,
   ListChecks,
-  MessageCircle,
   Plane,
-  Sparkles,
-  Plus,
   Timer,
   Compass,
-  MapPinned,
-  User,
-  Trees,
   ShieldAlert,
   Send,
   X,
   Image as ImageIcon,
   Loader2,
-  Pin,
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -33,7 +26,6 @@ import { AnimatedCounter } from "@/components/dashboard/animated-counter";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import Autoplay from "embla-carousel-autoplay";
 import {
@@ -67,7 +59,6 @@ function Dashboard() {
   const [tripsCount, setTripsCount] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
-  const [statIndex, setStatIndex] = useState(0);
   const [showBugReport, setShowBugReport] = useState(false);
   const [bugBody, setBugBody] = useState("");
   const [bugImage, setBugImage] = useState<File | null>(null);
@@ -100,8 +91,22 @@ function Dashboard() {
       const now = new Date().toISOString();
       supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(2).then(r => setUpcomingMeetings(r.data || []));
       supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(2).then(r => setUpcomingTrips(r.data || []));
-      supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5).then(r => setAnnouncements(r.data || []));
 
+      const { data: annData } = await supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5);
+
+      if (annData) {
+         const withImages = await Promise.all(annData.map(async (a: any) => {
+            const imgMatch = a.body.match(/^---image:(.*)\n/);
+            let url = null;
+            if (imgMatch) {
+               const path = imgMatch[1].trim();
+               const { data } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60);
+               url = data?.signedUrl;
+            }
+            return { ...a, imageUrl: url, cleanBody: imgMatch ? a.body.replace(/^---image:.*\n/, "") : a.body };
+         }));
+         setAnnouncements(withImages);
+      }
 
       supabase.from("fund_transactions").select("amount, type").then(r => {
         const bal = (r.data || []).reduce((acc, t) => {
@@ -117,8 +122,6 @@ function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const timer = setInterval(() => setStatIndex(prev => (prev + 1) % 4), 6000);
-    return () => clearInterval(timer);
   }, [loadData]);
 
   useEffect(() => {
@@ -188,10 +191,10 @@ function Dashboard() {
            </div>
 
            <div className="relative inline-block group">
-             <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full animate-pulse" />
-             <div className="absolute -inset-4 bg-gradient-to-br from-gold-primary/20 to-transparent rounded-full blur-2xl" />
+             <div className="absolute inset-0 bg-gold-primary/20 blur-[120px] rounded-full animate-pulse" />
+             <div className="absolute -inset-8 bg-gradient-to-br from-gold-primary/20 via-transparent to-transparent rounded-full blur-3xl opacity-50" />
              <div
-               className="size-40 md:size-56 relative z-10 logo-alsaif hover:scale-105 transition-transform duration-700"
+               className="size-48 md:size-64 relative z-10 logo-alsaif hover:scale-110 transition-transform duration-1000 cursor-pointer"
                style={{ '--logo-url': `url(${alsaifMark?.url || ""})` } as any}
              />
            </div>
@@ -213,51 +216,58 @@ function Dashboard() {
           return (
             <section className="px-4 animate-fade-up" style={{ animationDelay: "150ms" }}>
               <Link to="/majlis" className="block group">
-                <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl">
-                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none">
+                <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[160px] flex items-center">
+                  {/* Background Image if exists */}
+                  {a.imageUrl && (
+                    <div className="absolute inset-0 z-0">
+                       <img src={a.imageUrl} className="size-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="" />
+                       <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px]" />
+                       <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-transparent to-transparent" />
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-1">
                     <img src={alsaifMark?.url || ""} className="absolute -left-10 -top-10 size-64 object-contain brightness-0 invert" alt="" />
                   </div>
-                  <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 z-1" />
 
-                  <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-8">
+                  <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-8 w-full">
                     <div className="flex items-center gap-3 shrink-0">
-                      <div className="size-14 md:size-16 rounded-2xl md:rounded-[20px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0">
+                      <div className="size-14 md:size-16 rounded-2xl md:rounded-[20px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-xl">
                         <Megaphone className="size-7 md:size-8" />
                       </div>
                       <div className="md:hidden flex flex-col">
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">إعلانات المجلس</span>
-                        {a.pinned && <span className="text-[9px] font-black text-white/40 flex items-center gap-1 mt-0.5"><Pin size={9} /> مثبّت</span>}
                       </div>
                     </div>
 
-                    <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex-1 min-w-0 space-y-1">
                       <div className="hidden md:flex items-center gap-3">
                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">إعلانات المجلس</span>
-                        {a.pinned && <span className="text-[10px] font-black text-white/40 flex items-center gap-1"><Pin size={10} /> مثبّت</span>}
                       </div>
                       <AnimatePresence mode="wait">
                         <motion.div
                           key={a.id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: -8 }}
-                          transition={{ duration: 0.4 }}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          exit={{ opacity: 0, x: -20 }}
+                          transition={{ duration: 0.5, ease: "easeOut" }}
                         >
-                          <h3 className="text-lg md:text-2xl font-black text-white tracking-tight leading-tight line-clamp-1">{a.title}</h3>
-                          <p className="text-xs md:text-sm text-white/60 font-bold line-clamp-2 mt-1">{a.body}</p>
+                          <h3 className="text-xl md:text-3xl font-black text-white tracking-tight leading-tight line-clamp-1 drop-shadow-lg">{a.title}</h3>
+                          <p className="text-xs md:text-sm text-white/70 font-bold line-clamp-2 mt-1 drop-shadow-md">{a.cleanBody}</p>
                         </motion.div>
                       </AnimatePresence>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0 self-end md:self-center">
+                    <div className="flex items-center gap-4 shrink-0 self-end md:self-center">
                       {announcements.length > 1 && (
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-col gap-1.5">
                           {announcements.map((_, i) => (
-                            <div key={i} className={cn("size-1.5 rounded-full transition-all", i === annIndex % announcements.length ? "w-5 bg-gold-primary" : "bg-white/20")} />
+                            <div key={i} className={cn("size-1 rounded-full transition-all duration-500", i === annIndex % announcements.length ? "h-4 bg-gold-primary shadow-[0_0_8px_rgba(212,175,55,0.6)]" : "bg-white/20")} />
                           ))}
                         </div>
                       )}
-                      <div className="size-10 md:size-12 rounded-full bg-gold-primary text-black flex items-center justify-center group-hover:scale-110 transition-transform shadow-lg">
+                      <div className="size-10 md:size-12 rounded-full bg-gold-primary text-black flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
                         <ChevronLeft size={20} />
                       </div>
                     </div>
@@ -435,9 +445,21 @@ function Dashboard() {
            )}
         </section>
 
-        {/* Stats Slider */}
+        {/* Stats Grid */}
         <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
-           {/* ... existing stats carousel ... */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {stats.map((s, i) => (
+              <Link key={i} to={s.link} className="block group">
+                <div className={cn("relative overflow-hidden rounded-[32px] p-8 text-white shadow-xl transition-all duration-500 hover:scale-[1.02]", s.color)}>
+                  <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">{s.icon}</div>
+                  <div className="relative z-10 space-y-4">
+                    <p className="text-sm font-black uppercase tracking-widest opacity-80">{s.label}</p>
+                    <div className="flex items-baseline gap-2"><span className="text-4xl font-black tracking-tighter"><AnimatedCounter value={s.value} /></span><span className="text-sm font-bold opacity-60">{s.suffix}</span></div>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
         </section>
 
         {/* System Error Reporting */}
@@ -520,9 +542,6 @@ function Dashboard() {
            </div>
          )}
       </AnimatePresence>
-
-      <Link to="/majlis" className="fixed bottom-10 left-10 size-20 rounded-[32px] bg-primary text-primary-foreground flex items-center justify-center shadow-2xl z-50 border-4 border-white/10"><Plus size={36} strokeWidth={3} /></Link>
     </AppShell>
   );
 }
-

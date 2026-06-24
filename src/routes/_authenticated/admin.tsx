@@ -29,7 +29,9 @@ import {
   ClipboardList,
   Plane,
   CalendarDays,
-  UserCheck
+  UserCheck,
+  Megaphone,
+  Pencil
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -105,7 +107,7 @@ const REQ_TABS: { key: ReqRow["status"]; label: string }[] = [
   { key: "rejected", label: "مرفوضة" },
 ];
 
-type Section = "requests" | "roles" | "attendance";
+type Section = "requests" | "roles" | "attendance" | "announcements";
 
 function AdminPage() {
   const [profile, setProfile] = useState({
@@ -120,11 +122,24 @@ function AdminPage() {
   const [reqTab, setReqTab] = useState<ReqRow["status"]>("pending");
   const [rows, setRows] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<MemberRow[]>([]);
+  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [showAnnForm, setShowAnnForm] = useState(false);
+  const [editingAnn, setEditingAnn] = useState<any>(null);
+  const [annDraft, setAnnDraft] = useState({ title: "", body: "", image_path: "" });
+  const [annImageFile, setAnnImageFile] = useState<File | null>(null);
+  const [annImagePreview, setAnnImagePreview] = useState<string | null>(null);
+  const [annSaving, setAnnSaving] = useState(false);
+
   const [memberSearch, setMemberSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [meId, setMeId] = useState<string>("");
   const approveFn = useServerFn(approveAccountRequest);
   const deleteAccountFn = useServerFn(deleteMemberAccount);
+
+  const loadAnnouncements = useCallback(async () => {
+    const { data } = await supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false });
+    setAnnouncements(data || []);
+  }, []);
 
   const load = useCallback(async () => {
     try {
@@ -186,7 +201,7 @@ function AdminPage() {
       });
       setIsAdmin(admin);
       setIsPriv(priv);
-      if (priv) await Promise.all([load(), loadMembers()]);
+      if (priv) await Promise.all([load(), loadMembers(), loadAnnouncements()]);
       setLoading(false);
     })();
 
@@ -356,6 +371,12 @@ function AdminPage() {
                 />
               )}
               <NavTab
+                active={section === "announcements"}
+                onClick={() => setSection("announcements")}
+                icon={<Megaphone className="size-4" />}
+                label="الإعلانات"
+              />
+              <NavTab
                 active={section === "attendance"}
                 onClick={() => setSection("attendance")}
                 icon={<ClipboardList className="size-4" />}
@@ -509,6 +530,54 @@ function AdminPage() {
                     ))}
                   </div>
                 </motion.div>
+              ) : section === "announcements" ? (
+                <AnnouncementsManager
+                  list={announcements}
+                  formOpen={showAnnForm}
+                  onOpenForm={() => { setEditingAnn(null); setAnnDraft({ title: "", body: "", image_path: "" }); setAnnImageFile(null); setAnnImagePreview(null); setShowAnnForm(true); }}
+                  onCloseForm={() => setShowAnnForm(false)}
+                  draft={annDraft}
+                  setDraft={setAnnDraft}
+                  imagePreview={annImagePreview}
+                  onPickImage={(file: File) => { setAnnImageFile(file); setAnnImagePreview(URL.createObjectURL(file)); }}
+                  onSave={async () => {
+                    if (!annDraft.title.trim() || !annDraft.body.trim()) return toast.error("أكمل البيانات");
+                    setAnnSaving(true);
+                    let path = annDraft.image_path;
+                    if (annImageFile) {
+                      const ext = annImageFile.name.split(".").pop();
+                      const filePath = `announcements/${meId}/${crypto.randomUUID()}.${ext}`;
+                      const { error: upErr } = await supabase.storage.from("trip-images").upload(filePath, annImageFile);
+                      if (!upErr) path = filePath;
+                    }
+                    const finalBody = path ? `---image:${path}\n${annDraft.body}` : annDraft.body;
+                    const { error } = editingAnn
+                      ? await supabase.from("majlis_posts").update({ title: annDraft.title, body: finalBody }).eq("id", editingAnn.id)
+                      : await supabase.from("majlis_posts").insert({ author_id: meId, kind: "announcement", title: annDraft.title, body: finalBody });
+
+                    if (!error) {
+                      toast.success("تم الحفظ");
+                      setShowAnnForm(false);
+                      loadAnnouncements();
+                    } else toast.error("خطأ في الحفظ");
+                    setAnnSaving(false);
+                  }}
+                  onEdit={(a: any) => {
+                    const imgMatch = a.body.match(/^---image:(.*)\n/);
+                    const cleanBody = imgMatch ? a.body.replace(/^---image:.*\n/, "") : a.body;
+                    setEditingAnn(a);
+                    setAnnDraft({ title: a.title, body: cleanBody, image_path: imgMatch ? imgMatch[1] : "" });
+                    setAnnImagePreview(null);
+                    setAnnImageFile(null);
+                    setShowAnnForm(true);
+                  }}
+                  onDelete={async (id: string) => {
+                    if (!confirm("حذف الإعلان؟")) return;
+                    await supabase.from("majlis_posts").delete().eq("id", id);
+                    loadAnnouncements();
+                  }}
+                  saving={annSaving}
+                />
               ) : (
                 <AttendanceSection />
               )}
@@ -639,6 +708,7 @@ function NavTab({ active, onClick, icon, label, badge }: any) {
   );
 }
 
+
 function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; onDelete: any }) {
   const firstName = req?.first_name || "ع";
   const fatherName = req?.father_name || "";
@@ -737,3 +807,4 @@ function RoleToggleBtn({ active, onClick, icon, label, activeClass }: any) {
     </button>
   );
 }
+
