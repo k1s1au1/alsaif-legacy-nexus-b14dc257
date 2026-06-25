@@ -196,8 +196,8 @@ function Dashboard() {
               <TreePalm className="absolute -left-8 -bottom-8 size-72 md:size-96 text-primary/80 rotate-6" strokeWidth={1} />
             </div>
 
-            <div className="relative z-10 flex flex-col md:flex-row-reverse items-center md:items-stretch gap-6 md:gap-10 p-6 md:p-10">
-              {/* Logo badge — right side */}
+            <div className="relative z-10 flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-10 p-6 md:p-10">
+              {/* Logo badge — right side in RTL */}
               <div className="shrink-0 order-1 flex items-center justify-center">
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-2xl group-hover:blur-3xl transition-all duration-700" />
