@@ -51,6 +51,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
+  console.log("SettingsPage rendering, cn is:", typeof cn);
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system" | null>(null);
   const [font, setFont] = useState("Tajawal");
   const [themeColor, setThemeColor] = useState("emerald");

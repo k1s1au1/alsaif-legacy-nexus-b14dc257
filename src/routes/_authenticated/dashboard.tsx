@@ -46,6 +46,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function Dashboard() {
+  console.log("Dashboard rendering, cn is:", typeof cn);
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
