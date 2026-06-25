@@ -6,6 +6,7 @@ import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import {
   Shield,
+  ShieldCheck,
   UserPlus,
   Check,
   X,
