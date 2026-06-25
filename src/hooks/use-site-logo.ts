@@ -14,6 +14,7 @@ let globalCheckDone = false;
  * Loads the current site logo URL from app_settings ('site_logo' key).
  * While loading, returns a transparent pixel to prevent flickering the fallback logo.
  * If no dynamic logo is set, returns null (allowing components to use fallback).
+ * Update: Added a retry-trigger comment to help with build sandbox issues.
  */
 export function useSiteLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(globalCheckDone ? globalLogoUrl : TRANSPARENT_PIXEL);
