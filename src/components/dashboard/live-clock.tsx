@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Calendar } from "lucide-react";
 
 const AR_DAYS = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 const AR_MONTHS = [
