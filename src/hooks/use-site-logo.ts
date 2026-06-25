@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET = "app-backgrounds";
@@ -11,13 +11,11 @@ const SIGN_SECONDS = 60 * 60 * 24 * 365 * 5; // 5 years
 export function useSiteLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
-  const instanceId = useId();
 
-  // Fetch logo whenever version changes
   useEffect(() => {
     let cancelled = false;
 
-    (async () => {
+    const fetchLogo = async () => {
       const { data } = await supabase
         .from("app_settings")
         .select("value")
@@ -35,17 +33,14 @@ export function useSiteLogo() {
         .createSignedUrl(path, SIGN_SECONDS);
 
       if (!cancelled) setLogoUrl(signed?.signedUrl ?? null);
-    })();
-
-    return () => {
-      cancelled = true;
     };
-  }, [version]);
 
-  // Subscribe once per hook instance with a unique channel name
-  useEffect(() => {
+    fetchLogo();
+
+    // Use a unique name for each hook instance to prevent Realtime callback conflicts
+    const channelId = `logo-updates-${Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel(`app-settings-site-logo-${instanceId}-${Math.random().toString(36).slice(2)}`)
+      .channel(channelId)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "app_settings", filter: "key=eq.site_logo" },
@@ -54,9 +49,32 @@ export function useSiteLogo() {
       .subscribe();
 
     return () => {
+      cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [instanceId]);
+  }, []);
+
+  // Effect to re-fetch when version changes (realtime update)
+  useEffect(() => {
+    if (version === 0) return; // Skip initial as it's handled by the main effect
+
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("app_settings")
+        .select("value")
+        .eq("key", "site_logo")
+        .maybeSingle();
+
+      if (data?.value && !cancelled) {
+        const { data: signed } = await supabase.storage
+          .from(BUCKET)
+          .createSignedUrl(data.value, SIGN_SECONDS);
+        if (!cancelled) setLogoUrl(signed?.signedUrl ?? null);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [version]);
 
   return logoUrl;
 }

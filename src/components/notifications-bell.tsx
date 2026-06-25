@@ -144,7 +144,8 @@ export function NotificationsBell() {
   useEffect(() => {
     load();
     const interval = setInterval(load, 30000);
-    const channel = supabase.channel("realtime-notifications").on("postgres_changes", { event: "*", schema: "public" }, () => load()).subscribe();
+    const channelId = `notifications-${Math.random().toString(36).slice(2)}`;
+    const channel = supabase.channel(channelId).on("postgres_changes", { event: "*", schema: "public" }, () => load()).subscribe();
     return () => {
       clearInterval(interval);
       supabase.removeChannel(channel);
