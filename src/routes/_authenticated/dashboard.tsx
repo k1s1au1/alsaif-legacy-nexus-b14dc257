@@ -20,7 +20,6 @@ import {
   Image as ImageIcon,
   Loader2,
   Calendar,
-  TreePalm,
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
