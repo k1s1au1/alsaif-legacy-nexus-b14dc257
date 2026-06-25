@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { initialOf } from "@/lib/chat";
 import { PresenceDot, usePresenceFor } from "@/lib/presence";
+import { cn } from "@/lib/utils";
 
 // Module-level cache of signed URLs for avatar storage paths.
 // key = storage object path, value = { url, expiresAt }

@@ -21,6 +21,7 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useFcm } from "@/hooks/use-fcm";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -55,6 +56,7 @@ export function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
+  useFcm();
 
   useEffect(() => {
     if (sidebarOpen) {

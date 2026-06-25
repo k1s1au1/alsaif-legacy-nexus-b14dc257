@@ -27,6 +27,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
+import { sendFcmNotification } from "@/lib/fcm";
 
 export const Route = createFileRoute("/_authenticated/majlis")({
   ssr: false,
@@ -270,7 +271,20 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
     }
     const { error } = await supabase.from("majlis_posts").insert({ ...form, body: finalBody, author_id: meId });
     setSaving(false);
-    if (!error) { toast.success("تم النشر بنجاح"); onSaved(); onClose(); }
+    if (!error) {
+      toast.success("تم النشر بنجاح");
+
+      // Trigger FCM Notification
+      sendFcmNotification({
+        data: {
+          title: "خبر جديد في المجلس",
+          body: form.title,
+        }
+      });
+
+      onSaved();
+      onClose();
+    }
   };
 
   return (

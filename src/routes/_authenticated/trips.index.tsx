@@ -11,6 +11,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
+import { sendFcmNotification } from "@/lib/fcm";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
@@ -340,7 +341,22 @@ function TripDialog({ trip, onClose, onSaved }: any) {
 
     setSaving(false);
     if (error) toast.error("حدث خطأ");
-    else { toast.success("تم الحفظ"); onSaved(); onClose(); }
+    else {
+      toast.success("تم الحفظ");
+
+      if (!isEdit) {
+        // Trigger FCM for new trip
+        sendFcmNotification({
+          data: {
+            title: "وجهة عائلية جديدة",
+            body: `تم إعلان رحلة جديدة: ${form.title}`,
+          }
+        });
+      }
+
+      onSaved();
+      onClose();
+    }
   };
 
   return (
