@@ -365,6 +365,18 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
 
 function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, fullName }: any) {
   const isMe = member.id === meId;
+  const roles = [
+    { key: "admin", label: "مسؤول" },
+    { key: "manager", label: "مدير" },
+    { key: "chairman", label: "رئيس" },
+    { key: "head_meetings", label: "الاجتماعات" },
+    { key: "head_events", label: "الفعاليات" },
+    { key: "head_trips", label: "الترفيه" },
+    { key: "head_finance", label: "المالية" },
+    { key: "head_heritage", label: "الإرث" },
+    { key: "member", label: "عضو" },
+  ];
+
   return (
     <div className="card-surface p-4 md:p-5 hover:bg-primary/5 transition-all group">
        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -379,12 +391,14 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
              </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-             <div className="flex items-center gap-1.5 flex-wrap">
-               <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
-               <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مشرف" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
-               <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
-             </div>
-             {!isMe && currentRole !== "admin" && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={4} /></button>}
+             <select
+               value={currentRole}
+               onChange={(e) => onAssignRole(member.id, e.target.value)}
+               className="bg-muted/50 border border-border/40 rounded-xl px-4 py-2 text-xs font-black text-primary focus:ring-2 focus:ring-primary/10 transition-all outline-none"
+             >
+               {roles.map(r => <option key={r.key} value={r.key}>{r.label}</option>)}
+             </select>
+             {!isMe && currentRole !== "admin" && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}
           </div>
        </div>
     </div>
