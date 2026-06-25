@@ -274,24 +274,47 @@ function MeetingsPage() {
       <div className="max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
         <QuickActionsBanner />
 
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="size-1.5 w-12 bg-gold-primary rounded-full shadow-[0_0_10px_rgba(212,175,55,0.5)]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">ملتقى العائلة</span>
+        {/* Alsaif Meetings Header — Banner Style */}
+        <section className="animate-fade-up">
+          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-primary via-[#1a2b3c] to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+            {/* Left Decorative Logo */}
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
+              <img
+                src={dynamicLogo || alsaifMark?.url || ""}
+                className="size-28 md:size-64 object-contain brightness-0 invert"
+                alt=""
+              />
             </div>
-            <h2 className="text-4xl md:text-6xl font-black tracking-tight text-primary">المناسبات والاجتماعات</h2>
-            <p className="text-muted-foreground font-bold text-lg opacity-70">جدول اللقاءات العائلية القادمة لتعزيز الترابط والتواصل.</p>
+
+            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+              <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                    ملتقى العائلة
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                  الاجتماعات
+                </h2>
+                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                  جدول اللقاءات العائلية القادمة لتعزيز الترابط والتواصل.
+                </p>
+              </div>
+
+              {canManage && (
+                <button
+                  onClick={openCreate}
+                  className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
+                >
+                  <Plus className="size-5 md:size-7 group-hover:rotate-90 transition-transform duration-500" strokeWidth={3} />
+                  <span>إضافة مناسبة</span>
+                </button>
+              )}
+            </div>
           </div>
-          {canManage && (
-            <button
-              onClick={openCreate}
-              className="btn-gold px-8 py-4 rounded-2xl flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base group w-full md:w-auto"
-            >
-              <Plus className="size-5 group-hover:rotate-90 transition-transform duration-500" strokeWidth={3} />
-              <span>إضافة مناسبة جديدة</span>
-            </button>
-          )}
         </section>
 
         {loading ? (

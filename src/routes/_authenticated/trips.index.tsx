@@ -9,6 +9,8 @@ import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
@@ -63,6 +65,7 @@ function TripsPage() {
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const { userId, canManage: canManageSection, primaryRole } = useUserRole();
   const canManage = canManageSection("trips");
+  const dynamicLogo = useSiteLogo();
 
   async function loadTrips() {
     const { data, error } = await supabase
@@ -110,25 +113,47 @@ function TripsPage() {
       <div className="max-w-7xl mx-auto space-y-12 pb-24" dir="rtl">
         <QuickActionsBanner />
 
-        {/* Alsaif Trips Header */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="size-1 w-10 bg-gold-primary rounded-full" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">استكشاف العالم</span>
+        {/* Alsaif Trips Header — Banner Style */}
+        <section className="animate-fade-up px-4 md:px-0">
+          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-indigo-900 via-primary to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+            {/* Left Decorative Logo */}
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
+              <img
+                src={dynamicLogo || alsaifMark?.url || ""}
+                className="size-28 md:size-64 object-contain brightness-0 invert"
+                alt=""
+              />
             </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">رحلات العائلة</h2>
-            <p className="text-muted-foreground font-bold text-lg opacity-70">جدول الوجهات واللقاءات الخارجية لأعضاء عائلة السيف.</p>
+
+            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+              <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                    استكشاف العالم
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                  رحلات العائلة
+                </h2>
+                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                  جدول الوجهات واللقاءات الخارجية لأعضاء عائلة السيف لتعزيز الترابط.
+                </p>
+              </div>
+
+              {canManage && (
+                <button
+                  onClick={() => setShowAdd(true)}
+                  className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
+                >
+                  <Plus className="size-5 md:size-7" strokeWidth={3} />
+                  <span>إضافة رحلة</span>
+                </button>
+              )}
+            </div>
           </div>
-          {canManage && (
-            <button
-              onClick={() => setShowAdd(true)}
-              className="btn-gold px-8 py-4 flex items-center gap-3 shadow-2xl shadow-gold-primary/20 text-base"
-            >
-              <Plus className="size-5" strokeWidth={3} />
-              <span>إضافة رحلة جديدة</span>
-            </button>
-          )}
         </section>
 
         {loading ? (

@@ -336,7 +336,7 @@ function Dashboard() {
             return (
               <section className="px-4 animate-fade-up" style={{ animationDelay: "150ms" }}>
                 <Link to="/majlis" className="block group">
-                  <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[160px] flex items-center">
+                  <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[140px] md:min-h-[180px] flex items-center">
                     {/* Background Image if exists */}
                     {a.imageUrl && (
                       <div className="absolute inset-0 z-0">
@@ -350,32 +350,35 @@ function Dashboard() {
                       </div>
                     )}
 
-                    <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-1">
+                    {/* Left Decorative Logo */}
+                    <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-20">
                       <img
                         src={dynamicLogo || alsaifMark?.url || ""}
-                        className="absolute -left-10 -top-10 size-64 object-contain brightness-0 invert"
+                        className="size-24 md:size-40 object-contain brightness-0 invert"
                         alt=""
                       />
                     </div>
+
                     <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 z-1" />
 
-                    <div className="relative z-10 p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-8 w-full">
-                      <div className="flex items-center gap-3 shrink-0">
-                        <div className="size-14 md:size-16 rounded-2xl md:rounded-[20px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-xl">
-                          <Megaphone className="size-7 md:size-8" />
+                    <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-10 w-full">
+                      <div className="flex items-center gap-4 shrink-0">
+                        <div className="size-12 md:size-20 rounded-2xl md:rounded-[24px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-xl">
+                          <Megaphone className="size-6 md:size-10" />
                         </div>
                         <div className="md:hidden flex flex-col">
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">
+                          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold-primary/80">
                             إعلانات المجلس
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex-1 min-w-0 space-y-1">
+                      <div className="flex-1 min-w-0 space-y-1 md:space-y-2">
                         <div className="hidden md:flex items-center gap-3">
                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">
                             إعلانات المجلس
                           </span>
+                          <div className="h-px w-12 bg-gold-primary/30" />
                         </div>
                         <AnimatePresence mode="wait">
                           <motion.div
@@ -385,10 +388,10 @@ function Dashboard() {
                             exit={{ opacity: 0, x: -20 }}
                             transition={{ duration: 0.5, ease: "easeOut" }}
                           >
-                            <h3 className="text-xl md:text-3xl font-black text-white tracking-tight leading-tight line-clamp-1 drop-shadow-lg">
+                            <h3 className="text-lg md:text-4xl font-black text-white tracking-tight leading-tight line-clamp-1 drop-shadow-lg">
                               {a.title}
                             </h3>
-                            <p className="text-xs md:text-sm text-white/70 font-bold line-clamp-2 mt-1 drop-shadow-md">
+                            <p className="text-[11px] md:text-base text-white/70 font-bold line-clamp-2 mt-1 drop-shadow-md">
                               {a.cleanBody}
                             </p>
                           </motion.div>
@@ -411,14 +414,16 @@ function Dashboard() {
                             ))}
                           </div>
                         )}
-                        <div className="size-10 md:size-12 rounded-full bg-gold-primary text-black flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
-                          <ChevronLeft size={20} />
+                        <div className="size-10 md:size-14 rounded-full bg-gold-primary text-black flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                          <ChevronLeft className="size-5 md:size-7" />
                         </div>
                       </div>
                     </div>
                   </div>
                 </Link>
               </section>
+            );
+          })()}
             );
           })()}
 
@@ -440,7 +445,7 @@ function Dashboard() {
                   loop: true,
                 }}
               >
-                <CarouselContent className="h-[400px]">
+                <CarouselContent className="h-[350px] md:h-[450px]">
                   {upcomingTrips.map((trip) => {
                     const daysLeft = trip.start_date
                       ? Math.ceil(
@@ -453,7 +458,7 @@ function Dashboard() {
                       <CarouselItem key={trip.id} className="h-full">
                         <div className="flex items-center gap-0 h-full w-full group/container">
                           {/* Trip Banner */}
-                          <article className="flex-1 relative overflow-hidden rounded-[40px] rounded-l-none shadow-2xl border-2 border-gold-primary/20 border-l-0 text-white p-8 flex flex-col items-center justify-between h-full group">
+                          <article className="flex-1 relative overflow-hidden rounded-[32px] md:rounded-[48px] rounded-l-none md:rounded-l-none shadow-2xl border-2 border-gold-primary/20 border-l-0 text-white p-6 md:p-12 flex flex-col items-center justify-between h-full group">
                             {/* Background Destination Image */}
                             <div className="absolute inset-0 z-0">
                               <TripImage
@@ -465,45 +470,45 @@ function Dashboard() {
                               <div className="absolute inset-0 bg-black/30" />
                             </div>
 
-                            {/* Decorative family mark - smaller and on the left */}
-                            <div className="absolute left-6 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110">
+                            {/* Left Decorative Logo */}
+                            <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
                               <img
                                 src={dynamicLogo || alsaifMark?.url || ""}
-                                className="size-20 md:size-28 object-contain brightness-0 invert"
+                                className="size-24 md:size-40 object-contain brightness-0 invert"
                                 alt=""
                               />
                             </div>
 
                             {/* Top Section: Badge & Icon */}
                             <div className="relative z-10 w-full flex justify-between items-start">
-                              <div className="px-5 py-2 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md text-gold-primary text-[10px] font-black uppercase tracking-[0.2em]">
+                              <div className="px-4 py-1.5 md:px-6 md:py-2.5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md text-gold-primary text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em]">
                                 رحلة مرتقبة
                               </div>
-                              <div className="size-14 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md flex items-center justify-center text-gold-primary animate-pulse">
-                                <Plane size={24} />
+                              <div className="size-11 md:size-16 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md flex items-center justify-center text-gold-primary animate-pulse">
+                                <Plane className="size-5 md:size-8" />
                               </div>
                             </div>
 
                             {/* Middle Section: Title & Location */}
-                            <div className="relative z-10 space-y-4 text-center">
-                              <h3 className="text-4xl md:text-5xl font-black bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent leading-tight drop-shadow-2xl px-4">
+                            <div className="relative z-10 space-y-3 md:space-y-5 text-center">
+                              <h3 className="text-2xl md:text-6xl font-black bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent leading-tight drop-shadow-2xl px-4">
                                 {trip.title}
                               </h3>
-                              <div className="flex items-center justify-center gap-4 text-sm font-medium text-gold-primary">
-                                <span className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 rounded-full border border-white/5">
-                                  <MapPin size={14} /> {trip.location || "وجهة عائلية"}
+                              <div className="flex items-center justify-center gap-3 md:gap-5 text-xs md:text-base font-medium text-gold-primary">
+                                <span className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 md:px-6 md:py-2 rounded-full border border-white/5">
+                                  <MapPin className="size-3.5 md:size-4" /> {trip.location || "وجهة عائلية"}
                                 </span>
                               </div>
                             </div>
 
                             {/* Bottom Section: Date & CTA */}
-                            <div className="relative z-10 w-full space-y-8 flex flex-col items-center">
-                              <div className="flex items-center gap-8">
+                            <div className="relative z-10 w-full space-y-6 md:space-y-10 flex flex-col items-center">
+                              <div className="flex items-center gap-6 md:gap-10">
                                 <div className="text-center">
-                                  <p className="text-[10px] uppercase tracking-widest opacity-60 mb-1">
+                                  <p className="text-[9px] md:text-[11px] uppercase tracking-widest opacity-60 mb-1">
                                     التاريخ
                                   </p>
-                                  <p className="text-xl font-black">
+                                  <p className="text-lg md:text-2xl font-black">
                                     {trip.start_date
                                       ? new Date(trip.start_date).toLocaleDateString("ar-SA", {
                                           day: "numeric",
@@ -512,12 +517,12 @@ function Dashboard() {
                                       : "—"}
                                   </p>
                                 </div>
-                                <div className="h-10 w-px bg-white/20" />
+                                <div className="h-8 md:h-12 w-px bg-white/20" />
                                 <div className="text-center">
-                                  <p className="text-[10px] uppercase tracking-widest opacity-60 mb-1">
+                                  <p className="text-[9px] md:text-[11px] uppercase tracking-widest opacity-60 mb-1">
                                     اليوم
                                   </p>
-                                  <p className="text-xl font-black">
+                                  <p className="text-lg md:text-2xl font-black">
                                     {trip.start_date
                                       ? new Date(trip.start_date).toLocaleDateString("ar-SA", {
                                           weekday: "long",
@@ -529,31 +534,31 @@ function Dashboard() {
 
                               <Link
                                 to="/trips"
-                                className="group/btn relative px-10 py-4 overflow-hidden rounded-full font-black text-black transition-all hover:scale-105 active:scale-95 shadow-xl"
+                                className="group/btn relative px-8 py-3.5 md:px-12 md:py-5 overflow-hidden rounded-full font-black text-xs md:text-lg text-black transition-all hover:scale-105 active:scale-95 shadow-xl"
                               >
                                 <div className="absolute inset-0 bg-gold-primary" />
                                 <span className="relative flex items-center gap-3">
-                                  تفاصيل الرحلة <Compass size={18} />
+                                  تفاصيل الرحلة <Compass className="size-4 md:size-5" />
                                 </span>
                               </Link>
                             </div>
                           </article>
 
                           {/* External Countdown Card */}
-                          <div className="flex flex-col items-center justify-center w-24 md:w-32 h-full rounded-[40px] rounded-r-none bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-4 md:p-6 text-center space-y-2 md:space-y-3 shrink-0 relative overflow-hidden">
+                          <div className="flex flex-col items-center justify-center w-20 md:w-36 h-full rounded-[32px] md:rounded-[48px] rounded-r-none md:rounded-r-none bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-4 md:p-8 text-center space-y-2 md:space-y-4 shrink-0 relative overflow-hidden">
                             <div className="absolute inset-0 bg-gold-primary/5 animate-pulse" />
-                            <Timer className="size-5 md:size-6 text-gold-primary relative z-10" />
+                            <Timer className="size-5 md:size-8 text-gold-primary relative z-10" />
                             <div className="space-y-0 relative z-10">
-                              <span className="text-4xl md:text-5xl font-black text-gold-primary block tracking-tighter">
+                              <span className="text-3xl md:text-6xl font-black text-gold-primary block tracking-tighter">
                                 {daysLeft > 0 ? daysLeft : 0}
                               </span>
-                              <span className="text-[8px] md:text-[10px] font-black text-gold-primary/50 uppercase tracking-[0.2em]">
+                              <span className="text-[7px] md:text-[11px] font-black text-gold-primary/50 uppercase tracking-[0.2em]">
                                 أيام متبقية
                               </span>
                             </div>
-                            <div className="w-8 md:w-12 h-0.5 md:h-1 bg-gold-primary/20 rounded-full relative z-10" />
-                            <p className="text-[8px] md:text-[10px] font-bold text-white/40 leading-relaxed relative z-10 line-clamp-2">
-                              تجهّز للمغامرة القادمة
+                            <div className="w-8 md:w-16 h-0.5 md:h-1 bg-gold-primary/20 rounded-full relative z-10" />
+                            <p className="text-[7px] md:text-[11px] font-bold text-white/40 leading-relaxed relative z-10 line-clamp-2">
+                              تجهّز للمغامرة
                             </p>
                           </div>
                         </div>
@@ -589,28 +594,30 @@ function Dashboard() {
                     );
                     return (
                       <CarouselItem key={meeting.id}>
-                        <article className="relative overflow-hidden rounded-[48px] shadow-2xl border-4 border-white/5 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-8 md:p-12 flex flex-col md:flex-row items-center gap-8 h-full group">
-                          <div className="absolute inset-0 opacity-10 pointer-events-none scale-150 group-hover:scale-110 transition-transform duration-1000">
+                        <article className="relative overflow-hidden rounded-[32px] md:rounded-[60px] shadow-2xl border-4 border-white/5 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-6 md:p-16 flex flex-col md:flex-row items-center gap-6 md:gap-12 h-full group">
+                          {/* Left Decorative Logo */}
+                          <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
                             <img
                               src={dynamicLogo || alsaifMark?.url || ""}
-                              className="size-full object-contain brightness-0 invert"
+                              className="size-28 md:size-64 object-contain brightness-0 invert"
                               alt=""
                             />
                           </div>
+
                           <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
 
-                          <div className="flex-1 space-y-6 relative z-10">
+                          <div className="flex-1 space-y-4 md:space-y-8 relative z-10 w-full">
                             <div className="flex items-center gap-3">
-                              <div className="h-0.5 w-8 bg-gold-primary" />
-                              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">
+                              <div className="h-0.5 w-6 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                              <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">
                                 حدث عائلي قريب
                               </span>
                             </div>
-                            <h3 className="text-4xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                            <h3 className="text-2xl md:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">
                               {meeting.title}
                             </h3>
-                            <div className="flex items-center gap-4 text-white/60 font-bold">
-                              <Clock className="size-5 text-gold-primary" />
+                            <div className="flex items-center gap-3 md:gap-5 text-white/60 font-bold text-xs md:text-lg">
+                              <Clock className="size-4 md:size-6 text-gold-primary" />
                               <span>
                                 {new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", {
                                   weekday: "long",
@@ -621,18 +628,19 @@ function Dashboard() {
                             </div>
                             <Link
                               to="/meetings"
-                              className="btn-gold px-12 py-4 rounded-full font-black inline-flex items-center gap-3 shadow-2xl shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all"
+                              className="btn-gold px-8 py-3.5 md:px-14 md:py-6 rounded-full font-black inline-flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all text-xs md:text-xl w-full md:w-fit"
                             >
-                              تأكيد الحضور <ChevronLeft size={20} />
+                              تأكيد الحضور <ChevronLeft className="size-4 md:size-6" />
                             </Link>
                           </div>
-                          <div className="flex flex-col items-center justify-center p-6 md:p-10 bg-white/5 backdrop-blur-md rounded-[32px] md:rounded-[40px] border border-white/10 relative z-10 min-w-[120px] md:min-w-[180px]">
-                            <Timer className="size-6 md:size-10 mb-2 md:mb-3 text-gold-primary animate-pulse" />
+
+                          <div className="flex flex-col items-center justify-center p-5 md:p-12 bg-white/5 backdrop-blur-md rounded-[24px] md:rounded-[48px] border border-white/10 relative z-10 min-w-[100px] md:min-w-[200px] self-stretch md:self-center">
+                            <Timer className="size-5 md:size-12 mb-2 md:mb-4 text-gold-primary animate-pulse" />
                             <div className="text-center">
-                              <p className="text-3xl md:text-5xl font-black tracking-tighter text-white">
+                              <p className="text-3xl md:text-7xl font-black tracking-tighter text-white">
                                 {daysLeft > 0 ? daysLeft : 0}
                               </p>
-                              <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">
+                              <p className="text-[8px] md:text-xs font-black uppercase tracking-widest text-white/40 mt-1">
                                 أيام متبقية
                               </p>
                             </div>

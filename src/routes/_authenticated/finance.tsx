@@ -15,7 +15,11 @@ import {
   X,
   Clock,
 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 
 export const Route = createFileRoute("/_authenticated/finance")({
   ssr: false,
@@ -62,6 +66,7 @@ function FinancePage() {
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "س" });
   const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
   const canManage = canManageSection("finance");
+  const dynamicLogo = useSiteLogo();
   const [rows, setRows] = useState<Tx[]>([]);
   const [transfers, setTransfers] = useState<BankTransfer[]>([]);
   const [tab, setTab] = useState<"transactions" | "transfers">("transactions");
@@ -248,8 +253,46 @@ function FinancePage() {
 
   return (
     <AppShell title="صندوق العائلة" user={profile}>
-      <div className="space-y-8">
+      <div className="max-w-7xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
         <QuickActionsBanner />
+
+        {/* Alsaif Finance Header — Banner Style */}
+        <section className="animate-fade-up">
+          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-emerald-900 via-primary to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+            {/* Left Decorative Logo */}
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
+              <img
+                src={dynamicLogo || alsaifMark?.url || ""}
+                className="size-28 md:size-64 object-contain brightness-0 invert"
+                alt=""
+              />
+            </div>
+
+            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+              <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                    التكافل العائلي
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                  صندوق العائلة
+                </h2>
+                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                  إدارة مساهمات ومصاريف صندوق عائلة السيف لتعزيز روح التعاون.
+                </p>
+              </div>
+
+              <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
+                <Wallet className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="card-surface p-6 ring-1 ring-gold-primary/30">

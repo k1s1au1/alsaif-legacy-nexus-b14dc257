@@ -40,6 +40,8 @@ import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -128,6 +130,7 @@ function AdminPage() {
   const [annImageFile, setAnnImageFile] = useState<File | null>(null);
   const [annImagePreview, setAnnImagePreview] = useState<string | null>(null);
   const [annSaving, setAnnSaving] = useState(false);
+  const dynamicLogo = useSiteLogo();
 
   const [memberSearch, setMemberSearch] = useState("");
   const [loading, setLoading] = useState(true);
@@ -327,18 +330,40 @@ function AdminPage() {
     <AppShell title="الإدارة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Alsaif Header Section */}
-        <section className="flex flex-col md:flex-row md:items-end justify-between gap-6 animate-fade-up">
-          <div className="space-y-2">
-            <div className="flex items-center gap-3">
-              <div className="size-1 w-10 bg-gold-primary rounded-full" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المجلس</span>
+        {/* Alsaif Header Section — Banner Style */}
+        <section className="animate-fade-up px-4 md:px-0">
+          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-primary via-emerald-950 to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+            {/* Left Decorative Logo */}
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
+              <img
+                src={dynamicLogo || alsaifMark?.url || ""}
+                className="size-28 md:size-64 object-contain brightness-0 invert"
+                alt=""
+              />
             </div>
-            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">لوحة الإدارة</h2>
-            <p className="text-muted-foreground font-bold text-lg opacity-70">إدارة طلبات الانضمام، الصلاحيات، وإعدادات الهوية البصرية.</p>
-          </div>
-          <div className="size-20 rounded-[32px] bg-primary/5 border-2 border-gold-primary/20 flex items-center justify-center shadow-xl md:mb-2">
-            <Shield className="size-10 text-gold-primary" strokeWidth={1.5} />
+
+            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+              <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                    إدارة المجلس
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                  لوحة الإدارة
+                </h2>
+                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                  إدارة طلبات الانضمام، الصلاحيات، وإعدادات الهوية البصرية.
+                </p>
+              </div>
+
+              <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
+                <Shield className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
+              </div>
+            </div>
           </div>
         </section>
 

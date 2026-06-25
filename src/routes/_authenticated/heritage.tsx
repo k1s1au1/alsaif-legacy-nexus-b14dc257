@@ -195,31 +195,48 @@ function HeritagePage() {
       <div className="max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
         <QuickActionsBanner />
 
-        {/* Heritage Header */}
-        <section className="relative overflow-hidden rounded-[40px] md:rounded-[64px] bg-[#1a2b3c] p-8 md:p-20 text-white shadow-2xl border border-white/5 group">
-           <div className="absolute inset-0 bg-gradient-to-br from-[#1a2b3c] via-[#0f172a] to-black opacity-90 z-0" />
-           <div className="absolute top-1/2 left-0 -translate-y-1/2 opacity-10 pointer-events-none scale-[2] logo-alsaif z-1" style={{ '--logo-url': `url(${dynamicLogo || alsaifMark.url})` } as any} />
+        {/* Heritage Header — Banner Style */}
+        <section className="animate-fade-up">
+          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-[#1a2b3c] via-[#0f172a] to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+            {/* Left Decorative Logo */}
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
+              <img
+                src={dynamicLogo || alsaifMark?.url || ""}
+                className="size-28 md:size-64 object-contain brightness-0 invert"
+                alt=""
+              />
+            </div>
 
-           <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
-              <div className="space-y-4 text-center md:text-right">
-                 <div className="flex items-center justify-center md:justify-start gap-3">
-                    <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
-                    <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">موروث الأجيال</span>
-                 </div>
-                 <h2 className="text-4xl md:text-8xl font-black tracking-tighter leading-none">إرث<br/><span className="text-white/30">السيف</span></h2>
-                 <p className="text-white/60 font-bold text-lg md:text-2xl max-w-xl">نحفظ قصص الأجداد، لتبقى فخراً للأحفاد.</p>
+            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+              <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                <div className="flex items-center justify-center md:justify-start gap-3">
+                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                    موروث الأجيال
+                  </span>
+                </div>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-none drop-shadow-2xl">
+                  إرث<br />
+                  <span className="text-white/30">السيف</span>
+                </h2>
+                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                  نحفظ قصص الأجداد، لتبقى فخراً للأحفاد.
+                </p>
               </div>
 
               {canManage && (
                 <button
                   onClick={() => setShowCompose(true)}
-                  className="btn-gold px-10 py-5 md:px-14 md:py-7 rounded-[32px] text-lg md:text-xl font-black shadow-2xl shadow-gold-primary/30 flex items-center gap-4 hover:scale-105 active:scale-95 transition-all group w-full md:w-auto justify-center"
+                  className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
                 >
-                   <Scroll className="size-6 group-hover:rotate-12 transition-transform duration-500" />
-                   إضافة موروث جديد
+                  <Scroll className="size-5 md:size-7 group-hover:rotate-12 transition-transform duration-500" />
+                  <span>إضافة موروث</span>
                 </button>
               )}
-           </div>
+            </div>
+          </div>
         </section>
 
         {/* Search and Filters */}
