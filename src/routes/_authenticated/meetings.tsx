@@ -40,7 +40,7 @@ export const Route = createFileRoute("/_authenticated/meetings")({
   head: () => ({
     meta: [
       { title: "المناسبات العائلية — السيف" },
-      { name: "description", content: "جدول اجتماعات وفعاليات عائلة آل سيف." },
+      { name: "description", content: "جدول اجتماعات وفعاليات عائلة السيف." },
     ],
   }),
   component: MeetingsPage,

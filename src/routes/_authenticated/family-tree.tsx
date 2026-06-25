@@ -171,7 +171,7 @@ function FamilyTreePage() {
     if (!roots.length) return [];
     return [
       {
-        name: "مجلس آل سيف",
+        name: "مجلس السيف",
         attributes: { memberId: "__root__" } as any,
         children: roots.map(build),
       },
@@ -286,7 +286,7 @@ function FamilyTreePage() {
                     opacity: 0.7,
                     color: (isMe || isRoot) ? 'white' : '#8E7745'
                   }}>
-                    {isExtra ? "بدون حساب" : m.father_name || "آل سيف"}
+                    {isExtra ? "بدون حساب" : m.father_name || "السيف"}
                   </div>
                 </div>
                 {isPriv && (
@@ -331,7 +331,7 @@ function FamilyTreePage() {
             <div className="flex-1">
               <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة عائلة السيف</h1>
               <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">
-                استكشف تفرعات وجذور عائلة آل سيف العريقة
+                استكشف تفرعات وجذور عائلة السيف العريقة
               </p>
             </div>
             {isPriv && (

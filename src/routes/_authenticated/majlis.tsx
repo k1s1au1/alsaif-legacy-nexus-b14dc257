@@ -33,7 +33,7 @@ export const Route = createFileRoute("/_authenticated/majlis")({
   head: () => ({
     meta: [
       { title: "أخبار العائلة — السيف" },
-      { name: "description", content: "مركز أخبار عائلة آل سيف ونقاشاتها." },
+      { name: "description", content: "مركز أخبار عائلة السيف ونقاشاتها." },
     ],
   }),
   component: MajlisPage,
@@ -355,7 +355,7 @@ function MajlisPage() {
                 <div className="flex items-center justify-center md:justify-start gap-3">
                   <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
                   <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
-                    أخبار آل سيف
+                    أخبار السيف
                   </span>
                 </div>
                 <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">

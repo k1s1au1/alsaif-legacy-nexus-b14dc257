@@ -15,7 +15,7 @@ export const Route = createFileRoute("/auth")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "مجلس آل سيف — تسجيل الدخول" },
+      { title: "مجلس السيف — تسجيل الدخول" },
       { name: "description", content: "بوابة الدخول الخاصة بأعضاء عائلة السيف." },
     ],
   }),
@@ -60,7 +60,7 @@ function AuthPage() {
       toast.error("تعذّر الدخول", { description: "تأكد من البيانات المعتمدة من الإدارة." });
       return;
     }
-    toast.success("أهلاً بك في مجلس آل سيف");
+    toast.success("أهلاً بك في مجلس السيف");
     navigate({ to: "/dashboard", replace: true });
   }
 

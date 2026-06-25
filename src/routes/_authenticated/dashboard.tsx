@@ -39,7 +39,7 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "لوحة العائلة — السيف" },
-      { name: "description", content: "مركز إدارة عائلة آل سيف." },
+      { name: "description", content: "مركز إدارة عائلة السيف." },
     ],
   }),
   component: Dashboard,
@@ -376,7 +376,7 @@ function Dashboard() {
                       <div className="flex-1 min-w-0 space-y-1 md:space-y-2">
                         <div className="hidden md:flex items-center gap-3">
                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">
-                            أخبار آل سيف
+                            أخبار السيف
                           </span>
                           <div className="h-px w-12 bg-gold-primary/30" />
                         </div>

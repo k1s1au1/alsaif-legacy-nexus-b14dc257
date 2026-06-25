@@ -180,7 +180,7 @@ function TasksPage() {
                 </div>
                 <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-none drop-shadow-2xl">
                   مبادرات<br />
-                  <span className="text-white/30">آل سيف</span>
+                  <span className="text-white/30">السيف</span>
                 </h2>
                 <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
                   تعاون، أنجز، وارتقِ بمسؤوليات عائلتنا العريقة.

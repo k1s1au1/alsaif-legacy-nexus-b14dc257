@@ -248,7 +248,7 @@ function ProfilePage() {
                     <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">الملف التعريفي</span>
                  </div>
                  <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">{displayName}</h2>
-                 <p className="text-lg font-bold text-muted-foreground opacity-60">عضو مجلس عائلة آل سيف الموقر</p>
+                 <p className="text-lg font-bold text-muted-foreground opacity-60">عضو مجلس عائلة السيف الموقر</p>
               </div>
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
                  <div className="flex items-center gap-2 bg-emerald-500/10 px-4 py-1.5 rounded-full border border-emerald-500/20 text-emerald-600">
@@ -329,7 +329,7 @@ function ProfilePage() {
                  <div className="absolute top-0 left-0 opacity-10 -translate-x-1/3 -translate-y-1/3 pointer-events-none scale-150 rotate-12">
                     <img src={dynamicLogo || alsaifMark.url} className="size-48 brightness-0 invert" alt="" />
                  </div>
-                 <h4 className="text-lg font-black tracking-tight relative z-10">إرث آل سيف الرقمي</h4>
+                 <h4 className="text-lg font-black tracking-tight relative z-10">إرث السيف الرقمي</h4>
                  <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">هذا الحساب موثق لدى مجلس العائلة. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا لأعضاء المجلس المعتمدين.</p>
                  <div className="pt-4 relative z-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest">
