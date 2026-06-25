@@ -218,7 +218,7 @@ function Dashboard() {
               {/* Center content */}
               <div className="flex-1 text-center md:text-right space-y-5 order-2">
                 <div className="space-y-2">
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight text-[#1A1C1E] dark:text-foreground">
+                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight text-foreground">
                     {profile.name}
                   </h2>
                   <p className="text-sm md:text-base text-muted-foreground font-bold opacity-70">
