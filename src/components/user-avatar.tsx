@@ -110,7 +110,7 @@ export function UserAvatar({
       }}
     />
   ) : (
-    <span className={fallbackClassName}>{ini}</span>
+    <span className={cn("text-foreground", fallbackClassName)}>{ini}</span>
   );
 
   if (!showDot) return inner;

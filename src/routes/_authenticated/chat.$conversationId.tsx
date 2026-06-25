@@ -557,7 +557,7 @@ function ConversationRoute() {
                 )}
              </div>
              <div className="min-w-0">
-                <h2 className="text-[17px] font-black tracking-tight text-primary group-hover:text-gold-primary transition-colors truncate">{title}</h2>
+                <h2 className="text-[17px] font-black tracking-tight text-foreground group-hover:text-primary transition-colors truncate">{title}</h2>
                 <p className="text-[11px] font-bold text-muted-foreground opacity-60">
                    {typingLabel ? <span className="text-emerald-500 animate-pulse">{typingLabel}</span> : statusLabel}
                 </p>
@@ -784,14 +784,14 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
 
       <div className={cn("max-w-[85%] sm:max-w-[70%] flex flex-col relative", mine ? "items-end text-left" : "items-start text-right")}>
         {!mine && (
-           <span className="text-[10px] font-black text-primary opacity-60 mb-1.5 mr-3 tracking-wide">{name}</span>
+           <span className="text-[10px] font-black text-gold-primary/80 mb-1.5 mr-3 tracking-wide">{name}</span>
         )}
 
         <div className={cn(
           "relative px-4 py-3 rounded-[24px] shadow-sm transition-all duration-300",
           mine
             ? "bg-primary text-white rounded-br-none shadow-primary/10"
-            : "bg-white dark:bg-card border border-border text-foreground rounded-bl-none shadow-black/5"
+            : "bg-white dark:bg-[#1E2229] border border-border text-foreground rounded-bl-none shadow-black/5"
         )}>
            {replyTo && (
               <div className={cn(
@@ -889,12 +889,12 @@ function AttachmentBody({ m }: { m: Message }) {
 
   if (m.kind === "audio") {
     return (
-      <div className="flex flex-col gap-3 min-w-[250px] p-2 bg-black/5 rounded-2xl">
+      <div className="flex flex-col gap-3 min-w-[250px] p-2 bg-muted/20 rounded-2xl">
         <div className="flex items-center gap-3">
            <div className="size-10 rounded-full bg-primary flex items-center justify-center text-white"><Mic className="size-5" /></div>
            <div className="flex-1">
               <p className="text-[10px] font-black uppercase opacity-60 mb-1">رسالة صوتية</p>
-              {signed ? <audio controls src={signed} className="h-6 w-full opacity-60" /> : <span className="text-xs opacity-50">تحميل...</span>}
+              {signed ? <audio controls src={signed} className="h-6 w-full opacity-60 dark:invert dark:grayscale" /> : <span className="text-xs opacity-50">تحميل...</span>}
            </div>
         </div>
         {m.attachment_duration_ms && (
@@ -908,10 +908,10 @@ function AttachmentBody({ m }: { m: Message }) {
     <a href={signed ?? "#"} target="_blank" rel="noopener noreferrer" download={m.attachment_name ?? undefined} className="flex items-center gap-4 px-4 py-3 rounded-2xl bg-muted/30 hover:bg-muted transition-all border border-border min-w-[220px]">
       <div className="size-12 rounded-xl bg-gold-primary text-white flex items-center justify-center shadow-lg"><FileIcon className="size-6" /></div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-black truncate text-primary">{m.attachment_name ?? "ملف"}</p>
+        <p className="text-sm font-black truncate text-foreground">{m.attachment_name ?? "ملف"}</p>
         <p className="text-[10px] font-bold opacity-40">{formatBytes(m.attachment_size)}</p>
       </div>
-      <Download className="size-4 text-primary opacity-60" />
+      <Download className="size-4 text-foreground opacity-60" />
     </a>
   );
 }
@@ -941,8 +941,8 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
       <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30 }} className="w-full max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border">
 
         <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-8 bg-muted/10">
-           <h3 className="text-xl font-black text-primary tracking-tight">معلومات المجلس</h3>
-           <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X className="size-5" /></button>
+           <h3 className="text-xl font-black text-foreground tracking-tight">معلومات المجلس</h3>
+           <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X size={24} /></button>
         </header>
 
         <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-10">
@@ -969,7 +969,7 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
                     </div>
                  ) : (
                     <div className="flex items-center justify-center gap-3">
-                       <h4 className="text-2xl font-black text-primary tracking-tight">{conversationTitle(conversation, participants, profiles, meId)}</h4>
+                       <h4 className="text-2xl font-black text-foreground tracking-tight">{conversationTitle(conversation, participants, profiles, meId)}</h4>
                        {isAdmin && <button onClick={() => setRenaming(true)} className="text-muted-foreground hover:text-primary"><Settings2 size={16} /></button>}
                     </div>
                  )}
@@ -991,8 +991,8 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
            <div className="space-y-6">
               <div className="flex items-center justify-between">
                  <div className="flex items-center gap-3">
-                    <h5 className="font-black text-xs uppercase tracking-[0.2em] text-primary">أعضاء المجلس</h5>
-                    <span className="px-2 py-0.5 bg-primary/5 text-primary text-[10px] font-black rounded-full border border-primary/10">{participants.length}</span>
+                    <h5 className="font-black text-xs uppercase tracking-[0.2em] text-foreground/60">أعضاء المجلس</h5>
+                    <span className="px-2 py-0.5 bg-primary/10 text-foreground text-[10px] font-black rounded-full border border-primary/20">{participants.length}</span>
                  </div>
                  {isAdmin && <button onClick={() => setShowAdd(true)} className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline">+ إضافة عضو</button>}
               </div>
@@ -1009,7 +1009,7 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
                              {pres?.status === "online" && <div className="absolute -bottom-1 -right-1 size-3 bg-emerald-500 rounded-full border-2 border-card" />}
                           </div>
                           <div className="flex-1 min-w-0">
-                             <p className="text-sm font-black text-primary truncate">{name} {p.user_id === meId && <span className="opacity-40 font-bold">(أنت)</span>}</p>
+                             <p className="text-sm font-black text-foreground truncate">{name} {p.user_id === meId && <span className="opacity-40 font-bold">(أنت)</span>}</p>
                              <div className="flex items-center gap-1.5 mt-0.5 opacity-60">
                                 {p.role === "owner" ? <Crown size={10} className="text-gold-primary" /> : p.role === "admin" ? <ShieldCheck size={10} className="text-primary" /> : <Users size={10} />}
                                 <span className="text-[10px] font-black uppercase tracking-tighter">{p.role === "owner" ? "مالك المجلس" : p.role === "admin" ? "مشرف" : "عضو"}</span>

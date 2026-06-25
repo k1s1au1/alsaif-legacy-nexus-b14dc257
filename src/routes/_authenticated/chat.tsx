@@ -272,7 +272,7 @@ function ChatLayout() {
           <div className="p-6 border-b border-border space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <h2 className="text-2xl font-black text-primary tracking-tight">الرسائل</h2>
+                <h2 className="text-2xl font-black text-foreground tracking-tight">الرسائل</h2>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary opacity-60">تواصل مباشر</p>
               </div>
               <div className="flex items-center gap-2">
@@ -309,7 +309,7 @@ function ChatLayout() {
                 onClick={() => setShowArchive(false)}
                 className={cn(
                   "flex-1 py-2 text-xs font-black rounded-xl transition-all",
-                  !showArchive ? "bg-card text-primary shadow-md" : "text-muted-foreground hover:text-foreground"
+                  !showArchive ? "bg-card text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 نشطة
@@ -318,7 +318,7 @@ function ChatLayout() {
                 onClick={() => setShowArchive(true)}
                 className={cn(
                   "flex-1 py-2 text-xs font-black rounded-xl flex items-center justify-center gap-2 transition-all",
-                  showArchive ? "bg-card text-primary shadow-md" : "text-muted-foreground hover:text-foreground"
+                  showArchive ? "bg-card text-foreground shadow-md" : "text-muted-foreground hover:text-foreground"
                 )}
               >
                 <Archive className="size-3.5" />
@@ -525,10 +525,10 @@ function ConversationRow({
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2 mb-1">
-              <h3 className={cn("text-sm font-black truncate tracking-tight", active ? "text-white" : "text-primary group-hover/row:text-gold-primary transition-colors")}>{title}</h3>
+              <h3 className={cn("text-sm font-black truncate tracking-tight", active ? "text-white" : "text-foreground group-hover/row:text-primary transition-colors")}>{title}</h3>
               <div className="flex items-center gap-1.5 opacity-60">
-                 {!active && <Clock className="size-3" />}
-                 <span className="text-[10px] font-bold">
+                 {!active && <Clock className="size-3 text-muted-foreground" />}
+                 <span className={cn("text-[10px] font-bold", active ? "text-white/60" : "text-muted-foreground")}>
                    {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
                  </span>
               </div>
@@ -674,7 +674,7 @@ function NewConversationDialog({
                   <div className="size-1 w-10 bg-gold-primary rounded-full" />
                   <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">تواصل مباشر</span>
                </div>
-              <h3 className="text-3xl font-black tracking-tight text-primary">
+              <h3 className="text-3xl font-black tracking-tight text-foreground">
                 {mode === "chat" ? "محادثة جديدة" : "مجلس عائلي جديد"}
               </h3>
               <p className="text-muted-foreground font-bold text-sm">اختر الأفراد الذين تود التواصل معهم في هذا المجلس.</p>
@@ -687,7 +687,7 @@ function NewConversationDialog({
           <div className="space-y-6">
             {mode === "group" && (
               <div className="space-y-2">
-                <label className="text-[10px] font-black uppercase tracking-widest text-primary mr-2 block">عنوان المجلس</label>
+                <label className="text-[10px] font-black uppercase tracking-widest text-foreground opacity-60 mr-2 block">عنوان المجلس</label>
                 <div className="relative group">
                    <Users className="size-4 absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-gold-primary transition-colors" />
                    <input
@@ -695,21 +695,21 @@ function NewConversationDialog({
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="مثال: مجلس الأحفاد / ترتيبات العيد"
                     maxLength={80}
-                    className="w-full bg-muted/30 border border-border rounded-2xl pl-6 pr-12 py-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                    className="w-full bg-muted/30 border border-border rounded-2xl pl-6 pr-12 py-5 font-bold text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                   />
                 </div>
               </div>
             )}
 
             <div className="space-y-2">
-               <label className="text-[10px] font-black uppercase tracking-widest text-primary mr-2 block">البحث عن أفراد العائلة</label>
+               <label className="text-[10px] font-black uppercase tracking-widest text-foreground opacity-60 mr-2 block">البحث عن أفراد العائلة</label>
                <div className="relative group">
                  <Search className="size-4 absolute right-5 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" />
                  <input
                    value={q}
                    onChange={(e) => setQ(e.target.value)}
                    placeholder="ابحث بالاسم أو اللقب..."
-                   className="w-full bg-muted/30 border border-border rounded-2xl pl-6 pr-12 py-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                   className="w-full bg-muted/30 border border-border rounded-2xl pl-6 pr-12 py-5 font-bold text-sm text-foreground focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                  />
                </div>
             </div>
