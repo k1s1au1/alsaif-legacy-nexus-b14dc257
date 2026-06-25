@@ -1,9 +1,19 @@
 import { useEffect, useState } from "react";
 
-const AR_DAYS = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+const AR_DAYS = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
 const AR_MONTHS = [
-  "يناير","فبراير","مارس","أبريل","مايو","يونيو",
-  "يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر",
+  "يناير",
+  "فبراير",
+  "مارس",
+  "أبريل",
+  "مايو",
+  "يونيو",
+  "يوليو",
+  "أغسطس",
+  "سبتمبر",
+  "أكتوبر",
+  "نوفمبر",
+  "ديسمبر",
 ];
 
 export function LiveClock({ variant = "full" }: { variant?: "full" | "date" | "time" }) {
@@ -37,9 +47,7 @@ export function LiveClock({ variant = "full" }: { variant?: "full" | "date" | "t
           {h.toString().padStart(2, "0")}:{m}
           <span className="text-muted-foreground/60 hidden sm:inline">:{s}</span> {suffix}
         </span>
-        <span className="truncate">
-          {dateText}
-        </span>
+        <span className="truncate">{dateText}</span>
       </div>
     );
   } catch {
