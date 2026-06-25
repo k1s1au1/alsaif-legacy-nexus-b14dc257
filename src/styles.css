@@ -55,6 +55,10 @@
   --muted-foreground: #64748B;
   --gold-primary: #8E7745;
   --gold-soft: #AF9867;
+  --hero-card: #FAF9F4;
+  --hero-pill: rgba(255, 255, 255, 0.75);
+  --hero-pill-border: rgba(27, 67, 50, 0.08);
+  --hero-divider: rgba(27, 67, 50, 0.12);
 }
 
 .dark {
