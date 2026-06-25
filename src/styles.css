@@ -59,6 +59,7 @@
   --hero-pill: rgba(255, 255, 255, 0.75);
   --hero-pill-border: rgba(27, 67, 50, 0.08);
   --hero-divider: rgba(27, 67, 50, 0.12);
+  --hero-logo-badge: rgba(255, 255, 255, 0.92);
 }
 
 .dark {
