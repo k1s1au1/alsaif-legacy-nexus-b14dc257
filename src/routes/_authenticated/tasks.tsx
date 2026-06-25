@@ -173,7 +173,7 @@ function TasksPage() {
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
               <div className="space-y-3 md:space-y-5 text-center md:text-right">
                 <div className="flex items-center justify-center md:justify-start gap-3">
-                  <div className="h-1 w-12 bg-gold-primary rounded-full shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
+                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
                   <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
                     نظام إدارة المهام
                   </span>

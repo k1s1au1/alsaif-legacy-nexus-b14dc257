@@ -424,8 +424,6 @@ function Dashboard() {
               </section>
             );
           })()}
-            );
-          })()}
 
         {/* Dynamic Event Banners - Carousels */}
         <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
