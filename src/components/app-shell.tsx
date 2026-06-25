@@ -77,7 +77,7 @@ export function AppShell({
 
         const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
         const r = (roles ?? []).map(x => x.role);
-        setIsAdmin(r.includes("admin") || r.includes("manager"));
+        setIsAdmin(r.includes("admin") || r.includes("manager") || r.includes("chairman"));
 
         const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
         if (p?.avatar_url) setMyAvatarPath(p.avatar_url);
