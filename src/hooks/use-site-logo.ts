@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 const BUCKET = "app-backgrounds";
@@ -11,7 +11,9 @@ const SIGN_SECONDS = 60 * 60 * 24 * 365 * 5; // 5 years
 export function useSiteLogo() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [version, setVersion] = useState(0);
+  const instanceId = useId();
 
+  // Fetch logo whenever version changes
   useEffect(() => {
     let cancelled = false;
 
@@ -35,8 +37,15 @@ export function useSiteLogo() {
       if (!cancelled) setLogoUrl(signed?.signedUrl ?? null);
     })();
 
+    return () => {
+      cancelled = true;
+    };
+  }, [version]);
+
+  // Subscribe once per hook instance with a unique channel name
+  useEffect(() => {
     const channel = supabase
-      .channel("app-settings-site-logo")
+      .channel(`app-settings-site-logo-${instanceId}-${Math.random().toString(36).slice(2)}`)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "app_settings", filter: "key=eq.site_logo" },
@@ -45,10 +54,9 @@ export function useSiteLogo() {
       .subscribe();
 
     return () => {
-      cancelled = true;
       supabase.removeChannel(channel);
     };
-  }, [version]);
+  }, [instanceId]);
 
   return logoUrl;
 }
