@@ -368,7 +368,7 @@ function Dashboard() {
                         </div>
                         <div className="md:hidden flex flex-col">
                           <span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold-primary/80">
-                            إعلانات المجلس
+                            أخبار العائلة
                           </span>
                         </div>
                       </div>
@@ -376,7 +376,7 @@ function Dashboard() {
                       <div className="flex-1 min-w-0 space-y-1 md:space-y-2">
                         <div className="hidden md:flex items-center gap-3">
                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">
-                            إعلانات المجلس
+                            أخبار آل سيف
                           </span>
                           <div className="h-px w-12 bg-gold-primary/30" />
                         </div>
