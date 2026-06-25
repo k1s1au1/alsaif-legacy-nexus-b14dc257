@@ -29,7 +29,7 @@ export function roleLabel(role: AppRole | string | null): string {
     case "chairman": return "رئيس المجلس";
     case "head_meetings": return "مسؤول الاجتماعات";
     case "head_events": return "مسؤول الفعاليات";
-    case "head_trips": return "مسؤول الرحلات";
+    case "head_trips": return "مسؤول الترفيه";
     case "head_finance": return "مسؤول المالية";
     case "head_heritage": return "مسؤول إرث السيف";
     default: return "عضو";

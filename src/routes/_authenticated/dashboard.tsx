@@ -155,7 +155,7 @@ function Dashboard() {
   const stats = [
     { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
     { label: "أفراد العائلة", value: membersCount, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
-    { label: "الرحلات المجدولة", value: tripsCount, suffix: "رحلة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
+    { label: "ترفيه عائلي", value: tripsCount, suffix: "وجهة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
     { label: "مهام قيد التنفيذ", value: tasksCount, suffix: "مهمة", color: "bg-gradient-to-br from-rose-700 to-rose-950", icon: <ListChecks className="size-16" />, link: "/tasks" },
   ];
 
@@ -292,7 +292,7 @@ function Dashboard() {
         <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
           {upcomingTrips.length > 0 && (
             <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[#8E7745] font-black uppercase tracking-widest text-xs px-6"><Plane className="size-4" /> الرحلات القادمة</div>
+              <div className="flex items-center gap-3 text-[#8E7745] font-black uppercase tracking-widest text-xs px-6"><Plane className="size-4" /> الترفيه القادم</div>
               <Carousel plugins={[tripsPlugin.current]} className="w-full" orientation="vertical" onMouseEnter={tripsPlugin.current.stop} onMouseLeave={tripsPlugin.current.reset} opts={{ loop: true }}>
                 <CarouselContent className="h-[350px] md:h-[450px]">
                   {upcomingTrips.map((trip) => {

@@ -118,22 +118,24 @@ export function AppShell({
       {/* Edge trigger for swiping open — invisible but interactive */}
       {!sidebarOpen && (
         <div
-          className="fixed inset-y-0 right-0 w-16 z-[55] lg:hidden"
+          className="fixed inset-y-0 right-0 w-8 z-[55] lg:hidden"
           onPointerDown={() => setSidebarOpen(true)}
         />
       )}
 
       <motion.aside
         drag="x"
+        dragDirectionLock
         dragConstraints={{ left: 0, right: 350 }}
-        dragElastic={0.02}
+        dragElastic={0.1}
         onDragEnd={(_, info) => {
-          if (info.offset.x > 50 || info.velocity.x > 300) {
+          // Close if swiped right (positive x)
+          if (info.offset.x > 80 || info.velocity.x > 500) {
             setSidebarOpen(false);
           }
         }}
         animate={{ x: sidebarOpen ? 0 : 350 }}
-        transition={{ type: "spring", damping: 40, stiffness: 400 }}
+        transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }}
         className={cn(
           "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl",
           "w-[85vw] max-w-[320px] rounded-l-[32px] touch-pan-y",

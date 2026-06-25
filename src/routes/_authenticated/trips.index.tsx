@@ -17,8 +17,8 @@ export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "الرحلات — السيف" },
-      { name: "description", content: "رحلات العائلة القادمة والسابقة، تفاصيل الوجهة والمشاركين." },
+      { title: "الترفيه — السيف" },
+      { name: "description", content: "وجهات ترفيهية وفعاليات عائلية لتعزيز الترابط." },
     ],
   }),
   component: TripsPage,
@@ -74,7 +74,7 @@ function TripsPage() {
       .select("id,title,badge,location,location_url,start_date,end_date,description,image_url,status")
       .order("start_date", { ascending: true, nullsFirst: false });
     if (error) {
-      toast.error("تعذر تحميل الرحلات");
+      toast.error("تعذر تحميل بيانات الترفيه");
     } else {
       setTrips((data ?? []) as Trip[]);
     }
@@ -110,7 +110,7 @@ function TripsPage() {
   }, [userId, primaryRole]);
 
   return (
-    <AppShell title="الرحلات" user={profile}>
+    <AppShell title="الترفيه" user={profile}>
       <div className="max-w-7xl mx-auto space-y-12 pb-24" dir="rtl">
         <QuickActionsBanner />
 
@@ -132,14 +132,14 @@ function TripsPage() {
                 <div className="flex items-center justify-center md:justify-start gap-3">
                   <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
                   <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
-                    استكشاف العالم
+                    استكشاف السعادة
                   </span>
                 </div>
                 <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
-                  رحلات العائلة
+                  ترفيه العائلة
                 </h2>
                 <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
-                  جدول الوجهات واللقاءات الخارجية لأعضاء عائلة السيف لتعزيز الترابط.
+                  جدول الوجهات واللقاءات الترفيهية لأعضاء عائلة السيف لتعزيز الترابط.
                 </p>
               </div>
 
@@ -149,7 +149,7 @@ function TripsPage() {
                   className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
                 >
                   <Plus className="size-5 md:size-7" strokeWidth={3} />
-                  <span>إضافة رحلة</span>
+                  <span>إضافة وجهة</span>
                 </button>
               )}
             </div>
@@ -159,14 +159,14 @@ function TripsPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
              <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-             <p className="font-black">جاري تحضير الوجهات والرحلات...</p>
+             <p className="font-black">جاري تحضير الوجهات الترفيهية...</p>
           </div>
         ) : trips.length === 0 ? (
           <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40 animate-fade-up">
             <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Compass size={60} strokeWidth={1} /></div>
             <div className="space-y-1">
-              <p className="text-2xl font-black text-primary">لا توجد رحلات مجدولة حالياً</p>
-              <p className="text-sm font-bold opacity-60">سيتم إشعارك فور إعلان الإدارة عن رحلة عائلية جديدة.</p>
+              <p className="text-2xl font-black text-primary">لا توجد أنشطة ترفيهية حالياً</p>
+              <p className="text-sm font-bold opacity-60">سيتم إشعارك فور إعلان الإدارة عن وجهة ترفيهية جديدة.</p>
             </div>
           </div>
         ) : (

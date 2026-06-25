@@ -2,7 +2,7 @@ import React from "react";
 import { Link } from "@tanstack/react-router";
 import {
   MessageCircle,
-  Plane,
+  Ticket,
   CalendarDays,
   ListChecks,
   Megaphone,
@@ -41,7 +41,7 @@ export function QuickActionsBanner() {
        </div>
        <div className="flex overflow-x-auto no-scrollbar gap-8 px-8 pb-4 sm:grid sm:grid-cols-5 lg:grid-cols-9 sm:overflow-visible sm:justify-items-center">
           <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-blue-500" />
-          <QuickAction to="/trips" label="رحلات" icon={<Plane />} color="bg-indigo-500" />
+          <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-indigo-500" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-amber-500" />
           <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-rose-500" />
           <QuickAction to="/majlis" label="الأخبار" icon={<Megaphone />} color="bg-emerald-500" />

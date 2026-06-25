@@ -56,7 +56,7 @@ const SECTIONS: {
   { key: "family", label: "العائلة", icon: Users, hint: "متاح لجميع الأعضاء — تُحذف الوسائط تلقائياً خلال 3 أيام كحد أقصى.", privOnly: false },
   { key: "meetings", label: "الاجتماعات", icon: CalendarDays, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
   { key: "events", label: "المناسبات", icon: Sparkles, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
-  { key: "trips", label: "الرحلات", icon: Plane, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
+  { key: "trips", label: "الترفيه", icon: Plane, hint: "الرفع والحذف للمشرفين والمسؤولين فقط.", privOnly: true },
 ];
 
 function roleLabel(role: string | null) {

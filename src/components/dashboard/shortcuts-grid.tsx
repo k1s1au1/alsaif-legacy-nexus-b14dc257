@@ -60,7 +60,7 @@ export function ShortcutsGrid({
   const baseShortcuts: Shortcut[] = useMemo(() => [
     { key: "chat", to: "/chat", title: "المحادثات", description: "تواصل مباشر مع العائلة", icon: MessageCircle, accent: "from-gold-primary/10 to-transparent", cta: "افتح المحادثات", badge: badges.chat ?? null, stat: stats.chat ?? null },
     { key: "meetings", to: "/meetings", title: "الاجتماعات", description: "جدول الاجتماعات والحضور", icon: CalendarDays, accent: "from-gold-primary/10 to-transparent", cta: "عرض الاجتماعات", badge: badges.meetings ?? null, stat: stats.meetings ?? null },
-    { key: "trips", to: "/trips", title: "الرحلات", description: "رحلات العائلة القادمة", icon: Plane, accent: "from-gold-primary/10 to-transparent", cta: "تصفح الرحلات", badge: badges.trips ?? null, stat: stats.trips ?? null },
+    { key: "trips", to: "/trips", title: "الترفيه", description: "ترفيه ووجهات عائلية", icon: Ticket, accent: "from-gold-primary/10 to-transparent", cta: "استكشاف الترفيه", badge: badges.trips ?? null, stat: stats.trips ?? null },
     { key: "finance", to: "/finance", title: "الصندوق المالي", description: "الرصيد والمساهمات", icon: Wallet, accent: "from-gold-primary/25 to-transparent", cta: "إدارة الصندوق", badge: badges.finance ?? null, stat: stats.finance ?? null },
     { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-gold-primary/10 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
     { key: "events", to: "/events", title: "المناسبات", description: "الأفراح والمناسبات الخاصة", icon: Sparkles, accent: "from-gold-primary/10 to-transparent", cta: "تصفح المناسبات", badge: badges.events ?? null, stat: stats.events ?? null },

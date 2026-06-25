@@ -273,7 +273,7 @@ function TripDetail() {
             <div className="size-8 rounded-full bg-muted flex items-center justify-center group-hover:bg-gold-primary group-hover:text-black transition-all">
               <ArrowRight className="size-4" />
             </div>
-            العودة إلى الرحلات
+            العودة إلى الترفيه
           </Link>
           <div className="flex items-center gap-2">
             <button className="size-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-gold-primary/20 transition-all text-gold-primary">
