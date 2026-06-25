@@ -392,7 +392,7 @@ function MajlisPage() {
           </div>
         ) : filteredPosts.length === 0 ? (
           <div className="card-surface p-16 md:p-32 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
-            <Megaphone size={48} md:size={60} strokeWidth={1} />
+            <Megaphone className="size-12 md:size-[60px]" strokeWidth={1} />
             <p className="text-lg md:text-xl font-bold">لا توجد منشورات في هذا القسم حالياً</p>
           </div>
         ) : (
@@ -444,7 +444,7 @@ function PostCard({ post, me, author, onTogglePin, onDelete, onToggleComments, c
                   <div className="size-11 md:size-14 rounded-2xl md:rounded-[20px] ring-4 ring-primary/5 overflow-hidden shadow-lg bg-muted">
                     <UserAvatar path={author?.avatar_url} name={authorName} className="size-full" userId={post.author_id} />
                   </div>
-                  {post.pinned && <div className="absolute -top-1.5 -right-1.5 size-6 md:size-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-card shadow-lg"><Pin size={10} md:size={12} strokeWidth={3} /></div>}
+                  {post.pinned && <div className="absolute -top-1.5 -right-1.5 size-6 md:size-7 rounded-full bg-primary text-white flex items-center justify-center border-2 border-card shadow-lg"><Pin className="size-2.5 md:size-3" strokeWidth={3} /></div>}
                </div>
                <div className="space-y-0.5 md:space-y-1 min-w-0">
                   <div className="flex items-center gap-2 md:gap-3 flex-wrap">
@@ -484,7 +484,7 @@ function PostCard({ post, me, author, onTogglePin, onDelete, onToggleComments, c
               onClick={() => onToggleComments(post.id)}
               className="flex items-center gap-3 text-primary font-black text-[10px] md:text-xs uppercase tracking-widest hover:text-gold-primary transition-all w-fit"
             >
-              <div className="size-9 md:size-10 rounded-lg md:rounded-xl bg-primary/5 flex items-center justify-center shadow-inner"><MessageSquare size={16} md:size={18} /></div>
+              <div className="size-9 md:size-10 rounded-lg md:rounded-xl bg-primary/5 flex items-center justify-center shadow-inner"><MessageSquare className="size-4 md:size-[18px]" /></div>
               <span>{isOpen ? "إخفاء التعليقات" : `عرض التعليقات (${comments.length})`}</span>
               <ChevronLeft className={cn("size-4 transition-transform duration-500", isOpen ? "-rotate-90" : "")} />
             </button>
