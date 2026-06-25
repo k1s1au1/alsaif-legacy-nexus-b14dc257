@@ -1,23 +1,20 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
+import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
+
 const BUCKET = "app-backgrounds";
 const SIGN_SECONDS = 60 * 60 * 24 * 365 * 5; // 5 years
-
-// Transparent 1x1 pixel to prevent fallback flicker while loading
-const TRANSPARENT_PIXEL = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
 let globalLogoUrl: string | null = null;
 let globalCheckDone = false;
 
 /**
  * Loads the current site logo URL from app_settings ('site_logo' key).
- * While loading, returns a transparent pixel to prevent flickering the fallback logo.
- * If no dynamic logo is set, returns null (allowing components to use fallback).
- * Update: Added a retry-trigger comment to help with build sandbox issues.
+ * Returns the fallback logo immediately and updates once the dynamic logo is fetched.
  */
 export function useSiteLogo() {
-  const [logoUrl, setLogoUrl] = useState<string | null>(globalCheckDone ? globalLogoUrl : TRANSPARENT_PIXEL);
+  const [logoUrl, setLogoUrl] = useState<string | null>(globalCheckDone ? globalLogoUrl : alsaifMark.url);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {

@@ -351,11 +351,10 @@ function Dashboard() {
                     )}
 
                     {/* Left Decorative Logo */}
-                    <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-20">
-                      <img
-                        src={dynamicLogo || alsaifMark?.url || ""}
-                        className="size-24 md:size-40 object-contain brightness-0 invert"
-                        alt=""
+                    <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-30">
+                      <div
+                        className="size-24 md:size-40 logo-alsaif !mix-blend-screen"
+                        style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
                       />
                     </div>
 
@@ -469,11 +468,10 @@ function Dashboard() {
                             </div>
 
                             {/* Left Decorative Logo */}
-                            <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
-                              <img
-                                src={dynamicLogo || alsaifMark?.url || ""}
-                                className="size-24 md:size-40 object-contain brightness-0 invert"
-                                alt=""
+                            <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-30">
+                              <div
+                                className="size-24 md:size-40 logo-alsaif !mix-blend-screen"
+                                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
                               />
                             </div>
 
@@ -594,11 +592,10 @@ function Dashboard() {
                       <CarouselItem key={meeting.id}>
                         <article className="relative overflow-hidden rounded-[32px] md:rounded-[60px] shadow-2xl border-4 border-white/5 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-6 md:p-16 flex flex-col md:flex-row items-center gap-6 md:gap-12 h-full group">
                           {/* Left Decorative Logo */}
-                          <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
-                            <img
-                              src={dynamicLogo || alsaifMark?.url || ""}
-                              className="size-28 md:size-64 object-contain brightness-0 invert"
-                              alt=""
+                          <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-30">
+                            <div
+                              className="size-28 md:size-64 logo-alsaif !mix-blend-screen"
+                              style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
                             />
                           </div>
 

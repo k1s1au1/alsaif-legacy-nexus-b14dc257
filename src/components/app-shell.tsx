@@ -113,33 +113,28 @@ export function AppShell({
         )}
       </AnimatePresence>
 
-      {/* Swipe open trigger area */}
+      {/* Edge trigger for swiping open — invisible but interactive */}
       {!sidebarOpen && (
         <div
-          className="fixed inset-y-0 right-0 w-6 z-[55] touch-none"
-          onPointerDown={(e) => {
-            // This allows the drag to start even if it's currently hidden
-            // But motion drag usually needs the element to be visible.
-            // Let's stick to the button trigger for opening and drag for closing for stability,
-            // OR make the sidebar always present but moved.
-          }}
+          className="fixed inset-y-0 right-0 w-16 z-[55] lg:hidden"
+          onPointerDown={() => setSidebarOpen(true)}
         />
       )}
 
       <motion.aside
         drag="x"
-        dragDirectionLock
-        dragConstraints={{ left: 0, right: 320 }}
-        dragElastic={0.05}
+        dragConstraints={{ left: 0, right: 350 }}
+        dragElastic={0.02}
         onDragEnd={(_, info) => {
-          if (info.offset.x > 80) setSidebarOpen(false);
-          if (info.offset.x < -80 && !sidebarOpen) setSidebarOpen(true);
+          if (info.offset.x > 50 || info.velocity.x > 300) {
+            setSidebarOpen(false);
+          }
         }}
-        animate={{ x: sidebarOpen ? 0 : "105%" }}
-        transition={{ type: "spring", damping: 30, stiffness: 300 }}
+        animate={{ x: sidebarOpen ? 0 : 350 }}
+        transition={{ type: "spring", damping: 40, stiffness: 400 }}
         className={cn(
           "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl",
-          "w-[85vw] max-w-[320px] rounded-l-[32px] touch-none",
+          "w-[85vw] max-w-[320px] rounded-l-[32px] touch-pan-y",
         )}
       >
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
