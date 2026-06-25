@@ -116,7 +116,8 @@ function AdminPage() {
       ]);
 
       const rs = (roles ?? []).map(r => r.role);
-      const isA = rs.includes("admin") || rs.includes("manager");
+      // Ensure 'chairman' has full access to Admin panel
+      const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
       setIsPriv(isA);
 
       if (p) {
@@ -410,6 +411,7 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
           </div>
           <div className="flex flex-wrap items-center gap-2">
              <div className="flex items-center gap-1.5 flex-wrap">
+               <RoleToggleBtn active={currentRole === "chairman"} onClick={() => onAssignRole(member.id, "chairman")} icon={<ShieldCheck className="size-3.5" />} label="رئيس" activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary" />
                <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
                <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مشرف" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
                <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
