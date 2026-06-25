@@ -84,7 +84,7 @@
   }
 }
 
-/* Alsaif Logo - Premium Rendering */
+/* Alsaif Logo - Premium Rendering (transparent background, neutral tones) */
 @utility logo-alsaif {
   transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
   background-image: var(--logo-url);
@@ -92,14 +92,16 @@
   background-repeat: no-repeat;
   background-position: center;
   display: inline-block;
+  /* Desaturate + brighten so the mint backdrop in the PNG matches the page,
+     then multiply blends remaining light pixels into the background. */
   mix-blend-mode: multiply;
-  filter: contrast(1.1) brightness(0.9) sepia(0.3) hue-rotate(100deg);
+  filter: saturate(0) brightness(1.15) contrast(1.25);
 }
 
 .dark .logo-alsaif {
   mix-blend-mode: screen;
   background-image: var(--logo-url);
-  filter: invert(1) brightness(1.4) sepia(1) saturate(4) hue-rotate(340deg) drop-shadow(0 0 15px rgba(212, 175, 55, 0.5));
+  filter: saturate(0) brightness(1.2) contrast(1.3) invert(1) drop-shadow(0 0 15px rgba(212, 175, 55, 0.4));
   animation: alsaif-glow 6s infinite alternate ease-in-out;
 }
 
