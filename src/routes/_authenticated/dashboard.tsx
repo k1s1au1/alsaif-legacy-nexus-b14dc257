@@ -215,6 +215,13 @@ function Dashboard() {
                 </div>
               </div>
 
+              {/* Vertical divider with gold dot */}
+              <div className="hidden md:flex flex-col items-center justify-center gap-2 self-stretch py-6 order-1">
+                <div className="w-px flex-1 bg-[var(--hero-divider)]" />
+                <div className="size-1.5 rounded-full bg-gold-primary shadow-[0_0_6px_rgba(142,119,69,0.4)]" />
+                <div className="w-px flex-1 bg-[var(--hero-divider)]" />
+              </div>
+
               {/* Center content */}
               <div className="flex-1 text-center md:text-right space-y-5 order-2">
                 <div className="space-y-2">
