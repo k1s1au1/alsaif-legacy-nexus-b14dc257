@@ -2,7 +2,6 @@
 @import "tw-animate-css";
 @source "../src";
 
-
 /*
  * Alsaif Design System — Royal Obsidian Edition
  * Optimized for full system-wide Dark Mode and maximum contrast.
@@ -45,38 +44,51 @@
 
 :root {
   /* Light Theme */
-  --background: #FDFCF7;
-  --foreground: #1A1C1E;
-  --card: #FFFFFF;
-  --primary: #064E3B; /* Diamond Green */
-  --primary-foreground: #FFFFFF;
+  --background: #fdfcf7;
+  --foreground: #1a1c1e;
+  --card: #ffffff;
+  --primary: #064e3b; /* Diamond Green */
+  --primary-foreground: #ffffff;
   --border: rgba(27, 67, 50, 0.12);
-  --muted: #F2F1EA;
-  --muted-foreground: #64748B;
-  --gold-primary: #8E7745;
-  --gold-soft: #AF9867;
+  --muted: #f2f1ea;
+  --muted-foreground: #64748b;
+  --gold-primary: #8e7745;
+  --gold-soft: #af9867;
+  --hero-card: #faf9f4;
+  --hero-pill: rgba(255, 255, 255, 0.75);
+  --hero-pill-border: rgba(27, 67, 50, 0.08);
+  --hero-divider: rgba(27, 67, 50, 0.12);
+  --hero-logo-badge: rgba(255, 255, 255, 0.92);
 }
 
 .dark {
   /* Comprehensive Dark Theme - Luxury Edition */
-  --background: #0A0C10;
-  --foreground: #F1F5F9;
-  --card: #12141C;
-  --popover: #12141C;
-  --primary: #D4AF37; /* Alsaif Gold */
-  --primary-foreground: #0A0C10;
-  --secondary: #1E2229;
-  --secondary-foreground: #F1F5F9;
+  --background: #0a0c10;
+  --foreground: #f1f5f9;
+  --card: #12141c;
+  --popover: #12141c;
+  --primary: #d4af37; /* Alsaif Gold */
+  --primary-foreground: #0a0c10;
+  --secondary: #1e2229;
+  --secondary-foreground: #f1f5f9;
   --muted: #161920;
-  --muted-foreground: #94A3B8;
+  --muted-foreground: #94a3b8;
   --border: rgba(212, 175, 55, 0.15); /* Subtle Gold border */
-  --gold-primary: #D4AF37;
-  --gold-soft: #F9E29C;
+  --gold-primary: #d4af37;
+  --gold-soft: #f9e29c;
+  --hero-card: #12141c;
+  --hero-pill: rgba(0, 0, 0, 0.4);
+  --hero-pill-border: rgba(255, 255, 255, 0.08);
+  --hero-divider: rgba(255, 255, 255, 0.12);
+  --hero-logo-badge: rgba(18, 20, 28, 0.92);
 }
 
 @layer base {
-  * { border-color: var(--color-border); }
-  html, body {
+  * {
+    border-color: var(--color-border);
+  }
+  html,
+  body {
     background-color: var(--color-background) !important;
     color: var(--color-foreground);
     font-family: var(--font-arabic);
@@ -101,13 +113,24 @@
 .dark .logo-alsaif {
   mix-blend-mode: screen;
   background-image: var(--logo-url);
-  filter: contrast(1.1) saturate(1.15) brightness(1.05) drop-shadow(0 0 15px rgba(212, 175, 55, 0.35));
+  filter: contrast(1.1) saturate(1.15) brightness(1.05)
+    drop-shadow(0 0 15px rgba(212, 175, 55, 0.35));
   animation: alsaif-glow 6s infinite alternate ease-in-out;
 }
 
 @keyframes alsaif-glow {
-  0% { transform: scale(1); opacity: 0.9; filter: invert(1) brightness(1.2) sepia(1) saturate(3) drop-shadow(0 0 8px rgba(212, 175, 55, 0.3)); }
-  100% { transform: scale(1.03); opacity: 1; filter: invert(1) brightness(1.6) sepia(1) saturate(5) drop-shadow(0 0 25px rgba(212, 175, 55, 0.7)); }
+  0% {
+    transform: scale(1);
+    opacity: 0.9;
+    filter: invert(1) brightness(1.2) sepia(1) saturate(3)
+      drop-shadow(0 0 8px rgba(212, 175, 55, 0.3));
+  }
+  100% {
+    transform: scale(1.03);
+    opacity: 1;
+    filter: invert(1) brightness(1.6) sepia(1) saturate(5)
+      drop-shadow(0 0 25px rgba(212, 175, 55, 0.7));
+  }
 }
 
 @utility shimmer-gold {
@@ -124,7 +147,9 @@
 }
 
 @keyframes shimmer {
-  100% { transform: translateX(100%); }
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 @utility card-surface {
@@ -136,18 +161,31 @@
 }
 
 @utility btn-gold {
-  background: linear-gradient(135deg, #8B6B23 0%, #B8972E 100%);
+  background: linear-gradient(135deg, #8b6b23 0%, #b8972e 100%);
   color: white;
   font-weight: 700;
   border-radius: 16px;
   box-shadow: 0 8px 20px -6px rgba(139, 107, 35, 0.4);
 }
 
-.animate-fade-up { animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(16px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.no-scrollbar::-webkit-scrollbar { display: none; }
-.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
