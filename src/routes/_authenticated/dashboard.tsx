@@ -190,7 +190,7 @@ function Dashboard() {
 
         {/* Hero Section — Reference Style Card */}
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-[#E8E4D8] dark:border-white/10 bg-[#FAF9F4] dark:bg-card/80 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.06)]">
+          <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-[var(--hero-pill-border)] bg-[var(--hero-card)] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.06)]">
             {/* Decorative palm tree watermark */}
             <div className="absolute left-0 top-0 bottom-0 w-1/3 md:w-1/4 pointer-events-none overflow-hidden opacity-[0.06] dark:opacity-[0.03]">
               <img
@@ -227,14 +227,14 @@ function Dashboard() {
                 </div>
 
                 {/* Date & Time Pill */}
-                <div className="inline-flex items-center gap-3 md:gap-4 rounded-full border border-[#E8E4D8] dark:border-white/10 bg-white/70 dark:bg-black/20 backdrop-blur-md px-4 md:px-6 py-2.5 md:py-3 shadow-sm mx-auto md:mx-0">
+                <div className="inline-flex items-center gap-3 md:gap-4 rounded-full border border-[var(--hero-pill-border)] bg-[var(--hero-pill)] backdrop-blur-md px-4 md:px-6 py-2.5 md:py-3 shadow-sm mx-auto md:mx-0">
                   <div className="flex items-center gap-2 text-[#8E7745] dark:text-gold-primary">
                     <Calendar className="size-4 md:size-5" />
                     <span className="text-[11px] md:text-sm font-black text-foreground/80 tracking-wide">
                       <LiveClock variant="date" />
                     </span>
                   </div>
-                  <div className="h-4 md:h-5 w-px bg-[#E8E4D8] dark:bg-white/10" />
+                  <div className="h-4 md:h-5 w-px bg-[var(--hero-divider)]" />
                   <div className="flex items-center gap-2 text-[#8E7745] dark:text-gold-primary">
                     <Clock className="size-4 md:size-5" />
                     <span className="text-[11px] md:text-sm font-black tabular-nums tracking-wider text-foreground/80">
