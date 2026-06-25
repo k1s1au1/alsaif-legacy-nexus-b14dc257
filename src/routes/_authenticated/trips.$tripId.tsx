@@ -295,8 +295,11 @@ function TripDetail() {
             <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent z-10" />
 
             {/* Decorative Family Mark */}
-            <div className="absolute top-10 left-10 opacity-20 pointer-events-none z-20 hidden md:block">
-              <img src={dynamicLogo || alsaifMark?.url || ""} className="size-32 object-contain brightness-0 invert" alt="" />
+            <div className="absolute top-10 left-10 opacity-30 pointer-events-none z-20 hidden md:block">
+              <div
+                className="size-32 logo-alsaif-banner"
+                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+              />
             </div>
 
             <div className="absolute bottom-0 right-0 left-0 p-8 md:p-16 z-20 space-y-6">

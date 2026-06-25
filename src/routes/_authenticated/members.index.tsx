@@ -225,8 +225,11 @@ function MemberCard({ member, index, presenceTime, meId, canDelete, dynamicLogo,
           <div className="card-surface p-6 flex flex-col items-center text-center gap-4 hover:-translate-y-2 hover:shadow-2xl hover:border-gold-primary/30 transition-all duration-500 overflow-hidden h-full">
 
             {/* Background Mark Decor */}
-            <div className="absolute top-0 left-0 opacity-[0.02] -translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:opacity-[0.05] transition-opacity duration-700">
-                <img src={dynamicLogo || alsaifMark.url} className="size-32" alt="" />
+            <div className="absolute top-0 left-0 opacity-10 -translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:opacity-20 transition-opacity duration-700">
+                <div
+                  className="size-32 logo-alsaif"
+                  style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                />
             </div>
 
             {/* Avatar Section */}

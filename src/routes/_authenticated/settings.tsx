@@ -246,7 +246,10 @@ function SettingsPage() {
              <SettingRow icon={<ShieldCheck />} title="الأمان" desc="التحقق من الهوية مفعل" />
              <div className="p-8 flex items-center justify-between text-muted-foreground/40 italic">
                 <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
-                <img src={dynamicLogo || alsaifMark.url} className="size-6 grayscale opacity-20" alt="" />
+                <div
+                  className="size-6 logo-alsaif grayscale opacity-20"
+                  style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                />
              </div>
           </div>
         </section>

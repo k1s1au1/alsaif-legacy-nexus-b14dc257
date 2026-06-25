@@ -660,8 +660,11 @@ function NewConversationDialog({
         className="relative bg-card border border-border rounded-[48px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[85vh]"
         dir="rtl"
       >
-        <div className="absolute top-0 left-0 opacity-[0.03] -translate-x-1/4 -translate-y-1/4 pointer-events-none grayscale brightness-0 scale-150 transition-opacity duration-700">
-           <img src={dynamicLogo || alsaifMark.url} className="size-64" alt="" />
+        <div className="absolute top-0 left-0 opacity-10 -translate-x-1/4 -translate-y-1/4 pointer-events-none scale-150 transition-opacity duration-700">
+           <div
+             className="size-64 logo-alsaif"
+             style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+           />
         </div>
 
         <div className="p-6 sm:p-10 space-y-6 flex flex-col flex-1 min-h-0 relative z-10">

@@ -351,9 +351,9 @@ function Dashboard() {
                     )}
 
                     {/* Left Decorative Logo */}
-                    <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-60">
+                    <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-40">
                       <div
-                        className="size-24 md:size-40 logo-alsaif !mix-blend-screen"
+                        className="size-24 md:size-40 logo-alsaif-banner"
                         style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
                       />
                     </div>
@@ -468,9 +468,9 @@ function Dashboard() {
                             </div>
 
                             {/* Left Decorative Logo */}
-                            <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-60">
+                            <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
                               <div
-                                className="size-24 md:size-40 logo-alsaif !mix-blend-screen"
+                                className="size-24 md:size-40 logo-alsaif-banner"
                                 style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
                               />
                             </div>
@@ -594,12 +594,12 @@ function Dashboard() {
                           {/* Meeting Banner */}
                           <article className="flex-1 relative overflow-hidden rounded-[32px] md:rounded-[60px] rounded-l-none md:rounded-l-none shadow-2xl border-4 border-white/5 border-l-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-6 md:p-16 flex flex-col justify-center h-full group">
                             {/* Left Decorative Logo */}
-                            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-60">
-                              <div
-                                className="size-28 md:size-64 logo-alsaif !mix-blend-screen"
-                                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
-                              />
-                            </div>
+                          <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
+                            <div
+                              className="size-28 md:size-64 logo-alsaif-banner"
+                              style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                            />
+                          </div>
 
                             <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
 

@@ -278,11 +278,10 @@ function MeetingsPage() {
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-primary via-[#1a2b3c] to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
             {/* Left Decorative Logo */}
-            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
-              <img
-                src={dynamicLogo || alsaifMark?.url || ""}
-                className="size-28 md:size-64 object-contain brightness-0 invert"
-                alt=""
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
+              <div
+                className="size-28 md:size-64 logo-alsaif-banner"
+                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
               />
             </div>
 
@@ -476,7 +475,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
          myRsvp === 'not_going' ? "bg-gradient-to-br from-rose-900 via-rose-950 to-black" :
          "bg-gradient-to-br from-primary via-[#1a2b3c] to-black"
        )} />
-       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.04] pointer-events-none scale-[1.5] md:scale-[2.5] logo-alsaif z-1" style={{ '--logo-url': `url(${dynamicLogo || alsaifMark.url})` } as any} />
+       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none scale-[1.5] md:scale-[2.5] logo-alsaif-banner z-1" style={{ '--logo-url': `url(${dynamicLogo || alsaifMark.url})` } as any} />
        <div className="absolute -top-40 -right-40 size-[300px] md:size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none group-hover:scale-110 transition-transform duration-1000" />
 
        <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-4 md:gap-8 w-full">

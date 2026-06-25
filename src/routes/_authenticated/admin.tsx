@@ -334,11 +334,10 @@ function AdminPage() {
         <section className="animate-fade-up px-4 md:px-0">
           <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-primary via-emerald-950 to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
             {/* Left Decorative Logo */}
-            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-10 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-20">
-              <img
-                src={dynamicLogo || alsaifMark?.url || ""}
-                className="size-28 md:size-64 object-contain brightness-0 invert"
-                alt=""
+            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
+              <div
+                className="size-28 md:size-64 logo-alsaif-banner"
+                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
               />
             </div>
 

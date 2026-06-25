@@ -113,8 +113,20 @@
 .dark .logo-alsaif {
   mix-blend-mode: normal;
   background-image: var(--logo-url);
-  filter: contrast(1.1) saturate(1.15) brightness(1.2) drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
+  filter: contrast(1.1) saturate(1.15) brightness(1.2)
+    drop-shadow(0 0 15px rgba(255, 255, 255, 0.1));
   animation: alsaif-glow 6s infinite alternate ease-in-out;
+}
+
+/* Specific utility for logos inside dark banners/cards */
+@utility logo-alsaif-banner {
+  background-image: var(--logo-url);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  display: inline-block;
+  mix-blend-mode: screen;
+  filter: contrast(1.1) saturate(1.2) brightness(1.1);
 }
 
 @keyframes alsaif-glow {

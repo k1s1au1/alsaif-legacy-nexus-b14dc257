@@ -326,8 +326,11 @@ function ProfilePage() {
            {/* Sidebar Info Column */}
            <div className="space-y-8">
               <div className="card-surface p-8 space-y-6 relative overflow-hidden bg-primary text-white border-none shadow-2xl animate-fade-up" style={{ animationDelay: "300ms" }}>
-                 <div className="absolute top-0 left-0 opacity-10 -translate-x-1/3 -translate-y-1/3 pointer-events-none scale-150 rotate-12">
-                    <img src={dynamicLogo || alsaifMark.url} className="size-48 brightness-0 invert" alt="" />
+                 <div className="absolute top-0 left-0 opacity-20 -translate-x-1/3 -translate-y-1/3 pointer-events-none scale-150 rotate-12">
+                    <div
+                      className="size-48 logo-alsaif-banner"
+                      style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                    />
                  </div>
                  <h4 className="text-lg font-black tracking-tight relative z-10">إرث السيف الرقمي</h4>
                  <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">هذا الحساب موثق لدى مجلس العائلة. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا لأعضاء المجلس المعتمدين.</p>
