@@ -590,58 +590,65 @@ function Dashboard() {
                     );
                     return (
                       <CarouselItem key={meeting.id}>
-                        <article className="relative overflow-hidden rounded-[32px] md:rounded-[60px] shadow-2xl border-4 border-white/5 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-6 md:p-16 flex flex-col md:flex-row items-center gap-6 md:gap-12 h-full group">
-                          {/* Left Decorative Logo */}
-                          <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-60">
-                            <div
-                              className="size-28 md:size-64 logo-alsaif !mix-blend-screen"
-                              style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
-                            />
-                          </div>
-
-                          <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-
-                          <div className="flex-1 space-y-4 md:space-y-8 relative z-10 w-full">
-                            <div className="flex items-center gap-3">
-                              <div className="h-0.5 w-6 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
-                              <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">
-                                حدث عائلي قريب
-                              </span>
+                        <div className="flex items-center gap-0 h-full w-full group/container">
+                          {/* Meeting Banner */}
+                          <article className="flex-1 relative overflow-hidden rounded-[32px] md:rounded-[60px] rounded-l-none md:rounded-l-none shadow-2xl border-4 border-white/5 border-l-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-6 md:p-16 flex flex-col justify-center h-full group">
+                            {/* Left Decorative Logo */}
+                            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-40 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-60">
+                              <div
+                                className="size-28 md:size-64 logo-alsaif !mix-blend-screen"
+                                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                              />
                             </div>
-                            <h3 className="text-2xl md:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">
-                              {meeting.title}
-                            </h3>
-                            <div className="flex items-center gap-3 md:gap-5 text-white/60 font-bold text-xs md:text-lg">
-                              <Clock className="size-4 md:size-6 text-gold-primary" />
-                              <span>
-                                {new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", {
-                                  weekday: "long",
-                                  day: "numeric",
-                                  month: "long",
-                                })}
-                              </span>
-                            </div>
-                            <Link
-                              to="/meetings"
-                              className="btn-gold px-8 py-3.5 md:px-14 md:py-6 rounded-full font-black inline-flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all text-xs md:text-xl w-full md:w-fit"
-                            >
-                              تأكيد الحضور <ChevronLeft className="size-4 md:size-6" />
-                            </Link>
-                          </div>
 
-                          <div className="flex flex-col items-center justify-center p-5 md:p-12 bg-white/[0.02] backdrop-blur-[2px] rounded-[24px] md:rounded-[48px] border border-white/10 relative z-10 min-w-[100px] md:min-w-[200px] self-stretch md:self-center">
-                            <Timer className="size-5 md:size-12 mb-2 md:mb-4 text-gold-primary animate-pulse" />
-                            <div className="text-center">
-                              <p className="text-3xl md:text-7xl font-black tracking-tighter text-white">
+                            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+                            <div className="space-y-4 md:space-y-8 relative z-10 w-full">
+                              <div className="flex items-center gap-3">
+                                <div className="h-0.5 w-6 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                                <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">
+                                  حدث عائلي قريب
+                                </span>
+                              </div>
+                              <h3 className="text-2xl md:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                                {meeting.title}
+                              </h3>
+                              <div className="flex items-center gap-3 md:gap-5 text-white/60 font-bold text-xs md:text-lg">
+                                <Clock className="size-4 md:size-6 text-gold-primary" />
+                                <span>
+                                  {new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", {
+                                    weekday: "long",
+                                    day: "numeric",
+                                    month: "long",
+                                  })}
+                                </span>
+                              </div>
+                              <Link
+                                to="/meetings"
+                                className="btn-gold px-8 py-3.5 md:px-14 md:py-6 rounded-full font-black inline-flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all text-xs md:text-xl w-full md:w-fit"
+                              >
+                                تأكيد الحضور <ChevronLeft className="size-4 md:size-6" />
+                              </Link>
+                            </div>
+                          </article>
+
+                          {/* External Countdown Card */}
+                          <div className="flex flex-col items-center justify-center w-20 md:w-48 h-full rounded-[32px] md:rounded-[60px] rounded-r-none md:rounded-r-none bg-gradient-to-b from-[#1a2b3c] to-black border-4 border-white/5 border-r-0 shadow-2xl p-4 md:p-12 text-center space-y-2 md:space-y-4 shrink-0 relative overflow-hidden">
+                            <div className="absolute inset-0 bg-gold-primary/5 animate-pulse" />
+                            <Timer className="size-5 md:size-12 text-gold-primary relative z-10" />
+                            <div className="space-y-0 relative z-10">
+                              <p className="text-3xl md:text-8xl font-black tracking-tighter text-white block">
                                 {daysLeft > 0 ? daysLeft : 0}
                               </p>
-                              <p className="text-[8px] md:text-xs font-black uppercase tracking-widest text-white/40 mt-1">
+                              <p className="text-[7px] md:text-xs font-black uppercase tracking-widest text-white/40">
                                 أيام متبقية
                               </p>
                             </div>
+                            <div className="w-8 md:w-16 h-0.5 md:h-1 bg-gold-primary/20 rounded-full relative z-10" />
                           </div>
-                        </article>
+                        </div>
                       </CarouselItem>
+                    );
                     );
                   })}
                 </CarouselContent>
