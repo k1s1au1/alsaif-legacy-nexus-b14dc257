@@ -8,7 +8,6 @@ import {
   Sun,
   Languages,
   Bell,
-  Info,
   Smartphone,
   ShieldCheck,
   ChevronLeft,
@@ -16,7 +15,6 @@ import {
   Palette,
   Type,
   X,
-  Sparkles,
   ImagePlus
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -48,6 +46,7 @@ const THEME_COLORS = [
 ];
 
 export const Route = createFileRoute("/_authenticated/settings")({
+  ssr: false,
   component: SettingsPage,
 });
 
@@ -57,7 +56,6 @@ function SettingsPage() {
   const [themeColor, setThemeColor] = useState("emerald");
   const [appVersion, setAppVersion] = useState("1.1.8 (Web)");
   const [isNative, setIsNative] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
   const [canCustomizeBg, setCanCustomizeBg] = useState(false);
@@ -65,9 +63,9 @@ function SettingsPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", user.id);
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
       const rs = (roles ?? []).map(r => r.role);
       setCanCustomizeBg(rs.includes("admin") || rs.includes("chairman"));
     })();
@@ -173,7 +171,6 @@ function SettingsPage() {
     <AppShell title="الإعدادات" user={{ name: "إعدادات المجلس", role: "تخصيص", initial: "إ" }}>
       <div className="max-w-4xl mx-auto space-y-12 pb-24" dir="rtl">
 
-        {/* Appearance Mode */}
         <section className="space-y-6 animate-fade-up">
           <div className="flex items-center gap-4">
              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">مظهر المنصة</h3>
@@ -187,7 +184,6 @@ function SettingsPage() {
           </div>
         </section>
 
-        {/* Dynamic Personalization */}
         <section className="space-y-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
           <div className="flex items-center gap-4">
              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">التخصيص الفاخر</h3>
@@ -195,7 +191,6 @@ function SettingsPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Color Trigger */}
             <div className="card-surface p-8 space-y-6 group">
                <div className="flex items-center justify-between">
                   <div className="space-y-1">
@@ -213,7 +208,6 @@ function SettingsPage() {
                </button>
             </div>
 
-            {/* Font Trigger */}
             <div className="card-surface p-8 space-y-6 group">
                <div className="flex items-center justify-between">
                   <div className="space-y-1">
@@ -234,7 +228,6 @@ function SettingsPage() {
           </div>
         </section>
 
-        {/* System Settings */}
         <section className="space-y-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
           <div className="flex items-center gap-4">
              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات النظام</h3>
@@ -254,7 +247,6 @@ function SettingsPage() {
           </div>
         </section>
 
-        {/* Backgrounds — admin/chairman only */}
         {canCustomizeBg && (
           <section className="space-y-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
             <div className="flex items-center gap-4">
@@ -290,7 +282,6 @@ function SettingsPage() {
         )}
       </div>
 
-      {/* Color Picker Overlay */}
       <AnimatePresence>
         {showColorPicker && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -312,7 +303,6 @@ function SettingsPage() {
         )}
       </AnimatePresence>
 
-      {/* Font Picker Overlay */}
       <AnimatePresence>
         {showFontPicker && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
@@ -336,7 +326,6 @@ function SettingsPage() {
           </div>
         )}
       </AnimatePresence>
-
     </AppShell>
   );
 }
