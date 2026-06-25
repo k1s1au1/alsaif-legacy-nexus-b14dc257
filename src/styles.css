@@ -81,6 +81,7 @@
   --hero-pill: rgba(0, 0, 0, 0.4);
   --hero-pill-border: rgba(255, 255, 255, 0.08);
   --hero-divider: rgba(255, 255, 255, 0.12);
+  --hero-logo-badge: rgba(18, 20, 28, 0.92);
 }
 
 @layer base {
