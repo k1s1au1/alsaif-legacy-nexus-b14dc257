@@ -116,7 +116,7 @@ function AdminPage() {
       ]);
 
       const rs = (roles ?? []).map(r => r.role);
-      const isA = rs.includes("admin") || rs.includes("manager");
+      const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
       setIsPriv(isA);
 
       if (p) {
@@ -129,18 +129,32 @@ function AdminPage() {
       }
 
       if (isA) {
-        const [{ data: reqs }, { data: mems }, { data: anns }] = await Promise.all([
-          supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
-          supabase.from("profiles").select("*, user_roles(role)").order("full_name"),
-          supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
-        ]);
-        setPendingReqs(reqs || []);
-        setMembers(mems || []);
-        setAnnouncements(anns || []);
+        try {
+          const [{ data: reqs }, { data: mems, error: memErr }, { data: anns }] = await Promise.all([
+            supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
+            supabase.from("profiles").select("*, user_roles(role)").order("full_name"),
+            supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
+          ]);
 
-        const counts = { pending: 0, approved: 0, rejected: 0 };
-        (reqs || []).forEach(r => counts[r.status as keyof typeof counts]++);
-        setReqCounts(counts);
+          if (memErr) {
+            console.error("Members fetch error:", memErr);
+            // Fallback: try fetching without the join if it fails
+            const { data: simpleMems } = await supabase.from("profiles").select("*").order("full_name");
+            setMembers(simpleMems || []);
+          } else {
+            setMembers(mems || []);
+          }
+
+          setPendingReqs(reqs || []);
+          setAnnouncements(anns || []);
+
+          const counts = { pending: 0, approved: 0, rejected: 0 };
+          (reqs || []).forEach(r => counts[r.status as keyof typeof counts]++);
+          setReqCounts(counts);
+        } catch (err) {
+          console.error("Admin data load error:", err);
+          toast.error("فشل تحميل بعض البيانات الإدارية");
+        }
       }
     } finally {
       setLoading(false);
@@ -294,7 +308,22 @@ function AdminPage() {
                     <input value={memberSearch} onChange={e => setMemberSearch(e.target.value)} placeholder="ابحث عن عضو بالاسم..." className="w-full h-16 pr-14 pl-8 rounded-3xl bg-card border-2 border-border/40 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all font-bold" />
                  </div>
                  <div className="grid grid-cols-1 gap-4">
-                    {filteredMembers.map(m => <MemberAdminRow key={m.id} member={m} meId={meId} currentRole={m.user_roles?.[0]?.role || 'member'} onAssignRole={assignRole} onDelete={deleteMember} fullName={m.arabic_name || m.full_name || "عضو"} />)}
+                    {filteredMembers.map(m => (
+                      <MemberAdminRow
+                        key={m.id}
+                        member={m}
+                        meId={meId}
+                        currentRole={Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member')}
+                        onAssignRole={assignRole}
+                        onDelete={deleteMember}
+                        fullName={m.arabic_name || m.full_name || "عضو"}
+                      />
+                    ))}
+                    {filteredMembers.length === 0 && !loading && (
+                      <div className="p-20 text-center bg-muted/10 rounded-[40px] border-2 border-dashed text-muted-foreground italic">
+                        لا توجد نتائج مطابقة للبحث أو قائمة الأعضاء فارغة.
+                      </div>
+                    )}
                  </div>
               </section>
             )}
