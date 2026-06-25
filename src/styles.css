@@ -76,6 +76,10 @@
   --border: rgba(212, 175, 55, 0.15); /* Subtle Gold border */
   --gold-primary: #D4AF37;
   --gold-soft: #F9E29C;
+  --hero-card: #12141C;
+  --hero-pill: rgba(0, 0, 0, 0.4);
+  --hero-pill-border: rgba(255, 255, 255, 0.08);
+  --hero-divider: rgba(255, 255, 255, 0.12);
 }
 
 @layer base {
