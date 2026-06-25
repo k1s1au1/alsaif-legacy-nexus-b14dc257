@@ -192,8 +192,13 @@ function Dashboard() {
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-[#E8E4D8] dark:border-white/10 bg-[#FAF9F4] dark:bg-card/80 shadow-[0_8px_40px_-12px_rgba(0,0,0,0.06)]">
             {/* Decorative palm tree watermark */}
-            <div className="absolute left-0 top-0 bottom-0 w-1/3 md:w-1/4 pointer-events-none overflow-hidden opacity-[0.07] dark:opacity-[0.04]">
-              <TreePalm className="absolute -left-8 -bottom-8 size-72 md:size-96 text-primary/80 rotate-6" strokeWidth={1} />
+            <div className="absolute left-0 top-0 bottom-0 w-1/3 md:w-1/4 pointer-events-none overflow-hidden opacity-[0.06] dark:opacity-[0.03]">
+              <img
+                src={palmWatermark}
+                alt=""
+                className="absolute -left-4 -bottom-4 h-[120%] md:h-[140%] w-auto max-w-none object-contain object-bottom saturate-[0.7] opacity-80"
+                loading="lazy"
+              />
             </div>
 
             <div className="relative z-10 flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-10 p-6 md:p-10">
