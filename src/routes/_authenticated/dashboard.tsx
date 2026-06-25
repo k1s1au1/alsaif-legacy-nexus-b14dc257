@@ -649,7 +649,6 @@ function Dashboard() {
                         </div>
                       </CarouselItem>
                     );
-                    );
                   })}
                 </CarouselContent>
               </Carousel>
