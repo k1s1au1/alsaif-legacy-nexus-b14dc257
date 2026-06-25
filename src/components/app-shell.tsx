@@ -20,6 +20,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,20 +100,46 @@ export function AppShell({
   const safeUser = user || { name: "عضو العائلة", role: "عضو", initial: "ع" };
 
   return (
-    <div className="min-h-screen bg-background text-foreground transition-colors duration-500">
-      <div
-        onClick={() => setSidebarOpen(false)}
-        className={cn(
-          "fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm transition-opacity duration-500",
-          sidebarOpen ? "opacity-100" : "opacity-0 pointer-events-none",
+    <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+          />
         )}
-      />
+      </AnimatePresence>
 
-      <aside
+      {/* Swipe open trigger area */}
+      {!sidebarOpen && (
+        <div
+          className="fixed inset-y-0 right-0 w-6 z-[55] touch-none"
+          onPointerDown={(e) => {
+            // This allows the drag to start even if it's currently hidden
+            // But motion drag usually needs the element to be visible.
+            // Let's stick to the button trigger for opening and drag for closing for stability,
+            // OR make the sidebar always present but moved.
+          }}
+        />
+      )}
+
+      <motion.aside
+        drag="x"
+        dragDirectionLock
+        dragConstraints={{ left: 0, right: 320 }}
+        dragElastic={0.05}
+        onDragEnd={(_, info) => {
+          if (info.offset.x > 80) setSidebarOpen(false);
+          if (info.offset.x < -80 && !sidebarOpen) setSidebarOpen(true);
+        }}
+        animate={{ x: sidebarOpen ? 0 : "105%" }}
+        transition={{ type: "spring", damping: 30, stiffness: 300 }}
         className={cn(
-          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl transition-transform duration-500",
-          "w-[85vw] max-w-[320px] rounded-l-[32px]",
-          sidebarOpen ? "translate-x-0" : "translate-x-full",
+          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl",
+          "w-[85vw] max-w-[320px] rounded-l-[32px] touch-none",
         )}
       >
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
@@ -175,7 +202,7 @@ export function AppShell({
             <span className="text-[16px]">تسجيل الخروج</span>
           </button>
         </div>
-      </aside>
+      </motion.aside>
 
       <main className="relative min-h-screen pb-20">
         <header className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-card/80 backdrop-blur-md border-b border-border transition-all shadow-sm">
