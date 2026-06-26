@@ -394,10 +394,20 @@ function AdminPage() {
                    draft={annDraft}
                    setDraft={setAnnDraft}
                    imagePreview={annImagePreview}
-                   onPickImage={(f) => { setAnnImage(f); setAnnImagePreview(URL.createObjectURL(f)); }}
+                   onPickImage={onPickImage}
+                   onClearImage={() => { setAnnImage(null); setAnnImagePreview(null); }}
                    onSave={handleSaveAnn}
-                   onEdit={(a) => { setAnnDraft({ id: a.id, title: a.title, body: a.body.replace(/^---image:.*\n/, "") }); setAnnImagePreview(null); setShowAnnForm(true); }}
-                   onDelete={async (id) => { if (confirm("حذف الإعلان؟")) { await supabase.from("majlis_posts").delete().eq("id", id); loadData(); } }}
+                   onEdit={(a: any) => {
+                     setAnnDraft({ id: a.id, title: a.title, body: a.body.replace(/^---image:.*\n/, "") });
+                     const imgMatch = a.body.match(/^---image:(.*)\n/);
+                     if (imgMatch) {
+                       // We don't have the signed URL here easily without re-fetching,
+                       // but the user can re-upload if they want a new one.
+                       setAnnImagePreview(null);
+                     }
+                     setShowAnnForm(true);
+                   }}
+                   onDelete={async (id: string) => { if (confirm("حذف الإعلان؟")) { await supabase.from("majlis_posts").delete().eq("id", id); loadData(); } }}
                    saving={annSaving}
                  />
               </section>
@@ -478,7 +488,7 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
   );
 }
 
-function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, setDraft, imagePreview, onPickImage, onSave, onEdit, onDelete, saving }: any) {
+function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, setDraft, imagePreview, onPickImage, onClearImage, onSave, onEdit, onDelete, saving }: any) {
   return (
     <div className="space-y-8">
       <div className="flex items-center justify-between">
@@ -502,13 +512,13 @@ function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, 
                  <input value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} placeholder="عنوان جذاب..." className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-black text-base focus:ring-4 focus:ring-primary/5 transition-all" />
                  <textarea value={draft.body} onChange={e => setDraft({ ...draft, body: e.target.value })} placeholder="اكتب المحتوى هنا..." rows={4} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
                  <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 transition-all overflow-hidden bg-muted/10">
-                    {annImagePreview ? (
+                    {imagePreview ? (
                       <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20">
-                         <img src={annImagePreview} className="size-full object-cover" alt="Preview" />
+                         <img src={imagePreview} className="size-full object-cover" alt="Preview" />
                          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
                          <button
                            type="button"
-                           onClick={(e) => { e.stopPropagation(); setAnnImage(null); setAnnImagePreview(null); }}
+                           onClick={(e) => { e.stopPropagation(); onClearImage(); }}
                            className="absolute top-4 left-4 size-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-red-500 transition-all"
                          >
                            <X size={16} />
