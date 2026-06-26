@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Link } from "@tanstack/react-router";
 import {
   CalendarDays,
@@ -11,7 +11,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { TripImage } from "@/components/trip-image";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 
 interface HubProps {
@@ -22,15 +22,26 @@ interface HubProps {
 
 export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: HubProps) {
   const [activeTab, setActiveTab] = useState<"meetings" | "trips" | "tasks">("trips");
+  const [tripApi, setTripApi] = useState<CarouselApi>();
+  const [activeTripIndex, setActiveTripIndex] = useState(0);
 
   const tripsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
   const meetingsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
+
+  useEffect(() => {
+    if (!tripApi) return;
+    tripApi.on("select", () => {
+      setActiveTripIndex(tripApi.selectedScrollSnap());
+    });
+  }, [tripApi]);
 
   const tabs = [
     { id: "trips", label: "ترفيه", icon: Plane, color: "text-indigo-400" },
     { id: "meetings", label: "اجتماعات", icon: CalendarDays, color: "text-amber-400" },
     { id: "tasks", label: "مسؤوليات", icon: ListChecks, color: "text-rose-400" },
   ];
+
+  const currentTripImage = upcomingTrips[activeTripIndex]?.image_url;
 
   return (
     <section className="px-4 animate-fade-up" style={{ animationDelay: "250ms" }}>
@@ -40,14 +51,14 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
         <AnimatePresence mode="wait">
           {activeTab === "trips" && upcomingTrips.length > 0 ? (
             <motion.div
-              key="bg-trips"
+              key={`bg-trips-${activeTripIndex}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 1 }}
+              transition={{ duration: 0.8 }}
               className="absolute inset-0 z-0"
             >
-               <TripImage path={upcomingTrips[0]?.image_url} alt="" className="size-full object-cover opacity-60" />
+               <TripImage path={currentTripImage} alt="" className="size-full object-cover opacity-60" />
                <div className="absolute inset-0 bg-gradient-to-br from-[#0d2620]/90 via-[#051410]/70 to-black/90" />
             </motion.div>
           ) : (
@@ -101,6 +112,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                       <Carousel
                         orientation="vertical"
                         plugins={[tripsPlugin.current]}
+                        setApi={setTripApi}
                         className="w-full"
                         opts={{ loop: true }}
                       >

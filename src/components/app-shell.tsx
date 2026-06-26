@@ -35,7 +35,6 @@ import {
 const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
-  { to: "/majlis", label: "أخبار السيف", icon: Newspaper },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/settings", label: "الإعدادات", icon: Settings },
   { to: "/profile", label: "ملفي الشخصي", icon: User },

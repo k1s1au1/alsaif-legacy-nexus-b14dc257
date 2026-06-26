@@ -40,6 +40,7 @@ import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
+import { sendFcmNotification } from "@/lib/fcm";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -242,6 +243,17 @@ function Dashboard() {
       title: "تقرير خطأ في النظام",
       body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}${imageUrl ? `\n\n[رابط الصورة المصاحبة]: ${imageUrl}` : ""}`,
     } as any);
+
+    if (!error) {
+      // Notify supervisors via FCM
+      sendFcmNotification({
+        data: {
+          title: "🚨 بلاغ عن خطأ جديد",
+          body: `قام ${profile.name} بإرسال تقرير عن مشكلة تقنية.`,
+        }
+      }).catch(err => console.warn("Bug notification error:", err));
+    }
+
     if (error) toast.error("تعذر إرسال البلاغ");
     else {
       toast.success("تم إرسال البلاغ للمشرفين بنجاح");
