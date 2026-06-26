@@ -23,6 +23,7 @@ import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
+import { DynamicIsland } from "@/components/dynamic-island";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -104,6 +105,7 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
+      <DynamicIsland />
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div

@@ -41,6 +41,7 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { sendFcmNotification } from "@/lib/fcm";
+import { showIsland, hideIsland } from "@/components/dynamic-island";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -52,6 +53,103 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   }),
   component: Dashboard,
 });
+
+function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | 'news', data: any }, onClose: () => void }) {
+  const { type, data } = item;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[110] flex items-end justify-center bg-black/80 backdrop-blur-md p-0 md:p-4"
+      dir="rtl"
+    >
+      <motion.div
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        exit={{ y: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className="bg-[#051410] w-full max-w-4xl h-[92vh] md:h-auto md:max-h-[85vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-2xl flex flex-col relative border-t border-white/10"
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-6 left-6 z-20 size-12 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-500 transition-all border border-white/10"
+        >
+          <X size={24} />
+        </button>
+
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+           {/* Header Image */}
+           <div className="relative h-[250px] md:h-[400px] shrink-0">
+              {type === 'trip' ? (
+                <TripImage path={data.image_url} alt={data.title} className="size-full object-cover" />
+              ) : (
+                <div className="size-full bg-gradient-to-br from-primary via-emerald-950 to-black flex items-center justify-center">
+                   {type === 'meeting' ? <CalendarDays className="size-24 text-gold-primary opacity-20" /> : <Newspaper className="size-24 text-gold-primary opacity-20" />}
+                </div>
+              )}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#051410] via-[#051410]/40 to-transparent" />
+
+              <div className="absolute bottom-8 right-8 left-8 space-y-2">
+                 <div className="flex items-center gap-2 text-gold-primary">
+                    {type === 'trip' ? <Plane size={16} /> : type === 'meeting' ? <CalendarDays size={16} /> : <Newspaper size={16} />}
+                    <span className="text-xs font-black uppercase tracking-[0.3em]">{type === 'trip' ? 'ترفيه عائلي' : type === 'meeting' ? 'اجتماع مرتقب' : 'أخبار السيف'}</span>
+                 </div>
+                 <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter">{data.title}</h2>
+              </div>
+           </div>
+
+           <div className="p-8 md:p-14 space-y-8">
+              <div className="flex flex-wrap gap-4 md:gap-10">
+                 <div className="flex items-center gap-3">
+                    <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-gold-primary border border-white/5 shadow-xl"><Clock size={24} /></div>
+                    <div>
+                       <p className="text-[10px] font-black uppercase opacity-40">الموعد</p>
+                       <p className="text-sm md:text-lg font-black text-white">{new Date(data.start_date || data.scheduled_at || data.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                    </div>
+                 </div>
+                 {data.location && (
+                   <div className="flex items-center gap-3">
+                      <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-gold-primary border border-white/5 shadow-xl"><MapPin size={24} /></div>
+                      <div>
+                         <p className="text-[10px] font-black uppercase opacity-40">المكان</p>
+                         <p className="text-sm md:text-lg font-black text-white">{data.location}</p>
+                      </div>
+                   </div>
+                 )}
+              </div>
+
+              <div className="space-y-4">
+                 <h4 className="text-xs font-black uppercase tracking-widest text-gold-primary/60">تفاصيل الحدث</h4>
+                 <p className="text-base md:text-xl font-bold text-white/70 leading-relaxed max-w-3xl whitespace-pre-wrap">
+                    {data.description || data.cleanBody || data.body || "لا توجد تفاصيل إضافية لهذا الحدث حالياً."}
+                 </p>
+              </div>
+
+              <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row gap-4">
+                 {type === 'trip' && (
+                    <Link to="/trips" className="btn-gold py-5 px-12 rounded-full font-black text-lg text-center flex-1 shadow-2xl">تسجيل الاهتمام</Link>
+                 )}
+                 {type === 'meeting' && (
+                    <Link to="/meetings" className="btn-gold py-5 px-12 rounded-full font-black text-lg text-center flex-1 shadow-2xl">تأكيد الحضور</Link>
+                 )}
+                 {type === 'news' && (
+                    <Link to="/majlis" className="btn-gold py-5 px-12 rounded-full font-black text-lg text-center flex-1 shadow-2xl">فتح في المجلس</Link>
+                 )}
+                 <button
+                   onClick={onClose}
+                   className="py-5 px-12 rounded-full bg-white/5 text-white font-black text-lg hover:bg-white/10 transition-all border border-white/5"
+                 >
+                   إغلاق
+                 </button>
+              </div>
+           </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
 
 function Dashboard() {
   const [profile, setProfile] = useState<{
@@ -79,6 +177,7 @@ function Dashboard() {
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [initiatives, setInitiatives] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
+  const [immersiveItem, setImmersiveItem] = useState<{ type: 'trip' | 'meeting' | 'news', data: any } | null>(null);
   const [bugBody, setBugBody] = useState("");
   const [bugImage, setBugImage] = useState<File | null>(null);
   const [bugImagePreview, setBugImagePreview] = useState<string | null>(null);
@@ -106,6 +205,8 @@ function Dashboard() {
         avatarPath: p?.avatar_url ?? null,
         userId: u.id,
       });
+
+      showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
 
       supabase.from("trips").select("*", { count: "exact", head: true }).then((r) => setTripsCount(r.count || 0));
       supabase.from("profiles").select("*", { count: "exact", head: true }).then((r) => setMembersCount(r.count || 0));
@@ -225,41 +326,51 @@ function Dashboard() {
   const sendBugReport = async () => {
     if (!bugBody.trim()) return;
     setBugSending(true);
+    showIsland("جاري إرسال البلاغ...", "loading");
+
     const { data: u } = await supabase.auth.getUser();
-    if (!u.user) return;
+    if (!u.user) {
+      hideIsland();
+      return;
+    }
+
     let imageUrl = "";
-    if (bugImage) {
-      const ext = bugImage.name.split(".").pop();
-      const path = `bugs/${u.user.id}/${crypto.randomUUID()}.${ext}`;
-      const { error: upErr } = await supabase.storage.from("trip-images").upload(path, bugImage);
-      if (!upErr) {
-        const { data: sign } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60 * 24 * 365);
-        imageUrl = sign?.signedUrl || "";
-      }
-    }
-    const { error } = await supabase.from("majlis_posts").insert({
-      author_id: u.user.id,
-      kind: "complaint",
-      title: "تقرير خطأ في النظام",
-      body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}${imageUrl ? `\n\n[رابط الصورة المصاحبة]: ${imageUrl}` : ""}`,
-    } as any);
-
-    if (!error) {
-      // Notify supervisors via FCM
-      sendFcmNotification({
-        data: {
-          title: "🚨 بلاغ عن خطأ جديد",
-          body: `قام ${profile.name} بإرسال تقرير عن مشكلة تقنية.`,
+    try {
+      if (bugImage) {
+        const ext = bugImage.name.split(".").pop();
+        const path = `bugs/${u.user.id}/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("trip-images").upload(path, bugImage);
+        if (!upErr) {
+          const { data: sign } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+          imageUrl = sign?.signedUrl || "";
         }
-      }).catch(err => console.warn("Bug notification error:", err));
-    }
+      }
+      const { error } = await supabase.from("majlis_posts").insert({
+        author_id: u.user.id,
+        kind: "complaint",
+        title: "تقرير خطأ في النظام",
+        body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}${imageUrl ? `\n\n[رابط الصورة المصاحبة]: ${imageUrl}` : ""}`,
+      } as any);
 
-    if (error) toast.error("تعذر إرسال البلاغ");
-    else {
-      toast.success("تم إرسال البلاغ للمشرفين بنجاح");
-      setBugBody(""); setBugImage(null); setBugImagePreview(null); setShowBugReport(false);
+      if (!error) {
+        // Notify supervisors via FCM
+        sendFcmNotification({
+          data: {
+            title: "🚨 بلاغ عن خطأ جديد",
+            body: `قام ${profile.name} بإرسال تقرير عن مشكلة تقنية.`,
+          }
+        }).catch(err => console.warn("Bug notification error:", err));
+
+        showIsland("تم إرسال البلاغ للمشرفين بنجاح", "success");
+        setBugBody(""); setBugImage(null); setBugImagePreview(null); setShowBugReport(false);
+      } else {
+        showIsland("تعذر إرسال البلاغ", "error");
+      }
+    } catch (e) {
+      showIsland("حدث خطأ غير متوقع", "error");
+    } finally {
+      setBugSending(false);
     }
-    setBugSending(false);
   };
 
   return (
@@ -312,6 +423,8 @@ function Dashboard() {
           upcomingMeetings={upcomingMeetings}
           upcomingTrips={upcomingTrips}
           tasksCount={tasksCount}
+          onViewTrip={(trip) => setImmersiveItem({ type: 'trip', data: trip })}
+          onViewMeeting={(meeting) => setImmersiveItem({ type: 'meeting', data: meeting })}
         />
 
         {heritageSnippet && (
@@ -366,12 +479,17 @@ function Dashboard() {
                           <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">أخبار السيف</span>
                           <div className="h-px w-12 bg-gold-primary/30" />
                         </div>
-                        <AnimatePresence mode="wait">
-                          <motion.div key={a.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.5, ease: "easeOut" }}>
-                            <h3 className="text-lg md:text-4xl font-black text-white tracking-tight leading-tight line-clamp-1 drop-shadow-lg">{a.title}</h3>
-                            <p className="text-[11px] md:text-base text-white/70 font-bold line-clamp-2 mt-1 drop-shadow-md">{a.cleanBody}</p>
-                          </motion.div>
-                        </AnimatePresence>
+                        <div
+                          className="cursor-pointer"
+                          onClick={(e) => { e.preventDefault(); setImmersiveItem({ type: 'news', data: a }); }}
+                        >
+                          <AnimatePresence mode="wait">
+                            <motion.div key={a.id} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+                              <h3 className="text-lg md:text-4xl font-black text-white tracking-tight leading-tight line-clamp-1 drop-shadow-lg">{a.title}</h3>
+                              <p className="text-[11px] md:text-base text-white/70 font-bold line-clamp-2 mt-1 drop-shadow-md">{a.cleanBody}</p>
+                            </motion.div>
+                          </AnimatePresence>
+                        </div>
                       </div>
                       <div className="flex items-center gap-4 shrink-0 self-end md:self-center">
                         {announcements.length > 1 && (
@@ -444,6 +562,13 @@ function Dashboard() {
       </div>
 
       <AnimatePresence>
+        {immersiveItem && (
+          <ImmersiveView
+            item={immersiveItem}
+            onClose={() => setImmersiveItem(null)}
+          />
+        )}
+
         {showBugReport && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-card border border-border rounded-[32px] w-full max-w-lg p-8 space-y-6 shadow-2xl">

@@ -18,9 +18,11 @@ interface HubProps {
   upcomingMeetings: any[];
   upcomingTrips: any[];
   tasksCount: number;
+  onViewTrip?: (trip: any) => void;
+  onViewMeeting?: (meeting: any) => void;
 }
 
-export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: HubProps) {
+export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onViewTrip, onViewMeeting }: HubProps) {
   const [activeTab, setActiveTab] = useState<"meetings" | "trips" | "tasks">("trips");
   const [tripApi, setTripApi] = useState<CarouselApi>();
   const [activeTripIndex, setActiveTripIndex] = useState(0);
@@ -139,7 +141,12 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                                            <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
                                            <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
                                         </div>
-                                        <Link to="/trips" className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all">التفاصيل</Link>
+                                        <button
+                                          onClick={() => onViewTrip?.(trip)}
+                                          className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all"
+                                        >
+                                          التفاصيل
+                                        </button>
                                      </div>
                                   </div>
                                 </CarouselItem>
@@ -191,7 +198,12 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                                            <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
                                            <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
                                         </div>
-                                        <Link to="/meetings" className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all">الحضور</Link>
+                                        <button
+                                          onClick={() => onViewMeeting?.(meeting)}
+                                          className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all"
+                                        >
+                                          الحضور
+                                        </button>
                                      </div>
                                   </div>
                                 </CarouselItem>
