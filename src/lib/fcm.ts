@@ -17,7 +17,7 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
     // 1. Fetch all tokens from DB
-    const { data: tokens, error: tokenErr } = await supabase
+    const { data: tokens, error: tokenErr } = await (supabase as any)
       .from("user_fcm_tokens")
       .select("token");
 
@@ -32,7 +32,7 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
       return { success: false, error: "FCM Configuration missing" };
     }
 
-    const registration_ids = tokens.map(t => t.token);
+    const registration_ids = (tokens as Array<{ token: string }>).map(t => t.token);
 
     try {
       // Using Legacy FCM API for simple implementation with a single Key

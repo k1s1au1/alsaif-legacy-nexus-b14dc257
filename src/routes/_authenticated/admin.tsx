@@ -167,15 +167,18 @@ function AdminPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const updateReqStatus = async (id: string, status: string) => {
-    if (status === "approved") {
-      const { error } = await approveFn({ data: { requestId: id } });
-      if (error) { toast.error("فشل قبول الطلب"); return; }
-    } else {
-      await supabase.from("account_requests").update({ status }).eq("id", id);
+  const updateReqStatus = async (id: string, status: "approved" | "pending" | "rejected") => {
+    try {
+      if (status === "approved") {
+        await approveFn({ data: { requestId: id } });
+      } else {
+        await supabase.from("account_requests").update({ status }).eq("id", id);
+      }
+      toast.success("تم تحديث حالة الطلب");
+      loadData();
+    } catch {
+      toast.error("فشل تحديث الطلب");
     }
-    toast.success("تم تحديث حالة الطلب");
-    loadData();
   };
 
   const deleteReq = async (id: string) => {
@@ -209,9 +212,13 @@ function AdminPage() {
 
   const deleteMember = async (uid: string, name: string) => {
     if (!confirm(`هل أنت متأكد من حذف حساب ${name} نهائياً؟`)) return;
-    const { error } = await deleteMemberFn({ data: { userId: uid } });
-    if (error) toast.error("فشل الحذف");
-    else { toast.success("تم حذف الحساب بنجاح"); loadData(); }
+    try {
+      await deleteMemberFn({ data: { userId: uid } });
+      toast.success("تم حذف الحساب بنجاح");
+      loadData();
+    } catch {
+      toast.error("فشل الحذف");
+    }
   };
 
   // Announcement Handlers
@@ -257,7 +264,7 @@ function AdminPage() {
           title: annDraft.title,
           body,
           kind: "announcement",
-          author_id: meId
+          author_id: meId!
         });
         if (error) throw error;
       }
