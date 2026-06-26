@@ -45,6 +45,19 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
 
   const currentTripImage = upcomingTrips[activeTripIndex]?.image_url;
 
+  const getMotivationalNudge = () => {
+    const messages = [
+      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
+      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
+      "همتك العالية هي سر نجاح مجلسنا، استمر!",
+      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
+      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
+    ];
+    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
+    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
+    return messages[tasksCount % messages.length];
+  };
+
   return (
     <section className="px-4 animate-fade-up" style={{ animationDelay: "250ms" }}>
       <div className="relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-white/5 bg-[#051410] shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
@@ -121,7 +134,20 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                          <CarouselContent className="h-[280px] md:h-[250px]">
                             {upcomingTrips.map((trip) => {
                               const daysLeft = trip.start_date ? Math.ceil((new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
-                              return (
+                              const getMotivationalNudge = () => {
+    const messages = [
+      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
+      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
+      "همتك العالية هي سر نجاح مجلسنا، استمر!",
+      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
+      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
+    ];
+    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
+    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
+    return messages[tasksCount % messages.length];
+  };
+
+  return (
                                 <CarouselItem key={trip.id} className="flex items-center p-6 md:p-12">
                                   <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">
                                      <div className="space-y-4 text-center md:text-right flex-1">
@@ -178,7 +204,20 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                          <CarouselContent className="h-[280px] md:h-[250px]">
                             {upcomingMeetings.map((meeting) => {
                               const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                              return (
+                              const getMotivationalNudge = () => {
+    const messages = [
+      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
+      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
+      "همتك العالية هي سر نجاح مجلسنا، استمر!",
+      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
+      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
+    ];
+    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
+    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
+    return messages[tasksCount % messages.length];
+  };
+
+  return (
                                 <CarouselItem key={meeting.id} className="flex items-center p-6 md:p-12">
                                   <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">
                                      <div className="space-y-4 text-center md:text-right flex-1">
@@ -231,8 +270,12 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                             <ListChecks size={16} />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">المسؤوليات الجارية</span>
                          </div>
-                         <h3 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight">لديك {tasksCount} مهام قيد الإنجاز</h3>
-                         <p className="text-sm md:text-base font-bold text-white/40 max-w-xl leading-relaxed">ساهم في تحقيق أهداف العائلة من خلال إتمام المسؤوليات الموكلة إليك في أسرع وقت.</p>
+                         <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">لديك {tasksCount} مهام قيد الإنجاز</h3>
+                         <div className="bg-white/5 border border-white/10 p-4 rounded-2xl inline-block max-w-md">
+                            <p className="text-xs md:text-sm font-bold text-gold-primary/80 italic">
+                               {getMotivationalNudge()}
+                            </p>
+                         </div>
                       </div>
                       <div className="w-full md:w-auto">
                         <Link to="/tasks" className="btn-gold px-12 py-5 rounded-full font-black text-sm shadow-2xl shadow-gold-primary/20 shrink-0 hover:scale-105 active:scale-95 transition-all block text-center">لوحة المسؤوليات</Link>
@@ -248,6 +291,19 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
 }
 
 function EmptyHub({ icon: Icon, message }: any) {
+  const getMotivationalNudge = () => {
+    const messages = [
+      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
+      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
+      "همتك العالية هي سر نجاح مجلسنا، استمر!",
+      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
+      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
+    ];
+    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
+    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
+    return messages[tasksCount % messages.length];
+  };
+
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-4 text-white/20 w-full">
        <div className="size-16 rounded-full bg-white/5 flex items-center justify-center border border-white/5">

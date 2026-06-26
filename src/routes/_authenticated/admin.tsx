@@ -40,6 +40,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 
+import { IntegratedHub } from "@/components/dashboard/integrated-hub";
+import { sendFcmNotification } from "@/lib/fcm";
+
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
   head: () => ({
@@ -279,6 +282,16 @@ function AdminPage() {
       }
 
       toast.success("تم حفظ الإعلان بنجاح");
+
+      if (!annDraft.id) {
+        sendFcmNotification({
+          data: {
+            title: "📢 إعلان رسمي جديد",
+            body: annDraft.title,
+          }
+        }).catch(err => console.warn("FCM error:", err));
+      }
+
       setAnnDraft({ id: "", title: "", body: "" });
       setAnnImage(null);
       setAnnImagePreview(null);

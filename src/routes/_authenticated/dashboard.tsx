@@ -62,86 +62,93 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex items-end justify-center bg-black/80 backdrop-blur-md p-0 md:p-4"
+      className="fixed inset-0 z-[110] flex items-end md:items-center justify-center bg-black/85 backdrop-blur-md p-0 md:p-10"
       dir="rtl"
     >
       <motion.div
-        initial={{ y: "100%" }}
-        animate={{ y: 0 }}
-        exit={{ y: "100%" }}
-        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="bg-[#051410] w-full max-w-4xl h-[92vh] md:h-auto md:max-h-[85vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-2xl flex flex-col relative border-t border-white/10"
+        initial={{ y: "100%", opacity: 0, scale: 0.9 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: "100%", opacity: 0, scale: 0.9 }}
+        transition={{ type: "spring", damping: 30, stiffness: 200 }}
+        className="bg-[#051410] w-full max-w-6xl h-full md:h-[90vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col relative border border-white/10"
       >
         <button
           onClick={onClose}
-          className="absolute top-6 left-6 z-20 size-12 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-500 transition-all border border-white/10"
+          className="absolute top-6 left-6 z-30 size-12 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-500 transition-all border border-white/10 group"
         >
-          <X size={24} />
+          <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
         </button>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar">
-           {/* Header Image */}
-           <div className="relative h-[250px] md:h-[400px] shrink-0">
+        <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
+           {/* Header Section */}
+           <div className="relative h-[300px] md:h-[450px] shrink-0">
               {type === 'trip' ? (
                 <TripImage path={data.image_url} alt={data.title} className="size-full object-cover" />
               ) : (
-                <div className="size-full bg-gradient-to-br from-primary via-emerald-950 to-black flex items-center justify-center">
-                   {type === 'meeting' ? <CalendarDays className="size-24 text-gold-primary opacity-20" /> : <Newspaper className="size-24 text-gold-primary opacity-20" />}
+                <div className="size-full bg-gradient-to-br from-[#064E3B] via-[#051410] to-black flex items-center justify-center">
+                   {type === 'meeting' ? <CalendarDays className="size-32 text-gold-primary opacity-10" /> : <Newspaper className="size-32 text-gold-primary opacity-10" />}
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#051410] via-[#051410]/40 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#051410] via-[#051410]/20 to-transparent" />
 
-              <div className="absolute bottom-8 right-8 left-8 space-y-2">
-                 <div className="flex items-center gap-2 text-gold-primary">
+              <div className="absolute bottom-8 right-8 left-8 space-y-3">
+                 <div className="flex items-center gap-2 text-gold-primary bg-black/40 backdrop-blur-md w-fit px-4 py-1.5 rounded-full border border-white/10">
                     {type === 'trip' ? <Plane size={16} /> : type === 'meeting' ? <CalendarDays size={16} /> : <Newspaper size={16} />}
-                    <span className="text-xs font-black uppercase tracking-[0.3em]">{type === 'trip' ? 'ترفيه عائلي' : type === 'meeting' ? 'اجتماع مرتقب' : 'أخبار السيف'}</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{type === 'trip' ? 'ترفيه عائلي' : type === 'meeting' ? 'اجتماع مرتقب' : 'أخبار السيف'}</span>
                  </div>
-                 <h2 className="text-3xl md:text-6xl font-black text-white leading-tight tracking-tighter">{data.title}</h2>
+                 <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-2xl">{data.title}</h2>
               </div>
            </div>
 
-           <div className="p-8 md:p-14 space-y-8">
-              <div className="flex flex-wrap gap-4 md:gap-10">
-                 <div className="flex items-center gap-3">
-                    <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-gold-primary border border-white/5 shadow-xl"><Clock size={24} /></div>
+           <div className="p-8 md:p-16 space-y-10">
+              {/* Meta Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                 <div className="flex items-center gap-5 bg-white/5 p-6 rounded-[28px] border border-white/5">
+                    <div className="size-14 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><Clock size={28} /></div>
                     <div>
-                       <p className="text-[10px] font-black uppercase opacity-40">الموعد</p>
-                       <p className="text-sm md:text-lg font-black text-white">{new Date(data.start_date || data.scheduled_at || data.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                       <p className="text-[10px] font-black uppercase opacity-40 mb-1">الموعد والتاريخ</p>
+                       <p className="text-base md:text-xl font-black text-white">{new Date(data.start_date || data.scheduled_at || data.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                     </div>
                  </div>
                  {data.location && (
-                   <div className="flex items-center gap-3">
-                      <div className="size-12 rounded-2xl bg-white/5 flex items-center justify-center text-gold-primary border border-white/5 shadow-xl"><MapPin size={24} /></div>
+                   <div className="flex items-center gap-5 bg-white/5 p-6 rounded-[28px] border border-white/5">
+                      <div className="size-14 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><MapPin size={28} /></div>
                       <div>
-                         <p className="text-[10px] font-black uppercase opacity-40">المكان</p>
-                         <p className="text-sm md:text-lg font-black text-white">{data.location}</p>
+                         <p className="text-[10px] font-black uppercase opacity-40 mb-1">الموقع / المكان</p>
+                         <p className="text-base md:text-xl font-black text-white">{data.location}</p>
                       </div>
                    </div>
                  )}
               </div>
 
-              <div className="space-y-4">
-                 <h4 className="text-xs font-black uppercase tracking-widest text-gold-primary/60">تفاصيل الحدث</h4>
-                 <p className="text-base md:text-xl font-bold text-white/70 leading-relaxed max-w-3xl whitespace-pre-wrap">
+              {/* Description Section */}
+              <div className="space-y-6">
+                 <div className="flex items-center gap-3">
+                    <div className="h-px flex-1 bg-white/10" />
+                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">تفاصيل الحدث</h4>
+                    <div className="h-px flex-1 bg-white/10" />
+                 </div>
+                 <p className="text-lg md:text-2xl font-bold text-white/70 leading-relaxed text-right md:text-justify whitespace-pre-wrap">
                     {data.description || data.cleanBody || data.body || "لا توجد تفاصيل إضافية لهذا الحدث حالياً."}
                  </p>
               </div>
 
-              <div className="pt-10 border-t border-white/5 flex flex-col md:flex-row gap-4">
+              {/* Action Buttons */}
+              <div className="pt-10 flex flex-col md:flex-row gap-4">
                  {type === 'trip' && (
-                    <Link to="/trips" className="btn-gold py-5 px-12 rounded-full font-black text-lg text-center flex-1 shadow-2xl">تسجيل الاهتمام</Link>
+                    <Link to="/trips" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح صفحة الترفيه</Link>
                  )}
                  {type === 'meeting' && (
-                    <Link to="/meetings" className="btn-gold py-5 px-12 rounded-full font-black text-lg text-center flex-1 shadow-2xl">تأكيد الحضور</Link>
+                    <Link to="/meetings" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>
                  )}
                  {type === 'news' && (
-                    <Link to="/majlis" className="btn-gold py-5 px-12 rounded-full font-black text-lg text-center flex-1 shadow-2xl">فتح في المجلس</Link>
+                    <Link to="/majlis" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في المجلس</Link>
                  )}
                  <button
                    onClick={onClose}
-                   className="py-5 px-12 rounded-full bg-white/5 text-white font-black text-lg hover:bg-white/10 transition-all border border-white/5"
+                   className="py-6 px-12 rounded-full bg-white/5 text-white font-black text-xl hover:bg-white/10 transition-all border border-white/10"
                  >
-                   إغلاق
+                   إغلاق العرض
                  </button>
               </div>
            </div>
@@ -562,13 +569,6 @@ function Dashboard() {
       </div>
 
       <AnimatePresence>
-        {immersiveItem && (
-          <ImmersiveView
-            item={immersiveItem}
-            onClose={() => setImmersiveItem(null)}
-          />
-        )}
-
         {showBugReport && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-card border border-border rounded-[32px] w-full max-w-lg p-8 space-y-6 shadow-2xl">

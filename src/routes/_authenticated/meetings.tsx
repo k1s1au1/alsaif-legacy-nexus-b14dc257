@@ -35,6 +35,8 @@ import {
 } from "@/components/ui/carousel";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
+import { sendFcmNotification } from "@/lib/fcm";
+
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
   head: () => ({
@@ -198,6 +200,13 @@ function MeetingsPage() {
       if (error) toast.error("تعذر الإنشاء");
       else {
         toast.success("تم الإنشاء");
+
+        sendFcmNotification({
+          data: {
+            title: "📅 اجتماع عائلي جديد",
+            body: fTitle.trim(),
+          }
+        }).catch(err => console.warn("FCM error:", err));
 
         setShowForm(false);
         resetForm();
