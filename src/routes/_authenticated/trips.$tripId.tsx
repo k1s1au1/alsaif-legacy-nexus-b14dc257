@@ -144,7 +144,7 @@ function TripDetail() {
   async function loadChecklist(tid: string) {
     try {
       const { data, error } = await supabase
-        .from("trip_checklists")
+        .from("trip_items")
         .select("*, assignee:profiles(arabic_name, full_name, avatar_url)")
         .eq("trip_id", tid)
         .order("created_at", { ascending: true });
@@ -160,7 +160,7 @@ function TripDetail() {
   async function addItem() {
     if (!newItemName.trim()) return;
     setAddingItem(true);
-    const { error } = await supabase.from("trip_checklists").insert({
+    const { error } = await supabase.from("trip_items").insert({
       trip_id: tripId,
       item_name: newItemName.trim()
     });
@@ -178,7 +178,7 @@ function TripDetail() {
 
   async function deleteItem(id: string) {
     if (!confirm("حذف الغرض؟")) return;
-    const { error } = await supabase.from("trip_checklists").delete().eq("id", id);
+    const { error } = await supabase.from("trip_items").delete().eq("id", id);
     if (!error) loadChecklist(tripId);
   }
 
@@ -186,7 +186,7 @@ function TripDetail() {
     if (!userId) return;
     const assignedTo = item.assigned_to === userId ? null : userId;
     const { error } = await supabase
-      .from("trip_checklists")
+      .from("trip_items")
       .update({ assigned_to: assignedTo })
       .eq("id", item.id);
     if (!error) loadChecklist(tripId);
