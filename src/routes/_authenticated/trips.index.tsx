@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2, Pencil, Save, Compass, Clock, MapPinned, Loader2 } from "lucide-react";
+import { MapPin, Calendar, Users, ChevronLeft, Plane, Plus, X, Upload, ImageIcon, Trash2, Pencil, Save, Compass, Clock, MapPinned, Loader2, Target, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { TripImage } from "@/components/trip-image";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
@@ -12,6 +12,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { sendFcmNotification } from "@/lib/fcm";
+import { GamesHub } from "@/components/entertainment/games-hub";
 
 export const Route = createFileRoute("/_authenticated/trips/")({
   ssr: false,
@@ -62,6 +63,7 @@ function TripsPage() {
   }>({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null });
   const [trips, setTrips] = useState<Trip[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState<"destinations" | "games">("destinations");
   const [showAdd, setShowAdd] = useState(false);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const { userId, canManage: canManageSection, primaryRole } = useUserRole();
@@ -156,33 +158,82 @@ function TripsPage() {
           </div>
         </section>
 
-        {loading ? (
-          <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
-             <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
-             <p className="font-black">جاري تحضير الوجهات الترفيهية...</p>
-          </div>
-        ) : trips.length === 0 ? (
-          <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40 animate-fade-up">
-            <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Compass size={60} strokeWidth={1} /></div>
-            <div className="space-y-1">
-              <p className="text-2xl font-black text-primary">لا توجد أنشطة ترفيهية حالياً</p>
-              <p className="text-sm font-bold opacity-60">سيتم إشعارك فور إعلان الإدارة عن وجهة ترفيهية جديدة.</p>
-            </div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-            {trips.map((trip, i) => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                index={i}
-                canManage={canManage}
-                onEdit={setEditingTrip}
-                onRefresh={loadTrips}
-              />
-            ))}
-          </div>
-        )}
+        {/* Entertainment Tabs */}
+        <div className="flex items-center justify-center gap-4 px-4 md:px-0">
+           <button
+             onClick={() => setActiveTab("destinations")}
+             className={cn(
+               "flex-1 md:flex-none md:min-w-[200px] py-4 rounded-3xl font-black text-sm flex items-center justify-center gap-3 transition-all border-2",
+               activeTab === "destinations"
+                 ? "bg-primary text-white border-primary shadow-xl scale-105"
+                 : "bg-card text-muted-foreground border-transparent hover:bg-muted"
+             )}
+           >
+              <Compass size={18} />
+              <span>الوجهات والرحلات</span>
+           </button>
+           <button
+             onClick={() => setActiveTab("games")}
+             className={cn(
+               "flex-1 md:flex-none md:min-w-[200px] py-4 rounded-3xl font-black text-sm flex items-center justify-center gap-3 transition-all border-2",
+               activeTab === "games"
+                 ? "bg-gold-primary text-black border-gold-primary shadow-xl scale-105"
+                 : "bg-card text-muted-foreground border-transparent hover:bg-muted"
+             )}
+           >
+              <Target size={18} />
+              <span>ميدان الألعاب</span>
+           </button>
+        </div>
+
+        <AnimatePresence mode="wait">
+          {activeTab === "destinations" ? (
+            <motion.div
+              key="destinations"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="space-y-12"
+            >
+              {loading ? (
+                <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
+                   <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
+                   <p className="font-black">جاري تحضير الوجهات الترفيهية...</p>
+                </div>
+              ) : trips.length === 0 ? (
+                <div className="card-surface p-24 flex flex-col items-center text-center gap-6 border-dashed opacity-40">
+                  <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Compass size={60} strokeWidth={1} /></div>
+                  <div className="space-y-1">
+                    <p className="text-2xl font-black text-primary">لا توجد أنشطة ترفيهية حالياً</p>
+                    <p className="text-sm font-bold opacity-60">سيتم إشعارك فور إعلان الإدارة عن وجهة ترفيهية جديدة.</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 px-4 md:px-0">
+                  {trips.map((trip, i) => (
+                    <TripCard
+                      key={trip.id}
+                      trip={trip}
+                      index={i}
+                      canManage={canManage}
+                      onEdit={setEditingTrip}
+                      onRefresh={loadTrips}
+                    />
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          ) : (
+            <motion.div
+              key="games"
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 20 }}
+            >
+               <GamesHub />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>
