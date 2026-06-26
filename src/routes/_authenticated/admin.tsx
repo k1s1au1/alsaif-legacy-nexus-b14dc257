@@ -26,7 +26,7 @@ import {
   Plus,
   Plane,
   CalendarDays,
-  Megaphone,
+  Newspaper,
   Pencil
 } from "lucide-react";
 
@@ -281,7 +281,7 @@ function AdminPage() {
                  <Users size={18} /> إدارة الأعضاء
                </button>
                <button onClick={() => setTab("announcements")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "announcements" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                 <Megaphone size={18} /> الإعلانات
+                 <Newspaper size={18} /> الإعلانات
                </button>
             </div>
 
@@ -482,7 +482,7 @@ function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, 
              <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/40">
                 <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">{new Date(a.created_at).toLocaleDateString("ar-SA")}</span>
                 <div className="flex items-center gap-2 text-gold-primary">
-                   <Megaphone className="size-4" /> <span className="text-[10px] font-black uppercase tracking-widest">إعلان منشور</span>
+                   <Newspaper className="size-4" /> <span className="text-[10px] font-black uppercase tracking-widest">إعلان منشور</span>
                 </div>
              </div>
           </div>

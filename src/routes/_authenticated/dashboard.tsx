@@ -20,6 +20,7 @@ import {
   Image as ImageIcon,
   Loader2,
   Calendar,
+  Newspaper,
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -256,7 +257,7 @@ function Dashboard() {
                     <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-10 w-full">
                       <div className="flex items-center gap-4 shrink-0">
                         <div className="size-12 md:size-20 rounded-2xl md:rounded-[24px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-xl">
-                          <Megaphone className="size-6 md:size-10" />
+                          <Newspaper className="size-6 md:size-10" />
                         </div>
                         <div className="md:hidden flex flex-col"><span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold-primary/80">أخبار العائلة</span></div>
                       </div>

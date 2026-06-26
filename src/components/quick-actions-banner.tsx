@@ -5,7 +5,7 @@ import {
   Ticket,
   CalendarDays,
   ListChecks,
-  Megaphone,
+  Newspaper,
   Trees,
   Wallet,
   User,
