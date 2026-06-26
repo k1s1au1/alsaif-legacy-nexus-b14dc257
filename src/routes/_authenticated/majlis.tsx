@@ -114,12 +114,18 @@ function MajlisPage() {
 
       if (rawPosts) {
         const processed = rawPosts.map((p: any) => {
-          const kindMatch = p.body.match(/^---kind:(.*)\n/);
-          const uiKind = kindMatch ? kindMatch[1].trim() : (p.kind === "complaint" ? "complaint" : "sharing");
+          const kindMatch = p.body.match(/---kind:(sharing|event|complaint|discussion)/);
+          const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
+
+          const cleanBody = p.body
+            .replace(/---kind:.*?\n?/, "")
+            .replace(/---poll:.*?--- \n?/, "")
+            .trim();
+
           return {
             ...p,
             uiKind,
-            cleanBody: kindMatch ? p.body.replace(/^---kind:.*\n/, "") : p.body
+            cleanBody
           };
         });
         setPosts(processed as any);
@@ -132,7 +138,19 @@ function MajlisPage() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+
+    const channel = supabase
+      .channel("majlis-realtime")
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () => loadData())
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [loadData]);
 
   const filteredPosts = useMemo(() => {
     return posts.filter(p => {
