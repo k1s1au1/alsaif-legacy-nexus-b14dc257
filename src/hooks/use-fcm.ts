@@ -27,7 +27,7 @@ export function useFcm() {
           if (!auth.user) return;
 
           // Save token to DB
-          await supabase.from("user_fcm_tokens").upsert({
+          await (supabase as any).from("user_fcm_tokens").upsert({
             user_id: auth.user.id,
             token: token.value,
             device_type: win.Capacitor.getPlatform()

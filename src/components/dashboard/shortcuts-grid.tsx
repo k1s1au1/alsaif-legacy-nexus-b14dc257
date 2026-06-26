@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   MessageCircle, CalendarDays, Plane, Wallet, ListChecks,
-  Sparkles, Newspaper, Archive, TreePine, Star, ArrowLeft,
+  Sparkles, Newspaper, Archive, TreePine, Star, ArrowLeft, Ticket,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
