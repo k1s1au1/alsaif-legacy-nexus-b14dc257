@@ -143,83 +143,98 @@ function TripDetail() {
 
   async function loadChecklist(tid: string) {
     try {
+      // Fetch special posts that represent checklist items for this trip
       const { data, error } = await supabase
-        .from("trips")
-        .select("checklist")
-        .eq("id", tid)
-        .maybeSingle();
+        .from("majlis_posts")
+        .select("*, author:profiles(arabic_name, full_name, avatar_url)")
+        .eq("kind", "discussion")
+        .ilike("title", `[TRIP-ITEM:${tid}]%`)
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
-      setChecklist(data?.checklist || []);
+
+      const items = (data || []).map(p => {
+        const item_name = p.title.split("] ")[1] || p.title;
+        // Parse assigned user from body if exists
+        const assigned_to = p.body.startsWith("ASSIGNED:") ? p.body.split("\n")[0].split(":")[1] : null;
+        const assignee_name = p.body.startsWith("ASSIGNED:") ? p.body.split("\n")[1] : null;
+
+        return {
+          id: p.id,
+          item_name,
+          assigned_to,
+          assignee_name,
+          created_at: p.created_at
+        };
+      });
+
+      setChecklist(items);
     } catch (err: any) {
       console.error("Load checklist error:", err);
     }
   }
 
   async function addItem() {
-    if (!newItemName.trim() || !trip) return;
+    if (!newItemName.trim() || !userId) return;
     setAddingItem(true);
 
-    const newItem = {
-      id: crypto.randomUUID(),
-      item_name: newItemName.trim(),
-      assigned_to: null,
-      assignee_name: null,
-      created_at: new Date().toISOString()
-    };
+    try {
+      const { error } = await supabase
+        .from("majlis_posts")
+        .insert({
+          author_id: userId,
+          kind: "discussion",
+          title: `[TRIP-ITEM:${tripId}] ${newItemName.trim()}`,
+          body: "AVAILABLE", // Initial state
+        });
 
-    const updatedChecklist = [...checklist, newItem];
+      if (error) throw error;
 
-    const { error } = await supabase
-      .from("trips")
-      .update({ checklist: updatedChecklist })
-      .eq("id", tripId);
-
-    if (error) {
-      console.error("Add item error:", error);
-      toast.error("تعذر إضافة الغرض: " + error.message);
-    } else {
       setNewItemName("");
-      setChecklist(updatedChecklist);
       toast.success("تمت إضافة الغرض للقائمة");
+      await loadChecklist(tripId);
+    } catch (err: any) {
+      console.error("Add item error:", err);
+      toast.error("تعذر إضافة الغرض");
+    } finally {
+      setAddingItem(false);
     }
-    setAddingItem(false);
   }
 
   async function deleteItem(id: string) {
     if (!confirm("حذف الغرض؟")) return;
-    const updatedChecklist = checklist.filter(item => item.id !== id);
-    const { error } = await supabase
-      .from("trips")
-      .update({ checklist: updatedChecklist })
-      .eq("id", tripId);
+    try {
+      const { error } = await supabase
+        .from("majlis_posts")
+        .delete()
+        .eq("id", id);
 
-    if (!error) setChecklist(updatedChecklist);
+      if (error) throw error;
+      setChecklist(prev => prev.filter(item => item.id !== id));
+      toast.success("تم الحذف");
+    } catch (err: any) {
+      toast.error("فشل الحذف");
+    }
   }
 
   async function toggleClaim(item: any) {
-    if (!userId || !trip) return;
+    if (!userId) return;
 
     const isMine = item.assigned_to === userId;
-    const updatedChecklist = checklist.map(it => {
-      if (it.id === item.id) {
-        return {
-          ...it,
-          assigned_to: isMine ? null : userId,
-          assignee_name: isMine ? null : profile.name
-        };
-      }
-      return it;
-    });
+    const newBody = isMine ? "AVAILABLE" : `ASSIGNED:${userId}\n${profile.name}`;
 
-    const { error } = await supabase
-      .from("trips")
-      .update({ checklist: updatedChecklist })
-      .eq("id", tripId);
+    try {
+      const { error } = await supabase
+        .from("majlis_posts")
+        .update({ body: newBody })
+        .eq("id", item.id);
 
-    if (!error) {
-      setChecklist(updatedChecklist);
-      toast.success(isMine ? "تم إلغاء التطوع" : "شكراً لتطوعك بإحضار هذا الغرض");
+      if (error) throw error;
+
+      await loadChecklist(tripId);
+      toast.success(isMine ? "تم إلغاء التطوع" : "شكراً لتطوعك");
+    } catch (err: any) {
+      toast.error("فشل تحديث الحالة");
     }
   }
 
