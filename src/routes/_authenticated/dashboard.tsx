@@ -136,7 +136,13 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
               {/* Action Buttons */}
               <div className="pt-4 flex flex-col md:flex-row gap-3">
                  {type === 'trip' && (
-                    <Link to="/trips" className="btn-gold py-3.5 px-10 rounded-full font-black text-sm text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح صفحة الترفيه</Link>
+                    <Link
+                      to="/trips/$tripId"
+                      params={{ tripId: data.id }}
+                      className="btn-gold py-3.5 px-10 rounded-full font-black text-sm text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform"
+                    >
+                      فتح صفحة الترفيه
+                    </Link>
                  )}
                  {type === 'meeting' && (
                     <Link to="/meetings" className="btn-gold py-3.5 px-10 rounded-full font-black text-sm text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>

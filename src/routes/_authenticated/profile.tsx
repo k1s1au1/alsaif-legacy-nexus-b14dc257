@@ -4,27 +4,10 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { toast } from "sonner";
-import {
-  Camera,
-  Loader2,
-  Lock,
-  User as UserIcon,
-  Mail,
-  Calendar,
-  Phone,
-  CheckCircle2,
-  ChevronLeft,
-  ShieldCheck,
-  Quote,
-  LayoutDashboard,
-  CalendarDays,
-  Plane,
-  Heart,
-  MessageSquare
-} from "lucide-react";
+import { Camera, Loader2, Lock, User as UserIcon, Mail, Calendar, Phone, CheckCircle2, ChevronLeft, ShieldCheck, Quote } from "lucide-react";
 import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
@@ -84,9 +67,6 @@ function ProfilePage() {
 
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
-  const [stats, setStats] = useState({ meetings: 0, trips: 0, tasks: 0, posts: 0 });
-  const [personalBio, setPersonalBio] = useState("");
-  const [isBioSaving, setIsBioSaving] = useState(false);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -99,15 +79,14 @@ function ProfilePage() {
       setCreatedAt(u.user.created_at);
       const { data: p } = await supabase
         .from("profiles")
-        .select("id, arabic_name, full_name, phone, avatar_url, created_at, bio")
+        .select("id, arabic_name, full_name, phone, avatar_url, created_at")
         .eq("id", u.user.id)
-        .maybeSingle<any>();
+        .maybeSingle<ProfileRow>();
       if (p) {
         setArabicName(p.arabic_name ?? "");
         setFullName(p.full_name ?? "");
         setPhone(p.phone ?? "");
         setAvatarUrl(p.avatar_url);
-        setPersonalBio(p.bio ?? "");
         if (p.avatar_url) {
           const { data: signed } = await supabase.storage
             .from("avatars")
@@ -115,44 +94,12 @@ function ProfilePage() {
           setAvatarSrc(signed?.signedUrl ?? null);
         }
       }
-
-      // Fetch Stats
-      const [
-        { count: mCount },
-        { count: tCount },
-        { count: tkCount },
-        { count: pCount }
-      ] = await Promise.all([
-        supabase.from("meeting_attendees").select("*", { count: "exact", head: true }).eq("user_id", u.user.id).eq("rsvp", "going"),
-        supabase.from("trip_attendees" as any).select("*", { count: "exact", head: true }).eq("user_id", u.user.id),
-        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.user.id).eq("status", "done"),
-        supabase.from("majlis_posts").select("*", { count: "exact", head: true }).eq("author_id", u.user.id)
-      ]);
-
-      setStats({
-        meetings: mCount || 0,
-        trips: tCount || 0,
-        tasks: tkCount || 0,
-        posts: pCount || 0
-      });
-
       setLoading(false);
     })();
   }, []);
 
   const displayName = (arabicName || fullName || email.split("@")[0] || "عضو العائلة").trim();
   const initial = (displayName[0] ?? "س").toUpperCase();
-
-  async function saveBio() {
-    setIsBioSaving(true);
-    const { error } = await supabase
-      .from("profiles")
-      .update({ bio: personalBio.trim() || null })
-      .eq("id", userId);
-    setIsBioSaving(false);
-    if (!error) toast.success("تم تحديث نبذتك الشخصية");
-    else toast.error("تعذر تحديث النبذة");
-  }
 
   async function saveProfile(e: React.FormEvent) {
     e.preventDefault();
@@ -321,30 +268,6 @@ function ProfilePage() {
            {/* Primary Actions Column */}
            <div className="lg:col-span-2 space-y-8">
 
-              {/* Bio Section */}
-              <div className="card-surface p-8 md:p-10 space-y-6 animate-fade-up" style={{ animationDelay: "50ms" }}>
-                 <div className="flex items-center justify-between border-b border-border/40 pb-4">
-                    <div className="flex items-center gap-4">
-                       <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-inner"><Quote className="size-6" /></div>
-                       <h3 className="text-xl font-black text-primary">النبذة الشخصية</h3>
-                    </div>
-                    <button
-                      onClick={saveBio}
-                      disabled={isBioSaving}
-                      className="text-xs font-black text-gold-primary hover:underline uppercase tracking-widest"
-                    >
-                      {isBioSaving ? "جاري الحفظ..." : "حفظ النبذة"}
-                    </button>
-                 </div>
-                 <textarea
-                   value={personalBio}
-                   onChange={e => setPersonalBio(e.target.value)}
-                   placeholder="اكتب شيئاً عن نفسك، تعليمك، أو اهتماماتك ليتعرف عليك بقية أفراد العائلة..."
-                   rows={4}
-                   className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner"
-                 />
-              </div>
-
               {/* Profile Editor */}
               <form onSubmit={saveProfile} className="card-surface p-8 md:p-10 space-y-8 animate-fade-up" style={{ animationDelay: "100ms" }}>
                  <div className="flex items-center justify-between border-b border-border/40 pb-6">
@@ -419,12 +342,17 @@ function ProfilePage() {
               </div>
 
               <div className="card-surface p-8 space-y-6 animate-fade-up" style={{ animationDelay: "400ms" }}>
-                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-gold-primary">سجل النشاط العائلي</h4>
-                 <div className="grid grid-cols-2 gap-4">
-                    <StatBox icon={<CalendarDays className="size-4" />} label="اجتماعات" value={stats.meetings} color="text-blue-500" />
-                    <StatBox icon={<Plane className="size-4" />} label="رحلات" value={stats.trips} color="text-indigo-500" />
-                    <StatBox icon={<CheckCircle2 className="size-4" />} label="مهام منجزة" value={stats.tasks} color="text-rose-500" />
-                    <StatBox icon={<MessageSquare className="size-4" />} label="مشاركات" value={stats.posts} color="text-emerald-500" />
+                 <h4 className="text-xs font-black uppercase tracking-[0.2em] text-gold-primary">إحصائيات سريعة</h4>
+                 <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                       <span className="text-sm font-bold text-muted-foreground">تاريخ الانضمام</span>
+                       <span className="text-sm font-black text-primary">{new Date(createdAt).toLocaleDateString("ar-SA")}</span>
+                    </div>
+                    <div className="h-px bg-border/40" />
+                    <div className="flex items-center justify-between">
+                       <span className="text-sm font-bold text-muted-foreground">نوع الحساب</span>
+                       <span className="text-sm font-black text-emerald-600">عضو نشط</span>
+                    </div>
                  </div>
               </div>
            </div>
@@ -444,20 +372,6 @@ function ProfilePage() {
         />
       </div>
     </AppShell>
-  );
-}
-
-function StatBox({ icon, label, value, color }: any) {
-  return (
-    <div className="bg-muted/30 p-4 rounded-2xl border border-border/40 text-center space-y-2">
-       <div className={cn("size-8 rounded-xl bg-white flex items-center justify-center mx-auto shadow-sm", color)}>
-          {icon}
-       </div>
-       <div>
-          <p className="text-xl font-black text-primary tracking-tighter">{value}</p>
-          <p className="text-[10px] font-black uppercase text-muted-foreground tracking-widest">{label}</p>
-       </div>
-    </div>
   );
 }
 

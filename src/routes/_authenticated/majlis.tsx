@@ -101,12 +101,14 @@ function MajlisPage() {
         });
       }
 
-      const { data: rawPosts } = await supabase
+      const { data: rawPosts, error: postsErr } = await supabase
         .from("majlis_posts")
         .select("*, author:profiles(arabic_name, full_name, avatar_url)")
-        .neq("kind", "announcement") // Exclude admin advertisements
+        .neq("kind", "announcement")
         .order("pinned", { ascending: false })
         .order("created_at", { ascending: false });
+
+      if (postsErr) throw postsErr;
 
       const { data: coms } = await supabase
         .from("majlis_comments")
@@ -114,7 +116,8 @@ function MajlisPage() {
 
       if (rawPosts) {
         const processed = rawPosts.map((p: any) => {
-          const kindMatch = p.body.match(/---kind:(sharing|event|complaint|discussion)/);
+          // Robust parsing of ---kind: and ---poll:
+          const kindMatch = p.body.match(/---kind:(\w+)/);
           const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
 
           const cleanBody = p.body
@@ -125,7 +128,7 @@ function MajlisPage() {
           return {
             ...p,
             uiKind,
-            cleanBody
+            cleanBody: cleanBody || p.body
           };
         });
         setPosts(processed as any);
