@@ -6,10 +6,8 @@ import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { toast } from "sonner";
 import {
-  Megaphone,
   MessageSquare,
   Pin,
-  PinOff,
   Plus,
   Send,
   Trash2,
@@ -17,11 +15,12 @@ import {
   X,
   ShieldAlert,
   Clock,
-  ChevronLeft,
   Vote,
   ListFilter,
   BarChart3,
   CheckCircle2,
+  Newspaper,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -49,8 +48,6 @@ type MajlisPost = {
   body: string;
   kind: PostKind;
   pinned: boolean;
-  is_poll: boolean;
-  poll_only_voting: boolean;
   created_at: string;
   author?: {
     arabic_name: string | null;
@@ -63,13 +60,14 @@ const KINDS: { key: PostKind; label: string; color: string; icon: any }[] = [
   { key: "sharing", label: "مشاركات", color: "emerald", icon: MessageSquare },
   { key: "event", label: "مناسبات", color: "amber", icon: Clock },
   { key: "complaint", label: "طلبات", color: "rose", icon: ShieldAlert },
-  { key: "discussion", label: "نقاشات", color: "blue", icon: Megaphone },
+  { key: "discussion", label: "نقاشات", color: "blue", icon: Newspaper },
 ];
 
 function MajlisPage() {
   const [meId, setMeId] = useState<string | null>(null);
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
   const [posts, setPosts] = useState<MajlisPost[]>([]);
+  const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isChairman, setIsChairman] = useState(false);
   const [activeTab, setActiveTab] = useState<PostKind | "all">("all");
@@ -78,35 +76,45 @@ function MajlisPage() {
 
   const loadData = useCallback(async () => {
     setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return;
-    setMeId(user.id);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      setMeId(user.id);
 
-    const [{ data: p }, { data: roles }] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-      supabase.from("user_roles").select("role").eq("user_id", user.id),
-    ]);
+      const [{ data: p }, { data: roles }] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", user.id),
+      ]);
 
-    const rs = (roles ?? []).map(r => r.role);
-    setIsChairman(rs.includes("chairman") || rs.includes("admin"));
+      const rs = (roles ?? []).map(r => r.role);
+      setIsChairman(rs.includes("chairman") || rs.includes("admin"));
 
-    if (p) {
-      setProfile({
-        name: p.arabic_name || p.full_name || "عضو",
-        role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول النظام" : "عضو",
-        initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
-        avatarPath: p.avatar_url
-      });
+      if (p) {
+        setProfile({
+          name: p.arabic_name || p.full_name || "عضو",
+          role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول النظام" : "عضو",
+          initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
+          avatarPath: p.avatar_url
+        });
+      }
+
+      const { data: rawPosts } = await supabase
+        .from("majlis_posts")
+        .select("*, author:profiles(arabic_name, full_name, avatar_url)")
+        .order("pinned", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      const { data: coms } = await supabase
+        .from("majlis_comments")
+        .select("*");
+
+      setPosts((rawPosts || []) as any);
+      setComments(coms || []);
+    } catch (err) {
+      console.error("Load Majlis error:", err);
+    } finally {
+      setLoading(false);
     }
-
-    const { data: rawPosts } = await supabase
-      .from("majlis_posts")
-      .select("*, author:profiles(arabic_name, full_name, avatar_url)")
-      .order("pinned", { ascending: false })
-      .order("created_at", { ascending: false });
-
-    setPosts((rawPosts || []) as any);
-    setLoading(false);
   }, []);
 
   useEffect(() => { loadData(); }, [loadData]);
@@ -142,21 +150,26 @@ function MajlisPage() {
                 <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">أخبار العائلة</h2>
                 <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">تابع آخر المستجدات، شاركنا أفكارك، وتواصل مباشرة مع رئيس المجلس.</p>
               </div>
-              <button onClick={() => setShowAdd(true)} className="btn-gold px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl text-sm md:text-xl font-black shrink-0 active:scale-95 transition-all">
-                <Plus size={24} strokeWidth={3} /> <span>إضافة خبر</span>
-              </button>
+              <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
+                <Newspaper className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
+              </div>
             </div>
           </div>
         </section>
 
-        <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar mx-4 md:mx-0">
-           <Tab active={activeTab === "all"} onClick={() => setActiveTab("all")} label="الكل" icon={<ListFilter size={16} />} />
-           {KINDS.map(k => <Tab key={k.key} active={activeTab === k.key} onClick={() => setActiveTab(k.key)} label={k.label} icon={<k.icon size={16} />} color={k.color} />)}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-4 md:px-0">
+          <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar w-full md:w-auto">
+             <Tab active={activeTab === "all"} onClick={() => setActiveTab("all")} label="الكل" icon={<ListFilter size={16} />} />
+             {KINDS.map(k => <Tab key={k.key} active={activeTab === k.key} onClick={() => setActiveTab(k.key)} label={k.label} icon={<k.icon size={16} />} color={k.color} />)}
+          </div>
+          <button onClick={() => setShowAdd(true)} className="btn-gold px-8 py-3.5 rounded-2xl flex items-center justify-center gap-3 shadow-xl text-sm font-black w-full md:w-auto active:scale-95 transition-all">
+             <Plus size={20} strokeWidth={3} /> <span>إضافة خبر</span>
+          </button>
         </div>
 
         <div className="grid grid-cols-1 gap-8 px-4 md:px-0">
            {loading ? <div className="py-20 text-center"><Loader2 className="animate-spin size-12 mx-auto text-primary opacity-20" /></div> :
-            filteredPosts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isChairman} onRefresh={loadData} />)}
+            filteredPosts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isChairman} onRefresh={loadData} comments={comments} />)}
            {!loading && filteredPosts.length === 0 && <div className="p-20 text-center bg-muted/20 rounded-[48px] border-4 border-dashed italic text-muted-foreground">لا توجد منشورات في هذا القسم حالياً.</div>}
         </div>
       </div>
@@ -182,23 +195,22 @@ function Tab({ active, onClick, label, icon, color }: any) {
   );
 }
 
-function PostCard({ post, meId, isChairman, onRefresh }: any) {
-  const [showPoll, setShowPoll] = useState(false);
-  const [voted, setVoted] = useState(false);
-  const [votes, setVotes] = useState<any[]>([]);
+function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
   const authorName = post.author?.arabic_name || post.author?.full_name || "عضو";
   const kind = KINDS.find(k => k.key === post.kind) || KINDS[0];
 
   const deletePost = async () => {
     if (!confirm("حذف المنشور؟")) return;
-    await supabase.from("majlis_posts").delete().eq("id", post.id);
-    toast.success("تم الحذف");
-    onRefresh();
+    const { error } = await supabase.from("majlis_posts").delete().eq("id", post.id);
+    if (!error) {
+       toast.success("تم الحذف");
+       onRefresh();
+    }
   };
 
   const togglePin = async () => {
-    await supabase.from("majlis_posts").update({ pinned: !post.pinned }).eq("id", post.id);
-    onRefresh();
+    const { error } = await supabase.from("majlis_posts").update({ pinned: !post.pinned }).eq("id", post.id);
+    if (!error) onRefresh();
   };
 
   const pollData = useMemo(() => {
@@ -211,18 +223,58 @@ function PostCard({ post, meId, isChairman, onRefresh }: any) {
 
   const cleanBody = post.body.replace(/^---poll:.*?---/s, "").trim();
 
+  // Voting Logic
+  const postComments = comments.filter((c: any) => c.post_id === post.id);
+  const myVoteComment = postComments.find((c: any) => c.author_id === meId && c.body.startsWith("[VOTE]:"));
+  const myVoteIndex = myVoteComment ? parseInt(myVoteComment.body.split(":")[1]) : -1;
+
+  const voteCounts = useMemo(() => {
+    if (!pollData) return [];
+    const counts = new Array(pollData.options.length).fill(0);
+    postComments.forEach((c: any) => {
+      if (c.body.startsWith("[VOTE]:")) {
+        const idx = parseInt(c.body.split(":")[1]);
+        if (idx >= 0 && idx < counts.length) counts[idx]++;
+      }
+    });
+    return counts;
+  }, [pollData, postComments]);
+
+  const totalVotes = voteCounts.reduce((a, b) => a + b, 0);
+
+  const handleVote = async (idx: number) => {
+    if (myVoteIndex !== -1) {
+       toast.error("لقد قمت بالتصويت مسبقاً");
+       return;
+    }
+    const { error } = await supabase.from("majlis_comments").insert({
+      post_id: post.id,
+      author_id: meId,
+      body: `[VOTE]:${idx}`
+    });
+    if (!error) {
+       toast.success("تم تسجيل صوتك");
+       onRefresh();
+    }
+  };
+
   return (
     <motion.article layout className={cn("card-surface p-8 md:p-12 relative overflow-hidden group transition-all duration-500 hover:shadow-2xl", post.pinned && "border-gold-primary/30 bg-gold-primary/[0.02]")}>
-       {post.pinned && <div className="absolute top-0 left-0 bg-gold-primary text-white px-6 py-1.5 rounded-br-3xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg"><Pin size={12} /> مثبت</div>}
+       {post.pinned && <div className="absolute top-0 left-0 bg-gold-primary text-white px-6 py-1.5 rounded-br-3xl text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-2 shadow-lg z-10"><Pin size={12} /> مثبت</div>}
        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
-          <div className="flex-1 space-y-6">
+          <div className="flex-1 space-y-6 w-full">
              <div className="flex items-center gap-4">
                 <div className="size-14 rounded-[22px] border-2 border-primary/10 overflow-hidden shadow-lg"><UserAvatar path={post.author?.avatar_url} name={authorName} className="size-full" userId={post.author_id} /></div>
                 <div>
                    <h4 className="text-lg font-black text-primary">{authorName}</h4>
                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                 </div>
-                <div className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border", `bg-${kind.color}-500/10 text-${kind.color}-600 border-${kind.color}-500/20`)}>
+                <div className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                  post.kind === "sharing" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" :
+                  post.kind === "event" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" :
+                  post.kind === "complaint" ? "bg-rose-500/10 text-rose-600 border-rose-500/20" :
+                  "bg-blue-500/10 text-blue-600 border-blue-500/20"
+                )}>
                    {kind.label}
                 </div>
              </div>
@@ -230,24 +282,49 @@ function PostCard({ post, meId, isChairman, onRefresh }: any) {
                 <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
                 <p className="text-base md:text-lg font-bold text-muted-foreground/80 leading-relaxed whitespace-pre-wrap">{cleanBody}</p>
              </div>
+
              {pollData && (
-                <div className="p-8 rounded-[40px] bg-primary/5 border-2 border-primary/10 space-y-6">
-                   <div className="flex items-center gap-3 text-primary"><BarChart3 size={24} /><h5 className="text-xl font-black">{pollData.question}</h5></div>
-                   <div className="grid gap-3">
-                      {pollData.options.map((opt: string, i: number) => (
-                        <button key={i} className="p-5 rounded-2xl bg-white border-2 border-border/40 text-right font-black hover:border-primary transition-all flex justify-between items-center group/opt">
-                           <span>{opt}</span>
-                           <div className="size-6 rounded-full border-2 border-border group-hover/opt:border-primary transition-all" />
-                        </button>
-                      ))}
+                <div className="p-8 rounded-[40px] bg-primary/5 border-2 border-primary/10 space-y-6 mt-8">
+                   <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3 text-primary"><BarChart3 size={24} /><h5 className="text-xl font-black">{pollData.question}</h5></div>
+                      <span className="text-xs font-bold text-primary opacity-60 bg-primary/10 px-3 py-1 rounded-full">{totalVotes} صوت</span>
                    </div>
+                   <div className="grid gap-3">
+                      {pollData.options.map((opt: string, i: number) => {
+                        const count = voteCounts[i] || 0;
+                        const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+                        const isMyVote = myVoteIndex === i;
+
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => handleVote(i)}
+                            disabled={myVoteIndex !== -1}
+                            className={cn(
+                              "relative p-5 rounded-2xl transition-all text-right font-black overflow-hidden group/opt",
+                              isMyVote ? "bg-primary text-white border-2 border-primary shadow-lg" : "bg-white border-2 border-border/40 text-primary hover:border-primary"
+                            )}
+                          >
+                            <div className={cn("absolute inset-y-0 right-0 transition-all duration-1000", isMyVote ? "bg-white/10" : "bg-primary/5")} style={{ width: `${pct}%` }} />
+                            <div className="relative z-10 flex justify-between items-center">
+                               <div className="flex items-center gap-3">
+                                  {isMyVote ? <CheckCircle2 size={18} /> : <div className="size-4 rounded-full border-2 border-current opacity-30" />}
+                                  <span>{opt}</span>
+                               </div>
+                               <span className="opacity-60">{pct}%</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                   </div>
+                   {myVoteIndex !== -1 && <p className="text-center text-[10px] font-black text-emerald-600 uppercase tracking-widest">شكراً لمشاركتك في التصويت</p>}
                 </div>
              )}
           </div>
           {(isChairman || post.author_id === meId) && (
-             <div className="flex flex-row md:flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 self-end md:self-start">
-                {isChairman && <button onClick={togglePin} className="size-12 rounded-2xl bg-gold-primary/10 text-gold-primary flex items-center justify-center hover:bg-gold-primary hover:text-white transition-all"><Pin size={20} /></button>}
-                <button onClick={deletePost} className="size-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={20} /></button>
+             <div className="flex flex-row md:flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 self-end md:self-start shrink-0">
+                {isChairman && <button onClick={togglePin} className={cn("size-12 rounded-2xl flex items-center justify-center transition-all shadow-lg", post.pinned ? "bg-gold-primary text-white" : "bg-gold-primary/10 text-gold-primary hover:bg-gold-primary hover:text-white")} title="تثبيت"><Pin size={20} /></button>}
+                <button onClick={deletePost} className="size-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="حذف"><Trash2 size={20} /></button>
              </div>
           )}
        </div>
@@ -257,58 +334,134 @@ function PostCard({ post, meId, isChairman, onRefresh }: any) {
 
 function AddPostDialog({ meId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: "", body: "", kind: "sharing" as PostKind, is_poll: false });
+  const [form, setForm] = useState({ title: "", body: "", kind: "sharing" as PostKind });
+  const [isPoll, setIsPoll] = useState(false);
   const [poll, setPoll] = useState({ question: "", options: ["", ""] });
+
+  const addOption = () => {
+    if (poll.options.length < 5) setPoll({ ...poll, options: [...poll.options, ""] });
+  };
+
+  const updateOption = (idx: number, val: string) => {
+    const next = [...poll.options];
+    next[idx] = val;
+    setPoll({ ...poll, options: next });
+  };
+
+  const removeOption = (idx: number) => {
+    if (poll.options.length > 2) {
+      setPoll({ ...poll, options: poll.options.filter((_, i) => i !== idx) });
+    }
+  };
 
   const submit = async (e: any) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.body.trim()) return;
+    if (!form.title.trim() || !form.body.trim()) {
+       toast.error("يرجى إكمال البيانات الأساسية");
+       return;
+    }
     setSaving(true);
     let finalBody = form.body;
-    if (form.is_poll && poll.question.trim()) {
+    if (isPoll && poll.question.trim()) {
       const data = { question: poll.question.trim(), options: poll.options.filter(o => o.trim()) };
       finalBody = `---poll:${JSON.stringify(data)}---\n${finalBody}`;
     }
-    const { error } = await supabase.from("majlis_posts").insert({ ...form, body: finalBody, author_id: meId });
-    setSaving(false);
-    if (!error) {
-      toast.success("تم النشر بنجاح");
 
-      // Trigger FCM Notification
-      sendFcmNotification({
-        data: {
-          title: "خبر جديد في المجلس",
-          body: form.title,
-        }
+    try {
+      const { error } = await supabase.from("majlis_posts").insert({
+        title: form.title,
+        body: finalBody,
+        kind: form.kind,
+        author_id: meId
       });
 
-      onSaved();
-      onClose();
+      if (!error) {
+        toast.success("تم النشر بنجاح");
+
+        sendFcmNotification({
+          data: {
+            title: "خبر جديد في المجلس",
+            body: form.title,
+          }
+        }).catch(err => console.warn("FCM error:", err));
+
+        onSaved();
+        onClose();
+      } else {
+        toast.error("تعذر النشر: " + error.message);
+      }
+    } catch (err: any) {
+       toast.error("حدث خطأ غير متوقع");
+    } finally {
+       setSaving(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl" dir="rtl">
-       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-card w-full max-w-2xl rounded-[48px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-          <header className="p-8 border-b border-border flex items-center justify-between">
-             <h3 className="text-2xl font-black text-primary">إضافة خبر جديد</h3>
-             <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center"><X size={24} /></button>
+       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-[#0D0F14] w-full max-w-2xl rounded-[48px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+          <header className="p-8 border-b border-border/40 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <div className="size-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg"><Plus size={24} strokeWidth={3} /></div>
+                <h3 className="text-2xl font-black text-primary">إضافة خبر جديد</h3>
+             </div>
+             <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-all"><X size={24} /></button>
           </header>
-          <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar">
-             <div className="space-y-2">
-                <label className="text-xs font-black uppercase tracking-widest text-primary/60 px-2">تصنيف الخبر</label>
+
+          <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
+             <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تصنيف الخبر</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                    {KINDS.map(k => (
                      <button key={k.key} type="button" onClick={() => setForm({...form, kind: k.key})} className={cn("py-3 rounded-2xl border-2 font-black text-xs transition-all", form.kind === k.key ? "bg-primary text-white border-primary shadow-lg" : "bg-muted/30 border-transparent text-muted-foreground hover:bg-muted")}>{k.label}</button>
                    ))}
                 </div>
              </div>
-             <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="عنوان الخبر..." className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border font-black text-xl focus:ring-4 focus:ring-primary/5 transition-all" required />
-             <textarea value={form.body} onChange={e => setForm({...form, body: e.target.value})} placeholder="اكتب تفاصيل الخبر هنا..." rows={5} className="w-full p-8 rounded-[40px] bg-muted/30 border border-border font-bold text-lg focus:ring-4 focus:ring-primary/5 transition-all resize-none" required />
-             <div className="flex gap-4">
-                <button type="button" onClick={onClose} className="flex-1 py-5 rounded-[28px] font-black text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
-                <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-[28px] font-black text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
-                   {saving ? <Loader2 className="animate-spin size-6" /> : <Send size={24} />} <span>نشر الخبر</span>
+
+             <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان الخبر</label>
+                <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ماذا تريد أن تشارك مع العائلة؟" className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border/60 font-black text-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-inner" required />
+             </div>
+
+             <div className="space-y-3">
+                <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تفاصيل المنشور</label>
+                <textarea value={form.body} onChange={e => setForm({...form, body: e.target.value})} placeholder="اكتب تفاصيل الخبر هنا..." rows={4} className="w-full p-8 rounded-[40px] bg-muted/30 border border-border/60 font-bold text-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner" required />
+             </div>
+
+             <div className="pt-4">
+                <button type="button" onClick={() => setIsPoll(!isPoll)} className={cn("flex items-center gap-3 px-6 py-4 rounded-2xl border-2 transition-all w-full md:w-auto", isPoll ? "bg-gold-primary text-white border-gold-primary shadow-lg" : "bg-muted/30 border-dashed border-border/60 text-muted-foreground")}>
+                   <Vote size={20} />
+                   <span className="font-black text-sm">{isPoll ? "إلغاء التصويت" : "إضافة استبيان/تصويت"}</span>
+                </button>
+             </div>
+
+             <AnimatePresence>
+                {isPoll && (
+                   <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} className="p-8 rounded-[40px] bg-gold-primary/5 border-2 border-gold-primary/20 space-y-6">
+                      <div className="space-y-2">
+                         <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary px-2">سؤال التصويت</label>
+                         <input value={poll.question} onChange={e => setPoll({...poll, question: e.target.value})} placeholder="مثال: ما رأيكم في الموعد المقترح؟" className="w-full h-14 px-6 rounded-2xl bg-white border border-gold-primary/20 font-black text-sm focus:ring-4 focus:ring-gold-primary/5 outline-none" />
+                      </div>
+                      <div className="space-y-3">
+                         <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary px-2">الخيارات</label>
+                         {poll.options.map((opt, i) => (
+                            <div key={i} className="flex gap-2">
+                               <input value={opt} onChange={e => updateOption(i, e.target.value)} placeholder={`خيار ${i+1}...`} className="flex-1 h-12 px-6 rounded-xl bg-white border border-border/40 font-bold text-sm outline-none" />
+                               {poll.options.length > 2 && <button type="button" onClick={() => removeOption(i)} className="size-12 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><X size={18} /></button>}
+                            </div>
+                         ))}
+                         {poll.options.length < 5 && (
+                           <button type="button" onClick={addOption} className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline px-2 flex items-center gap-1">+ إضافة خيار آخر</button>
+                         )}
+                      </div>
+                   </motion.div>
+                )}
+             </AnimatePresence>
+
+             <div className="flex gap-4 pt-6">
+                <button type="button" onClick={onClose} className="flex-1 py-5 rounded-[28px] font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
+                <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-[28px] font-black text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 active:scale-[0.98] transition-all">
+                   {saving ? <Loader2 className="animate-spin size-6" /> : <><Send size={24} /> <span>نشر الآن</span></>}
                 </button>
              </div>
           </form>

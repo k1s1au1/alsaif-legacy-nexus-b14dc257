@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   MessageCircle, CalendarDays, Plane, Wallet, ListChecks,
-  Sparkles, Megaphone, Archive, TreePine, Star, ArrowLeft,
+  Sparkles, Newspaper, Archive, TreePine, Star, ArrowLeft,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -64,7 +64,7 @@ export function ShortcutsGrid({
     { key: "finance", to: "/finance", title: "الصندوق المالي", description: "الرصيد والمساهمات", icon: Wallet, accent: "from-gold-primary/25 to-transparent", cta: "إدارة الصندوق", badge: badges.finance ?? null, stat: stats.finance ?? null },
     { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-gold-primary/10 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
     { key: "events", to: "/events", title: "المناسبات", description: "الأفراح والمناسبات الخاصة", icon: Sparkles, accent: "from-gold-primary/10 to-transparent", cta: "تصفح المناسبات", badge: badges.events ?? null, stat: stats.events ?? null },
-    { key: "majlis", to: "/majlis", title: "المجلس", description: "الإعلانات والنقاشات الرسمية", icon: Megaphone, accent: "from-gold-primary/10 to-transparent", cta: "ادخل المجلس", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
+    { key: "majlis", to: "/majlis", title: "المجلس", description: "الإعلانات والنقاشات الرسمية", icon: Newspaper, accent: "from-gold-primary/10 to-transparent", cta: "ادخل المجلس", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
     { key: "archive", to: "/archive", title: "الأرشيف", description: "صور ووثائق العائلة", icon: Archive, accent: "from-gold-primary/10 to-transparent", cta: "افتح الأرشيف", badge: badges.archive ?? null, stat: stats.archive ?? null },
     { key: "family-tree", to: "/family-tree", title: "شجرة العائلة", description: "نسب العائلة وفروعها", icon: TreePine, accent: "from-gold-primary/10 to-transparent", cta: "عرض الشجرة", badge: badges["family-tree"] ?? null, stat: stats["family-tree"] ?? null },
   ], [badges, stats]);

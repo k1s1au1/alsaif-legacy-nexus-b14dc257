@@ -12,6 +12,7 @@ import {
   ChevronDown,
   Settings,
   X,
+  Newspaper,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -34,6 +35,7 @@ import {
 const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
+  { to: "/majlis", label: "أخبار السيف", icon: Newspaper },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/settings", label: "الإعدادات", icon: Settings },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
@@ -127,20 +129,23 @@ export function AppShell({
         drag="x"
         dragDirectionLock
         dragConstraints={{ left: 0, right: 350 }}
-        dragElastic={0.1}
+        dragElastic={0.05}
         onDragEnd={(_, info) => {
-          // Close if swiped right (positive x)
-          if (info.offset.x > 80 || info.velocity.x > 500) {
+          // If swiped right (towards the edge) with enough velocity or distance
+          if (info.offset.x > 50 || info.velocity.x > 300) {
             setSidebarOpen(false);
           }
         }}
         animate={{ x: sidebarOpen ? 0 : 350 }}
-        transition={{ type: "spring", damping: 25, stiffness: 200, mass: 0.8 }}
+        transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
         className={cn(
           "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl",
           "w-[85vw] max-w-[320px] rounded-l-[32px] touch-pan-y",
         )}
       >
+        {/* Visual drag handle for mobile */}
+        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-border/40 rounded-full lg:hidden ml-1" />
+
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
           <div
             className="absolute top-4 right-4 size-8 z-10 logo-alsaif opacity-40 hover:opacity-100 transition-opacity"
