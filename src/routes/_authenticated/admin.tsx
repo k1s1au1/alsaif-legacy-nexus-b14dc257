@@ -34,6 +34,7 @@ import { toast } from "sonner";
 import { useServerFn } from "@tanstack/react-start";
 import { approveAccountRequest } from "@/lib/api/account-requests.functions";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
+import { assignUserRole } from "@/lib/api/roles.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -103,6 +104,7 @@ function AdminPage() {
 
   const approveFn = useServerFn(approveAccountRequest);
   const deleteMemberFn = useServerFn(deleteMemberAccount);
+  const assignRoleFn = useServerFn(assignUserRole);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -184,10 +186,13 @@ function AdminPage() {
   };
 
   const assignRole = async (uid: string, role: string) => {
-    await supabase.from("user_roles").delete().eq("user_id", uid);
-    await supabase.from("user_roles").insert({ user_id: uid, role });
-    toast.success("تمت ترقية العضو");
-    loadData();
+    try {
+      await assignRoleFn({ data: { userId: uid, role } });
+      toast.success("تمت تحديث الصلاحية بنجاح");
+      loadData();
+    } catch (err: any) {
+      toast.error("فشل تعيين الصلاحية", { description: err.message });
+    }
   };
 
   const deleteMember = async (uid: string, name: string) => {
