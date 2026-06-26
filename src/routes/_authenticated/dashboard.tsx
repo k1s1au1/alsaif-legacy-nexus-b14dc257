@@ -299,20 +299,20 @@ function Dashboard() {
         {heritageSnippet && (
           <section className="px-4 animate-fade-up" style={{ animationDelay: "180ms" }}>
              <Link to="/heritage" className="block group">
-                <div className="card-surface overflow-hidden border-2 border-gold-primary/20 hover:border-gold-primary/40 transition-all p-0">
-                   <div className="flex flex-col md:flex-row">
-                      <div className="bg-gold-primary/10 p-6 md:p-10 flex flex-col items-center justify-center gap-3 shrink-0 md:border-l border-gold-primary/10">
-                         <Scroll className="size-10 text-gold-primary" />
-                         <span className="text-[10px] font-black uppercase tracking-widest text-gold-primary">قبس من التاريخ</span>
+                <div className="relative overflow-hidden rounded-[24px] bg-gold-primary/[0.03] border border-gold-primary/20 p-6 transition-all hover:bg-gold-primary/[0.06] hover:border-gold-primary/40">
+                   <div className="flex items-center gap-4">
+                      <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center shrink-0">
+                         <Scroll className="size-6 text-gold-primary" />
                       </div>
-                      <div className="p-8 md:p-10 space-y-4 flex-1">
-                         <h3 className="text-xl md:text-2xl font-black text-primary leading-tight">{heritageSnippet.title}</h3>
-                         <p className="text-sm md:text-base font-bold text-muted-foreground line-clamp-3 leading-relaxed italic">"{heritageSnippet.cleanBody}"</p>
-                         <div className="flex items-center gap-2 text-gold-primary text-xs font-black uppercase tracking-widest pt-2">
-                            <span>استكشف الإرث</span>
-                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                      <div className="min-w-0 flex-1 space-y-1">
+                         <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold-primary/60">قبس من التاريخ</span>
+                            <div className="h-px w-8 bg-gold-primary/20" />
                          </div>
+                         <h3 className="text-base md:text-lg font-black text-primary truncate">{heritageSnippet.title}</h3>
+                         <p className="text-xs md:text-sm font-bold text-muted-foreground line-clamp-1 italic opacity-80">"{heritageSnippet.cleanBody}"</p>
                       </div>
+                      <ChevronLeft className="size-5 text-gold-primary opacity-40 group-hover:opacity-100 group-hover:-translate-x-1 transition-all shrink-0" />
                    </div>
                 </div>
              </Link>
