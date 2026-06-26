@@ -144,52 +144,83 @@ function TripDetail() {
   async function loadChecklist(tid: string) {
     try {
       const { data, error } = await supabase
-        .from("trip_items")
-        .select("*, assignee:profiles(arabic_name, full_name, avatar_url)")
-        .eq("trip_id", tid)
-        .order("created_at", { ascending: true });
+        .from("trips")
+        .select("checklist")
+        .eq("id", tid)
+        .maybeSingle();
 
       if (error) throw error;
-      setChecklist(data || []);
+      setChecklist(data?.checklist || []);
     } catch (err: any) {
       console.error("Load checklist error:", err);
-      // toast.error("تعذر تحميل قائمة الأغراض");
     }
   }
 
   async function addItem() {
-    if (!newItemName.trim()) return;
+    if (!newItemName.trim() || !trip) return;
     setAddingItem(true);
-    const { error } = await supabase.from("trip_items").insert({
-      trip_id: tripId,
-      item_name: newItemName.trim()
-    });
+
+    const newItem = {
+      id: crypto.randomUUID(),
+      item_name: newItemName.trim(),
+      assigned_to: null,
+      assignee_name: null,
+      created_at: new Date().toISOString()
+    };
+
+    const updatedChecklist = [...checklist, newItem];
+
+    const { error } = await supabase
+      .from("trips")
+      .update({ checklist: updatedChecklist })
+      .eq("id", tripId);
 
     if (error) {
       console.error("Add item error:", error);
       toast.error("تعذر إضافة الغرض: " + error.message);
     } else {
       setNewItemName("");
+      setChecklist(updatedChecklist);
       toast.success("تمت إضافة الغرض للقائمة");
-      loadChecklist(tripId);
     }
     setAddingItem(false);
   }
 
   async function deleteItem(id: string) {
     if (!confirm("حذف الغرض؟")) return;
-    const { error } = await supabase.from("trip_items").delete().eq("id", id);
-    if (!error) loadChecklist(tripId);
+    const updatedChecklist = checklist.filter(item => item.id !== id);
+    const { error } = await supabase
+      .from("trips")
+      .update({ checklist: updatedChecklist })
+      .eq("id", tripId);
+
+    if (!error) setChecklist(updatedChecklist);
   }
 
   async function toggleClaim(item: any) {
-    if (!userId) return;
-    const assignedTo = item.assigned_to === userId ? null : userId;
+    if (!userId || !trip) return;
+
+    const isMine = item.assigned_to === userId;
+    const updatedChecklist = checklist.map(it => {
+      if (it.id === item.id) {
+        return {
+          ...it,
+          assigned_to: isMine ? null : userId,
+          assignee_name: isMine ? null : profile.name
+        };
+      }
+      return it;
+    });
+
     const { error } = await supabase
-      .from("trip_items")
-      .update({ assigned_to: assignedTo })
-      .eq("id", item.id);
-    if (!error) loadChecklist(tripId);
+      .from("trips")
+      .update({ checklist: updatedChecklist })
+      .eq("id", tripId);
+
+    if (!error) {
+      setChecklist(updatedChecklist);
+      toast.success(isMine ? "تم إلغاء التطوع" : "شكراً لتطوعك بإحضار هذا الغرض");
+    }
   }
 
   useEffect(() => {
