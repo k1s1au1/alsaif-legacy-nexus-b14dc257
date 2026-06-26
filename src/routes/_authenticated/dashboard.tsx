@@ -297,7 +297,6 @@ function Dashboard() {
 
         <QuickActionsBanner />
 
-        {/* PREVIEW: Integrated Hub Idea #1 */}
         <IntegratedHub
           upcomingMeeting={upcomingMeetings[0]}
           upcomingTrip={upcomingTrips[0]}
@@ -379,93 +378,6 @@ function Dashboard() {
               </section>
             );
           })()}
-
-        <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
-          {upcomingTrips.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-[#8E7745] font-black uppercase tracking-widest text-xs px-6"><Plane className="size-4" /> الترفيه القادم</div>
-              <Carousel plugins={[tripsPlugin.current]} className="w-full" orientation="vertical" onMouseEnter={tripsPlugin.current.stop} onMouseLeave={tripsPlugin.current.reset} opts={{ loop: true }}>
-                <CarouselContent className="h-[350px] md:h-[450px]">
-                  {upcomingTrips.map((trip) => {
-                    const daysLeft = trip.start_date ? Math.ceil((new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
-                    return (
-                      <CarouselItem key={trip.id} className="h-full">
-                        <div className="flex items-center gap-0 h-full w-full group/container">
-                          <article className="flex-1 relative overflow-hidden rounded-[32px] md:rounded-[48px] rounded-l-none md:rounded-l-none shadow-2xl border-2 border-gold-primary/20 border-l-0 text-white p-6 md:p-12 flex flex-col items-center justify-between h-full group">
-                            <div className="absolute inset-0 z-0">
-                              <TripImage path={trip.image_url} alt={trip.title} className="size-full object-cover object-center transition-transform duration-1000 group-hover:scale-110" />
-                              <div className="absolute inset-0 bg-gradient-to-t from-[#1a0f0a] via-[#1a0f0a]/70 to-transparent" />
-                              <div className="absolute inset-0 bg-black/30" />
-                            </div>
-                            <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
-                              <div className="size-24 md:size-40 logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
-                            </div>
-                            <div className="relative z-10 w-full flex justify-between items-start">
-                              <div className="px-4 py-1.5 md:px-6 md:py-2.5 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md text-gold-primary text-[9px] md:text-[11px] font-black uppercase tracking-[0.2em]">رحلة مرتقبة</div>
-                              <div className="size-11 md:size-16 rounded-2xl bg-black/40 border border-white/10 backdrop-blur-md flex items-center justify-center text-gold-primary animate-pulse"><Plane className="size-5 md:size-8" /></div>
-                            </div>
-                            <div className="relative z-10 space-y-3 md:space-y-5 text-center">
-                              <h3 className="text-2xl md:text-6xl font-black bg-gradient-to-b from-white to-white/70 bg-clip-text text-transparent leading-tight drop-shadow-2xl px-4">{trip.title}</h3>
-                              <div className="flex items-center justify-center gap-3 md:gap-5 text-xs md:text-base font-medium text-gold-primary"><span className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-4 py-1.5 md:px-6 md:py-2 rounded-full border border-white/5"><MapPin className="size-3.5 md:size-4" /> {trip.location || "وجهة عائلية"}</span></div>
-                            </div>
-                            <div className="relative z-10 w-full space-y-6 md:space-y-10 flex flex-col items-center">
-                              <div className="flex items-center gap-6 md:gap-10">
-                                <div className="text-center"><p className="text-[9px] md:text-[11px] uppercase tracking-widest opacity-60 mb-1">التاريخ</p><p className="text-lg md:text-2xl font-black">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { day: "numeric", month: "short" }) : "—"}</p></div>
-                                <div className="h-8 md:h-12 w-px bg-white/20" /><div className="text-center"><p className="text-[9px] md:text-[11px] uppercase tracking-widest opacity-60 mb-1">اليوم</p><p className="text-lg md:text-2xl font-black">{trip.start_date ? new Date(trip.start_date).toLocaleDateString("ar-SA", { weekday: "long" }) : "—"}</p></div>
-                              </div>
-                              <Link to="/trips" className="group/btn relative px-8 py-3.5 md:px-12 md:py-5 overflow-hidden rounded-full font-black text-xs md:text-lg text-black transition-all hover:scale-105 active:scale-95 shadow-xl"><div className="absolute inset-0 bg-gold-primary" /><span className="relative flex items-center gap-3">تفاصيل الرحلة <Compass className="size-4 md:size-5" /></span></Link>
-                            </div>
-                          </article>
-                          <div className="flex flex-col items-center justify-center w-20 md:w-36 h-full rounded-[32px] md:rounded-[48px] rounded-r-none md:rounded-r-none bg-gradient-to-b from-[#2C1810] to-[#1a0f0a] border-2 border-gold-primary/30 shadow-2xl p-4 md:p-8 text-center space-y-2 md:space-y-4 shrink-0 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gold-primary/5 animate-pulse" /><Timer className="size-5 md:size-8 text-gold-primary relative z-10" />
-                            <div className="space-y-0 relative z-10"><span className="text-3xl md:text-6xl font-black text-gold-primary block tracking-tighter">{daysLeft > 0 ? daysLeft : 0}</span><span className="text-[7px] md:text-[11px] font-black text-gold-primary/50 uppercase tracking-[0.2em]">أيام متبقية</span></div>
-                            <div className="w-8 md:w-16 h-0.5 md:h-1 bg-gold-primary/20 rounded-full relative z-10" /><p className="text-[7px] md:text-[11px] font-bold text-white/40 leading-relaxed relative z-10 line-clamp-2">تجهّز للمغامرة</p>
-                          </div>
-                        </div>
-                      </CarouselItem>
-                    );
-                  })}
-                </CarouselContent>
-              </Carousel>
-            </div>
-          )}
-
-          {upcomingMeetings.length > 0 && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 text-primary font-black uppercase tracking-widest text-xs px-6"><CalendarDays className="size-4" /> الاجتماعات المرتقبة</div>
-              <Carousel plugins={[meetingsPlugin.current]} className="w-full" onMouseEnter={meetingsPlugin.current.stop} onMouseLeave={meetingsPlugin.current.reset} opts={{ direction: "rtl", loop: true }}>
-                <CarouselContent>
-                  {upcomingMeetings.map((meeting) => {
-                    const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                    return (
-                      <CarouselItem key={meeting.id}>
-                        <div className="flex items-center gap-0 h-full w-full group/container">
-                          <article className="flex-1 relative overflow-hidden rounded-[32px] md:rounded-[60px] rounded-l-none md:rounded-l-none shadow-2xl border-4 border-white/5 border-l-0 bg-gradient-to-br from-primary via-[#1a2b3c] to-black text-white p-6 md:p-16 flex flex-col justify-center h-full group">
-                            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
-                              <div className="size-28 md:size-64 logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
-                            </div>
-                            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-                            <div className="space-y-4 md:space-y-8 relative z-10 w-full">
-                              <div className="flex items-center gap-3"><div className="h-0.5 w-6 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" /><span className="text-[9px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">حدث عائلي قريب</span></div>
-                              <h3 className="text-2xl md:text-7xl font-black tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h3>
-                              <div className="flex items-center gap-3 md:gap-5 text-white/60 font-bold text-xs md:text-lg"><Clock className="size-4 md:size-6 text-gold-primary" /><span>{new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: "long", day: "numeric", month: "long" })}</span></div>
-                              <Link to="/meetings" className="btn-gold px-8 py-3.5 md:px-14 md:py-6 rounded-full font-black inline-flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all text-xs md:text-xl w-full md:w-fit">تأكيد الحضور <ChevronLeft className="size-4 md:size-6" /></Link>
-                            </div>
-                          </article>
-                          <div className="flex flex-col items-center justify-center w-20 md:w-48 h-full rounded-[32px] md:rounded-[60px] rounded-r-none md:rounded-r-none bg-gradient-to-b from-[#1a2b3c] to-black border-4 border-white/5 border-r-0 shadow-2xl p-4 md:p-12 text-center space-y-2 md:space-y-4 shrink-0 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gold-primary/5 animate-pulse" /><Timer className="size-5 md:size-12 text-gold-primary relative z-10" />
-                            <div className="space-y-0 relative z-10"><p className="text-3xl md:text-8xl font-black tracking-tighter text-white block">{daysLeft > 0 ? daysLeft : 0}</p><p className="text-[7px] md:text-xs font-black uppercase tracking-widest text-white/40">أيام متبقية</p></div>
-                            <div className="w-8 md:w-16 h-0.5 md:h-1 bg-gold-primary/20 rounded-full relative z-10" />
-                          </div>
-                        </div>
-                      </CarouselItem>
-                    );
-                  })}
-                </CarouselContent>
-              </Carousel>
-            </div>
-          )}
-        </section>
 
         <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
