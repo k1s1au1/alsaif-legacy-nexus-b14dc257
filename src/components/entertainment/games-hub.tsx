@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 
+import { TRIVIA_QUESTIONS } from "@/data/trivia-questions";
+
 export function GamesHub() {
   const [activeGame, setActiveGame] = useState<"baloot" | "wheel" | "challenge30" | "auction" | "judge" | "trivia">("baloot");
 
@@ -389,26 +391,44 @@ function ScenarioJudge() {
   );
 }
 
-// 6. General Trivia
-const TRIVIA_QUESTIONS = [
-  { q: "ما هي عاصمة اليابان؟", options: ["طوكيو", "سيول", "بكين", "أوساكا"], correct: 0 },
-  { q: "أين تقع الأهرامات؟", options: ["الأردن", "مصر", "المغرب", "العراق"], correct: 1 },
-  { q: "ما هو أسرع حيوان بري؟", options: ["الأسد", "النمر", "الفهد", "الحصان"], correct: 2 },
-  { q: "كم عدد قارات العالم؟", options: ["5", "6", "7", "8"], correct: 2 },
-  { q: "ما هو أكبر محيط في العالم؟", options: ["الأطلسي", "الهندي", "الهادي", "المتجمد"], correct: 2 }
-];
-
+// 6. General Trivia (Team Mode Supported)
 function GeneralTrivia() {
+  const [mode, setMode] = useState<"setup" | "playing" | "results">("setup");
+  const [isTeamMode, setIsTeamMode] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
-  const [score, setScore] = useState(0);
+  const [score, setScore] = useState(0); // For single player
+  const [teamScores, setTeamScores] = useState({ a: 0, b: 0 });
+  const [activeTeam, setActiveTeam] = useState<"a" | "b">("a");
+  const [gameQuestions, setGameQuestions] = useState<any[]>([]);
+
+  const startNewGame = (teamMode: boolean) => {
+    // Shuffle and pick 15 random questions for a session
+    const shuffled = [...TRIVIA_QUESTIONS].sort(() => 0.5 - Math.random());
+    setGameQuestions(shuffled.slice(0, 15));
+    setIsTeamMode(teamMode);
+    setCurrentIdx(0);
+    setScore(0);
+    setTeamScores({ a: 0, b: 0 });
+    setActiveTeam("a");
+    setSelected(null);
+    setShowResult(false);
+    setMode("playing");
+  };
 
   const handleAnswer = (idx: number) => {
     if (selected !== null) return;
     setSelected(idx);
-    if (idx === TRIVIA_QUESTIONS[currentIdx].correct) {
-      setScore(s => s + 1);
+
+    const isCorrect = idx === gameQuestions[currentIdx].correct;
+
+    if (isCorrect) {
+      if (isTeamMode) {
+        setTeamScores(s => ({ ...s, [activeTeam]: s[activeTeam] + 1 }));
+      } else {
+        setScore(s => s + 1);
+      }
       toast.success("إجابة صحيحة!");
     } else {
       toast.error("للأسف إجابة خاطئة");
@@ -417,42 +437,95 @@ function GeneralTrivia() {
   };
 
   const nextQuestion = () => {
-    if (currentIdx < TRIVIA_QUESTIONS.length - 1) {
+    if (currentIdx < gameQuestions.length - 1) {
       setCurrentIdx(p => p + 1);
       setSelected(null);
       setShowResult(false);
+      if (isTeamMode) setActiveTeam(activeTeam === "a" ? "b" : "a");
     } else {
-      toast.success(`انتهى بنك الأسئلة! مجموع نقاطك: ${score}`);
-      setCurrentIdx(0);
-      setSelected(null);
-      setShowResult(false);
-      setScore(0);
+      setMode("results");
     }
   };
 
-  const q = TRIVIA_QUESTIONS[currentIdx];
+  if (mode === "setup") {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto p-12 card-surface rounded-[48px] text-center space-y-10">
+         <div className="size-24 rounded-[32px] bg-primary/10 flex items-center justify-center mx-auto text-primary">
+            <HelpCircle size={48} />
+         </div>
+         <div className="space-y-4">
+            <h3 className="text-3xl font-black text-primary">بنك المعلومات (200 سؤال)</h3>
+            <p className="text-sm font-bold text-muted-foreground">تحدى معلوماتك العامة أو نافس فريقاً آخر في 15 سؤالاً عشوائياً.</p>
+         </div>
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <button type="button" onClick={() => startNewGame(false)} className="py-6 rounded-3xl bg-muted/50 font-black text-primary hover:bg-primary hover:text-white transition-all">لعب فردي</button>
+            <button type="button" onClick={() => startNewGame(true)} className="btn-gold py-6 rounded-3xl font-black text-xl shadow-2xl">لعب جماعي (فرق)</button>
+         </div>
+      </motion.div>
+    );
+  }
+
+  if (mode === "results") {
+    return (
+      <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="max-w-2xl mx-auto p-12 card-surface rounded-[48px] text-center space-y-8">
+         <Trophy size={80} className="mx-auto text-gold-primary animate-bounce" />
+         <h3 className="text-4xl font-black text-primary">انتهت المسابقة!</h3>
+
+         {isTeamMode ? (
+           <div className="grid grid-cols-2 gap-8 py-8">
+              <div className={cn("p-6 rounded-3xl", teamScores.a >= teamScores.b ? "bg-emerald-500/10 border-2 border-emerald-500" : "bg-muted/20")}>
+                 <p className="font-black text-primary">فريق أ</p>
+                 <span className="text-5xl font-black text-primary">{teamScores.a}</span>
+              </div>
+              <div className={cn("p-6 rounded-3xl", teamScores.b >= teamScores.a ? "bg-emerald-500/10 border-2 border-emerald-500" : "bg-muted/20")}>
+                 <p className="font-black text-primary">فريق ب</p>
+                 <span className="text-5xl font-black text-primary">{teamScores.b}</span>
+              </div>
+           </div>
+         ) : (
+           <div className="py-8">
+              <p className="text-lg font-bold text-muted-foreground">مجموع نقاطك</p>
+              <span className="text-8xl font-black text-primary">{score}</span>
+              <p className="text-sm font-black text-primary/40 mt-2">من أصل 15 سؤال</p>
+           </div>
+         )}
+
+         <button type="button" onClick={() => setMode("setup")} className="btn-gold w-full py-6 rounded-3xl font-black text-xl">العودة للرئيسية</button>
+      </motion.div>
+    );
+  }
+
+  const q = gameQuestions[currentIdx];
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-2xl mx-auto space-y-8 px-4 text-center">
-       <div className="card-surface p-12 md:p-20 rounded-[48px] space-y-10 relative overflow-hidden">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-3xl mx-auto space-y-8 px-4 text-center">
+       {isTeamMode && (
+         <div className="flex items-center justify-center gap-4">
+            <div className={cn("px-8 py-3 rounded-full font-black transition-all", activeTeam === 'a' ? "bg-blue-500 text-white scale-110 shadow-lg" : "bg-muted/40 opacity-40")}>فريق أ ({teamScores.a})</div>
+            <div className="text-xl font-black text-primary/20">VS</div>
+            <div className={cn("px-8 py-3 rounded-full font-black transition-all", activeTeam === 'b' ? "bg-rose-500 text-white scale-110 shadow-lg" : "bg-muted/40 opacity-40")}>فريق ب ({teamScores.b})</div>
+         </div>
+       )}
+
+       <div className="card-surface p-12 md:p-16 rounded-[48px] space-y-10 relative overflow-hidden">
           <div className="flex justify-between items-center px-4">
-             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">سؤال {currentIdx + 1} من {TRIVIA_QUESTIONS.length}</span>
-             <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">النقاط: {score}</span>
+             <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">سؤال {currentIdx + 1} من {gameQuestions.length}</span>
+             {!isTeamMode && <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">النقاط: {score}</span>}
           </div>
 
-          <h2 className="text-3xl md:text-4xl font-black text-primary leading-tight">{q.q}</h2>
+          <h2 className="text-3xl md:text-5xl font-black text-primary leading-tight tracking-tight">{q.q}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-             {q.options.map((opt, i) => (
+             {q.options.map((opt: string, i: number) => (
                <button
                  key={i}
                  type="button"
                  onClick={() => handleAnswer(i)}
                  className={cn(
-                   "py-5 px-8 rounded-[24px] font-black text-sm transition-all border-2",
+                   "py-6 px-8 rounded-[28px] font-black text-lg transition-all border-2",
                    selected === i
-                     ? (i === q.correct ? "bg-emerald-500 border-emerald-600 text-white" : "bg-rose-500 border-rose-600 text-white")
-                     : (showResult && i === q.correct ? "bg-emerald-500 border-emerald-600 text-white" : "bg-muted/40 border-transparent hover:border-primary/20")
+                     ? (i === q.correct ? "bg-emerald-500 border-emerald-600 text-white shadow-xl" : "bg-rose-500 border-rose-600 text-white shadow-xl")
+                     : (showResult && i === q.correct ? "bg-emerald-500 border-emerald-600 text-white shadow-xl" : "bg-card border-border/60 text-primary hover:border-primary hover:scale-[1.02]")
                  )}
                >
                   {opt}
@@ -461,7 +534,10 @@ function GeneralTrivia() {
           </div>
 
           {showResult && (
-            <button type="button" onClick={nextQuestion} className="btn-gold py-5 w-full rounded-3xl font-black text-xl shadow-2xl flex items-center justify-center gap-3">السؤال التالي <FastForward size={24} /></button>
+            <button type="button" onClick={nextQuestion} className="btn-gold py-6 w-full rounded-3xl font-black text-xl shadow-2xl flex items-center justify-center gap-3 animate-fade-up">
+              {currentIdx === gameQuestions.length - 1 ? "مشاهدة النتائج النهائية" : "السؤال التالي"}
+              <FastForward size={24} />
+            </button>
           )}
        </div>
     </motion.div>
