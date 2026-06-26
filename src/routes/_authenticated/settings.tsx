@@ -51,7 +51,6 @@ export const Route = createFileRoute("/_authenticated/settings")({
 });
 
 function SettingsPage() {
-  console.log("SettingsPage rendering, cn is:", typeof cn);
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system" | null>(null);
   const [font, setFont] = useState("Tajawal");
   const [themeColor, setThemeColor] = useState("emerald");
@@ -264,7 +263,7 @@ function SettingsPage() {
                   <p className="text-xs font-bold text-muted-foreground opacity-60">متاح لمسؤولي النظام ورئيس المجلس فقط.</p>
                 </div>
               </div>
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-50">شعار المنصة</p>
                   <BackgroundUploader inline settingKey="site_logo" label="تحديث الشعار الرسمي" />
@@ -272,10 +271,6 @@ function SettingsPage() {
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-50">صفحة الدخول</p>
                   <BackgroundUploader inline settingKey="auth_bg" label="خلفية تسجيل الدخول" />
-                </div>
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">لوحة التحكم</p>
-                  <BackgroundUploader inline settingKey="dashboard_bg" label="خلفية اللوحة الرئيسية" />
                 </div>
               </div>
             </div>

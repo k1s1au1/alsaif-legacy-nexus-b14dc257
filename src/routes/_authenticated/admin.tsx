@@ -93,6 +93,7 @@ function AdminPage() {
   const [tab, setTab] = useState<"requests" | "members" | "announcements">("requests");
   const [reqCounts, setReqCounts] = useState<Record<string, number>>({ pending: 0, approved: 0, rejected: 0 });
   const [memberSearch, setMemberSearch] = useState("");
+  const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const dynamicLogo = useSiteLogo();
 
   // Announcement State
@@ -185,12 +186,24 @@ function AdminPage() {
   };
 
   const assignRole = async (uid: string, role: string) => {
+    setUpdatingRole(uid);
     try {
       await assignRoleFn({ data: { userId: uid, role } });
-      toast.success("تمت تحديث الصلاحية بنجاح");
-      loadData();
+      toast.success("تم تحديث الصلاحية بنجاح");
+
+      // Update local state immediately for better UX
+      setMembers(prev => prev.map(m => {
+        if (m.id === uid) {
+          return { ...m, user_roles: [{ role }] };
+        }
+        return m;
+      }));
+
+      await loadData();
     } catch (err: any) {
       toast.error("فشل تعيين الصلاحية", { description: err.message });
+    } finally {
+      setUpdatingRole(null);
     }
   };
 

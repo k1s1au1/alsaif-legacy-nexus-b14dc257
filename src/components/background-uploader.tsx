@@ -41,7 +41,7 @@ export function BackgroundUploader({
           .select("role")
           .eq("user_id", user.id);
         const r = (roles ?? []).map((x) => x.role);
-        setCanEdit(r.includes("admin") || r.includes("manager"));
+        setCanEdit(r.includes("admin") || r.includes("manager") || r.includes("chairman"));
       } catch (err) {
         console.error("Error checking permissions:", err);
       }
