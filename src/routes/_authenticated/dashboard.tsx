@@ -67,6 +67,8 @@ function Dashboard() {
   const [tripsCount, setTripsCount] = useState(0);
   const [membersCount, setMembersCount] = useState(0);
   const [tasksCount, setTasksCount] = useState(0);
+  const [myTasksCount, setMyTasksCount] = useState(0);
+  const [newNewsCount, setNewNewsCount] = useState(0);
   const [showBugReport, setShowBugReport] = useState(false);
   const [bugBody, setBugBody] = useState("");
   const [bugImage, setBugImage] = useState<File | null>(null);
@@ -99,6 +101,10 @@ function Dashboard() {
       supabase.from("trips").select("*", { count: "exact", head: true }).then((r) => setTripsCount(r.count || 0));
       supabase.from("profiles").select("*", { count: "exact", head: true }).then((r) => setMembersCount(r.count || 0));
       supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then((r) => setTasksCount(r.count || 0));
+      supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done").then((r) => setMyTasksCount(r.count || 0));
+
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday).then((r) => setNewNewsCount(r.count || 0));
 
       const now = new Date().toISOString();
       supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(2).then((r) => setUpcomingMeetings(r.data || []));
@@ -162,6 +168,23 @@ function Dashboard() {
   const tripsPlugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
   const meetingsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
 
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return "صباح الخير";
+    if (hr >= 12 && hr < 17) return "مساء النور";
+    if (hr >= 17 && hr < 21) return "مساء الخير";
+    return "طاب مساؤك";
+  };
+
+  const getStatusSummary = () => {
+    const parts = [];
+    if (myTasksCount > 0) parts.push(`لديك ${myTasksCount} ${myTasksCount === 1 ? 'مهمة' : 'مهام'} بانتظارك`);
+    if (newNewsCount > 0) parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'خبر جديد' : 'أخبار جديدة'}`);
+
+    if (parts.length === 0) return "نصل العائلة، نحفظ الإرث، ونبني المستقبل.";
+    return parts.join(" و ") + ".";
+  };
+
   const sendBugReport = async () => {
     if (!bugBody.trim()) return;
     setBugSending(true);
@@ -215,8 +238,9 @@ function Dashboard() {
               </div>
               <div className="flex-1 text-center md:text-right space-y-5 order-2">
                 <div className="space-y-2">
+                  <p className="text-gold-primary font-black uppercase tracking-[0.2em] text-[10px] md:text-xs opacity-80">{getGreeting()}،</p>
                   <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight text-foreground">{profile.name}</h2>
-                  <p className="text-sm md:text-base text-muted-foreground font-bold opacity-70">نصل العائلة، نحفظ الإرث، ونبني المستقبل.</p>
+                  <p className="text-sm md:text-base text-muted-foreground font-bold opacity-70">{getStatusSummary()}</p>
                 </div>
                 <div className="inline-flex items-center gap-3 md:gap-4 rounded-full border border-[var(--hero-pill-border)] bg-[var(--hero-pill)] backdrop-blur-md px-4 md:px-6 py-2.5 md:py-3 shadow-sm mx-auto md:mx-0">
                   <div className="flex items-center gap-2 text-[#8E7745] dark:text-gold-primary">
