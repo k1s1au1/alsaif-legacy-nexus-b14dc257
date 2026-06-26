@@ -16,7 +16,11 @@ import {
   Shield,
   ChevronLeft,
   Loader2,
-  X
+  X,
+  ListChecks,
+  Plus,
+  Trash2,
+  UserCheck
 } from "lucide-react";
 import { TripImage } from "@/components/trip-image";
 import { UserAvatar } from "@/components/user-avatar";
@@ -76,6 +80,9 @@ function TripDetail() {
   const [attendees, setAttendees] = useState<
     { user_id: string; name: string; initial: string; avatarPath: string | null }[]
   >([]);
+  const [checklist, setChecklist] = useState<any[]>([]);
+  const [newItemName, setNewItemName] = useState("");
+  const [addingItem, setAddingItem] = useState(false);
   const isPrivileged = canManage("trips");
   const [profile, setProfile] = useState<{
     name: string;
@@ -134,6 +141,45 @@ function TripDetail() {
     );
   }
 
+  async function loadChecklist(tid: string) {
+    const { data } = await supabase
+      .from("trip_checklists")
+      .select("*, assignee:profiles(arabic_name, full_name, avatar_url)")
+      .eq("trip_id", tid)
+      .order("created_at", { ascending: true });
+    setChecklist(data || []);
+  }
+
+  async function addItem() {
+    if (!newItemName.trim()) return;
+    setAddingItem(true);
+    const { error } = await supabase.from("trip_checklists").insert({
+      trip_id: tripId,
+      item_name: newItemName.trim()
+    });
+    if (!error) {
+      setNewItemName("");
+      loadChecklist(tripId);
+    }
+    setAddingItem(false);
+  }
+
+  async function deleteItem(id: string) {
+    if (!confirm("حذف الغرض؟")) return;
+    const { error } = await supabase.from("trip_checklists").delete().eq("id", id);
+    if (!error) loadChecklist(tripId);
+  }
+
+  async function toggleClaim(item: any) {
+    if (!userId) return;
+    const assignedTo = item.assigned_to === userId ? null : userId;
+    const { error } = await supabase
+      .from("trip_checklists")
+      .update({ assigned_to: assignedTo })
+      .eq("id", item.id);
+    if (!error) loadChecklist(tripId);
+  }
+
   useEffect(() => {
     (async () => {
       if (userId) {
@@ -185,6 +231,7 @@ function TripDetail() {
         .maybeSingle();
       setTrip((t as Trip | null) ?? null);
       await loadAttendees(tripId);
+      await loadChecklist(tripId);
       setLoading(false);
     })();
 
@@ -349,6 +396,88 @@ function TripDetail() {
                 <p className="text-lg md:text-xl font-bold text-foreground/80 leading-relaxed whitespace-pre-line relative z-10">
                   {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
                 </p>
+              </div>
+
+              {/* Shared Checklist Section */}
+              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl">
+                 <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
+                       <ListChecks size={18} /> أغراض الرحلة (من سيحضر ماذا؟)
+                    </div>
+                 </div>
+
+                 {isPrivileged && (
+                   <div className="flex gap-3">
+                      <input
+                        value={newItemName}
+                        onChange={(e) => setNewItemName(e.target.value)}
+                        placeholder="أضف غرضاً مطلوباً (مثلاً: القهوة، ذبيحة...)"
+                        className="flex-1 bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                      />
+                      <button
+                        onClick={addItem}
+                        disabled={addingItem}
+                        className="btn-gold size-14 rounded-2xl flex items-center justify-center shrink-0 active:scale-95 transition-all"
+                      >
+                         {addingItem ? <Loader2 className="size-5 animate-spin" /> : <Plus size={24} strokeWidth={3} />}
+                      </button>
+                   </div>
+                 )}
+
+                 {checklist.length === 0 ? (
+                   <div className="py-12 flex flex-col items-center justify-center text-center gap-4 opacity-30 border-2 border-dashed border-border rounded-3xl">
+                      <ListChecks size={48} strokeWidth={1} />
+                      <p className="font-bold text-lg text-muted-foreground">لا توجد أغراض مطلوبة حالياً.</p>
+                   </div>
+                 ) : (
+                   <div className="grid grid-cols-1 gap-3">
+                      {checklist.map((item) => {
+                        const isMine = item.assigned_to === userId;
+                        const isTaken = !!item.assigned_to;
+                        const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || "عضو";
+
+                        return (
+                          <div key={item.id} className={cn(
+                            "group flex items-center justify-between p-4 md:p-6 rounded-3xl border transition-all duration-300",
+                            isTaken ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/40"
+                          )}>
+                             <div className="flex items-center gap-4 flex-1 min-w-0">
+                                <div className={cn(
+                                  "size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                                  isTaken ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                                )}>
+                                   {isTaken ? <UserCheck size={20} /> : <Tent size={20} />}
+                                </div>
+                                <div className="min-w-0">
+                                   <p className={cn("text-base md:text-lg font-black truncate", isTaken && "text-emerald-600")}>{item.item_name}</p>
+                                   {isTaken && (
+                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">سيحضره: {assigneeName} {isMine && "(أنت)"}</p>
+                                   )}
+                                </div>
+                             </div>
+
+                             <div className="flex items-center gap-2">
+                                {isPrivileged && (
+                                  <button onClick={() => deleteItem(item.id)} className="size-10 rounded-xl hover:bg-rose-500/10 text-rose-500 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"><Trash2 size={16} /></button>
+                                )}
+                                <button
+                                  onClick={() => toggleClaim(item)}
+                                  className={cn(
+                                    "px-6 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm active:scale-95",
+                                    isMine ? "bg-rose-500 text-white hover:bg-rose-600" :
+                                    isTaken ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" :
+                                    "bg-emerald-500 text-white hover:bg-emerald-600"
+                                  )}
+                                  disabled={isTaken && !isMine}
+                                >
+                                   {isMine ? "إلغاء التطوع" : isTaken ? "تم الحجز" : "سأحضره أنا"}
+                                </button>
+                             </div>
+                          </div>
+                        );
+                      })}
+                   </div>
+                 )}
               </div>
 
               {/* Attendees Section */}
