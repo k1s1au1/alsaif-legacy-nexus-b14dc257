@@ -39,7 +39,8 @@ export const Route = createFileRoute("/_authenticated/majlis")({
   component: MajlisPage,
 });
 
-type PostKind = "announcement" | "sharing" | "event" | "complaint" | "discussion";
+type PostKind = "announcement" | "discussion" | "complaint";
+type UiKind = "sharing" | "event" | "complaint" | "discussion";
 
 type MajlisPost = {
   id: string;
@@ -49,6 +50,8 @@ type MajlisPost = {
   kind: PostKind;
   pinned: boolean;
   created_at: string;
+  uiKind?: UiKind;
+  cleanBody?: string;
   author?: {
     arabic_name: string | null;
     full_name: string | null;
@@ -56,11 +59,11 @@ type MajlisPost = {
   };
 };
 
-const KINDS: { key: PostKind; label: string; color: string; icon: any }[] = [
-  { key: "sharing", label: "مشاركات", color: "emerald", icon: MessageSquare },
-  { key: "event", label: "مناسبات", color: "amber", icon: Clock },
-  { key: "complaint", label: "طلبات", color: "rose", icon: ShieldAlert },
-  { key: "discussion", label: "نقاشات", color: "blue", icon: Newspaper },
+const KINDS: { key: UiKind; dbKind: PostKind; label: string; color: string; icon: any }[] = [
+  { key: "sharing", dbKind: "discussion", label: "مشاركات", color: "emerald", icon: MessageSquare },
+  { key: "event", dbKind: "discussion", label: "مناسبات", color: "amber", icon: Clock },
+  { key: "complaint", dbKind: "complaint", label: "طلبات", color: "rose", icon: ShieldAlert },
+  { key: "discussion", dbKind: "discussion", label: "نقاشات", color: "blue", icon: Newspaper },
 ];
 
 function MajlisPage() {
@@ -70,7 +73,7 @@ function MajlisPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isChairman, setIsChairman] = useState(false);
-  const [activeTab, setActiveTab] = useState<PostKind | "all">("all");
+  const [activeTab, setActiveTab] = useState<UiKind | "all">("all");
   const [showAdd, setShowAdd] = useState(false);
   const dynamicLogo = useSiteLogo();
 
@@ -101,6 +104,7 @@ function MajlisPage() {
       const { data: rawPosts } = await supabase
         .from("majlis_posts")
         .select("*, author:profiles(arabic_name, full_name, avatar_url)")
+        .neq("kind", "announcement") // Exclude admin advertisements
         .order("pinned", { ascending: false })
         .order("created_at", { ascending: false });
 
@@ -108,7 +112,18 @@ function MajlisPage() {
         .from("majlis_comments")
         .select("*");
 
-      setPosts((rawPosts || []) as any);
+      if (rawPosts) {
+        const processed = rawPosts.map((p: any) => {
+          const kindMatch = p.body.match(/^---kind:(.*)\n/);
+          const uiKind = kindMatch ? kindMatch[1].trim() : (p.kind === "complaint" ? "complaint" : "sharing");
+          return {
+            ...p,
+            uiKind,
+            cleanBody: kindMatch ? p.body.replace(/^---kind:.*\n/, "") : p.body
+          };
+        });
+        setPosts(processed as any);
+      }
       setComments(coms || []);
     } catch (err) {
       console.error("Load Majlis error:", err);
@@ -123,7 +138,7 @@ function MajlisPage() {
     return posts.filter(p => {
       if (p.kind === "complaint" && !isChairman && p.author_id !== meId) return false;
       if (activeTab === "all") return true;
-      return p.kind === activeTab;
+      return p.uiKind === activeTab;
     });
   }, [posts, activeTab, isChairman, meId]);
 
@@ -197,7 +212,7 @@ function Tab({ active, onClick, label, icon, color }: any) {
 
 function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
   const authorName = post.author?.arabic_name || post.author?.full_name || "عضو";
-  const kind = KINDS.find(k => k.key === post.kind) || KINDS[0];
+  const kind = KINDS.find(k => k.key === post.uiKind) || KINDS[0];
 
   const deletePost = async () => {
     if (!confirm("حذف المنشور؟")) return;
@@ -214,14 +229,14 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
   };
 
   const pollData = useMemo(() => {
-    if (!post.body.startsWith("---poll:")) return null;
+    if (!post.cleanBody?.startsWith("---poll:")) return null;
     try {
-      const match = post.body.match(/^---poll:({.*?})---/s);
+      const match = post.cleanBody.match(/^---poll:({.*?})---/s);
       return match ? JSON.parse(match[1]) : null;
     } catch { return null; }
-  }, [post.body]);
+  }, [post.cleanBody]);
 
-  const cleanBody = post.body.replace(/^---poll:.*?---/s, "").trim();
+  const displayBody = (post.cleanBody || "").replace(/^---poll:.*?---/s, "").trim();
 
   // Voting Logic
   const postComments = comments.filter((c: any) => c.post_id === post.id);
@@ -280,7 +295,7 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
              </div>
              <div className="space-y-4">
                 <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
-                <p className="text-base md:text-lg font-bold text-muted-foreground/80 leading-relaxed whitespace-pre-wrap">{cleanBody}</p>
+                <p className="text-base md:text-lg font-bold text-muted-foreground/80 leading-relaxed whitespace-pre-wrap">{displayBody}</p>
              </div>
 
              {pollData && (
@@ -334,7 +349,7 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
 
 function AddPostDialog({ meId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ title: "", body: "", kind: "sharing" as PostKind });
+  const [form, setForm] = useState({ title: "", body: "", kind: "sharing" as UiKind });
   const [isPoll, setIsPoll] = useState(false);
   const [poll, setPoll] = useState({ question: "", options: ["", ""] });
 
@@ -361,17 +376,19 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
        return;
     }
     setSaving(true);
-    let finalBody = form.body;
+    let finalBody = `---kind:${form.kind}\n${form.body}`;
     if (isPoll && poll.question.trim()) {
       const data = { question: poll.question.trim(), options: poll.options.filter(o => o.trim()) };
       finalBody = `---poll:${JSON.stringify(data)}---\n${finalBody}`;
     }
 
+    const dbKind = KINDS.find(k => k.key === form.kind)?.dbKind || "discussion";
+
     try {
       const { error } = await supabase.from("majlis_posts").insert({
         title: form.title,
         body: finalBody,
-        kind: form.kind,
+        kind: dbKind,
         author_id: meId
       });
 
