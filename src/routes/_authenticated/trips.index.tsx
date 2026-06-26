@@ -113,76 +113,34 @@ function TripsPage() {
 
   return (
     <AppShell title="الترفيه" user={profile}>
-      <div className="max-w-7xl mx-auto space-y-12 pb-24" dir="rtl">
+      <div className="max-w-7xl mx-auto space-y-8 pb-24" dir="rtl">
         <QuickActionsBanner />
 
-        {/* Alsaif Trips Header — Banner Style */}
-        <section className="animate-fade-up px-4 md:px-0">
-          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-indigo-900 via-primary to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
-            {/* Left Decorative Logo */}
-            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
-              <div
-                className="size-28 md:size-64 logo-alsaif-banner"
-                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
-              />
-            </div>
-
-            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
-              <div className="space-y-3 md:space-y-5 text-center md:text-right">
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
-                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
-                    استكشاف السعادة
-                  </span>
-                </div>
-                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
-                  ترفيه العائلة
-                </h2>
-                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
-                  جدول الوجهات واللقاءات الترفيهية لأعضاء عائلة السيف لتعزيز الترابط.
-                </p>
-              </div>
-
-              {canManage && (
-                <button
-                  onClick={() => setShowAdd(true)}
-                  className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
-                >
-                  <Plus className="size-5 md:size-7" strokeWidth={3} />
-                  <span>إضافة وجهة</span>
-                </button>
-              )}
-            </div>
-          </div>
-        </section>
-
-        {/* Entertainment Tabs */}
-        <div className="flex items-center justify-center gap-4 px-4 md:px-0">
+        {/* Entertainment Tabs - Moved to Top for better visibility */}
+        <div className="flex items-center justify-center gap-3 px-4 md:px-0">
            <button
              onClick={() => setActiveTab("destinations")}
              className={cn(
-               "flex-1 md:flex-none md:min-w-[200px] py-4 rounded-3xl font-black text-sm flex items-center justify-center gap-3 transition-all border-2",
+               "flex-1 md:flex-none md:min-w-[240px] py-5 rounded-[32px] font-black text-sm md:text-base flex items-center justify-center gap-3 transition-all border-2 shadow-xl",
                activeTab === "destinations"
-                 ? "bg-primary text-white border-primary shadow-xl scale-105"
-                 : "bg-card text-muted-foreground border-transparent hover:bg-muted"
+                 ? "bg-primary text-white border-primary scale-105"
+                 : "bg-card text-muted-foreground border-transparent hover:bg-muted hover:scale-[1.02]"
              )}
            >
-              <Compass size={18} />
+              <Compass size={20} />
               <span>الوجهات والرحلات</span>
            </button>
            <button
              onClick={() => setActiveTab("games")}
              className={cn(
-               "flex-1 md:flex-none md:min-w-[200px] py-4 rounded-3xl font-black text-sm flex items-center justify-center gap-3 transition-all border-2",
+               "flex-1 md:flex-none md:min-w-[240px] py-5 rounded-[32px] font-black text-sm md:text-base flex items-center justify-center gap-3 transition-all border-2 shadow-xl",
                activeTab === "games"
-                 ? "bg-gold-primary text-black border-gold-primary shadow-xl scale-105"
-                 : "bg-card text-muted-foreground border-transparent hover:bg-muted"
+                 ? "bg-gold-primary text-black border-gold-primary scale-105 shadow-gold-primary/20"
+                 : "bg-card text-muted-foreground border-transparent hover:bg-muted hover:scale-[1.02]"
              )}
            >
-              <Target size={18} />
-              <span>ميدان الألعاب</span>
+              <Target size={20} />
+              <span>ميدان الألعاب (جديد)</span>
            </button>
         </div>
 
@@ -190,11 +148,53 @@ function TripsPage() {
           {activeTab === "destinations" ? (
             <motion.div
               key="destinations"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
               className="space-y-12"
             >
+              {/* Alsaif Trips Header — Banner Style */}
+              <section className="animate-fade-up px-4 md:px-0">
+                <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-indigo-900 via-primary to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+                  {/* Left Decorative Logo */}
+                  <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
+                    <div
+                      className="size-28 md:size-64 logo-alsaif-banner"
+                      style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
+                    />
+                  </div>
+
+                  <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+
+                  <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+                    <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                      <div className="flex items-center justify-center md:justify-start gap-3">
+                        <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                        <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                          استكشاف السعادة
+                        </span>
+                      </div>
+                      <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                        ترفيه العائلة
+                      </h2>
+                      <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                        جدول الوجهات واللقاءات الترفيهية لأعضاء عائلة السيف لتعزيز الترابط.
+                      </p>
+                    </div>
+
+                    {canManage && (
+                      <button
+                        onClick={() => setShowAdd(true)}
+                        className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
+                      >
+                        <Plus className="size-5 md:size-7" strokeWidth={3} />
+                        <span>إضافة وجهة</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </section>
+
               {loading ? (
                 <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
                    <div className="size-12 rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
@@ -226,10 +226,33 @@ function TripsPage() {
           ) : (
             <motion.div
               key="games"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-12"
             >
+               {/* Games Header */}
+               <section className="animate-fade-up px-4 md:px-0">
+                  <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-[#064E3B] via-[#0d2620] to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
+                    <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
+                      <div className="size-28 md:size-64 logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any} />
+                    </div>
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
+                      <div className="space-y-3 md:space-y-5 text-center md:text-right">
+                        <div className="flex items-center justify-center md:justify-start gap-3">
+                          <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
+                          <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">ميدان التنافس</span>
+                        </div>
+                        <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl text-gold-primary">ميدان ألعاب السيف</h2>
+                        <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">أدوات ذكية وألعاب حماسية مصممة لتجمعاتكم العائلية الممتعة.</p>
+                      </div>
+                      <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
+                        <Target className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
+                      </div>
+                    </div>
+                  </div>
+               </section>
+
                <GamesHub />
             </motion.div>
           )}
