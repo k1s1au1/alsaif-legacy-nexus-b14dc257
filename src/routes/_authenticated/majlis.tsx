@@ -297,7 +297,7 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
              </div>
              <div className="space-y-4">
                 <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
-                <p className="text-base md:text-lg font-bold text-muted-foreground/80 leading-relaxed whitespace-pre-wrap">{displayBody}</p>
+                <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{displayBody}</p>
              </div>
 
              {pollData && (

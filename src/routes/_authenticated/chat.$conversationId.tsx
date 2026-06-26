@@ -791,7 +791,7 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
           "relative px-4 py-3 rounded-[24px] shadow-sm transition-all duration-300",
           mine
             ? "bg-primary text-white rounded-br-none shadow-primary/10"
-            : "bg-white dark:bg-[#1E2229] border border-border text-foreground rounded-bl-none shadow-black/5"
+            : "bg-white dark:bg-[#1E2229] border border-border text-foreground dark:text-white rounded-bl-none shadow-black/5"
         )}>
            {replyTo && (
               <div className={cn(

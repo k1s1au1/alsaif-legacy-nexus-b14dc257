@@ -81,72 +81,72 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
            {/* Header Section */}
-           <div className="relative h-[220px] md:h-[350px] shrink-0">
+           <div className="relative h-[200px] md:h-[300px] shrink-0">
               {type === 'trip' ? (
                 <TripImage path={data.image_url} alt={data.title} className="size-full object-cover" />
               ) : (
                 <div className="size-full bg-gradient-to-br from-[#064E3B] via-[#051410] to-black flex items-center justify-center">
-                   {type === 'meeting' ? <CalendarDays className="size-24 text-gold-primary opacity-10" /> : <Newspaper className="size-24 text-gold-primary opacity-10" />}
+                   {type === 'meeting' ? <CalendarDays className="size-20 text-gold-primary opacity-10" /> : <Newspaper className="size-20 text-gold-primary opacity-10" />}
                 </div>
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-[#051410] via-[#051410]/20 to-transparent" />
 
               <div className="absolute bottom-6 right-8 left-8 space-y-2">
-                 <div className="flex items-center gap-2 text-gold-primary bg-black/40 backdrop-blur-md w-fit px-4 py-1.5 rounded-full border border-white/10">
-                    {type === 'trip' ? <Plane size={14} /> : type === 'meeting' ? <CalendarDays size={14} /> : <Newspaper size={14} />}
-                    <span className="text-[9px] font-black uppercase tracking-[0.3em]">{type === 'trip' ? 'ترفيه عائلي' : type === 'meeting' ? 'اجتماع مرتقب' : 'أخبار السيف'}</span>
+                 <div className="flex items-center gap-2 text-gold-primary bg-black/40 backdrop-blur-md w-fit px-3 py-1 rounded-full border border-white/10">
+                    {type === 'trip' ? <Plane size={12} /> : type === 'meeting' ? <CalendarDays size={12} /> : <Newspaper size={12} />}
+                    <span className="text-[8px] font-black uppercase tracking-[0.3em]">{type === 'trip' ? 'ترفيه عائلي' : type === 'meeting' ? 'اجتماع مرتقب' : 'أخبار السيف'}</span>
                  </div>
-                 <h2 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tighter drop-shadow-2xl">{data.title}</h2>
+                 <h2 className="text-2xl md:text-4xl font-black text-white leading-tight drop-shadow-2xl">{data.title}</h2>
               </div>
            </div>
 
-           <div className="p-6 md:p-12 space-y-8">
+           <div className="p-5 md:p-10 space-y-6">
               {/* Meta Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                 <div className="flex items-center gap-4 bg-white/5 p-4 md:p-5 rounded-[24px] border border-white/5">
-                    <div className="size-12 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><Clock size={24} /></div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
+                 <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[20px] border border-white/5">
+                    <div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><Clock size={20} /></div>
                     <div>
-                       <p className="text-[9px] font-black uppercase opacity-40 mb-0.5">الموعد والتاريخ</p>
-                       <p className="text-sm md:text-lg font-black text-white">{new Date(data.start_date || data.scheduled_at || data.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
+                       <p className="text-[8px] font-black uppercase opacity-60 mb-0.5">الموعد والتاريخ</p>
+                       <p className="text-sm md:text-base font-black text-white">{new Date(data.start_date || data.scheduled_at || data.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                     </div>
                  </div>
                  {data.location && (
-                   <div className="flex items-center gap-4 bg-white/5 p-4 md:p-5 rounded-[24px] border border-white/5">
-                      <div className="size-12 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><MapPin size={24} /></div>
+                   <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[20px] border border-white/5">
+                      <div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><MapPin size={20} /></div>
                       <div>
-                         <p className="text-[9px] font-black uppercase opacity-40 mb-0.5">الموقع / المكان</p>
-                         <p className="text-sm md:text-lg font-black text-white">{data.location}</p>
+                         <p className="text-[8px] font-black uppercase opacity-60 mb-0.5">الموقع / المكان</p>
+                         <p className="text-sm md:text-base font-black text-white">{data.location}</p>
                       </div>
                    </div>
                  )}
               </div>
 
               {/* Description Section */}
-              <div className="space-y-4">
+              <div className="space-y-3">
                  <div className="flex items-center gap-3">
                     <div className="h-px flex-1 bg-white/10" />
-                    <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-gold-primary">التفاصيل</h4>
+                    <h4 className="text-[8px] font-black uppercase tracking-[0.4em] text-gold-primary">التفاصيل</h4>
                     <div className="h-px flex-1 bg-white/10" />
                  </div>
-                 <p className="text-base md:text-xl font-bold text-white/70 leading-relaxed text-right md:text-justify whitespace-pre-wrap line-clamp-4 md:line-clamp-none">
+                 <p className="text-sm md:text-lg font-bold text-white/90 leading-relaxed text-right md:text-justify whitespace-pre-wrap">
                     {data.description || data.cleanBody || data.body || "لا توجد تفاصيل إضافية."}
                  </p>
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-6 flex flex-col md:flex-row gap-3">
+              <div className="pt-4 flex flex-col md:flex-row gap-3">
                  {type === 'trip' && (
-                    <Link to="/trips" className="btn-gold py-4 px-10 rounded-full font-black text-base text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح صفحة الترفيه</Link>
+                    <Link to="/trips" className="btn-gold py-3.5 px-10 rounded-full font-black text-sm text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح صفحة الترفيه</Link>
                  )}
                  {type === 'meeting' && (
-                    <Link to="/meetings" className="btn-gold py-4 px-10 rounded-full font-black text-base text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>
+                    <Link to="/meetings" className="btn-gold py-3.5 px-10 rounded-full font-black text-sm text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>
                  )}
                  {type === 'news' && (
-                    <Link to="/majlis" className="btn-gold py-4 px-10 rounded-full font-black text-base text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في المجلس</Link>
+                    <Link to="/majlis" className="btn-gold py-3.5 px-10 rounded-full font-black text-sm text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في المجلس</Link>
                  )}
                  <button
                    onClick={onClose}
-                   className="py-4 px-10 rounded-full bg-white/5 text-white font-black text-base hover:bg-white/10 transition-all border border-white/10"
+                   className="py-3.5 px-10 rounded-full bg-white/5 text-white font-black text-sm hover:bg-white/10 transition-all border border-white/10"
                  >
                    إغلاق
                  </button>

@@ -446,7 +446,7 @@ function HeritageCard({ item, index, canDelete, onDelete }: { item: HeritageItem
              )}
              <h3 className="text-2xl font-black text-primary leading-tight tracking-tight">{item.title}</h3>
              <div className={cn(
-               "text-base font-bold text-muted-foreground leading-relaxed whitespace-pre-wrap",
+               "text-base font-bold text-muted-foreground dark:text-white/80 leading-relaxed whitespace-pre-wrap",
                item.kind === 'poem' ? "text-center font-arabic italic bg-muted/20 p-4 rounded-2xl" : ""
              )}>
                 {item.content}

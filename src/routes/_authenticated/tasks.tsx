@@ -312,7 +312,7 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
 
           <div className="space-y-3">
              <h4 className={cn("text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors", isDone && "text-emerald-600")}>{task.title}</h4>
-             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity">{task.description}</p>}
+             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground dark:text-white/70 leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity">{task.description}</p>}
           </div>
 
           <div className="space-y-6">

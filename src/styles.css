@@ -105,19 +105,19 @@
   }
   /* Boost contrast for commonly low-opacity text in dark mode */
   .dark .text-muted-foreground {
-    color: #d8dee9;
+    color: #e2e8f0; /* Brighter slate for better clarity */
   }
   .dark .text-foreground\/60,
   .dark .text-foreground\/70,
   .dark .text-white\/60,
   .dark .text-white\/70 {
-    color: rgba(245, 247, 250, 0.88) !important;
+    color: rgba(255, 255, 255, 0.9) !important;
   }
   .dark .text-foreground\/40,
   .dark .text-foreground\/50,
   .dark .text-white\/40,
   .dark .text-white\/50 {
-    color: rgba(245, 247, 250, 0.75) !important;
+    color: rgba(255, 255, 255, 0.7) !important;
   }
   /* Strengthen text over glass cards / image overlays */
   .dark .glass-text,
