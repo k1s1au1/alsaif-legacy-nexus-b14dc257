@@ -279,7 +279,9 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
        <div className="flex flex-col md:flex-row justify-between items-start gap-8">
           <div className="flex-1 space-y-6 w-full">
              <div className="flex items-center gap-4">
-                <div className="size-14 rounded-[22px] border-2 border-primary/10 overflow-hidden shadow-lg"><UserAvatar path={post.author?.avatar_url} name={authorName} className="size-full" userId={post.author_id} /></div>
+                <div className="size-14 rounded-[22px] border-2 border-primary/10 overflow-hidden shadow-lg">
+                  <UserAvatar path={post.author?.avatar_url} name={authorName} className="size-full" userId={post.author_id} showBadges />
+                </div>
                 <div>
                    <h4 className="text-lg font-black text-primary">{authorName}</h4>
                    <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{new Date(post.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>

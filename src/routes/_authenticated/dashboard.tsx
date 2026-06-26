@@ -21,6 +21,10 @@ import {
   Loader2,
   Calendar,
   Newspaper,
+  Scroll,
+  Lightbulb,
+  Heart,
+  ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -69,6 +73,8 @@ function Dashboard() {
   const [tasksCount, setTasksCount] = useState(0);
   const [myTasksCount, setMyTasksCount] = useState(0);
   const [newNewsCount, setNewNewsCount] = useState(0);
+  const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
+  const [initiatives, setInitiatives] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [bugBody, setBugBody] = useState("");
   const [bugImage, setBugImage] = useState<File | null>(null);
@@ -145,6 +151,34 @@ function Dashboard() {
         }, 0);
         setFundBalance(bal);
       });
+
+      // Load Heritage Snippet
+      supabase
+        .from("majlis_posts")
+        .select("*")
+        .eq("kind", "discussion")
+        .ilike("title", "[إرث]%")
+        .limit(20)
+        .then((r) => {
+          if (r.data && r.data.length > 0) {
+            const random = r.data[Math.floor(Math.random() * r.data.length)];
+            const kindMatch = random.body.match(/^---kind:(.*)\n/);
+            setHeritageSnippet({
+              ...random,
+              title: random.title.replace("[إرث]", "").trim(),
+              cleanBody: random.body.replace(/---kind:.*\n/, "").replace(/---image:.*\n/, "").trim()
+            });
+          }
+        });
+      // Load Initiatives
+      supabase
+        .from("majlis_posts")
+        .select("*, author:profiles(arabic_name, full_name)")
+        .eq("kind", "discussion")
+        .ilike("title", "[مبادرة]%")
+        .order("created_at", { ascending: false })
+        .limit(3)
+        .then((r) => setInitiatives(r.data || []));
     } catch (err) {
       console.error("Dashboard error:", err);
     }
@@ -227,7 +261,8 @@ function Dashboard() {
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-2xl group-hover:blur-3xl transition-all duration-700" />
                   <div className="relative size-28 md:size-40 rounded-full bg-[var(--hero-logo-badge)] border-[2px] border-gold-primary/25 dark:border-gold-primary/40 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] flex items-center justify-center p-3 md:p-4">
-                    <div className="size-full logo-alsaif" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
+                    <UserAvatar userId={profile.userId} path={profile.avatarPath} name={profile.name} className="size-full rounded-full" showBadges />
+                    <div className="absolute inset-0 size-full logo-alsaif opacity-10 pointer-events-none" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
                   </div>
                 </div>
               </div>
@@ -259,6 +294,29 @@ function Dashboard() {
         </section>
 
         <QuickActionsBanner />
+
+        {heritageSnippet && (
+          <section className="px-4 animate-fade-up" style={{ animationDelay: "180ms" }}>
+             <Link to="/heritage" className="block group">
+                <div className="card-surface overflow-hidden border-2 border-gold-primary/20 hover:border-gold-primary/40 transition-all p-0">
+                   <div className="flex flex-col md:flex-row">
+                      <div className="bg-gold-primary/10 p-6 md:p-10 flex flex-col items-center justify-center gap-3 shrink-0 md:border-l border-gold-primary/10">
+                         <Scroll className="size-10 text-gold-primary" />
+                         <span className="text-[10px] font-black uppercase tracking-widest text-gold-primary">قبس من التاريخ</span>
+                      </div>
+                      <div className="p-8 md:p-10 space-y-4 flex-1">
+                         <h3 className="text-xl md:text-2xl font-black text-primary leading-tight">{heritageSnippet.title}</h3>
+                         <p className="text-sm md:text-base font-bold text-muted-foreground line-clamp-3 leading-relaxed italic">"{heritageSnippet.cleanBody}"</p>
+                         <div className="flex items-center gap-2 text-gold-primary text-xs font-black uppercase tracking-widest pt-2">
+                            <span>استكشف الإرث</span>
+                            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+                         </div>
+                      </div>
+                   </div>
+                </div>
+             </Link>
+          </section>
+        )}
 
         {announcements.length > 0 && (() => {
             const a = announcements[annIndex % announcements.length];
@@ -418,6 +476,38 @@ function Dashboard() {
             <div className="space-y-2"><div className="flex items-center justify-center md:justify-start gap-2 text-rose-500"><ShieldAlert className="size-5" /><span className="text-xs font-black uppercase tracking-widest">الدعم الفني</span></div><h3 className="text-2xl font-black text-primary">هل واجهت مشكلة في النظام؟</h3><p className="text-sm font-bold text-muted-foreground opacity-70">أبلغ المشرفين عن أي أخطاء برمجية لمساعدتنا في تحسين تجربتك.</p></div>
             <button onClick={() => setShowBugReport(true)} className="px-10 py-4 rounded-2xl bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-sm flex items-center gap-2"><ShieldAlert size={18} /> إرسال بلاغ عن خطأ</button>
           </div>
+        </section>
+
+        {/* Initiatives Section */}
+        <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "500ms" }}>
+           <div className="flex items-center justify-between px-4">
+              <div className="flex items-center gap-3 text-primary font-black uppercase tracking-widest text-xs">
+                 <Lightbulb className="size-4 text-gold-primary" /> مبادرات السيف
+              </div>
+              <Link to="/majlis" className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline">+ قدم مبادرة جديدة</Link>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {initiatives.length > 0 ? initiatives.map((ini) => (
+                <div key={ini.id} className="card-surface p-8 flex flex-col justify-between group hover:border-gold-primary/30 transition-all">
+                   <div className="space-y-4">
+                      <h4 className="text-lg font-black text-primary line-clamp-2">{ini.title.replace("[مبادرة]", "").trim()}</h4>
+                      <p className="text-xs font-bold text-muted-foreground line-clamp-3 leading-relaxed">{ini.body}</p>
+                   </div>
+                   <div className="mt-8 pt-4 border-t border-border/40 flex items-center justify-between">
+                      <span className="text-[9px] font-black text-primary/40 uppercase">{ini.author?.arabic_name || "عضو"}</span>
+                      <button className="flex items-center gap-1.5 text-rose-500 bg-rose-500/5 px-3 py-1.5 rounded-full hover:bg-rose-500 hover:text-white transition-all">
+                         <Heart size={12} fill="currentColor" />
+                         <span className="text-[10px] font-black">أدعم الفكرة</span>
+                      </button>
+                   </div>
+                </div>
+              )) : (
+                <div className="col-span-full py-16 text-center bg-muted/20 rounded-[40px] border-2 border-dashed text-muted-foreground italic text-sm">
+                   لا توجد مبادرات نشطة حالياً. كن أول من يقترح!
+                </div>
+              )}
+           </div>
         </section>
       </div>
 

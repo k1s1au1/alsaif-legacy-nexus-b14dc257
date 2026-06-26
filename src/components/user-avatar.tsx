@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { initialOf } from "@/lib/chat";
 import { PresenceDot, usePresenceFor } from "@/lib/presence";
 import { cn } from "@/lib/utils";
+import { AchievementBadges } from "@/components/achievement-badges";
 
 // Module-level cache of signed URLs for avatar storage paths.
 // key = storage object path, value = { url, expiresAt }
@@ -58,6 +59,7 @@ export function UserAvatar({
   fallbackClassName = "",
   userId,
   presenceDotClassName = "absolute -bottom-0.5 -left-0.5 z-10",
+  showBadges = false,
 }: {
   path?: string | null;
   name?: string;
@@ -67,6 +69,7 @@ export function UserAvatar({
   /** When provided, an online/idle/offline dot is overlaid on the avatar. */
   userId?: string | null;
   presenceDotClassName?: string;
+  showBadges?: boolean;
 }) {
   const [src, setSrc] = useState<string | null>(null);
   const ini = (initial ?? initialOf(name ?? "")).toUpperCase();
@@ -117,9 +120,14 @@ export function UserAvatar({
   if (!showDot) return inner;
 
   return (
-    <span className="relative inline-flex w-full h-full items-center justify-center">
+    <div className="relative inline-flex w-full h-full items-center justify-center">
       {inner}
       <PresenceDot state={presenceState} className={presenceDotClassName} />
-    </span>
+      {showBadges && userId && (
+        <div className="absolute -top-1 -right-1 flex gap-0.5 pointer-events-auto">
+          <AchievementBadges userId={userId} />
+        </div>
+      )}
+    </div>
   );
 }
