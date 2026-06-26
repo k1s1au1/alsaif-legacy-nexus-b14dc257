@@ -219,24 +219,46 @@ function AdminPage() {
     if (!annDraft.title.trim() || !annDraft.body.trim()) return;
     setAnnSaving(true);
     let body = annDraft.body;
-    if (annImage) {
-      const path = `anns/${crypto.randomUUID()}`;
-      await supabase.storage.from("trip-images").upload(path, annImage);
-      body = `---image:${path}\n${body}`;
-    }
 
-    if (annDraft.id) {
-       await supabase.from("majlis_posts").update({ title: annDraft.title, body }).eq("id", annDraft.id);
-    } else {
-       await supabase.from("majlis_posts").insert({ title: annDraft.title, body, kind: "announcement", author_id: meId });
+    try {
+      if (annImage) {
+        const ext = annImage.name.split(".").pop() || "jpg";
+        const path = `anns/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("trip-images").upload(path, annImage);
+        if (upErr) throw upErr;
+        body = `---image:${path}\n${body}`;
+      } else if (annDraft.id) {
+        // Keep existing image if not uploading a new one during edit
+        const existing = announcements.find(a => a.id === annDraft.id);
+        const imgMatch = existing?.body.match(/^---image:.*\n/);
+        if (imgMatch) body = imgMatch[0] + body;
+      }
+
+      if (annDraft.id) {
+        const { error } = await supabase.from("majlis_posts").update({ title: annDraft.title, body }).eq("id", annDraft.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("majlis_posts").insert({
+          title: annDraft.title,
+          body,
+          kind: "announcement",
+          author_id: meId
+        });
+        if (error) throw error;
+      }
+
+      toast.success("تم حفظ الإعلان بنجاح");
+      setAnnDraft({ id: "", title: "", body: "" });
+      setAnnImage(null);
+      setAnnImagePreview(null);
+      setShowAnnForm(false);
+      loadData();
+    } catch (err: any) {
+      console.error("Save announcement error:", err);
+      toast.error("تعذر حفظ الإعلان: " + err.message);
+    } finally {
+      setAnnSaving(false);
     }
-    toast.success("تم حفظ الإعلان");
-    setAnnDraft({ id: "", title: "", body: "" });
-    setAnnImage(null);
-    setAnnImagePreview(null);
-    setShowAnnForm(false);
-    setAnnSaving(false);
-    loadData();
   };
 
   if (loading && !profile.name) return <div className="h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin size-10 text-primary" /></div>;
@@ -464,8 +486,28 @@ function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, 
               <div className="space-y-4">
                  <input value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} placeholder="عنوان جذاب..." className="w-full h-14 px-6 rounded-2xl bg-muted/30 border border-border font-black text-base focus:ring-4 focus:ring-primary/5 transition-all" />
                  <textarea value={draft.body} onChange={e => setDraft({ ...draft, body: e.target.value })} placeholder="اكتب المحتوى هنا..." rows={4} className="w-full p-6 rounded-2xl bg-muted/30 border border-border font-bold text-sm focus:ring-4 focus:ring-primary/5 transition-all resize-none" />
-                 <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 transition-all">
-                    {imagePreview ? <img src={imagePreview} className="h-40 w-full object-contain rounded-2xl" alt="Preview" /> : <><ImageIcon className="size-8 opacity-30" /><span className="text-xs font-bold text-muted-foreground">صورة الإعلان</span></>}
+                 <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 transition-all overflow-hidden bg-muted/10">
+                    {annImagePreview ? (
+                      <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20">
+                         <img src={annImagePreview} className="size-full object-cover" alt="Preview" />
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                         <button
+                           type="button"
+                           onClick={(e) => { e.stopPropagation(); setAnnImage(null); setAnnImagePreview(null); }}
+                           className="absolute top-4 left-4 size-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-red-500 transition-all"
+                         >
+                           <X size={16} />
+                         </button>
+                      </div>
+                    ) : (
+                      <>
+                        <ImageIcon className="size-10 text-primary/40 opacity-50 group-hover:scale-110 transition-transform" />
+                        <div className="text-center">
+                           <span className="text-sm font-black text-primary">اضغط لرفع بنر الإعلان</span>
+                           <p className="text-[10px] font-bold text-muted-foreground mt-1">يُفضل استخدام صورة عريضة (21:9)</p>
+                        </div>
+                      </>
+                    )}
                     <input type="file" hidden accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) onPickImage(f); }} />
                  </label>
               </div>
