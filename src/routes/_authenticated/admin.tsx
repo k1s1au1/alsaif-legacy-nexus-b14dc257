@@ -215,6 +215,21 @@ function AdminPage() {
   };
 
   // Announcement Handlers
+  const onPickImage = async (file: File) => {
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `anns/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage.from("trip-images").upload(path, file);
+      if (upErr) throw upErr;
+
+      const { data: sign } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+      setAnnImagePreview(sign?.signedUrl || URL.createObjectURL(file));
+      setAnnImage(file);
+    } catch (err: any) {
+      toast.error("فشل معالجة الصورة");
+    }
+  };
+
   const handleSaveAnn = async () => {
     if (!annDraft.title.trim() || !annDraft.body.trim()) return;
     setAnnSaving(true);
