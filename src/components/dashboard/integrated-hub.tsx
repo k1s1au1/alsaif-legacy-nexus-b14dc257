@@ -154,12 +154,14 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                                            <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
                                            <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
                                         </div>
-                                        <button
+                                        <motion.button
+                                          whileHover={{ scale: 1.05 }}
+                                          whileTap={{ scale: 0.95 }}
                                           onClick={() => onViewTrip?.(trip)}
-                                          className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all"
+                                          className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none transition-all"
                                         >
                                           التفاصيل
-                                        </button>
+                                        </motion.button>
                                      </div>
                                   </div>
                                 </CarouselItem>
@@ -211,12 +213,14 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                                            <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
                                            <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
                                         </div>
-                                        <button
+                                        <motion.button
+                                          whileHover={{ scale: 1.05 }}
+                                          whileTap={{ scale: 0.95 }}
                                           onClick={() => onViewMeeting?.(meeting)}
-                                          className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all"
+                                          className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none transition-all"
                                         >
                                           الحضور
-                                        </button>
+                                        </motion.button>
                                      </div>
                                   </div>
                                 </CarouselItem>

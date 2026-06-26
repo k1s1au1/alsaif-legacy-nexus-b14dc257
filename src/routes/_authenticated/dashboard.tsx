@@ -62,22 +62,32 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[110] flex items-end md:items-center justify-center bg-black/85 backdrop-blur-md p-0 md:p-10"
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="fixed inset-0 z-[110] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-xl p-0 md:p-10"
       dir="rtl"
     >
       <motion.div
-        initial={{ y: "100%", opacity: 0, scale: 0.9 }}
+        layoutId={`immersive-${type}-${data.id}`}
+        initial={{ y: "20%", opacity: 0, scale: 0.95 }}
         animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: "100%", opacity: 0, scale: 0.9 }}
-        transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        className="bg-[#051410] w-full max-w-5xl h-full md:h-auto md:max-h-[85vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col relative border border-white/10"
+        exit={{ y: "20%", opacity: 0, scale: 0.95 }}
+        transition={{
+          type: "spring",
+          damping: 28,
+          stiffness: 180,
+          mass: 0.8
+        }}
+        className="bg-[#051410] w-full max-w-5xl h-full md:h-auto md:max-h-[85vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col relative border border-white/10"
       >
-        <button
+        <motion.button
+          initial={{ opacity: 0, rotate: -90 }}
+          animate={{ opacity: 1, rotate: 0 }}
+          transition={{ delay: 0.3 }}
           onClick={onClose}
           className="absolute top-6 left-6 z-30 size-12 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-500 transition-all border border-white/10 group"
         >
           <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
-        </button>
+        </motion.button>
 
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
            {/* Header Section */}
