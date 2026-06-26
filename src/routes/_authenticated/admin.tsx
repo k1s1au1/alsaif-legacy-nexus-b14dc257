@@ -134,19 +134,24 @@ function AdminPage() {
 
       if (isA) {
         try {
-          const [{ data: reqs }, { data: mems, error: memErr }, { data: anns }] = await Promise.all([
+          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: anns }] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
-            supabase.from("profiles").select("*, user_roles(role)").order("full_name"),
+            supabase.from("profiles").select("*").order("full_name"),
+            supabase.from("user_roles").select("user_id, role"),
             supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
           ]);
 
           if (memErr) {
             console.error("Members fetch error:", memErr);
-            // Fallback: try fetching without the join if it fails
-            const { data: simpleMems } = await supabase.from("profiles").select("*").order("full_name");
-            setMembers(simpleMems || []);
+            setMembers([]);
           } else {
-            setMembers(mems || []);
+            const rolesByUser = new Map<string, { role: string }[]>();
+            (allRoles || []).forEach((r: any) => {
+              const arr = rolesByUser.get(r.user_id) || [];
+              arr.push({ role: r.role });
+              rolesByUser.set(r.user_id, arr);
+            });
+            setMembers((mems || []).map((m: any) => ({ ...m, user_roles: rolesByUser.get(m.id) || [] })));
           }
 
           setPendingReqs(reqs || []);
