@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ListChecks,
   Newspaper,
+  Store,
   Trees,
   Wallet,
   User,
