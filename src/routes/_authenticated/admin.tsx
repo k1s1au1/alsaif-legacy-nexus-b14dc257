@@ -175,14 +175,18 @@ function AdminPage() {
   const updateReqStatus = async (id: string, status: "approved" | "pending" | "rejected") => {
     try {
       if (status === "approved") {
-        await approveFn({ data: { requestId: id } });
+        const res = await approveFn({ data: { id } });
+        if (res.ok) {
+          toast.success("تم قبول العضو وإنشاء الحساب بنجاح");
+        }
       } else {
         await supabase.from("account_requests").update({ status }).eq("id", id);
+        toast.success("تم تحديث حالة الطلب");
       }
-      toast.success("تم تحديث حالة الطلب");
       loadData();
-    } catch {
-      toast.error("فشل تحديث الطلب");
+    } catch (err: any) {
+      console.error("Approve error:", err);
+      toast.error("فشل تحديث الطلب: " + (err.message || "خطأ غير معروف"));
     }
   };
 
