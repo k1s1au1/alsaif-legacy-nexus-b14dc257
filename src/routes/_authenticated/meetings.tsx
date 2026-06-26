@@ -201,12 +201,18 @@ function MeetingsPage() {
       else {
         toast.success("تم الإنشاء");
 
-        sendFcmNotification({
-          data: {
-            title: "📅 اجتماع عائلي جديد",
-            body: fTitle.trim(),
-          }
-        }).catch(err => console.warn("FCM error:", err));
+        // Broadcast notification
+        try {
+          await sendFcmNotification({
+            data: {
+              title: "📅 اجتماع عائلي جديد",
+              body: fTitle.trim(),
+            }
+          });
+          console.log("FCM notification sent successfully");
+        } catch (fcmErr) {
+          console.warn("FCM Broadcast failed, but meeting was created:", fcmErr);
+        }
 
         setShowForm(false);
         resetForm();

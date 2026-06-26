@@ -346,12 +346,16 @@ function TripDialog({ trip, onClose, onSaved }: any) {
 
       if (!isEdit) {
         // Trigger FCM for new trip
-        sendFcmNotification({
-          data: {
-            title: "وجهة عائلية جديدة",
-            body: `تم إعلان رحلة جديدة: ${form.title}`,
-          }
-        });
+        try {
+          await sendFcmNotification({
+            data: {
+              title: "🚀 وجهة عائلية جديدة",
+              body: `تم إعلان رحلة جديدة: ${form.title}`,
+            }
+          });
+        } catch (fcmErr) {
+          console.warn("FCM Broadcast failed:", fcmErr);
+        }
       }
 
       onSaved();
