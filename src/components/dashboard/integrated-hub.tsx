@@ -134,20 +134,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                          <CarouselContent className="h-[280px] md:h-[250px]">
                             {upcomingTrips.map((trip) => {
                               const daysLeft = trip.start_date ? Math.ceil((new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
-                              const getMotivationalNudge = () => {
-    const messages = [
-      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
-      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
-      "همتك العالية هي سر نجاح مجلسنا، استمر!",
-      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
-      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
-    ];
-    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
-    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
-    return messages[tasksCount % messages.length];
-  };
-
-  return (
+                              return (
                                 <CarouselItem key={trip.id} className="flex items-center p-6 md:p-12">
                                   <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">
                                      <div className="space-y-4 text-center md:text-right flex-1">
@@ -204,20 +191,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                          <CarouselContent className="h-[280px] md:h-[250px]">
                             {upcomingMeetings.map((meeting) => {
                               const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
-                              const getMotivationalNudge = () => {
-    const messages = [
-      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
-      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
-      "همتك العالية هي سر نجاح مجلسنا، استمر!",
-      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
-      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
-    ];
-    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
-    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
-    return messages[tasksCount % messages.length];
-  };
-
-  return (
+                              return (
                                 <CarouselItem key={meeting.id} className="flex items-center p-6 md:p-12">
                                   <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">
                                      <div className="space-y-4 text-center md:text-right flex-1">
@@ -259,9 +233,9 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
               {activeTab === "tasks" && (
                 <motion.div
                   key="tasks"
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -20 }}
+                  exit={{ opacity: 0, y: -10 }}
                   className="w-full p-8 md:p-12"
                 >
                    <div className="flex flex-col md:flex-row items-center justify-between gap-10">
@@ -291,19 +265,6 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
 }
 
 function EmptyHub({ icon: Icon, message }: any) {
-  const getMotivationalNudge = () => {
-    const messages = [
-      "إنجازك لهذه المهام يسهل مسيرة العائلة، نحن بانتظارك!",
-      "كل مهمة تنجزها هي لبنة في بناء مستقبل عائلتنا.",
-      "همتك العالية هي سر نجاح مجلسنا، استمر!",
-      "العائلة تفتخر بمبادراتك، إنجازك يصنع الفرق.",
-      "خطوة واحدة منك تقربنا من أهدافنا الكبرى."
-    ];
-    if (tasksCount === 0) return "أنت فخر العائلة! لا توجد مهام معلقة حالياً.";
-    if (tasksCount > 5) return "ما شاء الله! العائلة تعتمد على همتك العالية لإنجاز هذه المسؤوليات.";
-    return messages[tasksCount % messages.length];
-  };
-
   return (
     <div className="flex flex-col items-center justify-center py-12 space-y-4 text-white/20 w-full">
        <div className="size-16 rounded-full bg-white/5 flex items-center justify-center border border-white/5">
