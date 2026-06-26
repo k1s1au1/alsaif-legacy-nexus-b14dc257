@@ -39,6 +39,7 @@ import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import Autoplay from "embla-carousel-autoplay";
 import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { TripImage } from "@/components/trip-image";
+import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -295,6 +296,13 @@ function Dashboard() {
         </section>
 
         <QuickActionsBanner />
+
+        {/* PREVIEW: Integrated Hub Idea #1 */}
+        <IntegratedHub
+          upcomingMeeting={upcomingMeetings[0]}
+          upcomingTrip={upcomingTrips[0]}
+          tasksCount={tasksCount}
+        />
 
         {heritageSnippet && (
           <section className="px-4 animate-fade-up" style={{ animationDelay: "180ms" }}>
