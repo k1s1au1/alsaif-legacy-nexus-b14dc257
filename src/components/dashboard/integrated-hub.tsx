@@ -111,7 +111,14 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                                    <div className="space-y-4 text-center md:text-right flex-1">
                                       <div className="flex items-center justify-center md:justify-start gap-3 text-indigo-400">
                                          <Timer size={16} className="animate-pulse" />
-                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">الترفيه القادم</span>
+                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+                                           الترفيه القادم
+                                           {trip.start_date && (
+                                              <span className="mr-2 text-white/40">
+                                                · {Math.ceil((new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} يوم متبقي
+                                              </span>
+                                           )}
+                                         </span>
                                       </div>
                                       <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">{trip.title}</h3>
                                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-white/50 font-bold text-xs">
@@ -153,7 +160,14 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                                    <div className="space-y-4 text-center md:text-right flex-1">
                                       <div className="flex items-center justify-center md:justify-start gap-3 text-amber-400">
                                          <CalendarDays size={16} />
-                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">اجتماع العائلة</span>
+                                         <span className="text-[10px] font-black uppercase tracking-[0.3em]">
+                                           اجتماع العائلة
+                                           {meeting.scheduled_at && (
+                                              <span className="mr-2 text-white/40">
+                                                · {Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))} يوم متبقي
+                                              </span>
+                                           )}
+                                         </span>
                                       </div>
                                       <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">{meeting.title}</h3>
                                       <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-white/50 font-bold text-xs">
