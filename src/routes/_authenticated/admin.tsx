@@ -84,7 +84,7 @@ function roleLabel(role: string | null) {
 function AdminPage() {
   const [meId, setMeId] = useState<string | null>(null);
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
-  const [isPriv, setIsPriv] = useState(true); // Temporarily true to allow setup
+  const [isPriv, setIsPriv] = useState(false);
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -119,14 +119,13 @@ function AdminPage() {
       ]);
 
       const rs = (roles ?? []).map(r => r.role);
-      // BYPASS: Temporarily force access for initial setup
-      const isA = true;
+      const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
       setIsPriv(isA);
 
       if (p) {
         setProfile({
           name: p.arabic_name || p.full_name || "عضو",
-          role: rs.includes("admin") ? "مسؤول النظام" : "مشرف",
+          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "مشرف",
           initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
           avatarPath: p.avatar_url
         });

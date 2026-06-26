@@ -80,17 +80,17 @@ function Dashboard() {
       if (!authData?.user) return;
       const u = authData.user;
 
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("arabic_name, full_name, avatar_url")
-        .eq("id", u.id)
-        .maybeSingle();
+      const [{ data: p }, { data: r }] = await Promise.all([
+        supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", u.id)
+      ]);
 
+      const rs = (r ?? []).map(x => x.role);
       const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
 
       setProfile({
         name,
-        role: "عضو المجلس",
+        role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو المجلس",
         initial: (name ? name[0] : "ع").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
         userId: u.id,

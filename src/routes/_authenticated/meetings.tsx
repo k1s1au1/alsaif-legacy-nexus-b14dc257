@@ -124,10 +124,14 @@ function MeetingsPage() {
   useEffect(() => {
     (async () => {
       if (userId) {
-        const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle();
+        const [{ data: p }, { data: r }] = await Promise.all([
+          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", userId)
+        ]);
+        const rs = (r ?? []).map(x => x.role);
         setProfile({
           name: p?.arabic_name || p?.full_name || "عضو العائلة",
-          role: roleLabel(primaryRole),
+          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
           initial: "ع",
           avatarPath: p?.avatar_url || null
         });

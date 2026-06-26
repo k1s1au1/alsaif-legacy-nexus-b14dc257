@@ -84,15 +84,15 @@ function TripsPage() {
   useEffect(() => {
     (async () => {
       if (userId) {
-        const { data: p } = await supabase
-          .from("profiles")
-          .select("arabic_name, full_name, avatar_url")
-          .eq("id", userId)
-          .maybeSingle();
+        const [{ data: p }, { data: r }] = await Promise.all([
+          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", userId)
+        ]);
+        const rs = (r ?? []).map(x => x.role);
         const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
         setProfile({
           name,
-          role: roleLabel(primaryRole),
+          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });

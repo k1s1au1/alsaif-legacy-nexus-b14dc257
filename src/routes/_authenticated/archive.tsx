@@ -62,6 +62,7 @@ const SECTIONS: {
 function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول النظام";
   if (role === "manager") return "مدير";
+  if (role === "chairman") return "رئيس المجلس";
   return "عضو";
 }
 
@@ -137,7 +138,7 @@ function ArchivePage() {
         initial: (name[0] ?? "س").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
       });
-      setMe({ id: u.user.id, isPriv: rs.includes("admin") || rs.includes("manager") });
+      setMe({ id: u.user.id, isPriv: rs.includes("admin") || rs.includes("manager") || rs.includes("chairman") });
       await load();
     })();
 

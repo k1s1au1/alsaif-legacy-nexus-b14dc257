@@ -89,11 +89,11 @@ function FamilyTreePage() {
           supabase.from("user_roles").select("role").eq("user_id", user.id),
         ]);
         const rs = (roles ?? []).map((r) => r.role);
-        const isAdmin = rs.includes("admin") || rs.includes("manager");
+        const isAdmin = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
         const profileName = profile?.arabic_name || profile?.full_name || "عضو";
         setMe({
           name: profileName,
-          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("manager") ? "مشرف" : "عضو",
+          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : rs.includes("manager") ? "مشرف" : "عضو",
           initial: (profileName[0] || "ع").toUpperCase(),
           avatarPath: profile?.avatar_url,
           id: user.id,

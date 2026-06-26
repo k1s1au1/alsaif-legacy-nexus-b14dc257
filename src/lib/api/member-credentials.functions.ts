@@ -9,11 +9,11 @@ export const getMemberCredential = createServerFn({ method: "POST" })
     const { supabase, userId } = context;
 
     // Only admins may view stored credentials
-    const { data: isAdmin } = await supabase.rpc("has_role", {
-      _user_id: userId,
-      _role: "admin",
-    });
-    if (!isAdmin) throw new Error("غير مصرح");
+    const [{ data: isAdmin }, { data: isChairman }] = await Promise.all([
+      context.supabase.rpc("has_role", { _user_id: userId, _role: "admin" }),
+      context.supabase.rpc("has_role", { _user_id: userId, _role: "chairman" }),
+    ]);
+    if (!isAdmin && !isChairman) throw new Error("غير مصرح");
 
     const { supabaseAdmin } = await import(
       "@/integrations/supabase/client.server"

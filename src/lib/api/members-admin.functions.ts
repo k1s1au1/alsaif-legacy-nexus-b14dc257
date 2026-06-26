@@ -9,11 +9,12 @@ export const deleteMemberAccount = createServerFn({ method: "POST" })
       throw new Error("لا يمكنك حذف حسابك الخاص");
     }
 
-    const [{ data: isAdmin }, { data: isManager }] = await Promise.all([
+    const [{ data: isAdmin }, { data: isManager }, { data: isChairman }] = await Promise.all([
       context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
       context.supabase.rpc("has_role", { _user_id: context.userId, _role: "manager" }),
+      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "chairman" }),
     ]);
-    if (!isAdmin && !isManager) throw new Error("غير مصرّح");
+    if (!isAdmin && !isManager && !isChairman) throw new Error("غير مصرّح");
 
     // Only admins can delete other admins
     const { data: targetIsAdmin } = await context.supabase.rpc("has_role", {

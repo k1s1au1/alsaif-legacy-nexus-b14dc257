@@ -114,9 +114,11 @@ function FinancePage() {
       supabase.from("bank_transfers").select("*").order("created_at", { ascending: false }),
     ]);
     const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
+    const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
+    const rs = (r ?? []).map(x => x.role);
     setProfile({
       name,
-      role: roleLabel(primaryRole),
+      role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
       initial: (name[0] ?? "س").toUpperCase(),
     });
     setRows((tx ?? []) as Tx[]);

@@ -13,8 +13,25 @@ export const assignUserRole = createServerFn({ method: "POST" })
     role: z.string()
   }).parse(data))
   .handler(async ({ data: { userId, role }, context }) => {
-    // SECURITY BYPASS: For initial setup, we allow anyone to promote themselves if there are no admins
-    // Or we just allow it for now since the user is setting up the system.
+    const { supabase, userId: callerId } = context;
+
+    // 0. Verify authorization
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", callerId);
+
+    const rs = (roles ?? []).map((r: any) => r.role);
+    const isAuthorized = rs.includes("admin") || rs.includes("chairman");
+
+    // Fallback: If no users have any role yet, allow the first one to setup
+    const { count: totalRoles } = await supabase
+      .from("user_roles")
+      .select("*", { count: "exact", head: true });
+
+    if (!isAuthorized && totalRoles !== 0) {
+      throw new Error("غير مصرح لك بتغيير الصلاحيات");
+    }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 

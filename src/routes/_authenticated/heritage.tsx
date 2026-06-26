@@ -125,9 +125,11 @@ function HeritagePage() {
       if (userId) {
         const { data: p } = await supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", userId).maybeSingle();
         const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو";
+        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+        const rs = (roles ?? []).map(r => r.role);
         setProfile({
           name,
-          role: isAdmin ? "مسؤول النظام" : isChairman ? "رئيس المجلس" : "عضو",
+          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });

@@ -8,7 +8,7 @@ async function ensurePriv(supabase: any, userId: string) {
     .select("role")
     .eq("user_id", userId);
   const isPriv = (roles ?? []).some(
-    (r: { role: string }) => r.role === "admin" || r.role === "manager",
+    (r: { role: string }) => r.role === "admin" || r.role === "manager" || r.role === "chairman",
   );
   if (!isPriv) throw new Error("غير مصرّح");
 }
