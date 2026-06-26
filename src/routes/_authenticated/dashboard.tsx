@@ -215,6 +215,15 @@ function Dashboard() {
 
       showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
 
+      // Check Notification Permission
+      if (typeof window !== "undefined" && "Notification" in window) {
+        if (Notification.permission === "default") {
+          setTimeout(() => {
+            Notification.requestPermission();
+          }, 5000);
+        }
+      }
+
       supabase.from("trips").select("*", { count: "exact", head: true }).then((r) => setTripsCount(r.count || 0));
       supabase.from("profiles").select("*", { count: "exact", head: true }).then((r) => setMembersCount(r.count || 0));
       supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then((r) => setTasksCount(r.count || 0));
@@ -569,6 +578,13 @@ function Dashboard() {
       </div>
 
       <AnimatePresence>
+        {immersiveItem && (
+          <ImmersiveView
+            item={immersiveItem}
+            onClose={() => setImmersiveItem(null)}
+          />
+        )}
+
         {showBugReport && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-card border border-border rounded-[32px] w-full max-w-lg p-8 space-y-6 shadow-2xl">
