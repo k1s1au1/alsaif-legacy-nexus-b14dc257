@@ -263,7 +263,7 @@ function Dashboard() {
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-2xl group-hover:blur-3xl transition-all duration-700" />
                   <div className="relative size-28 md:size-40 rounded-full bg-[var(--hero-logo-badge)] border-[2px] border-gold-primary/25 dark:border-gold-primary/40 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] flex items-center justify-center p-6 md:p-10">
-                    <div className="size-full logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
+                    <div className="size-full logo-alsaif" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
                   </div>
                 </div>
               </div>
@@ -297,8 +297,8 @@ function Dashboard() {
         <QuickActionsBanner />
 
         <IntegratedHub
-          upcomingMeeting={upcomingMeetings[0]}
-          upcomingTrip={upcomingTrips[0]}
+          upcomingMeetings={upcomingMeetings}
+          upcomingTrips={upcomingTrips}
           tasksCount={tasksCount}
         />
 
