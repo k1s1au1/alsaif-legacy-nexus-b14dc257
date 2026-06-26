@@ -264,7 +264,7 @@ function AdminPage() {
           title: annDraft.title,
           body,
           kind: "announcement",
-          author_id: meId
+          author_id: meId!
         });
         if (error) throw error;
       }
