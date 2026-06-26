@@ -116,8 +116,8 @@ function Dashboard() {
       supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday).then((r) => setNewNewsCount(r.count || 0));
 
       const now = new Date().toISOString();
-      supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(2).then((r) => setUpcomingMeetings(r.data || []));
-      supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(2).then((r) => setUpcomingTrips(r.data || []));
+      supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5).then((r) => setUpcomingMeetings(r.data || []));
+      supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5).then((r) => setUpcomingTrips(r.data || []));
 
       const { data: annData } = await supabase
         .from("majlis_posts")
