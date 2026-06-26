@@ -605,10 +605,10 @@ function ConversationRoute() {
         </AnimatePresence>
       </div>
 
-      <div className="px-6 pb-6 shrink-0 relative z-20">
+      <div className="px-4 md:px-6 pb-6 md:pb-8 shrink-0 relative z-20 bg-background/80 backdrop-blur-md">
          <AnimatePresence>
            {replyTo && (
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="mb-2 bg-card/90 backdrop-blur-md border border-border rounded-2xl p-4 flex items-center gap-4 shadow-xl border-r-4 border-r-gold-primary">
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="mb-2 bg-card/90 backdrop-blur-md border border-border rounded-2xl p-3 md:p-4 flex items-center gap-4 shadow-xl border-r-4 border-r-gold-primary">
                  <Reply className="size-4 text-gold-primary" />
                  <div className="flex-1 min-w-0">
                     <p className="text-[10px] font-black uppercase text-gold-primary">الرد على {displayName(profiles[replyTo.sender_id])}</p>
@@ -620,59 +620,59 @@ function ConversationRoute() {
          </AnimatePresence>
 
          {recording ? (
-            <div className="bg-primary h-[72px] rounded-[28px] flex items-center px-6 gap-6 shadow-2xl text-white">
-               <button onClick={() => stopRecording(true)} className="size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-all"><Trash2 className="size-5" /></button>
-               <div className="flex-1 flex items-center gap-4">
-                  <div className="size-3 rounded-full bg-red-400 animate-pulse" />
-                  <span className="text-lg font-black tracking-tighter">{formatDuration(recordMs)}</span>
+            <div className="bg-primary h-16 md:h-[72px] rounded-[24px] md:rounded-[28px] flex items-center px-4 md:px-6 gap-4 md:gap-6 shadow-2xl text-white">
+               <button onClick={() => stopRecording(true)} className="size-9 md:size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-all"><Trash2 className="size-4 md:size-5" /></button>
+               <div className="flex-1 flex items-center gap-3 md:gap-4">
+                  <div className="size-2 md:size-3 rounded-full bg-red-400 animate-pulse" />
+                  <span className="text-base md:text-lg font-black tracking-tighter">{formatDuration(recordMs)}</span>
                   <div className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
                      <motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 60, ease: "linear" }} />
                   </div>
                </div>
-               <button onClick={() => stopRecording(false)} className="size-12 rounded-[20px] bg-white text-primary flex items-center justify-center hover:scale-105 transition-all shadow-lg"><Send className="size-5" /></button>
+               <button onClick={() => stopRecording(false)} className="size-10 md:size-12 rounded-[18px] md:rounded-[20px] bg-white text-primary flex items-center justify-center hover:scale-105 transition-all shadow-lg"><Send className="size-4 md:size-5" /></button>
             </div>
          ) : !canSend ? (
-            <div className="bg-muted/30 h-14 rounded-[28px] border border-border flex items-center justify-center text-[13px] font-black text-muted-foreground">
-               <Lock className="size-4 ml-2 opacity-40" />
+            <div className="bg-muted/30 h-14 rounded-[24px] md:rounded-[28px] border border-border flex items-center justify-center text-[11px] md:text-[13px] font-black text-muted-foreground">
+               <Lock className="size-3 md:size-4 ml-2 opacity-40" />
                {conv.send_permission === "admins" ? "المشرفون فقط يمكنهم إرسال الرسائل هنا" : "ليس لديك صلاحية للإرسال"}
             </div>
          ) : (
-            <form onSubmit={sendText} className="flex items-end gap-3">
-               <div className="flex-1 bg-card/80 backdrop-blur-xl border border-border rounded-[32px] p-2 flex items-end shadow-2xl focus-within:ring-4 focus-within:ring-primary/5 transition-all">
-                  <div className="flex items-center pb-1">
-                     <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all relative">
-                        <Smile className="size-6" />
+            <form onSubmit={sendText} className="flex items-end gap-2 md:gap-3">
+               <div className="flex-1 bg-card/80 backdrop-blur-xl border border-border rounded-[24px] md:rounded-[32px] p-1.5 md:p-2 flex items-end shadow-2xl focus-within:ring-4 focus-within:ring-primary/5 transition-all">
+                  <div className="flex items-center pb-0.5 md:pb-1">
+                     <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-9 md:size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all relative">
+                        <Smile className="size-5 md:size-6" />
                         {showEmoji && (
-                          <div className="absolute bottom-14 right-0 w-80 h-80 bg-card border border-border rounded-[32px] shadow-2xl p-4 grid grid-cols-6 gap-2 overflow-y-auto no-scrollbar z-50">
-                             {EMOJI_PICKER.map(e => <button key={e} type="button" onClick={() => { setDraft(d => d + e); setShowEmoji(false); }} className="size-10 flex items-center justify-center text-xl hover:bg-muted rounded-xl transition-all">{e}</button>)}
+                          <div className="absolute bottom-12 md:bottom-14 right-0 w-[280px] md:w-80 h-64 md:h-80 bg-card border border-border rounded-[24px] md:rounded-[32px] shadow-2xl p-3 md:p-4 grid grid-cols-6 gap-1 md:gap-2 overflow-y-auto no-scrollbar z-50">
+                             {EMOJI_PICKER.map(e => <button key={e} type="button" onClick={() => { setDraft(d => d + e); setShowEmoji(false); }} className="size-9 md:size-10 flex items-center justify-center text-lg md:text-xl hover:bg-muted rounded-xl transition-all">{e}</button>)}
                           </div>
                         )}
                      </button>
-                     <button type="button" onClick={() => fileInputRef.current?.click()} className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all"><Paperclip className="size-6" /></button>
+                     <button type="button" onClick={() => fileInputRef.current?.click()} className="size-9 md:size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all"><Paperclip className="size-5 md:size-6" /></button>
                   </div>
                   <textarea
                     value={draft}
                     onChange={(e) => { setDraft(e.target.value); onDraftKey(); }}
                     onKeyDown={onComposerKeyDown}
-                    placeholder="اكتب رسالتك للمجلس..."
+                    placeholder="اكتب رسالتك..."
                     rows={1}
-                    className="flex-1 bg-transparent border-none focus:outline-none px-2 py-3.5 font-bold text-[15px] resize-none max-h-40 no-scrollbar min-h-[52px]"
+                    className="flex-1 bg-transparent border-none focus:outline-none px-1 md:px-2 py-2.5 md:py-3.5 font-bold text-[14px] md:text-[15px] resize-none max-h-32 md:max-h-40 no-scrollbar min-h-[44px] md:min-h-[52px]"
                   />
                   <input ref={fileInputRef} type="file" hidden onChange={(e) => onPickFile(e, "any")} />
-                  <div className="pb-1 px-1">
-                     <button type="button" onClick={() => imageInputRef.current?.click()} className="size-11 rounded-full bg-primary/5 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"><ImageIcon className="size-6" /></button>
+                  <div className="pb-0.5 md:pb-1 px-0.5 md:px-1">
+                     <button type="button" onClick={() => imageInputRef.current?.click()} className="size-9 md:size-11 rounded-full bg-primary/5 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"><ImageIcon className="size-5 md:size-6" /></button>
                      <input ref={imageInputRef} type="file" accept="image/*,video/*" hidden onChange={(e) => onPickFile(e, "image")} />
                   </div>
                </div>
 
                <div className="shrink-0">
                   {draft.trim() ? (
-                     <button type="submit" className="size-[60px] rounded-[24px] bg-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-primary/30">
-                        <Send className="size-6" strokeWidth={2.5} />
+                     <button type="submit" className="size-[50px] md:size-[60px] rounded-[20px] md:rounded-[24px] bg-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-primary/30">
+                        <Send className="size-5 md:size-6" strokeWidth={2.5} />
                      </button>
                   ) : (
-                     <button type="button" onClick={startRecording} className="size-[60px] rounded-[24px] bg-gold-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-gold-primary/30">
-                        <Mic className="size-6" strokeWidth={2.5} />
+                     <button type="button" onClick={startRecording} className="size-[50px] md:size-[60px] rounded-[20px] md:rounded-[24px] bg-gold-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-gold-primary/30">
+                        <Mic className="size-5 md:size-6" strokeWidth={2.5} />
                      </button>
                   )}
                </div>

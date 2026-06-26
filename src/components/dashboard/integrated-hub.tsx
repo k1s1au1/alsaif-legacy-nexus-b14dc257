@@ -87,7 +87,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
         </div>
 
         {/* Content Area */}
-        <div className="min-h-[220px] relative z-10">
+        <div className="min-h-[280px] md:min-h-[220px] relative z-10">
            <AnimatePresence mode="wait">
               {activeTab === "trips" && (
                 <motion.div
@@ -104,30 +104,30 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                         className="w-full"
                         opts={{ loop: true }}
                       >
-                         <CarouselContent className="h-[220px] md:h-[250px]">
+                         <CarouselContent className="h-[280px] md:h-[250px]">
                             {upcomingTrips.map((trip) => {
                               const daysLeft = trip.start_date ? Math.ceil((new Date(trip.start_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : 0;
                               return (
-                                <CarouselItem key={trip.id} className="flex items-center p-8 md:p-12">
-                                  <div className="flex flex-col md:flex-row items-center justify-between gap-10 w-full">
+                                <CarouselItem key={trip.id} className="flex items-center p-6 md:p-12">
+                                  <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">
                                      <div className="space-y-4 text-center md:text-right flex-1">
                                         <div className="flex items-center justify-center md:justify-start gap-3 text-indigo-400">
                                            <Timer size={16} className="animate-pulse" />
                                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">الترفيه القادم</span>
                                         </div>
-                                        <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">{trip.title}</h3>
-                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-white/50 font-bold text-xs">
-                                           <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5"><MapPin size={14} className="text-indigo-400" /> {trip.location || "السعودية"}</span>
-                                           <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5"><Clock size={14} className="text-indigo-400" /> {new Date(trip.start_date).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long' })}</span>
+                                        <h3 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight line-clamp-2 md:line-clamp-none">{trip.title}</h3>
+                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-white/50 font-bold text-[10px] md:text-xs">
+                                           <span className="flex items-center gap-2 bg-white/5 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/5"><MapPin size={12} className="text-indigo-400" /> {trip.location || "السعودية"}</span>
+                                           <span className="flex items-center gap-2 bg-white/5 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/5"><Clock size={12} className="text-indigo-400" /> {new Date(trip.start_date).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long' })}</span>
                                         </div>
                                      </div>
 
-                                     <div className="flex flex-row md:flex-col items-center gap-6 shrink-0">
-                                        <div className="bg-white/5 border border-white/10 rounded-3xl p-4 md:p-6 text-center min-w-[100px] md:min-w-[120px] shadow-2xl">
-                                           <span className="block text-3xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
-                                           <span className="block text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
+                                     <div className="flex flex-row md:flex-col items-center gap-4 md:gap-6 shrink-0 w-full md:w-auto">
+                                        <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-6 text-center flex-1 md:flex-none md:min-w-[120px] shadow-2xl">
+                                           <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
+                                           <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
                                         </div>
-                                        <Link to="/trips" className="btn-gold px-10 py-4 rounded-2xl font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all">التفاصيل</Link>
+                                        <Link to="/trips" className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all">التفاصيل</Link>
                                      </div>
                                   </div>
                                 </CarouselItem>
@@ -156,30 +156,30 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                         className="w-full"
                         opts={{ loop: true }}
                       >
-                         <CarouselContent className="h-[220px] md:h-[250px]">
+                         <CarouselContent className="h-[280px] md:h-[250px]">
                             {upcomingMeetings.map((meeting) => {
                               const daysLeft = Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
                               return (
-                                <CarouselItem key={meeting.id} className="flex items-center p-8 md:p-12">
-                                  <div className="flex flex-col md:flex-row items-center justify-between gap-10 w-full">
+                                <CarouselItem key={meeting.id} className="flex items-center p-6 md:p-12">
+                                  <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">
                                      <div className="space-y-4 text-center md:text-right flex-1">
                                         <div className="flex items-center justify-center md:justify-start gap-3 text-amber-400">
                                            <CalendarDays size={16} />
                                            <span className="text-[10px] font-black uppercase tracking-[0.3em]">اجتماع العائلة</span>
                                         </div>
-                                        <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">{meeting.title}</h3>
-                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-white/50 font-bold text-xs">
-                                           <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5"><Clock size={14} className="text-amber-400" /> {new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</span>
-                                           <span className="flex items-center gap-2 bg-white/5 px-4 py-2 rounded-full border border-white/5"><MapPin size={14} className="text-amber-400" /> {meeting.location || "مجلس العائلة"}</span>
+                                        <h3 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight line-clamp-2 md:line-clamp-none">{meeting.title}</h3>
+                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-white/50 font-bold text-[10px] md:text-xs">
+                                           <span className="flex items-center gap-2 bg-white/5 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/5"><Clock size={12} className="text-amber-400" /> {new Date(meeting.scheduled_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</span>
+                                           <span className="flex items-center gap-2 bg-white/5 px-3 py-1.5 md:px-4 md:py-2 rounded-full border border-white/5"><MapPin size={12} className="text-amber-400" /> {meeting.location || "مجلس العائلة"}</span>
                                         </div>
                                      </div>
 
-                                     <div className="flex flex-row md:flex-col items-center gap-6 shrink-0">
-                                        <div className="bg-white/5 border border-white/10 rounded-3xl p-4 md:p-6 text-center min-w-[100px] md:min-w-[120px] shadow-2xl">
-                                           <span className="block text-3xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
-                                           <span className="block text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
+                                     <div className="flex flex-row md:flex-col items-center gap-4 md:gap-6 shrink-0 w-full md:w-auto">
+                                        <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-6 text-center flex-1 md:flex-none md:min-w-[120px] shadow-2xl">
+                                           <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
+                                           <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
                                         </div>
-                                        <Link to="/meetings" className="btn-gold px-10 py-4 rounded-2xl font-black text-xs shadow-xl hover:scale-105 active:scale-95 transition-all">الحضور</Link>
+                                        <Link to="/meetings" className="btn-gold px-6 md:px-10 py-3.5 md:py-4 rounded-xl md:rounded-2xl font-black text-[10px] md:text-xs shadow-xl flex-1 md:flex-none hover:scale-105 active:scale-95 transition-all">الحضور</Link>
                                      </div>
                                   </div>
                                 </CarouselItem>
@@ -207,10 +207,12 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount }: H
                             <ListChecks size={16} />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">المسؤوليات الجارية</span>
                          </div>
-                         <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">لديك {tasksCount} مهام قيد الإنجاز</h3>
+                         <h3 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight">لديك {tasksCount} مهام قيد الإنجاز</h3>
                          <p className="text-sm md:text-base font-bold text-white/40 max-w-xl leading-relaxed">ساهم في تحقيق أهداف العائلة من خلال إتمام المسؤوليات الموكلة إليك في أسرع وقت.</p>
                       </div>
-                      <Link to="/tasks" className="btn-gold px-12 py-5 rounded-full font-black text-sm shadow-2xl shadow-gold-primary/20 shrink-0 hover:scale-105 active:scale-95 transition-all">لوحة المسؤوليات</Link>
+                      <div className="w-full md:w-auto">
+                        <Link to="/tasks" className="btn-gold px-12 py-5 rounded-full font-black text-sm shadow-2xl shadow-gold-primary/20 shrink-0 hover:scale-105 active:scale-95 transition-all block text-center">لوحة المسؤوليات</Link>
+                      </div>
                    </div>
                 </motion.div>
               )}
