@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { TripImage } from "@/components/trip-image";
 
 interface HubProps {
   upcomingMeeting?: any;
@@ -30,13 +31,34 @@ export function IntegratedHub({ upcomingMeeting, upcomingTrip, tasksCount }: Hub
 
   return (
     <section className="px-4 animate-fade-up" style={{ animationDelay: "250ms" }}>
-      <div className="relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-white/5 bg-gradient-to-br from-[#0d2620] via-[#051410] to-black shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+      <div className="relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-white/5 bg-[#051410] shadow-[0_20px_50px_rgba(0,0,0,0.3)]">
+
+        {/* Background Image for Trips */}
+        <AnimatePresence>
+          {activeTab === "trips" && upcomingTrip && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 1 }}
+              className="absolute inset-0 z-0"
+            >
+               <TripImage path={upcomingTrip.image_url} alt="" className="size-full object-cover opacity-60" />
+               <div className="absolute inset-0 bg-gradient-to-br from-[#0d2620]/90 via-[#051410]/70 to-black/90" />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Fallback Gradient if no image or other tab */}
+        {activeTab !== "trips" && (
+           <div className="absolute inset-0 bg-gradient-to-br from-[#0d2620] via-[#051410] to-black z-0" />
+        )}
 
         {/* Subtle Decorative Glow */}
-        <div className="absolute top-0 right-0 size-40 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute top-0 right-0 size-40 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2 z-1" />
 
         {/* Tab Switcher */}
-        <div className="flex items-center justify-around p-3 border-b border-white/5 bg-black/20 backdrop-blur-md">
+        <div className="relative flex items-center justify-around p-3 border-b border-white/5 bg-black/20 backdrop-blur-md z-10">
            {tabs.map((tab) => (
              <button
                key={tab.id}

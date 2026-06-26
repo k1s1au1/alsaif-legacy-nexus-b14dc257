@@ -262,9 +262,8 @@ function Dashboard() {
               <div className="shrink-0 order-1 flex items-center justify-center">
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-2xl group-hover:blur-3xl transition-all duration-700" />
-                  <div className="relative size-28 md:size-40 rounded-full bg-[var(--hero-logo-badge)] border-[2px] border-gold-primary/25 dark:border-gold-primary/40 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] flex items-center justify-center p-3 md:p-4">
-                    <UserAvatar userId={profile.userId} path={profile.avatarPath} name={profile.name} className="size-full rounded-full" showBadges />
-                    <div className="absolute inset-0 size-full logo-alsaif opacity-10 pointer-events-none" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
+                  <div className="relative size-28 md:size-40 rounded-full bg-[var(--hero-logo-badge)] border-[2px] border-gold-primary/25 dark:border-gold-primary/40 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] flex items-center justify-center p-6 md:p-10">
+                    <div className="size-full logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
                   </div>
                 </div>
               </div>
