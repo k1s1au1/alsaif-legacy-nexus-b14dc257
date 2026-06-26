@@ -142,12 +142,19 @@ function TripDetail() {
   }
 
   async function loadChecklist(tid: string) {
-    const { data } = await supabase
-      .from("trip_checklists")
-      .select("*, assignee:profiles(arabic_name, full_name, avatar_url)")
-      .eq("trip_id", tid)
-      .order("created_at", { ascending: true });
-    setChecklist(data || []);
+    try {
+      const { data, error } = await supabase
+        .from("trip_checklists")
+        .select("*, assignee:profiles(arabic_name, full_name, avatar_url)")
+        .eq("trip_id", tid)
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+      setChecklist(data || []);
+    } catch (err: any) {
+      console.error("Load checklist error:", err);
+      // toast.error("تعذر تحميل قائمة الأغراض");
+    }
   }
 
   async function addItem() {
@@ -157,8 +164,13 @@ function TripDetail() {
       trip_id: tripId,
       item_name: newItemName.trim()
     });
-    if (!error) {
+
+    if (error) {
+      console.error("Add item error:", error);
+      toast.error("تعذر إضافة الغرض: " + error.message);
+    } else {
       setNewItemName("");
+      toast.success("تمت إضافة الغرض للقائمة");
       loadChecklist(tripId);
     }
     setAddingItem(false);
@@ -238,6 +250,7 @@ function TripDetail() {
     const channel = supabase
       .channel(`trip-${tripId}-realtime`)
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees", filter: `trip_id=eq.${tripId}` }, () => loadAttendees(tripId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "trip_checklists", filter: `trip_id=eq.${tripId}` }, () => loadChecklist(tripId))
       .subscribe();
 
     return () => {
