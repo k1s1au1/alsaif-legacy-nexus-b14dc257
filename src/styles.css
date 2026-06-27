@@ -279,7 +279,7 @@
   right: -10%;
   width: 70%;
   height: 70%;
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--mesh-color-1, rgba(212, 175, 55, 0.08)) 0%, transparent 70%);
   filter: blur(80px);
   animation: mesh-float-1 20s ease-in-out infinite;
 }
@@ -290,17 +290,17 @@
   left: -10%;
   width: 60%;
   height: 60%;
-  background: radial-gradient(circle, rgba(6, 78, 59, 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--mesh-color-2, rgba(6, 78, 59, 0.06)) 0%, transparent 70%);
   filter: blur(100px);
   animation: mesh-float-2 25s ease-in-out infinite;
 }
 
 .dark .mesh-blob-1 {
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--mesh-color-1, rgba(212, 175, 55, 0.12)) 0%, transparent 70%);
 }
 
 .dark .mesh-blob-2 {
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+  background: radial-gradient(circle, var(--mesh-color-2, rgba(212, 175, 55, 0.05)) 0%, transparent 70%);
 }
 
 @utility btn-gold {

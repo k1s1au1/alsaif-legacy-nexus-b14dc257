@@ -15,7 +15,8 @@ import {
   Palette,
   Type,
   X,
-  ImagePlus
+  ImagePlus,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -35,14 +36,52 @@ const FONTS = [
 ];
 
 const THEME_COLORS = [
-  { id: "emerald", name: "الأخضر الماسي", primary: "#064E3B", secondary: "#D4AF37", darkPrimary: "#059669", foreground: "#FFFFFF" },
-  { id: "pure-white", name: "الأبيض اللؤلؤي", primary: "#F8FAFC", secondary: "#064E3B", darkPrimary: "#F1F5F9", foreground: "#064E3B" },
-  { id: "turquoise", name: "الفيروزي المتألق", primary: "#0D9488", secondary: "#CCFBF1", darkPrimary: "#2DD4BF", foreground: "#FFFFFF" },
-  { id: "bronze", name: "البرونزي العتيق", primary: "#78350F", secondary: "#FEF3C7", darkPrimary: "#B45309", foreground: "#FFFFFF" },
-  { id: "midnight", name: "الكحلي الوقور", primary: "#1E293B", secondary: "#94A3B8", darkPrimary: "#334155", foreground: "#FFFFFF" },
-  { id: "sand", name: "الرملي الأصيل", primary: "#C2B280", secondary: "#451A03", darkPrimary: "#D2B48C", foreground: "#451A03" },
-  { id: "silver", name: "الفضي النبيل", primary: "#94A3B8", secondary: "#1E293B", darkPrimary: "#CBD5E1", foreground: "#1E293B" },
-  { id: "burgundy", name: "العنابي الفاخر", primary: "#4C0519", secondary: "#D4AF37", darkPrimary: "#800000", foreground: "#FFFFFF" },
+  {
+    id: "emerald",
+    name: "أخضر السيف (الأصلي)",
+    primary: "#064E3B",
+    secondary: "#D4AF37",
+    darkPrimary: "#059669",
+    foreground: "#FFFFFF",
+    isPrimary: true,
+    mesh: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"]
+  },
+  {
+    id: "midnight",
+    name: "الكحلي الوقور",
+    primary: "#1E293B",
+    secondary: "#94A3B8",
+    darkPrimary: "#334155",
+    foreground: "#FFFFFF",
+    mesh: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"]
+  },
+  {
+    id: "burgundy",
+    name: "العنابي الفاخر",
+    primary: "#4C0519",
+    secondary: "#D4AF37",
+    darkPrimary: "#800000",
+    foreground: "#FFFFFF",
+    mesh: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"]
+  },
+  {
+    id: "pure-white",
+    name: "الأبيض العاجي",
+    primary: "#FDFCF7",
+    secondary: "#8E7745",
+    darkPrimary: "#F1F5F9",
+    foreground: "#8E7745",
+    mesh: ["rgba(142, 119, 69, 0.1)", "rgba(253, 252, 247, 0.1)"]
+  },
+  {
+    id: "sand",
+    name: "رمل نجد (تراثي)",
+    primary: "#C2B280",
+    secondary: "#451A03",
+    darkPrimary: "#D2B48C",
+    foreground: "#451A03",
+    mesh: ["rgba(69, 26, 3, 0.1)", "rgba(194, 178, 128, 0.1)"]
+  },
 ];
 
 export const Route = createFileRoute("/_authenticated/settings")({
@@ -164,6 +203,13 @@ function SettingsPage() {
     root.style.setProperty("--primary", colors.primary);
     root.style.setProperty("--primary-foreground", colors.foreground);
     root.style.setProperty("--gold-primary", colors.secondary);
+
+    // Apply Mesh colors
+    if (colors.mesh) {
+      root.style.setProperty("--mesh-color-1", colors.mesh[0]);
+      root.style.setProperty("--mesh-color-2", colors.mesh[1]);
+    }
+
     if (root.classList.contains("dark")) {
       root.style.setProperty("--primary", colors.darkPrimary);
       root.style.setProperty("--primary-foreground", colors.foreground === "#FFFFFF" ? "#FFFFFF" : "#0A0C10");
@@ -330,11 +376,22 @@ function SettingsPage() {
                   <h3 className="text-2xl font-black text-primary tracking-tight">ألوان الهوية الفاخرة</h3>
                   <button onClick={() => setShowColorPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
                </div>
-               <div className="grid grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {THEME_COLORS.map(c => (
-                    <button key={c.id} onClick={() => handleThemeColorChange(c.id)} className={cn("p-5 rounded-[32px] border-2 transition-all text-right flex items-center gap-4 group", themeColor === c.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50")}>
+                    <button
+                      key={c.id}
+                      onClick={() => handleThemeColorChange(c.id)}
+                      className={cn(
+                        "p-5 rounded-[32px] border-2 transition-all text-right flex items-center gap-4 group relative",
+                        themeColor === c.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50"
+                      )}
+                    >
                        <div className="size-12 rounded-2xl shadow-lg shrink-0 group-hover:scale-110 transition-transform" style={{ background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }} />
-                       <span className="font-black text-sm">{c.name}</span>
+                       <div className="flex-1">
+                          <span className="font-black text-sm block">{c.name}</span>
+                          {c.isPrimary && <span className="text-[9px] font-black text-gold-primary uppercase tracking-widest mt-0.5">الهوية الأساسية</span>}
+                       </div>
+                       {c.isPrimary && <Star className="absolute top-4 left-4 size-4 text-gold-primary fill-gold-primary" />}
                     </button>
                   ))}
                </div>

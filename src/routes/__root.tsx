@@ -120,6 +120,31 @@ function RootComponent() {
       } else {
         document.documentElement.classList.remove("font-royal-mode");
       }
+
+      // Restore custom theme colors
+      const savedColor = localStorage.getItem("app-theme-color-id");
+      if (savedColor) {
+        // We only have the ID, we need the colors.
+        // For simplicity, we can fetch from a static list or just wait for the user to visit settings.
+        // Better: store the colors themselves or use a mapping.
+        const themes: Record<string, any> = {
+          "emerald": { p: "#064E3B", s: "#D4AF37", dp: "#059669", m: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"] },
+          "midnight": { p: "#1E293B", s: "#94A3B8", dp: "#334155", m: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"] },
+          "burgundy": { p: "#4C0519", s: "#D4AF37", dp: "#800000", m: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"] },
+          "pure-white": { p: "#FDFCF7", s: "#8E7745", dp: "#F1F5F9", m: ["rgba(142, 119, 69, 0.1)", "rgba(253, 252, 247, 0.1)"] },
+          "sand": { p: "#C2B280", s: "#451A03", dp: "#D2B48C", m: ["rgba(69, 26, 3, 0.1)", "rgba(194, 178, 128, 0.1)"] }
+        };
+        const c = themes[savedColor];
+        if (c) {
+          const root = document.documentElement;
+          root.style.setProperty("--primary", root.classList.contains("dark") ? c.dp : c.p);
+          root.style.setProperty("--gold-primary", c.s);
+          if (c.m) {
+            root.style.setProperty("--mesh-color-1", c.m[0]);
+            root.style.setProperty("--mesh-color-2", c.m[1]);
+          }
+        }
+      }
     }
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
