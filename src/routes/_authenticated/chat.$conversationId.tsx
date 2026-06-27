@@ -605,74 +605,85 @@ function ConversationRoute() {
         </AnimatePresence>
       </div>
 
-      <div className="px-4 md:px-6 pb-6 md:pb-8 shrink-0 relative z-20 bg-background/80 backdrop-blur-md">
+      <div className="px-4 md:px-6 pb-6 md:pb-8 shrink-0 relative z-20 bg-transparent">
          <AnimatePresence>
            {replyTo && (
-              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="mb-2 bg-card/90 backdrop-blur-md border border-border rounded-2xl p-3 md:p-4 flex items-center gap-4 shadow-xl border-r-4 border-r-gold-primary">
+              <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 20, opacity: 0 }} className="mb-3 bg-card/40 backdrop-blur-3xl border border-white/10 rounded-2xl p-3 md:p-4 flex items-center gap-4 shadow-2xl border-r-4 border-r-gold-primary">
                  <Reply className="size-4 text-gold-primary" />
                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] font-black uppercase text-gold-primary">الرد على {displayName(profiles[replyTo.sender_id])}</p>
-                    <p className="text-xs font-bold text-muted-foreground truncate">{replyTo.body || `[مرفق]`}</p>
+                    <p className="text-[10px] font-black uppercase text-gold-primary tracking-widest">الرد على {displayName(profiles[replyTo.sender_id])}</p>
+                    <p className="text-xs font-bold text-foreground/70 truncate">{replyTo.body || `[مرفق]`}</p>
                  </div>
-                 <button onClick={() => setReplyTo(null)} className="size-8 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X className="size-4 text-muted-foreground" /></button>
+                 <button onClick={() => setReplyTo(null)} className="size-8 rounded-full hover:bg-white/10 flex items-center justify-center transition-all"><X className="size-4 text-muted-foreground" /></button>
               </motion.div>
            )}
          </AnimatePresence>
 
          {recording ? (
-            <div className="bg-primary h-16 md:h-[72px] rounded-[24px] md:rounded-[28px] flex items-center px-4 md:px-6 gap-4 md:gap-6 shadow-2xl text-white">
-               <button onClick={() => stopRecording(true)} className="size-9 md:size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-all"><Trash2 className="size-4 md:size-5" /></button>
+            <div className="bg-primary/90 backdrop-blur-2xl h-16 md:h-[72px] rounded-[32px] flex items-center px-4 md:px-6 gap-4 md:gap-6 shadow-[0_20px_50px_rgba(0,0,0,0.4)] text-white border border-white/10">
+               <button onClick={() => stopRecording(true)} className="size-10 rounded-full bg-white/10 flex items-center justify-center hover:bg-red-500 transition-all border border-white/5 shadow-inner"><Trash2 className="size-4 md:size-5" /></button>
                <div className="flex-1 flex items-center gap-3 md:gap-4">
-                  <div className="size-2 md:size-3 rounded-full bg-red-400 animate-pulse" />
-                  <span className="text-base md:text-lg font-black tracking-tighter">{formatDuration(recordMs)}</span>
-                  <div className="h-1 flex-1 bg-white/20 rounded-full overflow-hidden">
-                     <motion.div className="h-full bg-white" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 60, ease: "linear" }} />
+                  <div className="size-2 md:size-3 rounded-full bg-red-400 animate-pulse shadow-[0_0_12px_rgba(248,113,113,0.8)]" />
+                  <span className="text-base md:text-lg font-black tracking-tighter tabular-nums">{formatDuration(recordMs)}</span>
+                  <div className="h-1.5 flex-1 bg-white/10 rounded-full overflow-hidden">
+                     <motion.div className="h-full bg-white shadow-[0_0_8px_rgba(255,255,255,0.5)]" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 60, ease: "linear" }} />
                   </div>
                </div>
-               <button onClick={() => stopRecording(false)} className="size-10 md:size-12 rounded-[18px] md:rounded-[20px] bg-white text-primary flex items-center justify-center hover:scale-105 transition-all shadow-lg"><Send className="size-4 md:size-5" /></button>
+               <button onClick={() => stopRecording(false)} className="size-11 md:size-13 rounded-2xl bg-white text-primary flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-xl"><Send className="size-5 md:size-6" /></button>
             </div>
          ) : !canSend ? (
-            <div className="bg-muted/30 h-14 rounded-[24px] md:rounded-[28px] border border-border flex items-center justify-center text-[11px] md:text-[13px] font-black text-muted-foreground">
+            <div className="bg-white/5 backdrop-blur-xl h-14 rounded-[32px] border border-white/10 flex items-center justify-center text-[11px] md:text-[13px] font-black text-muted-foreground/60 shadow-inner">
                <Lock className="size-3 md:size-4 ml-2 opacity-40" />
                {conv.send_permission === "admins" ? "المشرفون فقط يمكنهم إرسال الرسائل هنا" : "ليس لديك صلاحية للإرسال"}
             </div>
          ) : (
-            <form onSubmit={sendText} className="flex items-end gap-2 md:gap-3">
-               <div className="flex-1 bg-card/80 backdrop-blur-xl border border-border rounded-[24px] md:rounded-[32px] p-1.5 md:p-2 flex items-end shadow-2xl focus-within:ring-4 focus-within:ring-primary/5 transition-all">
-                  <div className="flex items-center pb-0.5 md:pb-1">
-                     <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-9 md:size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all relative">
-                        <Smile className="size-5 md:size-6" />
-                        {showEmoji && (
-                          <div className="absolute bottom-12 md:bottom-14 right-0 w-[280px] md:w-80 h-64 md:h-80 bg-card border border-border rounded-[24px] md:rounded-[32px] shadow-2xl p-3 md:p-4 grid grid-cols-6 gap-1 md:gap-2 overflow-y-auto no-scrollbar z-50">
-                             {EMOJI_PICKER.map(e => <button key={e} type="button" onClick={() => { setDraft(d => d + e); setShowEmoji(false); }} className="size-9 md:size-10 flex items-center justify-center text-lg md:text-xl hover:bg-muted rounded-xl transition-all">{e}</button>)}
-                          </div>
-                        )}
+            <form onSubmit={sendText} className="flex items-end gap-2 md:gap-4 relative">
+               <div className="flex-1 bg-white/5 dark:bg-card/40 backdrop-blur-3xl border border-white/10 rounded-[32px] p-2 flex items-end shadow-2xl focus-within:ring-4 focus-within:ring-primary/10 transition-all">
+                  <div className="flex items-center pb-1">
+                     <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-10 md:size-12 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-gold-primary transition-all relative group/emoji">
+                        <Smile className="size-6 group-hover/emoji:scale-110 transition-transform" />
+                        <AnimatePresence>
+                          {showEmoji && (
+                            <motion.div
+                              initial={{ y: 20, opacity: 0, scale: 0.9 }}
+                              animate={{ y: 0, opacity: 1, scale: 1 }}
+                              exit={{ y: 20, opacity: 0, scale: 0.9 }}
+                              className="absolute bottom-14 md:bottom-16 right-0 w-[280px] md:w-85 h-64 md:h-90 bg-card/90 backdrop-blur-3xl border border-white/10 rounded-[32px] shadow-[0_32px_60px_rgba(0,0,0,0.4)] p-4 md:p-5 grid grid-cols-6 gap-2 overflow-y-auto no-scrollbar z-50"
+                            >
+                               {EMOJI_PICKER.map(e => <button key={e} type="button" onClick={() => { setDraft(d => d + e); setShowEmoji(false); }} className="size-10 flex items-center justify-center text-xl hover:bg-white/10 rounded-xl transition-all active:scale-125">{e}</button>)}
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                      </button>
-                     <button type="button" onClick={() => fileInputRef.current?.click()} className="size-9 md:size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-gold-primary transition-all"><Paperclip className="size-5 md:size-6" /></button>
+                     <button type="button" onClick={() => fileInputRef.current?.click()} className="size-10 md:size-12 rounded-full flex items-center justify-center text-muted-foreground/50 hover:text-gold-primary transition-all group/clip">
+                        <Paperclip className="size-6 group-hover/clip:rotate-12 transition-transform" />
+                     </button>
                   </div>
                   <textarea
                     value={draft}
                     onChange={(e) => { setDraft(e.target.value); onDraftKey(); }}
                     onKeyDown={onComposerKeyDown}
-                    placeholder="اكتب رسالتك..."
+                    placeholder="اكتب رسالتك للمجلس..."
                     rows={1}
-                    className="flex-1 bg-transparent border-none focus:outline-none px-1 md:px-2 py-2.5 md:py-3.5 font-bold text-[14px] md:text-[15px] resize-none max-h-32 md:max-h-40 no-scrollbar min-h-[44px] md:min-h-[52px]"
+                    className="flex-1 bg-transparent border-none focus:outline-none px-2 py-3.5 font-bold text-[15px] md:text-[16px] resize-none max-h-40 no-scrollbar min-h-[52px]"
                   />
                   <input ref={fileInputRef} type="file" hidden onChange={(e) => onPickFile(e, "any")} />
-                  <div className="pb-0.5 md:pb-1 px-0.5 md:px-1">
-                     <button type="button" onClick={() => imageInputRef.current?.click()} className="size-9 md:size-11 rounded-full bg-primary/5 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all"><ImageIcon className="size-5 md:size-6" /></button>
+                  <div className="pb-1 px-1">
+                     <button type="button" onClick={() => imageInputRef.current?.click()} className="size-10 md:size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-inner group/img">
+                        <ImageIcon className="size-6 group-hover/img:scale-110 transition-transform" />
+                     </button>
                      <input ref={imageInputRef} type="file" accept="image/*,video/*" hidden onChange={(e) => onPickFile(e, "image")} />
                   </div>
                </div>
 
                <div className="shrink-0">
                   {draft.trim() ? (
-                     <button type="submit" className="size-[50px] md:size-[60px] rounded-[20px] md:rounded-[24px] bg-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-primary/30">
-                        <Send className="size-5 md:size-6" strokeWidth={2.5} />
+                     <button type="submit" className="size-[56px] md:size-[64px] rounded-2xl md:rounded-[28px] bg-primary text-white flex items-center justify-center shadow-[0_15px_35px_-5px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all">
+                        <Send className="size-6 md:size-7" strokeWidth={2.5} />
                      </button>
                   ) : (
-                     <button type="button" onClick={startRecording} className="size-[50px] md:size-[60px] rounded-[20px] md:rounded-[24px] bg-gold-primary text-white flex items-center justify-center shadow-2xl hover:scale-105 active:scale-95 transition-all shadow-gold-primary/30">
-                        <Mic className="size-5 md:size-6" strokeWidth={2.5} />
+                     <button type="button" onClick={startRecording} className="size-[56px] md:size-[64px] rounded-2xl md:rounded-[28px] bg-gold-primary text-white flex items-center justify-center shadow-[0_15px_35px_-5px_rgba(139,107,35,0.4)] hover:scale-105 active:scale-95 transition-all">
+                        <Mic className="size-6 md:size-7" strokeWidth={2.5} />
                      </button>
                   )}
                </div>
@@ -771,60 +782,60 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: mine ? 20 : -20, scale: 0.9 }}
-      animate={{ opacity: 1, x: 0, scale: 1 }}
-      transition={{ type: "spring", stiffness: 400, damping: 25 }}
-      className={cn("group flex items-end gap-3", mine ? "flex-row-reverse" : "flex-row")}
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+      className={cn("group flex items-end gap-2.5", mine ? "flex-row-reverse" : "flex-row")}
     >
       {!mine && (
-        <div className="size-9 rounded-[14px] border border-gold-primary/10 overflow-hidden shrink-0 shadow-sm">
+        <div className="size-9 rounded-[16px] border border-white/10 overflow-hidden shrink-0 shadow-lg">
           <UserAvatar path={profile?.avatar_url ?? null} name={name} initial={initial} className="size-full" userId={m.sender_id} />
         </div>
       )}
 
       <div className={cn("max-w-[85%] sm:max-w-[70%] flex flex-col relative", mine ? "items-end text-left" : "items-start text-right")}>
         {!mine && (
-           <span className="text-[10px] font-black text-gold-primary/80 mb-1.5 mr-3 tracking-wide">{name}</span>
+           <span className="text-[10px] font-black text-gold-primary/60 mb-1 ml-2 tracking-wide uppercase">{name}</span>
         )}
 
         <div className={cn(
-          "relative px-4 py-3 rounded-[24px] shadow-sm transition-all duration-300",
+          "relative px-4 py-3 rounded-[24px] shadow-xl backdrop-blur-xl border transition-all duration-500",
           mine
-            ? "bg-primary text-white rounded-br-none shadow-primary/10"
-            : "bg-white dark:bg-[#1E2229] border border-border text-foreground dark:text-white rounded-bl-none shadow-black/5"
+            ? "bg-gold-primary/15 dark:bg-gold-primary/10 border-gold-primary/30 text-foreground rounded-br-none"
+            : "bg-white/10 dark:bg-white/5 border-white/10 text-foreground rounded-bl-none"
         )}>
            {replyTo && (
               <div className={cn(
-                "mb-3 p-3 rounded-xl border-r-4 text-[12px] font-bold",
-                mine ? "bg-black/10 border-white/30 text-white/90" : "bg-muted/50 border-gold-primary/40 text-muted-foreground"
+                "mb-3 p-3 rounded-xl border-r-4 text-[12px] font-bold backdrop-blur-md",
+                mine ? "bg-black/10 border-gold-primary/40 text-foreground/80" : "bg-white/5 border-white/20 text-foreground/70"
               )}>
-                 <p className="text-[10px] uppercase font-black mb-1 opacity-70">{displayName(profiles[replyTo.sender_id])}</p>
+                 <p className="text-[9px] uppercase font-black mb-1 opacity-60 tracking-widest">{displayName(profiles[replyTo.sender_id])}</p>
                  <p className="truncate italic">{replyTo.deleted_at ? "رسالة محذوفة" : (replyTo.body || "[مرفق]")}</p>
               </div>
            )}
 
            {m.deleted_at ? (
-              <p className="text-xs italic opacity-40 py-1">🚫 تم حذف هذه الرسالة</p>
+              <p className="text-xs italic opacity-30 py-1">🚫 تم حذف هذه الرسالة</p>
            ) : (
-              <div className="text-[15px] font-bold leading-relaxed">
+              <div className="text-[15px] md:text-[16px] font-bold leading-relaxed">
                  <AttachmentBody m={m} />
               </div>
            )}
 
-           <div className={cn("flex items-center gap-2 mt-2 text-[10px] font-black uppercase tracking-widest", mine ? "text-white/50 justify-end" : "text-muted-foreground/50")}>
-              <span>{timeLabel(m.created_at)}</span>
+           <div className={cn("flex items-center gap-2 mt-2 text-[9px] font-black uppercase tracking-[0.1em]", mine ? "text-foreground/40 justify-end" : "text-foreground/30")}>
+              <span className="tabular-nums">{timeLabel(m.created_at)}</span>
               {mine && !m.deleted_at && (
                 <div className="flex">
-                   {status === "sent" ? <Check className="size-3" /> : status === "delivered" ? <CheckCheck className="size-3" /> : <CheckCheck className="size-3 text-emerald-400" />}
+                   {status === "sent" ? <Check className="size-3" /> : status === "delivered" ? <CheckCheck className="size-3" /> : <CheckCheck className="size-3 text-gold-primary" />}
                 </div>
               )}
            </div>
         </div>
 
         {Object.keys(rxGrouped).length > 0 && (
-           <div className={cn("flex flex-wrap gap-1 mt-2 animate-fade-in", mine ? "justify-end" : "")}>
+           <div className={cn("flex flex-wrap gap-1 mt-1.5", mine ? "justify-end" : "")}>
               {Object.entries(rxGrouped).map(([emoji, info]: any) => (
-                <button key={emoji} onClick={() => onPickReaction(emoji)} className={cn("px-2 py-1 rounded-full text-xs font-black border flex items-center gap-1.5 transition-all active:scale-90", info.mine ? "bg-primary text-white border-primary" : "bg-card border-border text-primary hover:border-gold-primary")}>
+                <button key={emoji} onClick={() => onPickReaction(emoji)} className={cn("px-2 py-1 rounded-full text-xs font-black border backdrop-blur-md flex items-center gap-1.5 transition-all active:scale-90", info.mine ? "bg-gold-primary/20 border-gold-primary/40 text-gold-primary" : "bg-white/5 border-white/10 text-primary/60 hover:border-gold-primary/30")}>
                    <span>{emoji}</span>
                    <span className="opacity-60">{info.count}</span>
                 </button>
@@ -833,17 +844,17 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
         )}
 
         {reacting && (
-           <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} className={cn("absolute -top-12 z-50 bg-card border border-border p-1 rounded-2xl flex gap-1 shadow-2xl", mine ? "right-0" : "left-0")}>
-              {EMOJI_QUICK.map(e => <button key={e} onClick={() => onPickReaction(e)} className="size-10 flex items-center justify-center text-xl hover:bg-muted rounded-xl transition-all active:scale-125">{e}</button>)}
+           <motion.div initial={{ y: 10, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} className={cn("absolute -top-14 z-50 bg-card/90 backdrop-blur-2xl border border-white/10 p-1.5 rounded-[24px] flex gap-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)]", mine ? "right-0" : "left-0")}>
+              {EMOJI_QUICK.map(e => <button key={e} onClick={() => onPickReaction(e)} className="size-11 flex items-center justify-center text-2xl hover:bg-white/10 rounded-2xl transition-all active:scale-125">{e}</button>)}
            </motion.div>
         )}
       </div>
 
       {!m.deleted_at && (
          <div className={cn("opacity-0 group-hover:opacity-100 transition-all flex items-center self-center", mine ? "flex-row-reverse" : "")}>
-            <button onClick={onReact} className="p-2 text-muted-foreground hover:text-gold-primary transition-all"><Smile size={16} /></button>
-            <button onClick={onReply} className="p-2 text-muted-foreground hover:text-gold-primary transition-all"><Reply size={16} /></button>
-            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground hover:text-red-500 transition-all"><Trash2 size={16} /></button>}
+            <button onClick={onReact} className="p-2 text-muted-foreground/40 hover:text-gold-primary transition-all"><Smile size={16} /></button>
+            <button onClick={onReply} className="p-2 text-muted-foreground/40 hover:text-gold-primary transition-all"><Reply size={16} /></button>
+            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground/40 hover:text-red-500 transition-all"><Trash2 size={16} /></button>}
          </div>
       )}
     </motion.div>
