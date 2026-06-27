@@ -205,6 +205,7 @@ function Dashboard() {
   const [bugImage, setBugImage] = useState<File | null>(null);
   const [bugImagePreview, setBugImagePreview] = useState<string | null>(null);
   const [bugSending, setBugSending] = useState(false);
+  const hasGreeted = useRef(false);
   const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
@@ -229,7 +230,10 @@ function Dashboard() {
         userId: u.id,
       });
 
-      showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
+      if (!hasGreeted.current) {
+        showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
+        hasGreeted.current = true;
+      }
 
       // Check Notification Permission
       if (typeof window !== "undefined" && "Notification" in window) {
