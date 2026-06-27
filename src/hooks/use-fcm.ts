@@ -3,6 +3,21 @@ import { supabase } from "@/integrations/supabase/client";
 import { FCM_VAPID_KEY } from "@/lib/fcm-config";
 import { toast } from "sonner";
 
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding)
+    .replace(/\-/g, '+')
+    .replace(/_/g, '/');
+
+  const rawData = window.atob(base64);
+  const outputArray = new Uint8Array(rawData.length);
+
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i);
+  }
+  return outputArray;
+}
+
 export function useFcm() {
   useEffect(() => {
     const win = window as any;
@@ -21,8 +36,10 @@ export function useFcm() {
 
         if (error) {
           console.error("FCM Token Save Error:", error);
+          toast.error("فشل حفظ رمز الجهاز في قاعدة البيانات");
         } else {
           console.log("FCM Token saved successfully.");
+          toast.success("تم ربط جهازك بنظام الإشعارات بنجاح! 🔔");
         }
       } catch (e) {
         console.error("FCM Save Token Exception:", e);
@@ -57,6 +74,7 @@ export function useFcm() {
           // Listen for errors
           PushNotifications.addListener("registrationError", (err: any) => {
             console.error("Push registration error:", err);
+            toast.error("خطأ في تسجيل إشعارات الجوال");
           });
 
         } catch (err) {
@@ -83,7 +101,7 @@ export function useFcm() {
               if (sw.pushManager) {
                 const subscription = await sw.pushManager.subscribe({
                   userVisibleOnly: true,
-                  applicationServerKey: FCM_VAPID_KEY
+                  applicationServerKey: urlBase64ToUint8Array(FCM_VAPID_KEY)
                 });
 
                 if (subscription) {
@@ -92,8 +110,11 @@ export function useFcm() {
                   await saveToken(webToken, "web");
                 }
               }
-            } catch (swErr) {
+            } catch (swErr: any) {
               console.warn("Service Worker registration failed:", swErr);
+              if (swErr.name !== 'AbortError') {
+                toast.error("تعذر تسجيل المتصفح في نظام الإشعارات");
+              }
             }
           }
         } catch (err) {
