@@ -430,39 +430,47 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20">
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] border border-[var(--hero-pill-border)] bg-[var(--hero-card)] shadow-[0_8px_40px_-12px_rgba(0,0,0,0.06)]">
+          <div className="relative overflow-hidden rounded-[44px] glass-surface glass-reflection shadow-[0_32px_120px_-20px_rgba(0,0,0,0.3)]">
+            {/* Background Light Glows */}
+            <div className="absolute top-0 right-0 size-[500px] bg-gold-primary/5 blur-[120px] -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 left-0 size-[400px] bg-primary/5 blur-[100px] translate-y-1/2 -translate-x-1/2 rounded-full pointer-events-none" />
+
             <div className="absolute left-0 top-0 bottom-0 w-1/3 md:w-1/4 pointer-events-none overflow-hidden opacity-[0.06] dark:opacity-[0.03]">
               <img src={palmWatermark} alt="" className="absolute -left-4 -bottom-4 h-[120%] md:h-[140%] w-auto max-w-none object-contain object-bottom saturate-[0.7] opacity-80" loading="lazy" />
             </div>
-            <div className="relative z-10 flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-10 p-6 md:p-10">
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center md:items-stretch gap-6 md:gap-10 p-8 md:p-14">
               <div className="shrink-0 order-1 flex items-center justify-center">
                 <div className="relative group">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-2xl group-hover:blur-3xl transition-all duration-700" />
-                  <div className="relative size-28 md:size-40 rounded-full bg-[var(--hero-logo-badge)] border-[2px] border-gold-primary/25 dark:border-gold-primary/40 shadow-[0_12px_40px_-12px_rgba(0,0,0,0.15)] flex items-center justify-center p-6 md:p-10">
+                  <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-3xl group-hover:blur-4xl transition-all duration-1000" />
+                  <div className="relative size-32 md:size-48 rounded-full bg-white/5 backdrop-blur-3xl border-[3px] border-gold-primary/30 shadow-[0_32px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center p-8 md:p-12">
                     <div className="size-full logo-alsaif" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
                   </div>
                 </div>
               </div>
-              <div className="hidden md:flex flex-col items-center justify-center gap-2 self-stretch py-6 order-1">
-                <div className="w-px flex-1 bg-[var(--hero-divider)]" />
-                <div className="size-1.5 rounded-full bg-gold-primary shadow-[0_0_6px_rgba(142,119,69,0.4)]" />
-                <div className="w-px flex-1 bg-[var(--hero-divider)]" />
+
+              <div className="hidden md:flex flex-col items-center justify-center gap-3 self-stretch py-8 order-1 opacity-20">
+                <div className="w-px flex-1 bg-gradient-to-b from-transparent via-gold-primary to-transparent" />
+                <div className="size-2 rounded-full bg-gold-primary shadow-[0_0_12px_rgba(212,175,55,0.6)]" />
+                <div className="w-px flex-1 bg-gradient-to-b from-transparent via-gold-primary to-transparent" />
               </div>
-              <div className="flex-1 text-center md:text-right space-y-5 order-2">
-                <div className="space-y-2">
-                  <p className="text-gold-primary font-black uppercase tracking-[0.2em] text-[10px] md:text-xs opacity-80">{getGreeting()}،</p>
-                  <h2 className="text-3xl sm:text-4xl md:text-5xl font-black tracking-tight leading-tight text-foreground">{profile.name}</h2>
-                  <p className="text-sm md:text-base text-muted-foreground font-bold opacity-70">{getStatusSummary()}</p>
+
+              <div className="flex-1 text-center md:text-right space-y-6 order-2">
+                <div className="space-y-3">
+                  <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-90 drop-shadow-sm">{getGreeting()}،</p>
+                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-tight text-foreground drop-shadow-2xl">{profile.name}</h2>
+                  <p className="text-base md:text-xl text-muted-foreground font-bold opacity-80 leading-relaxed max-w-2xl md:mr-0 mx-auto">{getStatusSummary()}</p>
                 </div>
-                <div className="inline-flex items-center gap-3 md:gap-4 rounded-full border border-[var(--hero-pill-border)] bg-[var(--hero-pill)] backdrop-blur-md px-4 md:px-6 py-2.5 md:py-3 shadow-sm mx-auto md:mx-0">
-                  <div className="flex items-center gap-2 text-[#8E7745] dark:text-gold-primary">
-                    <Calendar className="size-4 md:size-5" />
-                    <span className="text-[11px] md:text-sm font-black text-foreground/80 tracking-wide"><LiveClock variant="date" /></span>
+
+                <div className="inline-flex items-center gap-4 md:gap-6 rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl px-6 md:px-8 py-3 md:py-4 shadow-2xl mx-auto md:mx-0">
+                  <div className="flex items-center gap-3 text-gold-primary">
+                    <Calendar className="size-5 md:size-6" />
+                    <span className="text-xs md:text-lg font-black text-foreground tracking-wide tabular-nums"><LiveClock variant="date" /></span>
                   </div>
-                  <div className="h-4 md:h-5 w-px bg-[var(--hero-divider)]" />
-                  <div className="flex items-center gap-2 text-[#8E7745] dark:text-gold-primary">
-                    <Clock className="size-4 md:size-5" />
-                    <span className="text-[11px] md:text-sm font-black tabular-nums tracking-wider text-foreground/80"><LiveClock variant="time" /></span>
+                  <div className="h-6 md:h-8 w-px bg-white/10" />
+                  <div className="flex items-center gap-3 text-gold-primary">
+                    <Clock className="size-5 md:size-6" />
+                    <span className="text-xs md:text-lg font-black tabular-nums tracking-widest text-foreground"><LiveClock variant="time" /></span>
                   </div>
                 </div>
               </div>
@@ -483,20 +491,20 @@ function Dashboard() {
         {heritageSnippet && (
           <section className="px-4 animate-fade-up" style={{ animationDelay: "180ms" }}>
              <Link to="/heritage" className="block group">
-                <div className="relative overflow-hidden rounded-[24px] bg-gold-primary/[0.03] border border-gold-primary/20 p-6 transition-all hover:bg-gold-primary/[0.06] hover:border-gold-primary/40">
-                   <div className="flex items-center gap-4">
-                      <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center shrink-0">
-                         <Scroll className="size-6 text-gold-primary" />
+                <div className="relative overflow-hidden rounded-[32px] glass-gold-surface p-8 transition-all duration-500 hover:scale-[1.01] hover:shadow-2xl">
+                   <div className="flex items-center gap-6">
+                      <div className="size-16 rounded-[22px] bg-gold-primary/10 flex items-center justify-center shrink-0 border border-gold-primary/20 shadow-xl">
+                         <Scroll className="size-8 text-gold-primary" />
                       </div>
-                      <div className="min-w-0 flex-1 space-y-1">
-                         <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gold-primary/60">قبس من التاريخ</span>
-                            <div className="h-px w-8 bg-gold-primary/20" />
+                      <div className="min-w-0 flex-1 space-y-2">
+                         <div className="flex items-center gap-3">
+                            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary/80">قبس من تاريخ السيف</span>
+                            <div className="h-px w-12 bg-gold-primary/20" />
                          </div>
-                         <h3 className="text-base md:text-lg font-black text-primary truncate">{heritageSnippet.title}</h3>
-                         <p className="text-xs md:text-sm font-bold text-muted-foreground line-clamp-1 italic opacity-80">"{heritageSnippet.cleanBody}"</p>
+                         <h3 className="text-xl md:text-2xl font-black text-primary truncate">{heritageSnippet.title}</h3>
+                         <p className="text-sm md:text-lg font-bold text-muted-foreground line-clamp-1 italic opacity-90 leading-relaxed">"{heritageSnippet.cleanBody}"</p>
                       </div>
-                      <ChevronLeft className="size-5 text-gold-primary opacity-40 group-hover:opacity-100 group-hover:-translate-x-1 transition-all shrink-0" />
+                      <ChevronLeft className="size-6 text-gold-primary opacity-30 group-hover:opacity-100 group-hover:-translate-x-2 transition-all shrink-0" />
                    </div>
                 </div>
              </Link>
@@ -565,9 +573,18 @@ function Dashboard() {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((s, i) => (
               <Link key={i} to={s.link} className="block group">
-                <div className={cn("relative overflow-hidden rounded-[32px] p-8 text-white shadow-xl transition-all duration-500 hover:scale-[1.02]", s.color)}>
-                  <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">{s.icon}</div>
-                  <div className="relative z-10 space-y-4"><p className="text-sm font-black uppercase tracking-widest opacity-80">{s.label}</p><div className="flex items-baseline gap-2"><span className="text-4xl font-black tracking-tighter"><AnimatedCounter value={s.value} /></span><span className="text-sm font-bold opacity-60">{s.suffix}</span></div></div>
+                <div className={cn(
+                  "relative overflow-hidden rounded-[36px] p-8 text-white shadow-2xl transition-all duration-700 hover:scale-[1.05] hover:shadow-gold-primary/10 glass-reflection",
+                  s.color
+                )}>
+                  <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 group-hover:rotate-12 transition-all duration-700">{s.icon}</div>
+                  <div className="relative z-10 space-y-6">
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">{s.label}</p>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-5xl font-black tracking-tighter"><AnimatedCounter value={s.value} /></span>
+                      <span className="text-xs font-bold opacity-60 uppercase tracking-widest">{s.suffix}</span>
+                    </div>
+                  </div>
                 </div>
               </Link>
             ))}
@@ -575,9 +592,22 @@ function Dashboard() {
         </section>
 
         <section className="px-4 pb-20 animate-fade-up" style={{ animationDelay: "400ms" }}>
-          <div className="card-surface p-8 md:p-12 border-dashed border-2 border-primary/20 flex flex-col md:flex-row items-center justify-between gap-8 text-center md:text-right">
-            <div className="space-y-2"><div className="flex items-center justify-center md:justify-start gap-2 text-rose-500"><ShieldAlert className="size-5" /><span className="text-xs font-black uppercase tracking-widest">الدعم الفني</span></div><h3 className="text-2xl font-black text-primary">هل واجهت مشكلة في النظام؟</h3><p className="text-sm font-bold text-muted-foreground opacity-70">أبلغ المشرفين عن أي أخطاء برمجية لمساعدتنا في تحسين تجربتك.</p></div>
-            <button onClick={() => setShowBugReport(true)} className="px-10 py-4 rounded-2xl bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-sm flex items-center gap-2"><ShieldAlert size={18} /> إرسال بلاغ عن خطأ</button>
+          <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right relative overflow-hidden group">
+            <div className="absolute inset-0 bg-rose-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity" />
+            <div className="space-y-4 relative z-10">
+              <div className="flex items-center justify-center md:justify-start gap-3 text-rose-500">
+                <ShieldAlert className="size-6" />
+                <span className="text-[10px] font-black uppercase tracking-[0.3em]">الدعم الفني والتقني</span>
+              </div>
+              <h3 className="text-3xl font-black text-primary tracking-tight">هل واجهت عائقاً في النظام؟</h3>
+              <p className="text-base md:text-lg font-bold text-muted-foreground opacity-80 max-w-xl">أبلغ فريق الإشراف عن أي ملاحظة برمجية لمساعدتنا في تطوير تجربة تليق بعائلة السيف.</p>
+            </div>
+            <button
+              onClick={() => setShowBugReport(true)}
+              className="px-12 py-5 rounded-[22px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-xl flex items-center gap-3 relative z-10 active:scale-95"
+            >
+              <ShieldAlert size={20} /> إرسال بلاغ فوري
+            </button>
           </div>
         </section>
 

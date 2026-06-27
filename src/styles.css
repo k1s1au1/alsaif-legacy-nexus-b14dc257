@@ -197,6 +197,51 @@
   backdrop-filter: blur(12px);
 }
 
+/* Glassmorphism 2.0 Utilities */
+@utility glass-surface {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+.dark .glass-surface {
+  background: rgba(18, 20, 28, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.6);
+}
+
+@utility glass-gold-surface {
+  background: rgba(142, 119, 69, 0.05);
+  backdrop-filter: blur(20px) saturate(160%);
+  border: 1px solid rgba(142, 119, 69, 0.2);
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
+}
+
+.dark .glass-gold-surface {
+  background: rgba(212, 175, 55, 0.03);
+  border: 1px solid rgba(212, 175, 55, 0.15);
+}
+
+@utility glass-reflection {
+  position: relative;
+  overflow: hidden;
+  &::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle at center, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+    pointer-events: none;
+    transition: transform 0.5s ease-out;
+  }
+  &:hover::before {
+    transform: translate(10%, 10%);
+  }
+}
+
 @utility btn-gold {
   background: linear-gradient(135deg, #8b6b23 0%, #b8972e 100%);
   color: white;

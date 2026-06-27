@@ -210,15 +210,15 @@ export function AppShell({
       </motion.aside>
 
       <main className="relative min-h-screen pb-20">
-        <header className="h-20 sticky top-0 z-[50] px-6 lg:px-10 flex items-center justify-between bg-card/80 backdrop-blur-md border-b border-border transition-all shadow-sm">
-          <div className="flex items-center gap-5">
+        <header className="h-24 sticky top-0 z-[50] px-6 lg:px-12 flex items-center justify-between bg-background/60 backdrop-blur-3xl border-b border-white/5 transition-all shadow-[0_8px_32px_-12px_rgba(0,0,0,0.1)]">
+          <div className="flex items-center gap-6">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="size-11 grid place-items-center rounded-xl bg-primary text-primary-foreground hover:brightness-110 transition-all active:scale-95 shadow-md"
+              className="size-12 grid place-items-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all active:scale-95 shadow-xl shadow-primary/20"
             >
-              <Menu className="size-6" />
+              <Menu className="size-6" strokeWidth={2.5} />
             </button>
-            <h1 className="text-[19px] font-bold tracking-tight text-primary">{title}</h1>
+            <h1 className="text-xl font-black tracking-tight text-primary uppercase tracking-[0.05em]">{title}</h1>
           </div>
 
           <div className="flex items-center gap-4">
