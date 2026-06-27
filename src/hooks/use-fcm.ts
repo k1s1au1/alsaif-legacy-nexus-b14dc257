@@ -24,26 +24,20 @@ export function useFcm() {
 
     const saveToken = async (token: string, type: string) => {
       try {
-        console.log(`FCM: Registering ${type} token via RPC V3...`);
-        // Matching the exact parameter order and names from the new SQL function
-        const { error } = await supabase.rpc('fcm_register_v3', {
-          p_device_type: type,
-          p_token: token
-        });
+        const { data: auth } = await supabase.auth.getUser();
+        if (!auth.user) return;
+
+        console.log(`FCM: Registering ${type} token to profile...`);
+        const { error } = await supabase
+          .from("profiles")
+          .update({ fcm_token: token })
+          .eq("id", auth.user.id);
 
         if (error) {
-          console.error("FCM Token RPC Error:", error);
-          // If still cache error, try to fallback to direct insert if it's finally ready
-          if (error.message?.includes('cache')) {
-             await (supabase as any).from("fcm_tokens_v2").upsert({
-               user_id: (await supabase.auth.getUser()).data.user?.id,
-               token: token,
-               device_type: type
-             }, { onConflict: "user_id, token" });
-          }
-          toast.error(`تنبيه: ${error.message}`);
+          console.error("FCM Token Error:", error);
+          toast.error(`خطأ في الربط: ${error.message}`);
         } else {
-          console.log("FCM: Token registered via V3 successfully.");
+          console.log("FCM: Token saved to profile successfully.");
           toast.success("تم ربط جهازك بنظام الإشعارات بنجاح! 🔔");
         }
       } catch (e) {

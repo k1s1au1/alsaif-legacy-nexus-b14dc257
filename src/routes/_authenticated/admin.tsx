@@ -161,8 +161,8 @@ function AdminPage() {
 
           setAnnouncements(anns || []);
 
-          // Fetch FCM Token Count (V2)
-          const { count: tc } = await supabase.from("fcm_tokens_v2" as any).select("*", { count: "exact", head: true });
+          // Fetch FCM Token Count (from profiles)
+          const { count: tc } = await supabase.from("profiles").select("*", { count: "exact", head: true }).not("fcm_token", "is", null);
           setFcmTokenCount(tc || 0);
 
           const counts = { pending: 0, approved: 0, rejected: 0 };

@@ -15,22 +15,26 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
-    // 1. Fetch tokens from V2 table
-    const { data: tokens, error: tokenErr } = await (supabase as any)
-      .from("fcm_tokens_v2")
-      .select("token");
+    // 1. Fetch tokens from profiles table
+    const { data: profiles, error: fetchErr } = await (supabase as any)
+      .from("profiles")
+      .select("fcm_token")
+      .not("fcm_token", "is", null);
 
-    if (tokenErr) {
-      console.error("Token fetch error:", tokenErr);
+    if (fetchErr) {
+      console.error("FCM: Error fetching profiles:", fetchErr);
       return { success: false, error: "Database error" };
     }
 
-    if (!tokens || tokens.length === 0) {
-      console.warn("No FCM tokens found in DB.");
-      return { success: false, error: "No registered devices found. Please open the site on your phone and allow notifications." };
+    const registration_ids = (profiles as Array<{ fcm_token: string }>)
+      .map(p => p.fcm_token)
+      .filter(Boolean);
+
+    if (registration_ids.length === 0) {
+      return { success: false, error: "No registered devices found." };
     }
 
-    console.log(`FCM: Found ${tokens.length} tokens. Attempting to send...`);
+    console.log(`FCM: Sending to ${registration_ids.length} devices...`);
 
     // 2. Load Service Account from Env
     const serviceAccountRaw = process.env.FCM_SERVICE_ACCOUNT;
