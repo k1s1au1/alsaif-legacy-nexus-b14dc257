@@ -60,7 +60,7 @@ export function NewsTicker() {
       }));
 
       if (news.length === 0) {
-        news.push({ id: 'welcome', text: 'أهلاً بك في فضاء عائلة السيف الرقمي', icon: Sparkles, color: 'text-gold-primary', bg: 'bg-gold-primary/5' });
+        news.push({ id: 'welcome', text: 'مجلس عائلة السيف الرقمي', icon: Sparkles, color: 'text-gold-primary', bg: 'bg-gold-primary/5' });
       }
 
       setItems(news);

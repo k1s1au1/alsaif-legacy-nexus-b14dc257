@@ -9,7 +9,7 @@ export function WelcomeScreen({ onComplete }: { onComplete: () => void }) {
 
   const steps = [
     {
-      title: "أهلاً بك في مجلس السيف",
+      title: "مجلس السيف",
       description: "منصتكم العائلية الخاصة للتواصل، التنظيم، وحفظ الإرث العريق لأجيالنا القادمة.",
       icon: <Sparkles className="size-12 text-[#D4AF37]" />,
     },

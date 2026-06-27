@@ -102,7 +102,6 @@ function OnboardingPage() {
       toast.error("تعذر الحفظ، حاول مرة أخرى");
       return;
     }
-    toast.success("أهلاً بك في السيف");
     navigate({ to: "/dashboard", replace: true });
   }
 

@@ -60,7 +60,6 @@ function AuthPage() {
       toast.error("تعذّر الدخول", { description: "تأكد من البيانات المعتمدة من الإدارة." });
       return;
     }
-    toast.success("أهلاً بك في مجلس السيف");
     navigate({ to: "/dashboard", replace: true });
   }
 
