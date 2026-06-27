@@ -15,9 +15,9 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
-    // 1. Fetch tokens
+    // 1. Fetch tokens from V2 table
     const { data: tokens, error: tokenErr } = await (supabase as any)
-      .from("user_fcm_tokens")
+      .from("fcm_tokens_v2")
       .select("token");
 
     if (tokenErr) {

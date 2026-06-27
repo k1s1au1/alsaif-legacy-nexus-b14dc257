@@ -28,7 +28,7 @@ export function useFcm() {
         if (!auth.user) return;
 
         console.log(`FCM: Registering ${type} token...`);
-        const { error } = await (supabase as any).from("user_fcm_tokens").upsert({
+        const { error } = await (supabase as any).from("fcm_tokens_v2").upsert({
           user_id: auth.user.id,
           token: token,
           device_type: type
