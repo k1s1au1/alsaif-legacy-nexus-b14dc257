@@ -36,7 +36,7 @@ export function useFcm() {
 
         if (error) {
           console.error("FCM Token Save Error:", error);
-          toast.error("فشل حفظ رمز الجهاز في قاعدة البيانات");
+          toast.error(`فشل الحفظ: ${error.message || 'خطأ في قاعدة البيانات'}`);
         } else {
           console.log("FCM Token saved successfully.");
           toast.success("تم ربط جهازك بنظام الإشعارات بنجاح! 🔔");
