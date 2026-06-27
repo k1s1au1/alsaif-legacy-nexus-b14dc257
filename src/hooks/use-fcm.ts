@@ -48,11 +48,13 @@ export function useFcm() {
 
           await PushNotifications.register();
 
+          // Listen for registration (getting the token)
           PushNotifications.addListener("registration", async (token: { value: string }) => {
             console.log("Push registration success (Native):", token.value);
             await saveToken(token.value, win.Capacitor.getPlatform());
           });
 
+          // Listen for errors
           PushNotifications.addListener("registrationError", (err: any) => {
             console.error("Push registration error:", err);
           });
@@ -69,10 +71,33 @@ export function useFcm() {
           }
 
           if (Notification.permission === "granted") {
-            console.log("Web Push: Permission granted. Notifications will work via the mobile app.");
+            // Register service worker for Web Push
+            try {
+              const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+                scope: '/'
+              });
+
+              // Wait for it to be ready
+              const sw = await navigator.serviceWorker.ready;
+
+              if (sw.pushManager) {
+                const subscription = await sw.pushManager.subscribe({
+                  userVisibleOnly: true,
+                  applicationServerKey: FCM_VAPID_KEY
+                });
+
+                if (subscription) {
+                  const webToken = JSON.stringify(subscription);
+                  console.log("Web Push Registration Success");
+                  await saveToken(webToken, "web");
+                }
+              }
+            } catch (swErr) {
+              console.warn("Service Worker registration failed:", swErr);
+            }
           }
         } catch (err) {
-          console.warn("Web Push initialization skipped:", err);
+          console.warn("Web Push initialization failed:", err);
         }
       }
     };
