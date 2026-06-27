@@ -53,6 +53,7 @@ export const Route = createFileRoute("/_authenticated/settings")({
 function SettingsPage() {
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system" | null>(null);
   const [font, setFont] = useState("Tajawal");
+  const [fontStyle, setFontStyle] = useState<"modern" | "royal">("modern");
   const [themeColor, setThemeColor] = useState("emerald");
   const [appVersion, setAppVersion] = useState("1.1.8 (Web)");
   const [isNative, setIsNative] = useState(false);
@@ -91,6 +92,13 @@ function SettingsPage() {
       if (fontObj) applyFont(fontObj.family);
     }
 
+    // Load saved font style
+    const savedStyle = localStorage.getItem("font-style") as "modern" | "royal" | null;
+    if (savedStyle) {
+      setFontStyle(savedStyle);
+      applyFontStyle(savedStyle);
+    }
+
     // Load saved theme color
     const savedColor = localStorage.getItem("app-theme-color-id");
     if (savedColor) {
@@ -124,6 +132,21 @@ function SettingsPage() {
 
   const applyFont = (fontFamily: string) => {
     document.documentElement.style.setProperty("--app-font", fontFamily);
+  };
+
+  const applyFontStyle = (style: "modern" | "royal") => {
+    if (style === "royal") {
+      document.documentElement.classList.add("font-royal-mode");
+    } else {
+      document.documentElement.classList.remove("font-royal-mode");
+    }
+  };
+
+  const handleFontStyleChange = (style: "modern" | "royal") => {
+    setFontStyle(style);
+    localStorage.setItem("font-style", style);
+    applyFontStyle(style);
+    toast.success(`تم تفعيل النمط ${style === "royal" ? "الملكي" : "العصري"}`);
   };
 
   const handleFontChange = (fontId: string) => {
@@ -186,8 +209,47 @@ function SettingsPage() {
 
         <section className="space-y-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
           <div className="flex items-center gap-4">
-             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">التخصيص الفاخر</h3>
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">النمط والخطوط</h3>
              <div className="h-px flex-1 bg-border/60" />
+          </div>
+
+          <div className="card-surface p-8 space-y-8">
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                   <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                         <Type className="size-5" />
+                      </div>
+                      <h4 className="text-lg font-black text-primary">نمط الكتابة العام</h4>
+                   </div>
+                   <div className="flex gap-2 p-1 bg-muted/40 rounded-2xl border border-border/40">
+                      <button
+                        onClick={() => handleFontStyleChange("modern")}
+                        className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", fontStyle === "modern" ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}
+                      >عصري</button>
+                      <button
+                        onClick={() => handleFontStyleChange("royal")}
+                        className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", fontStyle === "royal" ? "bg-gold-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}
+                      >ملكي (مخطوطة)</button>
+                   </div>
+                </div>
+
+                <div className="space-y-4">
+                   <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                         <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                            <Languages className="size-5" />
+                         </div>
+                         <h4 className="text-lg font-black text-primary">اختيار الخط المخصص</h4>
+                      </div>
+                      <button onClick={() => setShowFontPicker(true)} className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline">تغيير</button>
+                   </div>
+                   <div className="p-4 rounded-2xl bg-muted/30 border border-border/60">
+                      <p className="text-sm font-bold text-primary">{currentFontObj.name}</p>
+                      <p className="text-[10px] text-muted-foreground">{currentFontObj.desc}</p>
+                   </div>
+                </div>
+             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -205,24 +267,6 @@ function SettingsPage() {
                  className="w-full btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-2xl shadow-gold-primary/20"
                >
                  <Palette className="size-5" /> اختيار لون جديد
-               </button>
-            </div>
-
-            <div className="card-surface p-8 space-y-6 group">
-               <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                     <p className="text-xs font-black text-muted-foreground uppercase tracking-widest">خط الكتابة</p>
-                     <h4 className="text-xl font-black text-primary">{currentFontObj.name}</h4>
-                  </div>
-                  <div className="size-14 rounded-2xl bg-primary/5 flex items-center justify-center text-primary group-hover:-rotate-12 transition-transform duration-500">
-                     <Type className="size-7" />
-                  </div>
-               </div>
-               <button
-                 onClick={() => setShowFontPicker(true)}
-                 className="w-full px-6 py-4 rounded-2xl bg-primary/5 text-primary border border-primary/10 hover:bg-primary hover:text-white transition-all font-black text-sm"
-               >
-                 تغيير نوع الخط
                </button>
             </div>
           </div>

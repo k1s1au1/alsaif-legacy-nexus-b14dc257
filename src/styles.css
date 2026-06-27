@@ -33,6 +33,7 @@
   --color-ring: var(--ring);
 
   --font-arabic: var(--app-font, "IBM Plex Sans Arabic", "Tajawal", sans-serif);
+  --font-royal: "Amiri", "Reem Kufi", serif;
 
   --radius-sm: 10px;
   --radius-md: 14px;
@@ -98,6 +99,12 @@
     font-family: var(--font-arabic);
     transition: all 0.4s ease;
   }
+
+  html.font-royal-mode,
+  html.font-royal-mode body {
+    font-family: var(--font-royal) !important;
+  }
+
   /* Dark mode legibility: ensure text remains crisp over images/glass backgrounds */
   .dark body {
     text-rendering: optimizeLegibility;
