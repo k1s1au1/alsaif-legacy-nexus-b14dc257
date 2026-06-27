@@ -428,8 +428,14 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
-      <div className="max-w-6xl mx-auto space-y-12 pb-20">
-        <section className="animate-fade-up">
+      <div className="max-w-6xl mx-auto space-y-12 pb-20 relative">
+        {/* Ambient Background Glows */}
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0 opacity-40">
+           <div className="absolute top-1/4 -right-20 size-[500px] bg-gold-primary/10 blur-[120px] ambient-pulse" />
+           <div className="absolute bottom-1/4 -left-20 size-[600px] bg-primary/10 blur-[150px] ambient-pulse" style={{ animationDelay: '-4s' }} />
+        </div>
+
+        <section className="animate-fade-up relative z-10">
           <div className="relative overflow-hidden rounded-[44px] glass-surface glass-reflection shadow-[0_32px_120px_-20px_rgba(0,0,0,0.3)]">
             {/* Background Light Glows */}
             <div className="absolute top-0 right-0 size-[500px] bg-gold-primary/5 blur-[120px] -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
@@ -569,14 +575,19 @@ function Dashboard() {
             );
           })()}
 
-        <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
+        <section className="px-4 animate-fade-up relative z-10" style={{ animationDelay: "300ms" }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map((s, i) => (
               <Link key={i} to={s.link} className="block group">
-                <div className={cn(
-                  "relative overflow-hidden rounded-[36px] p-8 text-white shadow-2xl transition-all duration-700 hover:scale-[1.05] hover:shadow-gold-primary/10 glass-reflection",
-                  s.color
-                )}>
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                  className={cn(
+                    "relative overflow-hidden rounded-[36px] p-8 text-white shadow-2xl transition-all duration-700 hover:shadow-gold-primary/10 glass-reflection",
+                    s.color
+                  )}
+                >
                   <div className="absolute top-0 right-0 p-8 opacity-20 group-hover:opacity-40 group-hover:rotate-12 transition-all duration-700">{s.icon}</div>
                   <div className="relative z-10 space-y-6">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80">{s.label}</p>
@@ -585,7 +596,7 @@ function Dashboard() {
                       <span className="text-xs font-bold opacity-60 uppercase tracking-widest">{s.suffix}</span>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </Link>
             ))}
           </div>

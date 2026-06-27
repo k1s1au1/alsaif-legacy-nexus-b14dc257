@@ -218,6 +218,29 @@
   box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.4);
 }
 
+/* Liquid & Ambient Animations */
+@utility ambient-pulse {
+  animation: ambient-pulse 8s ease-in-out infinite alternate;
+}
+
+@keyframes ambient-pulse {
+  0% { transform: scale(1) translate(0, 0); opacity: 0.3; }
+  50% { transform: scale(1.2) translate(5%, 5%); opacity: 0.5; }
+  100% { transform: scale(1) translate(-5%, 2%); opacity: 0.3; }
+}
+
+@utility liquid-hover {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: scale(1.02) translateY(-2px);
+    filter: brightness(1.1);
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.3);
+  }
+  &:active {
+    transform: scale(0.96);
+  }
+}
+
 .dark .glass-gold-surface {
   background: rgba(212, 175, 55, 0.03);
   border: 1px solid rgba(212, 175, 55, 0.15);
