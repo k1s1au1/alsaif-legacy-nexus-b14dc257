@@ -22,6 +22,56 @@ interface HubProps {
   onViewMeeting?: (meeting: any) => void;
 }
 
+function CountdownDisplay({ targetDate }: { targetDate: string }) {
+  const [timeLeft, setTimeLeft] = useState<{ value: string; label: string } | null>(null);
+
+  useEffect(() => {
+    const calculate = () => {
+      const now = new Date().getTime();
+      const target = new Date(targetDate).getTime();
+      const diff = target - now;
+
+      if (diff <= 0) return { value: "0", label: "بدأ الآن" };
+
+      const seconds = Math.floor(diff / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours = Math.floor(minutes / 60);
+      const days = Math.floor(hours / 24);
+
+      if (days >= 1) {
+        return { value: days.toString(), label: days === 1 ? "يوم متبقي" : days === 2 ? "يومان متبقيان" : "أيام متبقية" };
+      }
+
+      if (hours >= 1) {
+        const remainingMinutes = minutes % 60;
+        if (remainingMinutes > 0) {
+          return { value: `${hours}:${remainingMinutes.toString().padStart(2, '0')}`, label: "ساعة ودقيقة" };
+        }
+        return { value: hours.toString(), label: hours === 1 ? "ساعة متبقية" : "ساعات متبقية" };
+      }
+
+      return { value: minutes.toString(), label: "دقيقة متبقية" };
+    };
+
+    setTimeLeft(calculate());
+    const id = setInterval(() => setTimeLeft(calculate()), 60000);
+    return () => clearInterval(id);
+  }, [targetDate]);
+
+  if (!timeLeft) return null;
+
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-6 text-center flex-1 md:flex-none md:min-w-[120px] shadow-2xl">
+       <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">
+          {timeLeft.value}
+       </span>
+       <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">
+          {timeLeft.label}
+       </span>
+    </div>
+  );
+}
+
 export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onViewTrip, onViewMeeting }: HubProps) {
   const [activeTab, setActiveTab] = useState<"meetings" | "trips" | "tasks">("trips");
   const [tripApi, setTripApi] = useState<CarouselApi>();
@@ -150,10 +200,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                                      </div>
 
                                      <div className="flex flex-row md:flex-col items-center gap-4 md:gap-6 shrink-0 w-full md:w-auto">
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-6 text-center flex-1 md:flex-none md:min-w-[120px] shadow-2xl">
-                                           <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
-                                           <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
-                                        </div>
+                                        <CountdownDisplay targetDate={meeting.scheduled_at} />
                                         <motion.button
                                           whileHover={{ scale: 1.05 }}
                                           whileTap={{ scale: 0.95 }}
@@ -209,10 +256,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                                      </div>
 
                                      <div className="flex flex-row md:flex-col items-center gap-4 md:gap-6 shrink-0 w-full md:w-auto">
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl md:rounded-3xl p-3 md:p-6 text-center flex-1 md:flex-none md:min-w-[120px] shadow-2xl">
-                                           <span className="block text-2xl md:text-5xl font-black text-gold-primary tracking-tighter leading-none">{daysLeft > 0 ? daysLeft : 0}</span>
-                                           <span className="block text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">يوم متبقي</span>
-                                        </div>
+                                        <CountdownDisplay targetDate={meeting.scheduled_at} />
                                         <motion.button
                                           whileHover={{ scale: 1.05 }}
                                           whileTap={{ scale: 0.95 }}
