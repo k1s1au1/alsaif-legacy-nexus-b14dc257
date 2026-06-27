@@ -65,20 +65,20 @@
 .dark {
   /* Comprehensive Dark Theme - Luxury Edition */
   --background: #0a0c10;
-  --foreground: #f5f7fa;
+  --foreground: #eceff4; /* Softer Ivory-White to prevent glare */
   --card: #12141c;
-  --card-foreground: #f5f7fa;
+  --card-foreground: #eceff4;
   --popover: #12141c;
-  --popover-foreground: #f5f7fa;
+  --popover-foreground: #eceff4;
   --primary: #d4af37; /* Alsaif Gold */
   --primary-foreground: #0a0c10;
   --secondary: #1e2229;
-  --secondary-foreground: #f5f7fa;
+  --secondary-foreground: #eceff4;
   --muted: #161920;
-  --muted-foreground: #cbd5e1; /* Brighter for legibility */
+  --muted-foreground: #d8dee9; /* Brighter for better legibility */
   --accent: #1e2229;
-  --accent-foreground: #f5f7fa;
-  --border: rgba(212, 175, 55, 0.22); /* Subtle Gold border */
+  --accent-foreground: #eceff4;
+  --border: rgba(212, 175, 55, 0.15); /* Softer Gold border */
   --gold-primary: #e6c25c;
   --gold-soft: #f9e29c;
   --hero-card: #12141c;
@@ -112,19 +112,19 @@
   }
   /* Boost contrast for commonly low-opacity text in dark mode */
   .dark .text-muted-foreground {
-    color: #e2e8f0; /* Brighter slate for better clarity */
+    color: #d8dee9;
   }
   .dark .text-foreground\/60,
   .dark .text-foreground\/70,
   .dark .text-white\/60,
   .dark .text-white\/70 {
-    color: rgba(255, 255, 255, 0.9) !important;
+    color: rgba(245, 247, 250, 0.88) !important;
   }
   .dark .text-foreground\/40,
   .dark .text-foreground\/50,
   .dark .text-white\/40,
   .dark .text-white\/50 {
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: rgba(245, 247, 250, 0.75) !important;
   }
   /* Strengthen text over glass cards / image overlays */
   .dark .glass-text,
@@ -202,6 +202,10 @@
   border-radius: var(--radius-lg);
   box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
   backdrop-filter: blur(12px);
+}
+
+.dark .card-surface {
+  box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5), 0 0 20px rgba(212, 175, 55, 0.03);
 }
 
 /* Glassmorphism 2.0 Utilities */
