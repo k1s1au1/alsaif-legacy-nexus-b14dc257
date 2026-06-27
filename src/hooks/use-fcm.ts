@@ -6,6 +6,18 @@ export function useFcm() {
   useEffect(() => {
     const win = window as any;
 
+    const saveToken = async (token: string, type: string) => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) return;
+
+      console.log(`Saving ${type} token to DB...`);
+      await (supabase as any).from("user_fcm_tokens").upsert({
+        user_id: auth.user.id,
+        token: token,
+        device_type: type
+      }, { onConflict: "user_id, token" });
+    };
+
     const initPush = async () => {
       // 1. Native Platform (Capacitor)
       if (win.Capacitor?.isNativePlatform()) {
@@ -24,24 +36,23 @@ export function useFcm() {
 
           PushNotifications.addListener("registration", async (token: { value: string }) => {
             console.log("Push registration success (Native), token:", token.value);
-            const { data: auth } = await supabase.auth.getUser();
-            if (!auth.user) return;
-
-            await (supabase as any).from("user_fcm_tokens").upsert({
-              user_id: auth.user.id,
-              token: token.value,
-              device_type: win.Capacitor.getPlatform()
-            }, { onConflict: "user_id, token" });
+            await saveToken(token.value, win.Capacitor.getPlatform());
           });
         } catch (err) {
           console.error("Native FCM Initialization error:", err);
         }
       }
-      // 2. Web Platform
-      else if (typeof window !== "undefined" && "Notification" in window) {
+      // 2. Web Platform (Browser)
+      else if (typeof window !== "undefined" && "serviceWorker" in navigator && "Notification" in window) {
         try {
+          if (Notification.permission === "default") {
+            await Notification.requestPermission();
+          }
+
           if (Notification.permission === "granted") {
-             console.log("Web Notifications already granted.");
+            // Note: In browser environments, tokens are handled via service worker
+            // Registration is usually handled by Firebase JS SDK or manual worker.
+            console.log("Web Push: Permission granted. Ready for registration.");
           }
         } catch (err) {
           console.warn("Web Push initialization skipped:", err);

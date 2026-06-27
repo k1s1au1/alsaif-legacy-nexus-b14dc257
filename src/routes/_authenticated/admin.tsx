@@ -96,6 +96,7 @@ function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState<"requests" | "members" | "announcements">("requests");
   const [reqCounts, setReqCounts] = useState<Record<string, number>>({ pending: 0, approved: 0, rejected: 0 });
+  const [fcmTokenCount, setFcmTokenCount] = useState(0);
   const [memberSearch, setMemberSearch] = useState("");
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
   const dynamicLogo = useSiteLogo();
@@ -160,6 +161,10 @@ function AdminPage() {
 
           setPendingReqs(reqs || []);
           setAnnouncements(anns || []);
+
+          // Fetch FCM Token Count
+          const { count: tc } = await supabase.from("user_fcm_tokens").select("*", { count: "exact", head: true });
+          setFcmTokenCount(tc || 0);
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
           (reqs || []).forEach(r => counts[r.status as keyof typeof counts]++);
@@ -365,17 +370,23 @@ function AdminPage() {
         </section>
 
         {isPriv && (
-          <div className="px-4 md:px-0 flex justify-end">
+          <div className="px-4 md:px-0 flex flex-col md:flex-row items-center justify-between gap-4">
+             <div className="flex items-center gap-3 bg-primary/5 px-6 py-2.5 rounded-xl border border-primary/10">
+                <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-[10px] font-black text-primary uppercase tracking-widest">الأجهزة المسجلة: {fcmTokenCount}</span>
+             </div>
              <button
                onClick={async () => {
-                 const { data, error } = await sendFcmNotification({
+                 toast.loading("جاري إرسال الإشعار...");
+                 const res = await sendFcmNotification({
                    data: {
                      title: "🔔 تجربة إشعارات المجلس",
                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
                    }
                  });
-                 if (!error) toast.success("جاري إرسال الإشعار التجريبي...");
-                 else toast.error("فشل الإرسال: " + error);
+                 toast.dismiss();
+                 if (res.success) toast.success(`تم الإرسال لـ ${res.count || 0} جهاز`);
+                 else toast.error(res.error || "فشل الإرسال");
                }}
                className="btn-gold px-8 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-3 active:scale-95 transition-all"
              >

@@ -20,9 +20,17 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
       .from("user_fcm_tokens")
       .select("token");
 
-    if (tokenErr || !tokens || tokens.length === 0) {
-      return { success: true, count: 0 };
+    if (tokenErr) {
+      console.error("Token fetch error:", tokenErr);
+      return { success: false, error: "Database error" };
     }
+
+    if (!tokens || tokens.length === 0) {
+      console.warn("No FCM tokens found in DB.");
+      return { success: false, error: "No registered devices found. Please open the site on your phone and allow notifications." };
+    }
+
+    console.log(`FCM: Found ${tokens.length} tokens. Attempting to send...`);
 
     // 2. Load Service Account from Env
     const serviceAccountRaw = process.env.FCM_SERVICE_ACCOUNT;
