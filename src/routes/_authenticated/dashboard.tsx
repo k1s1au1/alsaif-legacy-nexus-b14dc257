@@ -368,12 +368,51 @@ function Dashboard() {
   };
 
   const getStatusSummary = () => {
-    const parts = [];
-    if (myTasksCount > 0) parts.push(`لديك ${myTasksCount} ${myTasksCount === 1 ? 'مهمة' : 'مهام'} بانتظارك`);
-    if (newNewsCount > 0) parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'خبر جديد' : 'أخبار جديدة'}`);
+    const now = new Date();
+    const greetings = [
+      "نصل العائلة، نحفظ الإرث، ونبني المستقبل.",
+      "يوم سعيد ومثمر نتمناه لك في رحاب عائلة السيف.",
+      "حضورك وتفاعلك هو ما يجعل مجلسنا عامراً.",
+      "فخورون بمبادراتك وعطائك المستمر للعائلة."
+    ];
 
-    if (parts.length === 0) return "نصل العائلة، نحفظ الإرث، ونبني المستقبل.";
-    return parts.join(" و ") + ".";
+    const parts = [];
+
+    // Check Tasks
+    if (myTasksCount > 0) {
+      parts.push(`لديك ${myTasksCount} ${myTasksCount === 1 ? 'مسؤولية تحتاج لمتابعتك' : 'مسؤوليات بانتظار إنجازك'}`);
+    }
+
+    // Check News
+    if (newNewsCount > 0) {
+      parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'تحديث جديد' : 'تحديثات جديدة'} في المجلس`);
+    }
+
+    // Check Upcoming Trips (within 3 days)
+    const upcomingTrip = upcomingTrips[0];
+    if (upcomingTrip && upcomingTrip.start_date) {
+      const tripDate = new Date(upcomingTrip.start_date);
+      const diffDays = Math.ceil((tripDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays > 0 && diffDays <= 3) {
+        parts.push(`بقي ${diffDays === 1 ? 'يوم واحد' : diffDays === 2 ? 'يومان' : diffDays + ' أيام'} على ${upcomingTrip.title}.. هل أنت مستعد؟`);
+      }
+    }
+
+    // Check Upcoming Meetings (within 24 hours)
+    const upcomingMeeting = upcomingMeetings[0];
+    if (upcomingMeeting && upcomingMeeting.scheduled_at) {
+      const meetDate = new Date(upcomingMeeting.scheduled_at);
+      const diffHours = (meetDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+      if (diffHours > 0 && diffHours <= 24) {
+        parts.push(`اجتماع "${upcomingMeeting.title}" يقترب، ننتظر تشريفك`);
+      }
+    }
+
+    if (parts.length === 0) return greetings[Math.floor(Math.random() * greetings.length)];
+
+    // Pick two random parts or just join them if few
+    const selected = parts.sort(() => 0.5 - Math.random()).slice(0, 2);
+    return selected.join(" و ") + ".";
   };
 
   const sendBugReport = async () => {
@@ -459,7 +498,15 @@ function Dashboard() {
                 <div className="space-y-3">
                   <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-90 drop-shadow-sm">{getGreeting()}،</p>
                   <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter leading-tight text-foreground drop-shadow-2xl">{profile.name}</h2>
-                  <p className="text-base md:text-xl text-muted-foreground font-bold opacity-80 leading-relaxed max-w-2xl md:mr-0 mx-auto">{getStatusSummary()}</p>
+                  <motion.div
+                    key={getStatusSummary()}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center justify-center md:justify-start gap-2 text-base md:text-xl text-muted-foreground font-bold opacity-80 leading-relaxed max-w-2xl md:mr-0 mx-auto"
+                  >
+                    <div className="size-2 rounded-full bg-gold-primary animate-pulse shrink-0" />
+                    <p>{getStatusSummary()}</p>
+                  </motion.div>
                 </div>
 
                 <div className="inline-flex items-center gap-4 md:gap-6 rounded-[32px] border border-white/10 bg-white/5 backdrop-blur-2xl px-6 md:px-8 py-3 md:py-4 shadow-2xl mx-auto md:mx-0">
