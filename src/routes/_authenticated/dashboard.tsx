@@ -478,7 +478,7 @@ function Dashboard() {
               <div className="shrink-0 order-1 flex items-center justify-center">
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-3xl group-hover:blur-4xl transition-all duration-1000" />
-                  <div className="relative size-32 md:size-48 rounded-full bg-white/5 backdrop-blur-3xl border-[3px] border-gold-primary/30 shadow-[0_32px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center p-8 md:p-12">
+                  <div className="relative size-32 md:size-52 rounded-full bg-white/5 backdrop-blur-3xl border-[3px] border-gold-primary/30 shadow-[0_32px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center p-4 md:p-6">
                     <div className="size-full logo-alsaif" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
                   </div>
                 </div>
