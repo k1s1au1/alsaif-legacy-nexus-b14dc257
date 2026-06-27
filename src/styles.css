@@ -249,6 +249,60 @@
   }
 }
 
+/* Mesh Gradient Animations */
+@keyframes mesh-float-1 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(10%, 10%) scale(1.1); }
+  66% { transform: translate(-5%, 15%) scale(0.9); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes mesh-float-2 {
+  0% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-15%, 5%) scale(1.2); }
+  66% { transform: translate(10%, -10%) scale(0.8); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@utility mesh-gradient-container {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--background);
+}
+
+@utility mesh-blob-1 {
+  position: absolute;
+  top: -10%;
+  right: -10%;
+  width: 70%;
+  height: 70%;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.08) 0%, transparent 70%);
+  filter: blur(80px);
+  animation: mesh-float-1 20s ease-in-out infinite;
+}
+
+@utility mesh-blob-2 {
+  position: absolute;
+  bottom: -10%;
+  left: -10%;
+  width: 60%;
+  height: 60%;
+  background: radial-gradient(circle, rgba(6, 78, 59, 0.06) 0%, transparent 70%);
+  filter: blur(100px);
+  animation: mesh-float-2 25s ease-in-out infinite;
+}
+
+.dark .mesh-blob-1 {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, transparent 70%);
+}
+
+.dark .mesh-blob-2 {
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.05) 0%, transparent 70%);
+}
+
 @utility btn-gold {
   background: linear-gradient(135deg, #8b6b23 0%, #b8972e 100%);
   color: white;

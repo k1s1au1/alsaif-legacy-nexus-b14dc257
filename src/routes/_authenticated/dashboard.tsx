@@ -470,10 +470,6 @@ function Dashboard() {
       <div className="max-w-6xl mx-auto space-y-12 pb-20">
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[44px] glass-surface glass-reflection shadow-[0_32px_120px_-20px_rgba(0,0,0,0.3)]">
-            {/* Background Light Glows */}
-            <div className="absolute top-0 right-0 size-[500px] bg-gold-primary/5 blur-[120px] -translate-y-1/2 translate-x-1/2 rounded-full pointer-events-none" />
-            <div className="absolute bottom-0 left-0 size-[400px] bg-primary/5 blur-[100px] translate-y-1/2 -translate-x-1/2 rounded-full pointer-events-none" />
-
             <div className="absolute left-0 top-0 bottom-0 w-1/3 md:w-1/4 pointer-events-none overflow-hidden opacity-[0.06] dark:opacity-[0.03]">
               <img src={palmWatermark} alt="" className="absolute -left-4 -bottom-4 h-[120%] md:h-[140%] w-auto max-w-none object-contain object-bottom saturate-[0.7] opacity-80" loading="lazy" />
             </div>

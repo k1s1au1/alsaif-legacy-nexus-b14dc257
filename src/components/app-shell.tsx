@@ -105,6 +105,14 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
+      {/* Global Animated Mesh Gradient Background */}
+      <div className="mesh-gradient-container">
+        <div className="mesh-blob-1" />
+        <div className="mesh-blob-2" />
+        {/* Subtle noise texture for grain effect */}
+        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/asfalt-dark.png")' }} />
+      </div>
+
       <DynamicIsland />
       <AnimatePresence>
         {sidebarOpen && (
