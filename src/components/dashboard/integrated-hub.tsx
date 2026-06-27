@@ -200,7 +200,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                                      </div>
 
                                      <div className="flex flex-row md:flex-col items-center gap-4 md:gap-6 shrink-0 w-full md:w-auto">
-                                        <CountdownDisplay targetDate={meeting.scheduled_at} />
+                                        <CountdownDisplay targetDate={trip.start_date} />
                                         <motion.button
                                           whileHover={{ scale: 1.05 }}
                                           whileTap={{ scale: 0.95 }}
