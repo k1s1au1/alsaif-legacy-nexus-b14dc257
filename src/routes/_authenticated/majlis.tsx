@@ -118,7 +118,19 @@ function MajlisPage() {
 
       const { data: coms } = await supabase
         .from("majlis_comments")
-        .select("*");
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      const commentAuthorIds = Array.from(new Set((coms ?? []).map((c: any) => c.author_id).filter(Boolean)));
+      const missingIds = commentAuthorIds.filter((id) => !profileMap.has(id));
+      if (missingIds.length) {
+        const { data: extra } = await supabase
+          .from("profiles")
+          .select("id, arabic_name, full_name, avatar_url")
+          .in("id", missingIds);
+        (extra ?? []).forEach((p: any) => profileMap.set(p.id, p));
+      }
+      const enrichedComments = (coms ?? []).map((c: any) => ({ ...c, author: profileMap.get(c.author_id) || null }));
 
       if (rawPosts) {
         const processed = rawPosts.map((p: any) => {
@@ -139,7 +151,8 @@ function MajlisPage() {
         });
         setPosts(processed as any);
       }
-      setComments(coms || []);
+      setComments(enrichedComments);
+
 
     } catch (err) {
       console.error("Load Majlis error:", err);
@@ -373,9 +386,94 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
              </div>
           )}
        </div>
+       {post.kind !== "complaint" && (
+          <CommentsSection post={post} meId={meId} isChairman={isChairman} comments={postComments.filter((c: any) => !c.body.startsWith("[VOTE]:"))} onRefresh={onRefresh} />
+       )}
     </motion.article>
   );
 }
+
+function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
+  const [open, setOpen] = useState(false);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  const submit = async (e: any) => {
+    e.preventDefault();
+    if (!text.trim() || !meId) return;
+    setSending(true);
+    const { error } = await supabase.from("majlis_comments").insert({
+      post_id: post.id,
+      author_id: meId,
+      body: text.trim(),
+    });
+    setSending(false);
+    if (error) {
+      toast.error("تعذر إرسال التعليق");
+    } else {
+      setText("");
+      onRefresh();
+    }
+  };
+
+  const removeComment = async (id: string) => {
+    if (!confirm("حذف التعليق؟")) return;
+    const { error } = await supabase.from("majlis_comments").delete().eq("id", id);
+    if (!error) onRefresh();
+  };
+
+  return (
+    <div className="mt-8 pt-6 border-t border-border/40">
+      <button onClick={() => setOpen(!open)} className="flex items-center gap-2 text-xs font-black text-primary/70 hover:text-primary transition-all">
+        <MessageSquare size={16} />
+        <span>{comments.length > 0 ? `${comments.length} تعليق` : "أضف تعليقاً"}</span>
+        <ChevronLeft size={14} className={cn("transition-transform", open && "-rotate-90")} />
+      </button>
+      <AnimatePresence>
+        {open && (
+          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
+            <div className="space-y-4 pt-6">
+              {comments.map((c: any) => {
+                const cn_name = c.author?.arabic_name || c.author?.full_name || "عضو";
+                const canDelete = isChairman || c.author_id === meId;
+                return (
+                  <div key={c.id} className="flex gap-3 items-start group/c">
+                    <div className="size-10 rounded-2xl border border-primary/10 overflow-hidden shrink-0">
+                      <UserAvatar path={c.author?.avatar_url} name={cn_name} className="size-full" userId={c.author_id} />
+                    </div>
+                    <div className="flex-1 bg-muted/40 rounded-2xl p-4">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <p className="text-xs font-black text-primary">{cn_name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[10px] font-bold text-muted-foreground">{new Date(c.created_at).toLocaleDateString("ar-SA", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</p>
+                          {canDelete && <button onClick={() => removeComment(c.id)} className="opacity-0 group-hover/c:opacity-100 text-rose-500 hover:text-rose-700 transition-all"><Trash2 size={12} /></button>}
+                        </div>
+                      </div>
+                      <p className="text-sm font-bold text-foreground/80 whitespace-pre-wrap leading-relaxed">{c.body}</p>
+                    </div>
+                  </div>
+                );
+              })}
+              {comments.length === 0 && <p className="text-center text-xs text-muted-foreground py-4">لا توجد تعليقات بعد — كن أول من يعلق</p>}
+              <form onSubmit={submit} className="flex gap-2 pt-2">
+                <input
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="اكتب تعليقك..."
+                  className="flex-1 h-12 px-5 rounded-2xl bg-muted/40 border border-border/60 font-bold text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                />
+                <button disabled={sending || !text.trim()} type="submit" className="size-12 rounded-2xl bg-primary text-white flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 transition-all shadow-lg">
+                  {sending ? <Loader2 className="animate-spin" size={18} /> : <Send size={18} />}
+                </button>
+              </form>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 
 function AddPostDialog({ meId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
