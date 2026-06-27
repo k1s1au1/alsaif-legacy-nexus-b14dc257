@@ -103,12 +103,18 @@ function MajlisPage() {
 
       const { data: rawPosts, error: postsErr } = await supabase
         .from("majlis_posts")
-        .select("*, author:profiles(arabic_name, full_name, avatar_url)")
+        .select("*")
         .neq("kind", "announcement")
         .order("pinned", { ascending: false })
         .order("created_at", { ascending: false });
 
       if (postsErr) throw postsErr;
+
+      const authorIds = Array.from(new Set((rawPosts ?? []).map((p: any) => p.author_id).filter(Boolean)));
+      const { data: authorProfiles } = authorIds.length
+        ? await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", authorIds)
+        : { data: [] as any[] };
+      const profileMap = new Map((authorProfiles ?? []).map((p: any) => [p.id, p]));
 
       const { data: coms } = await supabase
         .from("majlis_comments")
@@ -116,7 +122,6 @@ function MajlisPage() {
 
       if (rawPosts) {
         const processed = rawPosts.map((p: any) => {
-          // Robust parsing of ---kind: and ---poll:
           const kindMatch = p.body.match(/---kind:(\w+)/);
           const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
 
@@ -128,12 +133,14 @@ function MajlisPage() {
           return {
             ...p,
             uiKind,
-            cleanBody: cleanBody || p.body
+            cleanBody: cleanBody || p.body,
+            author: profileMap.get(p.author_id) || null,
           };
         });
         setPosts(processed as any);
       }
       setComments(coms || []);
+
     } catch (err) {
       console.error("Load Majlis error:", err);
     } finally {
