@@ -444,9 +444,9 @@ function TripDialog({ trip, onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 md:p-4 bg-black/80 backdrop-blur-md" dir="rtl">
-      <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} className="card-surface w-full max-w-2xl overflow-hidden shadow-2xl rounded-[32px] md:rounded-[48px] bg-white dark:bg-[#0F1116] flex flex-col max-h-[90vh]">
+      <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} className="bg-card w-full max-w-2xl overflow-hidden shadow-2xl rounded-[32px] md:rounded-[48px] flex flex-col max-h-[90vh] border border-border">
         <div className="p-6 md:p-12 space-y-6 md:space-y-8 overflow-y-auto custom-scrollbar flex-1">
-           <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-[#0F1116] z-10 pb-4 border-b border-border/20">
+           <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-4 border-b border-border/20">
               <div className="space-y-1">
                  <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">{isEdit ? "تعديل الرحلة" : "إضافة رحلة جديدة"}</h3>
                  <p className="text-xs md:text-sm font-bold text-muted-foreground opacity-60">أدخل تفاصيل الوجهة والمواعيد لرحلة العائلة.</p>
@@ -454,14 +454,14 @@ function TripDialog({ trip, onClose, onSaved }: any) {
               <button onClick={onClose} className="size-10 md:size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
            </div>
 
-           <form onSubmit={submit} className="space-y-6 md:space-y-8">
+           <form onSubmit={submit} className="space-y-6 md:space-y-8 text-foreground">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                  <Field label="عنوان الرحلة" value={form.title} onChange={(v:any) => update("title", v)} placeholder="مثال: رحلة العلا" />
                  <Field label="الوسم" value={form.badge} onChange={(v:any) => update("badge", v)} placeholder="مثال: الرحلة السنوية" />
                  <Field label="الوجهة" value={form.location} onChange={(v:any) => update("location", v)} placeholder="المدينة أو الدولة" />
                  <div className="space-y-2">
-                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary/60 px-1">الحالة</label>
-                    <select value={form.status} onChange={(e) => update("status", e.target.value)} className="w-full h-12 md:h-14 px-5 rounded-2xl md:rounded-2xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all">
+                    <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">الحالة</label>
+                    <select value={form.status} onChange={(e) => update("status", e.target.value)} className="w-full h-12 md:h-14 px-5 rounded-2xl md:rounded-2xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all text-foreground">
                        <option value="upcoming">قادمة</option>
                        <option value="planning">قيد التخطيط</option>
                        <option value="past">سابقة</option>
@@ -472,18 +472,18 @@ function TripDialog({ trip, onClose, onSaved }: any) {
               </div>
 
               <div className="space-y-2">
-                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary/60 px-1">رابط الموقع</label>
-                 <input dir="ltr" value={form.location_url} onChange={(e) => update("location_url", e.target.value)} placeholder="رابط خرائط جوجل" className="w-full h-12 md:h-14 px-5 rounded-2xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" />
+                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">رابط الموقع</label>
+                 <input dir="ltr" value={form.location_url} onChange={(e) => update("location_url", e.target.value)} placeholder="رابط خرائط جوجل" className="w-full h-12 md:h-14 px-5 rounded-2xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground placeholder:text-muted-foreground/50" />
               </div>
 
               <div className="space-y-2">
-                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary/60 px-1">وصف الرحلة</label>
-                 <textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="التفاصيل والبرامج..." rows={3} className="w-full p-5 md:p-6 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner" />
+                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">وصف الرحلة</label>
+                 <textarea value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="التفاصيل والبرامج..." rows={3} className="w-full p-5 md:p-6 rounded-2xl md:rounded-3xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner text-foreground placeholder:text-muted-foreground/50" />
               </div>
 
               <div className="space-y-2">
-                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-primary/60 px-1">صورة الوجهة</label>
-                 <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-border/60 rounded-[24px] md:rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all">
+                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">صورة الوجهة</label>
+                 <label className="flex flex-col items-center justify-center gap-2 p-6 border-2 border-dashed border-border/60 rounded-[24px] md:rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all bg-muted/20">
                     {(imagePreview || trip?.image_url) ? (
                        <img src={imagePreview || trip?.image_url} className="w-full h-32 md:h-40 object-cover rounded-xl shadow-lg" />
                     ) : (
@@ -497,7 +497,7 @@ function TripDialog({ trip, onClose, onSaved }: any) {
               </div>
            </form>
         </div>
-        <div className="p-6 md:p-10 bg-white dark:bg-[#0F1116] border-t border-border/20 flex gap-3 md:gap-4 sticky bottom-0">
+        <div className="p-6 md:p-10 bg-card border-t border-border/20 flex gap-3 md:gap-4 sticky bottom-0">
            <button type="button" onClick={onClose} className="flex-1 py-4 md:py-5 rounded-2xl md:rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">إلغاء</button>
            <button disabled={saving} onClick={submit as any} className="flex-[2] btn-gold py-4 md:py-5 rounded-2xl md:rounded-3xl font-black text-base md:text-lg shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-2">
              {saving ? <Loader2 className="size-5 animate-spin" /> : <span>حفظ البيانات</span>}

@@ -479,29 +479,31 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
       <motion.div
         initial={{ scale: 0.95, opacity: 0, y: 20 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        className="bg-white dark:bg-[#0F1116] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-14 space-y-8 md:space-y-10 shadow-2xl rounded-[32px] md:rounded-[60px] relative custom-scrollbar"
+        className="bg-card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-14 space-y-8 md:space-y-10 shadow-2xl rounded-[32px] md:rounded-[60px] relative custom-scrollbar border border-border"
         onClick={(e) => e.stopPropagation()}
       >
-         <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-[#0F1116] z-10 pb-4 border-b border-border/20">
-            <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">{task ? "تعديل المبادرة" : "مبادرة جديدة"}</h3>
+         <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-4 border-b border-border/20">
+            <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">
+              {task ? "تعديل المبادرة" : "مبادرة جديدة"}
+            </h3>
             <button onClick={onClose} className="size-10 md:size-12 rounded-full bg-muted flex items-center justify-center hover:bg-primary hover:text-white transition-all"><X size={20} /></button>
          </div>
 
-         <form onSubmit={submit} className="space-y-6 md:space-y-8">
+         <form onSubmit={submit} className="space-y-6 md:space-y-8 text-foreground">
             <div className="space-y-2">
                <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان المبادرة</label>
-               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ما هي المهمة؟" className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-base md:text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" required />
+               <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ما هي المهمة؟" className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/40 border border-border/60 font-bold text-base md:text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground placeholder:text-muted-foreground/50" required />
             </div>
 
             <div className="space-y-2">
                <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">التفاصيل والأهداف</label>
-               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل وصفاً تفصيلياً..." rows={3} className="w-full p-5 md:p-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner" />
+               <textarea value={form.description} onChange={e => setForm({...form, description: e.target.value})} placeholder="أدخل وصفاً تفصيلياً..." rows={3} className="w-full p-5 md:p-8 rounded-2xl md:rounded-3xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner text-foreground placeholder:text-muted-foreground/50" />
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">المستوى</label>
-                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
+                  <select value={form.priority} onChange={e => setForm({...form, priority: e.target.value as any})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground">
                      <option value="low">عادية</option>
                      <option value="medium">متوسطة الأهمية</option>
                      <option value="high">عاجلة جداً</option>
@@ -509,18 +511,18 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
                </div>
                <div className="space-y-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تاريخ الإنجاز</label>
-                  <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner" />
+                  <input type="date" value={form.due_date} onChange={e => setForm({...form, due_date: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground" />
                </div>
                <div className="space-y-2 md:col-span-2">
                   <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">المسؤول عن التنفيذ</label>
-                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner">
+                  <select value={form.assignee_id} onChange={e => setForm({...form, assignee_id: e.target.value})} className="w-full h-12 md:h-16 px-5 md:px-8 rounded-2xl md:rounded-3xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground">
                      <option value="none">— اختر الفرد المسؤول —</option>
                      {members.map((m: any) => <option key={m.id} value={m.id}>{m.name}</option>)}
                   </select>
                </div>
             </div>
 
-            <div className="flex gap-4 pt-4 md:pt-8 sticky bottom-0 bg-white dark:bg-[#0F1116] py-4 border-t border-border/20">
+            <div className="flex gap-4 pt-4 md:pt-8 sticky bottom-0 bg-card py-4 border-t border-border/20">
                <button type="button" onClick={onClose} className="flex-1 py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
                <button disabled={saving} type="submit" className="flex-[2] btn-gold py-4 md:py-6 rounded-2xl md:rounded-[32px] font-black text-base md:text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3">
                  {saving ? <Loader2 className="size-6 animate-spin" /> : <span>تأكيد المبادرة</span>}

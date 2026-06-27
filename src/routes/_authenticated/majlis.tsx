@@ -557,7 +557,7 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl" dir="rtl">
-       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-white dark:bg-[#0D0F14] w-full max-w-2xl rounded-[48px] overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
+       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card w-full max-w-2xl rounded-[48px] overflow-hidden shadow-2xl border border-border flex flex-col max-h-[90vh]">
           <header className="p-8 border-b border-border/40 flex items-center justify-between">
              <div className="flex items-center gap-3">
                 <div className="size-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg"><Plus size={24} strokeWidth={3} /></div>
@@ -566,7 +566,7 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
              <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80 transition-all"><X size={24} /></button>
           </header>
 
-          <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1">
+          <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1 text-foreground">
              <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تصنيف الخبر</label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -578,12 +578,12 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
 
              <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان الخبر</label>
-                <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ماذا تريد أن تشارك مع العائلة؟" className="w-full h-16 px-8 rounded-3xl bg-muted/30 border border-border/60 font-black text-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-inner" required />
+                <input value={form.title} onChange={e => setForm({...form, title: e.target.value})} placeholder="ماذا تريد أن تشارك مع العائلة؟" className="w-full h-16 px-8 rounded-3xl bg-muted/40 border border-border/60 font-black text-xl focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-inner text-foreground placeholder:text-muted-foreground/50" required />
              </div>
 
              <div className="space-y-3">
                 <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تفاصيل المنشور</label>
-                <textarea value={form.body} onChange={e => setForm({...form, body: e.target.value})} placeholder="اكتب تفاصيل الخبر هنا..." rows={4} className="w-full p-8 rounded-[40px] bg-muted/30 border border-border/60 font-bold text-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner" required />
+                <textarea value={form.body} onChange={e => setForm({...form, body: e.target.value})} placeholder="اكتب تفاصيل الخبر هنا..." rows={4} className="w-full p-8 rounded-[40px] bg-muted/40 border border-border/60 font-bold text-lg focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner text-foreground placeholder:text-muted-foreground/50" required />
              </div>
 
              <div className="pt-4">

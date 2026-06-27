@@ -299,10 +299,10 @@ function HeritagePage() {
               initial={{ scale: 0.95, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              className="bg-white dark:bg-[#0D0F14] w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-14 space-y-10 shadow-2xl rounded-[32px] md:rounded-[60px] relative custom-scrollbar border border-white/5"
+              className="bg-card w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 md:p-14 space-y-10 shadow-2xl rounded-[32px] md:rounded-[60px] relative custom-scrollbar border border-border"
               onClick={(e) => e.stopPropagation()}
             >
-               <div className="flex items-center justify-between sticky top-0 bg-white dark:bg-[#0D0F14] z-10 pb-4 border-b border-border/20">
+               <div className="flex items-center justify-between sticky top-0 bg-card z-10 pb-4 border-b border-border/20">
                   <div className="space-y-1">
                      <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">إضافة موروث</h3>
                      <p className="text-xs font-bold text-muted-foreground opacity-60">دون قصيدة أو قصة لتاريخ العائلة.</p>
@@ -315,12 +315,13 @@ function HeritagePage() {
                      {(Object.entries(KIND_META) as [HeritageKind, any][]).map(([key, meta]) => (
                         <button
                           key={key}
+                          type="button"
                           onClick={() => setDraft(d => ({ ...d, kind: key }))}
                           className={cn(
                             "flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all",
                             draft.kind === key
-                              ? cn("border-primary bg-primary/5", meta.color)
-                              : "border-border/40 hover:border-primary/20 opacity-60"
+                              ? cn("border-primary bg-primary/10", meta.color)
+                              : "border-border/40 hover:border-primary/20 opacity-60 bg-muted/20"
                           )}
                         >
                            <meta.icon size={24} />
@@ -331,18 +332,18 @@ function HeritagePage() {
 
                   <div className="space-y-6">
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">العنوان</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">العنوان</label>
                         <input
                           value={draft.title}
                           onChange={e => setDraft({...draft, title: e.target.value})}
                           placeholder="مثال: قصة شجاعة الجد..."
-                          className="w-full h-16 px-8 rounded-[24px] bg-muted/30 dark:bg-white/5 border border-border/60 dark:border-white/10 font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                          className="w-full h-16 px-8 rounded-[24px] bg-muted/40 border border-border font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground"
                         />
                      </div>
 
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">صورة مرافقة (اختياري)</label>
-                        <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 dark:border-white/10 rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">صورة مرافقة (اختياري)</label>
+                        <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload bg-muted/20">
                            {imagePreview ? (
                               <img src={imagePreview} className="h-40 w-full object-contain rounded-2xl shadow-xl" alt="Preview" />
                            ) : (
@@ -367,33 +368,34 @@ function HeritagePage() {
                      </div>
 
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">الاسم المرتبط (صاحب الموروث)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">الاسم المرتبط (صاحب الموروث)</label>
                         <input
                           value={draft.author_name}
                           onChange={e => setDraft({...draft, author_name: e.target.value})}
                           placeholder="الاسم الثلاثي إن أمكن..."
-                          className="w-full h-16 px-8 rounded-[24px] bg-muted/30 dark:bg-white/5 border border-border/60 dark:border-white/10 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                          className="w-full h-16 px-8 rounded-[24px] bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner text-foreground"
                         />
                      </div>
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">المحتوى</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-2">المحتوى</label>
                         <textarea
                           value={draft.content}
                           onChange={e => setDraft({...draft, content: e.target.value})}
                           placeholder="اكتب الأبيات أو القصة هنا..."
                           rows={8}
                           className={cn(
-                            "w-full p-8 rounded-[32px] bg-muted/30 dark:bg-white/5 border border-border/60 dark:border-white/10 font-bold text-base focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner",
+                            "w-full p-8 rounded-[32px] bg-muted/40 border border-border font-bold text-base focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner text-foreground",
                             draft.kind === 'poem' ? "text-center leading-loose font-arabic italic" : "leading-relaxed"
                           )}
                         />
                      </div>
                   </div>
 
-                  <div className="flex gap-4 pt-8 sticky bottom-0 bg-white dark:bg-[#0D0F14] py-4 border-t border-border/20">
+                  <div className="flex gap-4 pt-8 sticky bottom-0 bg-card py-4 border-t border-border/20">
                      <button type="button" onClick={() => setShowCompose(false)} className="flex-1 py-5 rounded-[24px] font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
                      <button
                        disabled={submitting}
+                       type="button"
                        onClick={submitHeritage}
                        className="flex-[2] btn-gold py-5 rounded-[24px] font-black text-lg shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
                      >

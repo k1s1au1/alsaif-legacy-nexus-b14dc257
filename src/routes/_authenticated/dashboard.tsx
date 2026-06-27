@@ -688,11 +688,11 @@ function Dashboard() {
 
         {showBugReport && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-white dark:bg-card border border-border rounded-[32px] w-full max-w-lg p-8 space-y-6 shadow-2xl">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-card border border-border rounded-[32px] w-full max-w-lg p-8 space-y-6 shadow-2xl">
               <div className="flex items-center justify-between"><h3 className="text-xl font-black text-primary">بلاغ عن خطأ بالنظام</h3><button onClick={() => setShowBugReport(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button></div>
               <div className="space-y-4">
-                <textarea value={bugBody} onChange={(e) => setBugBody(e.target.value)} placeholder="صف الخطأ هنا..." rows={5} className="w-full p-6 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner" />
-                <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer hover:bg-primary/5 transition-all group/upload">
+                <textarea value={bugBody} onChange={(e) => setBugBody(e.target.value)} placeholder="صف الخطأ هنا..." rows={5} className="w-full p-6 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all resize-none shadow-inner text-foreground" />
+                <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer hover:bg-primary/5 transition-all group/upload bg-muted/20">
                   {bugImagePreview ? <img src={bugImagePreview} className="h-32 w-full object-contain rounded-xl" alt="Preview" /> : <><ImageIcon className="size-8 text-muted-foreground opacity-30" /><span className="text-xs font-bold text-muted-foreground">لقطة شاشة</span></>}
                   <input type="file" hidden accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setBugImage(f); setBugImagePreview(URL.createObjectURL(f)); } }} />
                 </label>
