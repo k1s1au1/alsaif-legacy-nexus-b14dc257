@@ -24,21 +24,17 @@ export function useFcm() {
 
     const saveToken = async (token: string, type: string) => {
       try {
-        const { data: auth } = await supabase.auth.getUser();
-        if (!auth.user) return;
-
-        console.log(`FCM: Registering ${type} token...`);
-        const { error } = await (supabase as any).from("fcm_tokens_v2").upsert({
-          user_id: auth.user.id,
-          token: token,
-          device_type: type
-        }, { onConflict: "user_id, token" });
+        console.log(`FCM: Registering ${type} token via RPC...`);
+        const { error } = await supabase.rpc('register_device_token', {
+          p_token: token,
+          p_device_type: type
+        });
 
         if (error) {
-          console.error("FCM Token Save Error:", error);
-          toast.error(`فشل الحفظ: ${error.message || 'خطأ في قاعدة البيانات'}`);
+          console.error("FCM Token RPC Error:", error);
+          toast.error(`تعذر ربط الإشعارات: ${error.message}`);
         } else {
-          console.log("FCM Token saved successfully.");
+          console.log("FCM: Token registered via RPC successfully.");
           toast.success("تم ربط جهازك بنظام الإشعارات بنجاح! 🔔");
         }
       } catch (e) {
