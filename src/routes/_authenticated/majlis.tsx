@@ -118,7 +118,19 @@ function MajlisPage() {
 
       const { data: coms } = await supabase
         .from("majlis_comments")
-        .select("*");
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      const commentAuthorIds = Array.from(new Set((coms ?? []).map((c: any) => c.author_id).filter(Boolean)));
+      const missingIds = commentAuthorIds.filter((id) => !profileMap.has(id));
+      if (missingIds.length) {
+        const { data: extra } = await supabase
+          .from("profiles")
+          .select("id, arabic_name, full_name, avatar_url")
+          .in("id", missingIds);
+        (extra ?? []).forEach((p: any) => profileMap.set(p.id, p));
+      }
+      const enrichedComments = (coms ?? []).map((c: any) => ({ ...c, author: profileMap.get(c.author_id) || null }));
 
       if (rawPosts) {
         const processed = rawPosts.map((p: any) => {
@@ -139,7 +151,8 @@ function MajlisPage() {
         });
         setPosts(processed as any);
       }
-      setComments(coms || []);
+      setComments(enrichedComments);
+
 
     } catch (err) {
       console.error("Load Majlis error:", err);
