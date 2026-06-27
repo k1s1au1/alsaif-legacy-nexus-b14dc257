@@ -20,8 +20,35 @@ export function LiveClock({ variant = "full" }: { variant?: "full" | "date" | "t
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    const id = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(id);
+    let id: any;
+
+    const startTimer = () => {
+      id = setInterval(() => setNow(new Date()), 1000);
+    };
+
+    const stopTimer = () => {
+      clearInterval(id);
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        stopTimer();
+      } else {
+        setNow(new Date());
+        startTimer();
+      }
+    };
+
+    if (!document.hidden) {
+      startTimer();
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      stopTimer();
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   try {

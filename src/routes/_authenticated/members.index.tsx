@@ -38,6 +38,13 @@ function MembersPage() {
   const [presence, setPresence] = useState<Record<string, string>>({});
   const [, setTick] = useState(0);
   const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedQ(q), 300);
+    return () => clearTimeout(handler);
+  }, [q]);
+
   const dynamicLogo = useSiteLogo();
   const [me, setMe] = useState<{ id: string; name: string; initial: string; avatarPath: string | null; role: string }>({
     id: "",
@@ -107,8 +114,8 @@ function MembersPage() {
   }, []);
 
   const filtered = members.filter((m) => {
-    if (!q.trim()) return true;
-    const needle = q.trim().toLowerCase();
+    if (!debouncedQ.trim()) return true;
+    const needle = debouncedQ.trim().toLowerCase();
     return (
       (m.arabic_name ?? "").toLowerCase().includes(needle) ||
       (m.full_name ?? "").toLowerCase().includes(needle)

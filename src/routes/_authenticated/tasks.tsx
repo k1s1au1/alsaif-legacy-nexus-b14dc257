@@ -449,10 +449,15 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
 
   const submit = async (e: any) => {
     e.preventDefault();
-    if (!form.title.trim()) return;
+    const title = form.title.trim();
+    if (!title) {
+      toast.error("عنوان المبادرة لا يمكن أن يكون فارغاً");
+      return;
+    }
     setSaving(true);
     const payload = {
       ...form,
+      title,
       status: form.progress === 100 ? 'done' : form.progress === 0 ? 'todo' : 'in_progress',
       assignee_id: form.assignee_id === "none" ? null : form.assignee_id,
       due_date: form.due_date ? new Date(form.due_date).toISOString() : null,

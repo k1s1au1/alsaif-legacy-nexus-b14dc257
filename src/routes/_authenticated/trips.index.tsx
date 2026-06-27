@@ -389,6 +389,11 @@ function TripDialog({ trip, onClose, onSaved }: any) {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
+    const title = form.title.trim();
+    if (!title) {
+      toast.error("عنوان الرحلة مطلوب");
+      return;
+    }
     setSaving(true);
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
@@ -403,7 +408,7 @@ function TripDialog({ trip, onClose, onSaved }: any) {
       imagePath = null;
     }
 
-    const payload: any = { ...form };
+    const payload: any = { ...form, title };
     if (imagePath !== undefined) payload.image_url = imagePath;
 
     let error;

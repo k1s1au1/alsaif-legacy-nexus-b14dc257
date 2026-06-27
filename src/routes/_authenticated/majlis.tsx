@@ -134,20 +134,30 @@ function MajlisPage() {
 
       if (rawPosts) {
         const processed = rawPosts.map((p: any) => {
-          const kindMatch = p.body.match(/---kind:(\w+)/);
-          const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
+          try {
+            const kindMatch = p.body.match(/---kind:(\w+)/);
+            const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
 
-          const cleanBody = p.body
-            .replace(/---kind:.*?\n?/, "")
-            .replace(/---poll:.*?--- \n?/, "")
-            .trim();
+            const cleanBody = p.body
+              .replace(/---kind:.*?\n?/, "")
+              .replace(/---poll:.*?--- \n?/, "")
+              .trim();
 
-          return {
-            ...p,
-            uiKind,
-            cleanBody: cleanBody || p.body,
-            author: profileMap.get(p.author_id) || null,
-          };
+            return {
+              ...p,
+              uiKind,
+              cleanBody: cleanBody || p.body,
+              author: profileMap.get(p.author_id) || null,
+            };
+          } catch (e) {
+            console.error("Post parsing error:", p.id, e);
+            return {
+              ...p,
+              uiKind: "discussion",
+              cleanBody: "خطأ في عرض محتوى هذا المنشور.",
+              author: profileMap.get(p.author_id) || null,
+            };
+          }
         });
         setPosts(processed as any);
       }
@@ -499,12 +509,15 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
 
   const submit = async (e: any) => {
     e.preventDefault();
-    if (!form.title.trim() || !form.body.trim()) {
+    const title = form.title.trim();
+    const body = form.body.trim();
+
+    if (!title || !body) {
        toast.error("يرجى إكمال البيانات الأساسية");
        return;
     }
     setSaving(true);
-    let finalBody = `---kind:${form.kind}\n${form.body}`;
+    let finalBody = `---kind:${form.kind}\n${body}`;
     if (isPoll && poll.question.trim()) {
       const data = { question: poll.question.trim(), options: poll.options.filter(o => o.trim()) };
       finalBody = `---poll:${JSON.stringify(data)}---\n${finalBody}`;

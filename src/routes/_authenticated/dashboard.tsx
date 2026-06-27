@@ -329,7 +329,17 @@ function Dashboard() {
     }
   }, []);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+
+    const handleVisibility = () => {
+      if (!document.hidden) {
+        loadData();
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [loadData]);
 
   useEffect(() => {
     if (announcements.length < 2) return;
