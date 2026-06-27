@@ -240,62 +240,60 @@ function Dashboard() {
         }
       }
 
-      // Idea 4: Consolidated fetching
-      const [
-        { count: tCount },
-        { count: mCount },
-        { count: tkCount },
-        { count: myTkCount },
-        { count: newsCount },
-        { data: meetings },
-        { data: tData },
-        { data: annData },
-        { data: transactions }
-      ] = await Promise.all([
-        supabase.from("trips").select("*", { count: "exact", head: true }),
-        supabase.from("profiles").select("*", { count: "exact", head: true }),
-        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done"),
-        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done"),
-        supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday),
-        supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5),
-        supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
-        supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
-        supabase.from("fund_transactions").select("amount, type")
-      ]);
+      const now = new Date().toISOString();
+      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      setTripsCount(tCount || 0);
-      setMembersCount(mCount || 0);
-      setTasksCount(tkCount || 0);
-      setMyTasksCount(myTkCount || 0);
-      setNewNewsCount(newsCount || 0);
-      setUpcomingMeetings(meetings || []);
-      setUpcomingTrips(tData || []);
+      // Consolidated fetching with individual error handling to prevent total blackout
+      const fetchCounts = async () => {
+        supabase.from("trips").select("*", { count: "exact", head: true }).then(r => setTripsCount(r.count || 0));
+        supabase.from("profiles").select("*", { count: "exact", head: true }).then(r => setMembersCount(r.count || 0));
+        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then(r => setTasksCount(r.count || 0));
+        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done").then(r => setMyTasksCount(r.count || 0));
+        supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday).then(r => setNewNewsCount(r.count || 0));
+      };
 
-      const bal = (transactions || []).reduce((acc, t) => {
-        const val = Number(t.amount) || 0;
-        return t.type === "contribution" ? acc + val : acc - val;
-      }, 0);
-      setFundBalance(bal);
+      const fetchData = async () => {
+        const [{ data: meetings }, { data: tData }, { data: annData }, { data: transactions }] = await Promise.all([
+          supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5),
+          supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
+          supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
+          supabase.from("fund_transactions").select("amount, type")
+        ]);
 
-      if (annData) {
-        const withImages = await Promise.all(
-          annData.map(async (a: any) => {
-            const imgMatch = a.body.match(/^---image:(.*)\n/);
-            let url = null;
-            if (imgMatch) {
-              const path = imgMatch[1].trim();
-              const { data } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60);
-              url = data?.signedUrl;
-            }
-            return {
-              ...a,
-              imageUrl: url,
-              cleanBody: imgMatch ? a.body.replace(/^---image:.*\n/, "") : a.body,
-            };
-          }),
-        );
-        setAnnouncements(withImages);
-      }
+        setUpcomingMeetings(meetings || []);
+        setUpcomingTrips(tData || []);
+
+        if (transactions) {
+          const bal = transactions.reduce((acc, t) => {
+            const val = Number(t.amount) || 0;
+            return t.type === "contribution" ? acc + val : acc - val;
+          }, 0);
+          setFundBalance(bal);
+        }
+
+        if (annData) {
+          const withImages = await Promise.all(
+            annData.map(async (a: any) => {
+              const imgMatch = a.body.match(/^---image:(.*)\n/);
+              let url = null;
+              if (imgMatch) {
+                const path = imgMatch[1].trim();
+                const { data } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60);
+                url = data?.signedUrl;
+              }
+              return {
+                ...a,
+                imageUrl: url,
+                cleanBody: imgMatch ? a.body.replace(/^---image:.*\n/, "") : a.body,
+              };
+            }),
+          );
+          setAnnouncements(withImages);
+        }
+      };
+
+      fetchCounts();
+      fetchData();
 
       // Load Heritage Snippet
       supabase
