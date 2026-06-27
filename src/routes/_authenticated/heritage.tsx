@@ -331,18 +331,18 @@ function HeritagePage() {
 
                   <div className="space-y-6">
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">العنوان</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">العنوان</label>
                         <input
                           value={draft.title}
                           onChange={e => setDraft({...draft, title: e.target.value})}
                           placeholder="مثال: قصة شجاعة الجد..."
-                          className="w-full h-16 px-8 rounded-[24px] bg-muted/30 border border-border/60 font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                          className="w-full h-16 px-8 rounded-[24px] bg-muted/30 dark:bg-white/5 border border-border/60 dark:border-white/10 font-black text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
                         />
                      </div>
 
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">صورة مرافقة (اختياري)</label>
-                        <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">صورة مرافقة (اختياري)</label>
+                        <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 dark:border-white/10 rounded-[32px] cursor-pointer hover:bg-primary/5 hover:border-primary/40 transition-all group/upload">
                            {imagePreview ? (
                               <img src={imagePreview} className="h-40 w-full object-contain rounded-2xl shadow-xl" alt="Preview" />
                            ) : (
@@ -367,23 +367,23 @@ function HeritagePage() {
                      </div>
 
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">الاسم المرتبط (صاحب الموروث)</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">الاسم المرتبط (صاحب الموروث)</label>
                         <input
                           value={draft.author_name}
                           onChange={e => setDraft({...draft, author_name: e.target.value})}
                           placeholder="الاسم الثلاثي إن أمكن..."
-                          className="w-full h-16 px-8 rounded-[24px] bg-muted/30 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+                          className="w-full h-16 px-8 rounded-[24px] bg-muted/30 dark:bg-white/5 border border-border/60 dark:border-white/10 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
                         />
                      </div>
                      <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">المحتوى</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 dark:text-gold-primary/60 px-2">المحتوى</label>
                         <textarea
                           value={draft.content}
                           onChange={e => setDraft({...draft, content: e.target.value})}
                           placeholder="اكتب الأبيات أو القصة هنا..."
                           rows={8}
                           className={cn(
-                            "w-full p-8 rounded-[32px] bg-muted/30 border border-border/60 font-bold text-base focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner",
+                            "w-full p-8 rounded-[32px] bg-muted/30 dark:bg-white/5 border border-border/60 dark:border-white/10 font-bold text-base focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all resize-none shadow-inner",
                             draft.kind === 'poem' ? "text-center leading-loose font-arabic italic" : "leading-relaxed"
                           )}
                         />
@@ -417,12 +417,12 @@ function HeritageCard({ item, index, canDelete, onDelete }: { item: HeritageItem
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="break-inside-avoid relative bg-white dark:bg-card border border-border/40 rounded-[32px] p-8 shadow-xl hover:shadow-2xl transition-all group overflow-hidden"
+      className="break-inside-avoid relative bg-white dark:bg-[#12141C] border border-border/40 dark:border-white/5 rounded-[32px] p-8 shadow-xl hover:shadow-2xl transition-all group overflow-hidden"
     >
-       <div className={cn("absolute -top-6 -right-6 size-24 rounded-full opacity-5 group-hover:scale-150 transition-transform duration-1000", meta.bg)} />
+       <div className={cn("absolute -top-6 -right-6 size-24 rounded-full opacity-5 group-hover:opacity-10 group-hover:scale-150 transition-transform duration-1000", meta.bg)} />
        <div className="relative z-10 space-y-6">
           <div className="flex items-center justify-between">
-             <div className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center gap-1.5", meta.color, meta.bg, "border-transparent")}>
+             <div className={cn("px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border flex items-center gap-1.5 shadow-sm", meta.color, meta.bg, "dark:border-white/5")}>
                 <meta.icon size={10} />
                 {meta.label}
              </div>
@@ -431,7 +431,7 @@ function HeritageCard({ item, index, canDelete, onDelete }: { item: HeritageItem
                    <Heart size={16} />
                 </button>
                 {canDelete && (
-                  <button onClick={onDelete} className="text-muted-foreground hover:text-rose-600 transition-colors">
+                  <button onClick={onDelete} className="text-muted-foreground/40 hover:text-rose-600 transition-colors">
                      <Trash2 size={16} />
                   </button>
                 )}
@@ -440,27 +440,27 @@ function HeritageCard({ item, index, canDelete, onDelete }: { item: HeritageItem
 
           <div className="space-y-4">
              {item.image_url && (
-                <div className="rounded-2xl overflow-hidden shadow-lg border border-border/20">
-                   <img src={item.image_url} alt={item.title} className="w-full h-auto object-cover max-h-64" />
+                <div className="rounded-2xl overflow-hidden shadow-lg border border-border/20 dark:border-white/5">
+                   <img src={item.image_url} alt={item.title} className="w-full h-auto object-cover max-h-64 transition-transform duration-700 group-hover:scale-105" />
                 </div>
              )}
-             <h3 className="text-2xl font-black text-primary leading-tight tracking-tight">{item.title}</h3>
+             <h3 className="text-2xl font-black text-primary leading-tight tracking-tight dark:text-gold-primary">{item.title}</h3>
              <div className={cn(
-               "text-base font-bold text-muted-foreground dark:text-white/80 leading-relaxed whitespace-pre-wrap",
-               item.kind === 'poem' ? "text-center font-arabic italic bg-muted/20 p-4 rounded-2xl" : ""
+               "text-base md:text-lg font-bold text-muted-foreground dark:text-white/90 leading-relaxed whitespace-pre-wrap",
+               item.kind === 'poem' ? "text-center font-arabic italic bg-muted/20 dark:bg-white/5 p-6 rounded-[24px] border border-transparent dark:border-white/5" : ""
              )}>
                 {item.content}
              </div>
           </div>
 
-          <div className="pt-6 border-t border-border/20 flex items-center justify-between">
+          <div className="pt-6 border-t border-border/20 dark:border-white/5 flex items-center justify-between">
              <div className="flex items-center gap-2">
-                <div className="size-8 rounded-full bg-primary/5 flex items-center justify-center text-primary border border-primary/10">
+                <div className="size-8 rounded-full bg-primary/5 dark:bg-white/5 flex items-center justify-center text-primary dark:text-gold-primary border border-primary/10 dark:border-white/10">
                    <Scroll size={14} />
                 </div>
-                <p className="text-[10px] font-black text-primary/60">{new Date(item.created_at).toLocaleDateString("ar-SA")}</p>
+                <p className="text-[10px] font-black text-primary/60 dark:text-white/40 uppercase tracking-widest">{new Date(item.created_at).toLocaleDateString("ar-SA")}</p>
              </div>
-             <ChevronLeft className="size-4 text-primary/20 group-hover:text-primary group-hover:-translate-x-1 transition-all" />
+             <ChevronLeft className="size-4 text-primary/20 group-hover:text-primary dark:group-hover:text-gold-primary group-hover:-translate-x-1 transition-all" />
           </div>
        </div>
     </motion.article>
