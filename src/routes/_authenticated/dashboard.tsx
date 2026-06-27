@@ -240,25 +240,42 @@ function Dashboard() {
         }
       }
 
-      supabase.from("trips").select("*", { count: "exact", head: true }).then((r) => setTripsCount(r.count || 0));
-      supabase.from("profiles").select("*", { count: "exact", head: true }).then((r) => setMembersCount(r.count || 0));
-      supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then((r) => setTasksCount(r.count || 0));
-      supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done").then((r) => setMyTasksCount(r.count || 0));
+      // Idea 4: Consolidated fetching
+      const [
+        { count: tCount },
+        { count: mCount },
+        { count: tkCount },
+        { count: myTkCount },
+        { count: newsCount },
+        { data: meetings },
+        { data: tData },
+        { data: annData },
+        { data: transactions }
+      ] = await Promise.all([
+        supabase.from("trips").select("*", { count: "exact", head: true }),
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done"),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done"),
+        supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday),
+        supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5),
+        supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
+        supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
+        supabase.from("fund_transactions").select("amount, type")
+      ]);
 
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-      supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday).then((r) => setNewNewsCount(r.count || 0));
+      setTripsCount(tCount || 0);
+      setMembersCount(mCount || 0);
+      setTasksCount(tkCount || 0);
+      setMyTasksCount(myTkCount || 0);
+      setNewNewsCount(newsCount || 0);
+      setUpcomingMeetings(meetings || []);
+      setUpcomingTrips(tData || []);
 
-      const now = new Date().toISOString();
-      supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5).then((r) => setUpcomingMeetings(r.data || []));
-      supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5).then((r) => setUpcomingTrips(r.data || []));
-
-      const { data: annData } = await supabase
-        .from("majlis_posts")
-        .select("id, title, body, created_at, pinned")
-        .eq("kind", "announcement")
-        .order("pinned", { ascending: false })
-        .order("created_at", { ascending: false })
-        .limit(5);
+      const bal = (transactions || []).reduce((acc, t) => {
+        const val = Number(t.amount) || 0;
+        return t.type === "contribution" ? acc + val : acc - val;
+      }, 0);
+      setFundBalance(bal);
 
       if (annData) {
         const withImages = await Promise.all(
@@ -279,14 +296,6 @@ function Dashboard() {
         );
         setAnnouncements(withImages);
       }
-
-      supabase.from("fund_transactions").select("amount, type").then((r) => {
-        const bal = (r.data || []).reduce((acc, t) => {
-          const val = Number(t.amount) || 0;
-          return t.type === "contribution" ? acc + val : acc - val;
-        }, 0);
-        setFundBalance(bal);
-      });
 
       // Load Heritage Snippet
       supabase

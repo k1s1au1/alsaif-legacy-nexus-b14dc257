@@ -70,11 +70,28 @@ export function GamesHub() {
   );
 }
 
-// 1. Baloot Calculator (Enhanced)
+// 1. Baloot Calculator (Enhanced with Persistence)
 function BalootCalculator() {
   const [us, setUs] = useState(0);
   const [them, setThem] = useState(0);
   const [history, setHistory] = useState<{ us: number; them: number }[]>([]);
+
+  // Idea 2: Persistence
+  useEffect(() => {
+    const saved = localStorage.getItem("alsaif_baloot_state");
+    if (saved) {
+      try {
+        const { us: sUs, them: sThem, history: sHist } = JSON.parse(saved);
+        setUs(sUs || 0);
+        setThem(sThem || 0);
+        setHistory(sHist || []);
+      } catch (e) { console.error("Baloot load error", e); }
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("alsaif_baloot_state", JSON.stringify({ us, them, history }));
+  }, [us, them, history]);
 
   const addScore = (u: number, t: number) => {
     setHistory([{ us: u, them: t }, ...history]);

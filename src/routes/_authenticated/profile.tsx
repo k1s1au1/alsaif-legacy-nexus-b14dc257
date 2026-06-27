@@ -67,6 +67,8 @@ function ProfilePage() {
 
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [isVerifying, setIsVerifying] = useState(false);
 
   const fileRef = useRef<HTMLInputElement | null>(null);
 
@@ -132,6 +134,10 @@ function ProfilePage() {
 
   async function changePassword(e: React.FormEvent) {
     e.preventDefault();
+    if (!currentPassword) {
+      toast.error("يرجى إدخال كلمة المرور الحالية للتأكيد");
+      return;
+    }
     const parsed = passwordSchema.safeParse(password);
     if (!parsed.success) {
       toast.error(parsed.error.issues[0].message);
@@ -141,7 +147,21 @@ function ProfilePage() {
       toast.error("كلمتا المرور غير متطابقتين");
       return;
     }
+
     setPwSaving(true);
+
+    // Idea 3: Verify current password first (Re-authentication)
+    const { error: authErr } = await supabase.auth.signInWithPassword({
+      email,
+      password: currentPassword,
+    });
+
+    if (authErr) {
+      setPwSaving(false);
+      toast.error("كلمة المرور الحالية غير صحيحة");
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
     setPwSaving(false);
     if (error) {
@@ -150,6 +170,7 @@ function ProfilePage() {
     }
     setPassword("");
     setPasswordConfirm("");
+    setCurrentPassword("");
     toast.success("تم تحديث كلمة المرور بنجاح");
   }
 
@@ -173,9 +194,14 @@ function ProfilePage() {
       toast.error("فشل رفع الصورة");
       return;
     }
+    // Idea 5: Clean up old avatars
     const previous = avatarUrl;
     if (previous && previous !== path) {
-      await supabase.storage.from("avatars").remove([previous]);
+      try {
+        await supabase.storage.from("avatars").remove([previous]);
+      } catch (err) {
+        console.warn("Could not delete old avatar:", err);
+      }
     }
     const { error: updErr } = await supabase
       .from("profiles")
@@ -305,8 +331,10 @@ function ProfilePage() {
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Field label="كلمة المرور الحالية" type="password" value={currentPassword} onChange={setCurrentPassword} placeholder="لتأكيد هويتك..." />
+                    <div className="hidden md:block" />
                     <Field label="كلمة المرور الجديدة" type="password" value={password} onChange={setPassword} placeholder="••••••••••••" />
-                    <Field label="تأكيد كلمة المرور" type="password" value={passwordConfirm} onChange={setPasswordConfirm} placeholder="••••••••••••" />
+                    <Field label="تأكيد كلمة المرور الجديدة" type="password" value={passwordConfirm} onChange={setPasswordConfirm} placeholder="••••••••••••" />
                  </div>
 
                  <div className="pt-4">
