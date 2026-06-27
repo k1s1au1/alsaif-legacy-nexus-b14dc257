@@ -27,7 +27,8 @@ import {
   Plane,
   CalendarDays,
   Newspaper,
-  Pencil
+  Pencil,
+  Megaphone
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -357,11 +358,31 @@ function AdminPage() {
                  }}
                  className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-gold-primary hover:text-black transition-all text-xs font-black border border-white/10 flex items-center gap-2"
                >
-                 <Bell className="size-4" /> اختبار نظام الإشعارات
+                 <Megaphone className="size-4" /> اختبار نظام الإشعارات
                </button>
             </div>
           </div>
         </section>
+
+        {isPriv && (
+          <div className="px-4 md:px-0 flex justify-end">
+             <button
+               onClick={async () => {
+                 const { data, error } = await sendFcmNotification({
+                   data: {
+                     title: "🔔 تجربة إشعارات المجلس",
+                     body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                   }
+                 });
+                 if (!error) toast.success("جاري إرسال الإشعار التجريبي...");
+                 else toast.error("فشل الإرسال: " + error);
+               }}
+               className="btn-gold px-8 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-3 active:scale-95 transition-all"
+             >
+               <Megaphone className="size-5" /> إرسال إشعار تجريبي (FCM)
+             </button>
+          </div>
+        )}
 
         {!isPriv ? (
           <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60 animate-fade-up">
