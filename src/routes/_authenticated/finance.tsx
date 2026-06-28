@@ -70,7 +70,7 @@ function FinancePage() {
   const dynamicLogo = useSiteLogo();
   const [rows, setRows] = useState<Tx[]>([]);
   const [transfers, setTransfers] = useState<BankTransfer[]>([]);
-  const [tab, setTab] = useState<"transactions" | "transfers">("transactions");
+  const [tab, setTab] = useState<"transactions" | "transfers" | "projects">("transactions");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showTransferForm, setShowTransferForm] = useState(false);
