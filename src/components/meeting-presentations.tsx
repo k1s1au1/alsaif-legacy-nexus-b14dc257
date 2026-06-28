@@ -339,7 +339,7 @@ function PresentationEditor({
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold-primary outline-none"
+              className="w-full px-4 py-3 rounded-xl bg-white border border-border text-slate-900 placeholder:text-slate-400 focus:border-gold-primary outline-none"
               placeholder="مثال: أجندة الاجتماع"
             />
           </div>
@@ -443,7 +443,7 @@ function PresentationEditor({
                 type="file"
                 accept=".pptx,.ppt,.pdf,.key,application/pdf,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="w-full px-4 py-3 rounded-xl bg-background border border-border"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-border text-slate-900 placeholder:text-slate-400"
               />
               {initial?.file_path && !file && (
                 <p className="text-[10px] text-muted-foreground mt-2">ملف موجود حالياً — اختر ملفاً جديداً للاستبدال</p>
@@ -460,7 +460,7 @@ function PresentationEditor({
                 type="url"
                 value={externalUrl}
                 onChange={(e) => setExternalUrl(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-background border border-border focus:border-gold-primary outline-none"
+                className="w-full px-4 py-3 rounded-xl bg-white border border-border text-slate-900 placeholder:text-slate-400 focus:border-gold-primary outline-none"
                 placeholder="https://"
                 dir="ltr"
               />
