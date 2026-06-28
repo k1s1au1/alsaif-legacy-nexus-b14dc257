@@ -54,7 +54,6 @@ export const assignUserRole = createServerFn({ method: "POST" })
     }
 
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // If assigning chairman, demote any existing chairman first (only one allowed)
     if (role === "chairman") {
