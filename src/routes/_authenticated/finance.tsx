@@ -354,6 +354,17 @@ function FinancePage() {
               </span>
             )}
           </button>
+          <button
+            onClick={() => setTab("projects")}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition flex items-center gap-2 ${
+              tab === "projects"
+                ? "border-gold-primary text-gold-primary"
+                : "border-transparent text-muted-foreground hover:text-ivory"
+            }`}
+          >
+            <Lightbulb className="size-4" strokeWidth={1.5} />
+            مشاريع العائلة
+          </button>
         </div>
 
         {/* TRANSACTIONS TAB */}
