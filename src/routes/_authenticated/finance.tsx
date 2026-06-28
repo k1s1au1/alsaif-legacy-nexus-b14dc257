@@ -694,3 +694,60 @@ function StatusBadge({ status }: { status: BankTransfer["status"] }) {
     <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cls}`}>{label}</span>
   );
 }
+
+function TabPill({
+  active,
+  onClick,
+  children,
+  badge,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  badge?: number;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "relative flex-1 min-w-fit flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs md:text-sm font-bold transition-all whitespace-nowrap",
+        active
+          ? "bg-gold-primary text-navy-base shadow-lg shadow-gold-primary/20"
+          : "text-muted-foreground hover:text-ivory hover:bg-card",
+      )}
+    >
+      {children}
+      {badge && badge > 0 ? (
+        <span
+          className={cn(
+            "min-w-[18px] h-[18px] px-1.5 rounded-full text-[10px] font-black grid place-items-center",
+            active ? "bg-navy-base/20 text-navy-base" : "bg-gold-primary/20 text-gold-primary",
+          )}
+        >
+          {badge}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
+function CountUp({ value, duration = 1000 }: { value: number; duration?: number }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    const from = display;
+    const delta = value - from;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(from + delta * eased);
+      if (t < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value]);
+  return <>{fmt(Math.round(display))}</>;
+}
+
