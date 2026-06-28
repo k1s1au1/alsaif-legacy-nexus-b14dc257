@@ -77,6 +77,11 @@ function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول تقني";
   if (role === "manager") return "مسؤول قسم";
   if (role === "chairman") return "رئيس المجلس";
+  if (role === "head_meetings") return "مسؤول الاجتماعات";
+  if (role === "head_events") return "مسؤول المهام";
+  if (role === "head_trips") return "مسؤول الترفيه";
+  if (role === "head_finance") return "مسؤول الصندوق";
+  if (role === "head_heritage") return "مسؤول إرث السيف";
   return "عضو";
 }
 
@@ -125,14 +130,12 @@ function AdminPage() {
       setIsPriv(isA);
       setIsChair(rs.includes("chairman") || rs.includes("admin"));
 
-      if (p) {
-        setProfile({
-          name: p.arabic_name || p.full_name || "عضو",
-          role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "مسؤول قسم",
-          initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
-          avatarPath: p.avatar_url
-        });
-      }
+          setProfile({
+            name: p.arabic_name || p.full_name || "عضو",
+            role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "مسؤول قسم",
+            initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
+            avatarPath: p.avatar_url
+          });
 
       if (isA) {
         try {
@@ -404,7 +407,7 @@ function AdminPage() {
                  onClick={async () => {
                    const { success, error } = await sendFcmNotification({
                      data: {
-                       title: "🔔 تجربة إشعارات المجلس",
+                       title: "🔔 تجربة إشعارات الأخبار",
                        body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
                      }
                    });
@@ -430,7 +433,7 @@ function AdminPage() {
                  toast.loading("جاري إرسال الإشعار...");
                  const res = await sendFcmNotification({
                    data: {
-                     title: "🔔 تجربة إشعارات المجلس",
+                     title: "🔔 تجربة إشعارات الأخبار",
                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
                    }
                  });

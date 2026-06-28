@@ -66,18 +66,32 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     z.object({
       title: z.string(),
       body: z.string(),
+      roles: z.array(z.string()).optional(),
       data: z.record(z.string()).optional()
     }).parse(data)
   )
-  .handler(async ({ data: { title, body, data: customData } }) => {
+  .handler(async ({ data: { title, body, roles, data: customData } }) => {
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      // 1. Fetch tokens from profiles table (admin bypasses RLS)
-      const { data: profiles, error: fetchErr } = await (supabaseAdmin as any)
-        .from("profiles")
-        .select("fcm_token")
-        .not("fcm_token", "is", null);
 
+      // 1. Fetch target user IDs if roles provided
+      let targetUserIds: string[] | null = null;
+      if (roles && roles.length > 0) {
+        const { data: userRoles } = await supabaseAdmin
+          .from("user_roles")
+          .select("user_id")
+          .in("role", roles);
+        targetUserIds = (userRoles ?? []).map((r: any) => r.user_id);
+        if (targetUserIds.length === 0) return { success: true, count: 0 };
+      }
+
+      // 2. Fetch tokens from profiles table
+      let query = supabaseAdmin.from("profiles").select("fcm_token").not("fcm_token", "is", null);
+      if (targetUserIds) {
+        query = query.in("id", targetUserIds);
+      }
+
+      const { data: profiles, error: fetchErr } = await query;
       if (fetchErr) throw new Error(`Database error: ${fetchErr.message}`);
 
       const registration_ids = (profiles as Array<{ fcm_token: string }>)

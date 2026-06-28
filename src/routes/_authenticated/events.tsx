@@ -36,8 +36,8 @@ export const Route = createFileRoute("/_authenticated/events")({
 });
 
 function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
+  if (role === "admin") return "مسؤول تقني";
+  if (role === "manager") return "مسؤول قسم";
   return "عضو";
 }
 
@@ -89,15 +89,15 @@ function statusChip(status: FamilyEvent["status"], startsAt: string) {
 }
 
 function EventsPage() {
+  const { userId, primaryRole, canManage: canManageSection } = useUserRole();
+  const canManage = canManageSection("tasks");
+
   const [profile, setProfile] = useState<{
     name: string;
     role: string;
     initial: string;
     avatarPath?: string | null;
   }>({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null });
-  const [userId, setUserId] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const canManage = userRole === "admin" || userRole === "manager";
 
   const [events, setEvents] = useState<FamilyEvent[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
@@ -150,7 +150,7 @@ function EventsPage() {
     setShowForm(true);
   }
 
-  async function loadAll() {
+  const loadAll = useCallback(async () => {
     const [{ data: evs, error: ee }, { data: ats }, { data: pr }] = await Promise.all([
       supabase
         .from("events")
@@ -161,7 +161,7 @@ function EventsPage() {
       supabase.from("event_attendees").select("event_id,user_id,rsvp"),
       supabase.from("profiles").select("id, arabic_name, full_name"),
     ]);
-    if (ee) toast.error("تعذر تحميل المناسبات");
+    if (ee) toast.error("تعذر تحميل المهام");
     setEvents((evs ?? []) as FamilyEvent[]);
     setAttendees((ats ?? []) as Attendee[]);
     const map: Record<string, ProfileLite> = {};
@@ -170,39 +170,28 @@ function EventsPage() {
     });
     setProfiles(map);
     setLoading(false);
-  }
+  }, []);
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (u.user) {
-        setUserId(u.user.id);
-        const [{ data: p }, { data: r }] = await Promise.all([
+      if (userId) {
+        const [{ data: p }] = await Promise.all([
           supabase
             .from("profiles")
             .select("arabic_name, full_name, avatar_url")
-            .eq("id", u.user.id)
-            .maybeSingle(),
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", u.user.id)
-            .order("role")
-            .limit(1)
+            .eq("id", userId)
             .maybeSingle(),
         ]);
         const name =
           p?.arabic_name?.trim() ||
           p?.full_name?.trim() ||
-          u.user.email?.split("@")[0] ||
           "عضو العائلة";
         setProfile({
           name,
-          role: roleLabel(r?.role ?? null),
+          role: roleLabel(primaryRole),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });
-        setUserRole(r?.role ?? null);
       }
       await loadAll();
     })();
@@ -217,7 +206,7 @@ function EventsPage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [userId, primaryRole, loadAll]);
 
   async function submitForm(e: FormEvent) {
     e.preventDefault();

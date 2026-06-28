@@ -237,7 +237,7 @@ function SettingsPage() {
   const currentFontObj = FONTS.find(f => f.id === font) || FONTS[0];
 
   return (
-    <AppShell title="الإعدادات" user={{ name: "إعدادات المجلس", role: "تخصيص", initial: "إ" }}>
+    <AppShell title="الإعدادات" user={{ name: "إعدادات الأخبار", role: "تخصيص", initial: "إ" }}>
       <div className="max-w-4xl mx-auto space-y-12 pb-24" dir="rtl">
 
         <section className="space-y-6 animate-fade-up">
@@ -350,7 +350,7 @@ function SettingsPage() {
                 </div>
                 <div>
                   <h4 className="text-lg font-black text-primary">تخصيص الخلفيات</h4>
-                  <p className="text-xs font-bold text-muted-foreground opacity-60">متاح لمسؤولي النظام ورئيس المجلس فقط.</p>
+                  <p className="text-xs font-bold text-muted-foreground opacity-60">متاح للمسؤولين التقنيين ورئيس المجلس فقط.</p>
                 </div>
               </div>
               <div className="grid gap-6 md:grid-cols-2">

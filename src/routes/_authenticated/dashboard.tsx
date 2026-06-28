@@ -150,7 +150,7 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
                     <Link to="/meetings" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>
                  )}
                  {type === 'news' && (
-                    <Link to="/majlis" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في المجلس</Link>
+                    <Link to="/majlis" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في الأخبار</Link>
                  )}
                  <button
                    onClick={onClose}
@@ -410,7 +410,7 @@ function Dashboard() {
 
     // Check News
     if (newNewsCount > 0) {
-      parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'تحديث جديد' : 'تحديثات جديدة'} في الأخبار`);
+      parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'خبر جديد' : 'أخبار جديدة'} في مركز الأخبار`);
     }
 
     // Check Upcoming Trips (within 3 days)

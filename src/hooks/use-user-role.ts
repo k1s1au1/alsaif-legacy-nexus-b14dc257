@@ -3,18 +3,18 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "admin" | "manager" | "member" | "chairman";
 
-export type Section = "meetings" | "events" | "trips" | "finance" | "heritage" | "majlis";
+export type Section = "meetings" | "tasks" | "trips" | "finance" | "heritage" | "news";
 
-export const SECTIONS: Section[] = ["meetings", "events", "trips", "finance", "heritage", "majlis"];
+export const SECTIONS: Section[] = ["meetings", "tasks", "trips", "finance", "heritage", "news"];
 
 export function sectionLabel(section: Section): string {
   switch (section) {
     case "meetings": return "الاجتماعات";
-    case "events": return "المهام";
+    case "tasks": return "المهام";
     case "trips": return "الترفيه";
     case "finance": return "المالية";
     case "heritage": return "إرث السيف";
-    case "majlis": return "الأخبار";
+    case "news": return "الأخبار";
   }
 }
 
@@ -62,10 +62,17 @@ export function useUserRole() {
   const isAdmin = roles.includes("admin");
   const isManager = roles.includes("manager");
   const isChairman = roles.includes("chairman");
-  const isPrivileged = isAdmin || isManager || isChairman;
+  const isPrivileged = isAdmin || isChairman;
 
-  const canManage = (section: Section) =>
-    isPrivileged || sectionHeads.includes(section);
+  const canManage = (section: Section) => {
+    // Technical Admin and Chairman have full access
+    if (isAdmin || isChairman) return true;
+
+    // Section Heads only have access to their assigned sections
+    // Note: 'events' in UI is 'events' in DB, 'majlis' is 'news'
+    const dbSection = section === 'news' ? 'majlis' : section === 'tasks' ? 'events' : section;
+    return sectionHeads.includes(dbSection as any);
+  };
 
   const primaryRole: AppRole | null =
     (roles.find((r) =>

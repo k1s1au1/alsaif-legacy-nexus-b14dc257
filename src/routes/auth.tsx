@@ -80,6 +80,20 @@ function AuthPage() {
       toast.error("تعذر إرسال الطلب", { description: error.message });
       return;
     }
+
+    // Notify Technical Admin and Chairman about new request
+    try {
+      sendFcmNotification({
+        data: {
+          title: "📥 طلب انضمام جديد",
+          body: `رغبة في الانضمام من: ${reqFirstName} ${reqFatherName}`,
+          roles: ["admin", "chairman"]
+        }
+      }).catch(e => console.warn("FCM silent fail:", e));
+    } catch (err) {
+      console.warn("FCM Notification error:", err);
+    }
+
     toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة الطلب من قبل الإدارة وإشعارك قريباً." });
     setAuthMode("login");
   }
@@ -214,7 +228,7 @@ function AuthPage() {
                   >
                     {loading ? <Loader2 className="size-5 animate-spin" /> : (
                       <>
-                        <span>دخول إلى المجلس</span>
+                        <span>دخول إلى الأخبار</span>
                         <ArrowLeft className="size-5" />
                       </>
                     )}

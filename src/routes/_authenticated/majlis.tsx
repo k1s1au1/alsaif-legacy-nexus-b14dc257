@@ -32,8 +32,8 @@ export const Route = createFileRoute("/_authenticated/majlis")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "أخبار العائلة — السيف" },
-      { name: "description", content: "مركز أخبار عائلة السيف ونقاشاتها." },
+      { title: "الأخبار العائلية — السيف" },
+      { name: "description", content: "مركز الأخبار، النقاشات، والإعلانات الرسمية لعائلة السيف." },
     ],
   }),
   component: MajlisPage,
@@ -67,35 +67,32 @@ const KINDS: { key: UiKind; dbKind: PostKind; label: string; color: string; icon
 ];
 
 function MajlisPage() {
-  const [meId, setMeId] = useState<string | null>(null);
+  const { userId: meId, isAdmin, isChairman, canManage: canManageSection } = useUserRole();
+  const canManage = canManageSection("news");
+
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
   const [posts, setPosts] = useState<MajlisPost[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isChairman, setIsChairman] = useState(false);
   const [activeTab, setActiveTab] = useState<UiKind | "all">("all");
   const [showAdd, setShowAdd] = useState(false);
   const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
+    if (!meId) return;
     setLoading(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      setMeId(user.id);
-
       const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", user.id),
+        supabase.from("profiles").select("*").eq("id", meId).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", meId),
       ]);
 
       const rs = (roles ?? []).map(r => r.role);
-      setIsChairman(rs.includes("chairman") || rs.includes("admin"));
 
       if (p) {
         setProfile({
           name: p.arabic_name || p.full_name || "عضو",
-          role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول النظام" : "عضو",
+          role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول تقني" : rs.includes("manager") ? "مسؤول قسم" : "عضو",
           initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
           avatarPath: p.avatar_url
         });
@@ -194,7 +191,7 @@ function MajlisPage() {
   }, [posts, activeTab, isChairman, meId]);
 
   return (
-    <AppShell title="أخبار العائلة" user={profile}>
+    <AppShell title="الأخبار" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
         <QuickActionsBanner />
 
@@ -213,7 +210,7 @@ function MajlisPage() {
                   <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
                   <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">أخبار السيف</span>
                 </div>
-                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">أخبار العائلة</h2>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">الأخبار العائلية</h2>
                 <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">تابع آخر المستجدات، شاركنا أفكارك، وتواصل مباشرة مع رئيس المجلس.</p>
               </div>
               <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
@@ -228,14 +225,16 @@ function MajlisPage() {
              <Tab active={activeTab === "all"} onClick={() => setActiveTab("all")} label="الكل" icon={<ListFilter size={16} />} />
              {KINDS.map(k => <Tab key={k.key} active={activeTab === k.key} onClick={() => setActiveTab(k.key)} label={k.label} icon={<k.icon size={16} />} color={k.color} />)}
           </div>
-          <button onClick={() => setShowAdd(true)} className="btn-gold px-8 py-3.5 rounded-2xl flex items-center justify-center gap-3 shadow-xl text-sm font-black w-full md:w-auto active:scale-95 transition-all">
-             <Plus size={20} strokeWidth={3} /> <span>إضافة خبر</span>
-          </button>
+          {canManage && (
+            <button onClick={() => setShowAdd(true)} className="btn-gold px-8 py-3.5 rounded-2xl flex items-center justify-center gap-3 shadow-xl text-sm font-black w-full md:w-auto active:scale-95 transition-all">
+               <Plus size={20} strokeWidth={3} /> <span>إضافة خبر</span>
+            </button>
+          )}
         </div>
 
         <div className="grid grid-cols-1 gap-8 px-4 md:px-0">
            {loading ? <div className="py-20 text-center"><Loader2 className="animate-spin size-12 mx-auto text-primary opacity-20" /></div> :
-            filteredPosts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isChairman} onRefresh={loadData} comments={comments} />)}
+            filteredPosts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canManage || p.author_id === meId} onRefresh={loadData} comments={comments} />)}
            {!loading && filteredPosts.length === 0 && <div className="p-20 text-center bg-muted/20 rounded-[48px] border-4 border-dashed italic text-muted-foreground">لا توجد منشورات في هذا القسم حالياً.</div>}
         </div>
       </div>
@@ -261,7 +260,7 @@ function Tab({ active, onClick, label, icon, color }: any) {
   );
 }
 
-function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
+function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: any) {
   const authorName = post.author?.arabic_name || post.author?.full_name || "عضو";
   const kind = KINDS.find(k => k.key === post.uiKind) || KINDS[0];
 
@@ -389,7 +388,7 @@ function PostCard({ post, meId, isChairman, onRefresh, comments }: any) {
                 </div>
              )}
           </div>
-          {(isChairman || post.author_id === meId) && (
+          {canDelete && (
              <div className="flex flex-row md:flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 self-end md:self-start shrink-0">
                 {isChairman && <button onClick={togglePin} className={cn("size-12 rounded-2xl flex items-center justify-center transition-all shadow-lg", post.pinned ? "bg-gold-primary text-white" : "bg-gold-primary/10 text-gold-primary hover:bg-gold-primary hover:text-white")} title="تثبيت"><Pin size={20} /></button>}
                 <button onClick={deletePost} className="size-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="حذف"><Trash2 size={20} /></button>

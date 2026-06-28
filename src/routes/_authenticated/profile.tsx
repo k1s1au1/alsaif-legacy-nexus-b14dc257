@@ -305,7 +305,7 @@ function ProfilePage() {
                  </div>
 
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <Field label="الاسم بالعربية (المجلس)" icon={<Quote className="size-4" />} value={arabicName} onChange={setArabicName} placeholder="مثال: سعود السيف" />
+                    <Field label="الاسم بالعربية (الأخبار)" icon={<Quote className="size-4" />} value={arabicName} onChange={setArabicName} placeholder="مثال: سعود السيف" />
                     <Field label="الاسم الكامل (الهوية)" icon={<UserIcon className="size-4" />} value={fullName} onChange={setFullName} placeholder="الاسم كما في الهوية..." />
                     <Field label="رقم الجوال" icon={<Phone className="size-4" />} value={phone} onChange={setPhone} placeholder="05xxxxxxxx" type="tel" />
                     <Field label="البريد الإلكتروني" icon={<Mail className="size-4" />} value={email} disabled placeholder="البريد لا يمكن تعديله" />
@@ -361,7 +361,7 @@ function ProfilePage() {
                     />
                  </div>
                  <h4 className="text-lg font-black tracking-tight relative z-10">إرث السيف الرقمي</h4>
-                 <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">هذا الحساب موثق لدى مجلس العائلة. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا لأعضاء المجلس المعتمدين.</p>
+                 <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">هذا الحساب موثق لدى مركز الأخبار. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا لأعضاء المجلس المعتمدين.</p>
                  <div className="pt-4 relative z-10">
                     <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest">
                        Secure Connection
