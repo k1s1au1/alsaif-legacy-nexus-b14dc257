@@ -409,65 +409,81 @@ function FinancePage() {
               </form>
             )}
 
-            <div className="card-surface overflow-hidden">
-              <div className="p-6 border-b border-border">
-                <h3 className="eyebrow">سجل المعاملات</h3>
+            <div className="space-y-3">
+              <div className="flex items-end justify-between px-1">
+                <h3 className="font-bold text-ivory">آخر العمليات</h3>
+                <span className="text-[11px] text-muted-foreground">{rows.length} معاملة</span>
               </div>
               {loading ? (
-                <div className="p-8 text-center text-muted-foreground text-sm">جاري التحميل...</div>
+                <div className="card-surface p-8 text-center text-muted-foreground text-sm">جاري التحميل...</div>
               ) : rows.length === 0 ? (
-                <div className="p-8 text-center text-muted-foreground text-sm">
-                  لا توجد معاملات بعد
+                <div className="card-surface p-10 text-center">
+                  <Wallet className="size-10 text-muted-foreground/40 mx-auto mb-3" strokeWidth={1.2} />
+                  <p className="text-muted-foreground text-sm">لا توجد معاملات بعد</p>
                 </div>
               ) : (
-                <ul className="divide-y divide-border">
-                  {rows.map((r) => (
-                    <li key={r.id} className="flex items-center justify-between gap-4 p-5">
-                      <div className="flex items-center gap-4 min-w-0">
-                        <div
-                          className={`size-9 rounded-full grid place-items-center shrink-0 ${
-                            r.type === "contribution"
-                              ? "bg-emerald-500/10 text-emerald-400"
-                              : "bg-rose-500/10 text-rose-400"
-                          }`}
-                        >
-                          {r.type === "contribution" ? (
-                            <TrendingUp className="size-4" strokeWidth={1.5} />
-                          ) : (
-                            <TrendingDown className="size-4" strokeWidth={1.5} />
+                <ul className="space-y-2.5">
+                  <AnimatePresence initial={false}>
+                    {rows.map((r, i) => (
+                      <motion.li
+                        key={r.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, x: -8 }}
+                        transition={{ duration: 0.25, delay: Math.min(i * 0.02, 0.2) }}
+                        className="group flex items-center justify-between gap-4 p-4 rounded-2xl bg-card/60 border border-border hover:border-gold-primary/30 hover:bg-card transition-all"
+                      >
+                        <div className="flex items-center gap-4 min-w-0">
+                          <div
+                            className={cn(
+                              "size-12 rounded-2xl grid place-items-center shrink-0 transition-all group-hover:scale-110",
+                              r.type === "contribution"
+                                ? "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20"
+                                : "bg-rose-500/10 text-rose-400 group-hover:bg-rose-500/20",
+                            )}
+                          >
+                            {r.type === "contribution" ? (
+                              <TrendingUp className="size-5" strokeWidth={2} />
+                            ) : (
+                              <TrendingDown className="size-5" strokeWidth={2} />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-ivory truncate">{r.description}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              {new Date(r.occurred_at).toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 shrink-0">
+                          <span
+                            className={cn(
+                              "text-sm font-black tabular-nums px-3 py-1.5 rounded-xl",
+                              r.type === "contribution"
+                                ? "text-emerald-400 bg-emerald-500/5"
+                                : "text-rose-400 bg-rose-500/5",
+                            )}
+                          >
+                            {r.type === "contribution" ? "+" : "−"}
+                            {fmt(Number(r.amount))} ر.س
+                          </span>
+                          {canManage && (
+                            <button
+                              onClick={() => remove(r.id)}
+                              className="size-8 rounded-lg grid place-items-center text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 transition opacity-0 group-hover:opacity-100"
+                              aria-label="حذف"
+                            >
+                              <Trash2 className="size-4" strokeWidth={1.8} />
+                            </button>
                           )}
                         </div>
-                        <div className="min-w-0">
-                          <p className="text-sm text-ivory truncate">{r.description}</p>
-                          <p className="text-[11px] text-muted-foreground mt-0.5">
-                            {new Date(r.occurred_at).toLocaleDateString("ar-SA")}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4 shrink-0">
-                        <span
-                          className={`text-sm font-medium ${
-                            r.type === "contribution" ? "text-emerald-400" : "text-rose-400"
-                          }`}
-                        >
-                          {r.type === "contribution" ? "+" : "−"}
-                          {fmt(Number(r.amount))} ر.س
-                        </span>
-                        {canManage && (
-                          <button
-                            onClick={() => remove(r.id)}
-                            className="text-muted-foreground hover:text-rose-400 transition"
-                            aria-label="حذف"
-                          >
-                            <Trash2 className="size-4" strokeWidth={1.5} />
-                          </button>
-                        )}
-                      </div>
-                    </li>
-                  ))}
+                      </motion.li>
+                    ))}
+                  </AnimatePresence>
                 </ul>
               )}
             </div>
+
           </>
         )}
 
