@@ -563,7 +563,16 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
   );
 }
 
-function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, fullName }: any) {
+const SECTION_OPTIONS: { key: string; label: string }[] = [
+  { key: "meetings", label: "الاجتماعات" },
+  { key: "events", label: "المناسبات" },
+  { key: "trips", label: "الترفيه" },
+  { key: "finance", label: "المالية" },
+  { key: "heritage", label: "إرث السيف" },
+  { key: "majlis", label: "المجلس" },
+];
+
+function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName }: any) {
   const isMe = member.id === meId;
 
   return (
@@ -589,9 +598,33 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
              {!isMe && currentRole !== "admin" && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}
           </div>
        </div>
+       <div className="mt-4 pt-4 border-t border-border/40">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">مسؤوليات الأقسام</p>
+          <div className="flex flex-wrap gap-1.5">
+             {SECTION_OPTIONS.map(s => {
+                const active = sectionHeads.includes(s.key);
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => onToggleSectionHead(member.id, s.key, active)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
+                      active
+                        ? "bg-gold-primary text-white border-gold-primary shadow-md"
+                        : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary"
+                    )}
+                  >
+                    {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
+                    {s.label}
+                  </button>
+                );
+             })}
+          </div>
+       </div>
     </div>
   );
 }
+
 
 function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, setDraft, imagePreview, onPickImage, onClearImage, onSave, onEdit, onDelete, saving }: any) {
   return (
