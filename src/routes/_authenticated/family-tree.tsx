@@ -218,63 +218,44 @@ function FamilyTreePage() {
     const isMe = me?.id && m && m.id === me.id;
     const isSearchMatch = search && m && (m.full_name || "").includes(search);
     const isExtra = m?.kind === "extra";
-    const hasChildren = nodeDatum.children && nodeDatum.children.length > 0;
 
     return (
       <g className="node-group">
-        <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2}>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            whileHover={{ scale: 1.05 }}
+        <foreignObject width={200} height={100} x={-100} y={-50} style={{ overflow: 'visible' }}>
+          <div
             onClick={toggleNode}
             className={cn(
-              "relative flex flex-col items-center justify-center p-4 transition-all cursor-pointer group",
-              "manuscript-node"
+              "relative flex flex-col items-center justify-center p-4 transition-all duration-500 cursor-pointer group",
+              "rounded-[32px] border-2 shadow-2xl",
+              isRoot ? "bg-primary border-gold-primary shadow-gold-primary/20" :
+              isMe ? "bg-[#064E3B] border-gold-primary shadow-emerald-900/50" :
+              isSearchMatch ? "bg-gold-primary border-white scale-110 shadow-xl" :
+              "bg-white dark:bg-[#1a1c20] border-border dark:border-white/10"
             )}
           >
-             {/* Decorative Background (Leaf/Shield Shape) */}
-             <div className={cn(
-               "absolute inset-0 z-0 transition-all duration-700 rounded-[30%_70%_70%_30%/30%_30%_70%_70%] border-2 shadow-2xl",
-               isRoot ? "bg-primary border-gold-primary scale-110 shadow-gold-primary/20" :
-               isMe ? "bg-[#064E3B] border-gold-primary shadow-emerald-900/50" :
-               isSearchMatch ? "bg-gold-primary border-white scale-110 shadow-xl" :
-               "bg-white/95 dark:bg-[#1a1c20] border-border dark:border-white/10"
-             )} />
-
-             {/* Leaf sway animation for non-root nodes */}
-             {!isRoot && <div className="absolute inset-0 leaf-sway pointer-events-none opacity-20" />}
-
              <div className="relative z-10 flex flex-col items-center gap-1 text-center">
                 {isRoot ? (
                    <>
-                     <div className="size-10 rounded-full bg-gold-primary/20 flex items-center justify-center mb-1"><Trees className="size-6 text-gold-primary" /></div>
-                     <span className="text-sm font-black text-white uppercase tracking-widest">{nodeDatum.name}</span>
+                     <Trees className="size-6 text-gold-primary mb-1" />
+                     <span className="text-xs font-black text-white uppercase tracking-widest leading-none">{nodeDatum.name}</span>
                    </>
                 ) : m ? (
                    <>
-                      <div className="size-12 rounded-full border-2 border-gold-primary/30 p-0.5 mb-1 bg-background relative overflow-hidden group-hover:border-gold-primary transition-colors">
+                      <div className="size-10 rounded-full border-2 border-gold-primary/30 p-0.5 mb-1 bg-background overflow-hidden group-hover:border-gold-primary transition-colors">
                          {isExtra ? <UserCircle2 className="size-full text-muted-foreground/40" /> : <UserAvatar path={m.avatar_url} name={m.first_name || "ع"} className="size-full" userId={m.id} />}
                       </div>
-                      <span className={cn("text-lg font-black tracking-tight leading-none", (isMe || isSearchMatch) ? "text-white" : "text-primary dark:text-gold-primary")}>{m.first_name}</span>
-                      <span className={cn("text-[9px] font-bold opacity-60", (isMe || isSearchMatch) ? "text-white" : "text-muted-foreground")}>{m.father_name || "السيف"}</span>
+                      <span className={cn("text-base font-black tracking-tight leading-none", (isMe || isSearchMatch) ? "text-white" : "text-primary dark:text-gold-primary")}>{m.first_name}</span>
+                      <span className={cn("text-[8px] font-bold opacity-60", (isMe || isSearchMatch) ? "text-white" : "text-muted-foreground")}>{m.father_name || "السيف"}</span>
 
                       {isPriv && (
-                         <button onClick={(e) => { e.stopPropagation(); setEditing(m.id); setDraftParent(m.parent_id); }} className="absolute -top-1 -right-1 size-8 rounded-full bg-white dark:bg-card border border-border shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-gold-primary hover:text-black">
+                         <button onClick={(e) => { e.stopPropagation(); setEditing(m.id); setDraftParent(m.parent_id); }} className="absolute -top-2 -right-2 size-8 rounded-xl bg-white dark:bg-card border border-border shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-gold-primary hover:text-black">
                             <Pencil size={12} />
                          </button>
                       )}
                    </>
                 ) : null}
-
-                {hasChildren && !isRoot && (
-                   <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
-                      <div className="size-1 rounded-full bg-gold-primary animate-bounce" />
-                      <div className="size-1 rounded-full bg-gold-primary animate-bounce [animation-delay:200ms]" />
-                   </div>
-                )}
              </div>
-          </motion.div>
+          </div>
         </foreignObject>
       </g>
     );
