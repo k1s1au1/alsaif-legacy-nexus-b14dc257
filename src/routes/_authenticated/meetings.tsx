@@ -621,6 +621,9 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                   </button>
                 </div>
              </div>
+             <div className="px-1">
+                <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
+             </div>
              {canManage && (
                 <div className="flex items-center gap-2 px-1">
                    <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-[9px] md:text-[10px] font-black flex items-center justify-center gap-2 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
