@@ -122,6 +122,7 @@ function AdminPage() {
       const rs = (roles ?? []).map(r => r.role);
       const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
       setIsPriv(isA);
+      setIsChair(rs.includes("chairman") || rs.includes("admin"));
 
       if (p) {
         setProfile({
