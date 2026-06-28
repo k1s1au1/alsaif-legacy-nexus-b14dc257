@@ -480,6 +480,7 @@ function AdminPage() {
                         onToggleSectionHead={toggleSectionHead}
                         onDelete={deleteMember}
                         fullName={m.arabic_name || m.full_name || "عضو"}
+                        canManageSections={isChair}
                       />
                     ))}
                     {filteredMembers.length === 0 && !loading && (
