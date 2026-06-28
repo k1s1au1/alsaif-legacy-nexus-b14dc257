@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 
 async function getGoogleAccessToken(serviceAccount: any) {
   const iat = Math.floor(Date.now() / 1000);
