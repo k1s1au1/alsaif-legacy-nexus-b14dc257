@@ -257,116 +257,96 @@ function FinancePage() {
 
   return (
     <AppShell title="صندوق العائلة" user={profile}>
-      <div className="max-w-7xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
+      <div className="max-w-5xl mx-auto space-y-8 pb-24 px-4 md:px-0" dir="rtl">
         <QuickActionsBanner />
 
-        {/* Alsaif Finance Header — Banner Style */}
+        {/* HERO — Soft Modern Balance Card */}
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-emerald-900 via-primary to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
-            {/* Left Decorative Logo */}
-            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
-              <div
-                className="size-28 md:size-64 logo-alsaif-banner"
-                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
-              />
-            </div>
+          <div className="relative overflow-hidden rounded-[32px] md:rounded-[40px] shadow-2xl border border-white/10 group">
+            {/* gradient bg */}
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-700 via-emerald-800 to-teal-900" />
+            <div className="absolute -top-24 -left-16 size-72 bg-white/10 rounded-full blur-3xl" />
+            <div className="absolute -bottom-24 -right-16 size-72 bg-gold-primary/20 rounded-full blur-3xl" />
+            <div
+              className="absolute right-6 top-6 size-28 md:size-40 opacity-15 logo-alsaif-banner pointer-events-none transition-all duration-1000 group-hover:opacity-25 group-hover:scale-110"
+              style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
+            />
 
-            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
+            <div className="relative z-10 p-8 md:p-12 text-white flex flex-col items-center text-center">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="h-px w-8 bg-gold-primary/70" />
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary/90">
+                  التكافل العائلي
+                </span>
+                <div className="h-px w-8 bg-gold-primary/70" />
+              </div>
+              <p className="text-emerald-100/80 text-sm font-medium mb-2">رصيد صندوق العائلة</p>
+              <h1 className="text-5xl md:text-7xl font-black tracking-tight drop-shadow-2xl tabular-nums">
+                <CountUp value={totals.balance} />
+                <span className="text-xl md:text-2xl font-bold opacity-80 mr-3">ر.س</span>
+              </h1>
 
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
-              <div className="space-y-3 md:space-y-5 text-center md:text-right">
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
-                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
-                    التكافل العائلي
-                  </span>
+              {/* Mini summary chips */}
+              <div className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs">
+                <div className="px-3 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md flex items-center gap-2">
+                  <TrendingUp className="size-3.5 text-emerald-300" strokeWidth={2} />
+                  <span className="text-emerald-50/90">مساهمات</span>
+                  <span className="font-bold text-white tabular-nums">{fmt(totals.income)}</span>
                 </div>
-                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
-                  صندوق العائلة
-                </h2>
-                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
-                  إدارة مساهمات ومصاريف صندوق عائلة السيف لتعزيز روح التعاون.
-                </p>
+                <div className="px-3 py-1.5 rounded-full bg-white/10 border border-white/15 backdrop-blur-md flex items-center gap-2">
+                  <TrendingDown className="size-3.5 text-rose-300" strokeWidth={2} />
+                  <span className="text-rose-50/90">مصاريف</span>
+                  <span className="font-bold text-white tabular-nums">{fmt(totals.expense)}</span>
+                </div>
               </div>
 
-              <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
-                <Wallet className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
+              {/* Action row */}
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-3 w-full max-w-md">
+                <button
+                  onClick={() => {
+                    setTab("transfers");
+                    setShowTransferForm(true);
+                    setTimeout(() => window.scrollTo({ top: 400, behavior: "smooth" }), 50);
+                  }}
+                  className="group/btn flex-1 min-w-[120px] bg-white text-emerald-800 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-50 transition-all active:scale-95 shadow-xl shadow-emerald-950/30"
+                >
+                  <Plus className="size-4 transition-transform group-hover/btn:rotate-90" strokeWidth={2.5} />
+                  إيداع / تحويل
+                </button>
+                {canManage && (
+                  <button
+                    onClick={() => {
+                      setTab("transactions");
+                      setShowForm(true);
+                      setTimeout(() => window.scrollTo({ top: 400, behavior: "smooth" }), 50);
+                    }}
+                    className="flex-1 min-w-[120px] bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-95"
+                  >
+                    <TrendingDown className="size-4" strokeWidth={2.5} />
+                    تسجيل مصروف
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </section>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="card-surface p-6 ring-1 ring-gold-primary/30">
-            <div className="flex items-center justify-between">
-              <span className="eyebrow">الرصيد المتاح</span>
-              <Wallet className="size-4 text-gold-primary" strokeWidth={1.5} />
-            </div>
-            <div className="text-3xl font-medium text-ivory mt-3">
-              {fmt(totals.balance)} <span className="text-sm text-gold-primary">ر.س</span>
-            </div>
-          </div>
-          <div className="card-surface p-6">
-            <div className="flex items-center justify-between">
-              <span className="eyebrow">إجمالي المساهمات</span>
-              <TrendingUp className="size-4 text-emerald-400" strokeWidth={1.5} />
-            </div>
-            <div className="text-2xl font-medium text-ivory mt-3">
-              {fmt(totals.income)} <span className="text-sm text-muted-foreground">ر.س</span>
-            </div>
-          </div>
-          <div className="card-surface p-6">
-            <div className="flex items-center justify-between">
-              <span className="eyebrow">إجمالي المصاريف</span>
-              <TrendingDown className="size-4 text-rose-400" strokeWidth={1.5} />
-            </div>
-            <div className="text-2xl font-medium text-ivory mt-3">
-              {fmt(totals.expense)} <span className="text-sm text-muted-foreground">ر.س</span>
-            </div>
-          </div>
+        {/* Segmented Pill Tabs */}
+        <div className="flex p-1.5 bg-card/60 border border-border rounded-2xl overflow-x-auto gap-1">
+          <TabPill active={tab === "transactions"} onClick={() => setTab("transactions")}>
+            <Wallet className="size-4" strokeWidth={2} />
+            <span>المعاملات</span>
+          </TabPill>
+          <TabPill active={tab === "transfers"} onClick={() => setTab("transfers")} badge={pendingCount}>
+            <Landmark className="size-4" strokeWidth={2} />
+            <span>التحويلات البنكية</span>
+          </TabPill>
+          <TabPill active={tab === "projects"} onClick={() => setTab("projects")}>
+            <Lightbulb className="size-4" strokeWidth={2} />
+            <span>مشاريع العائلة</span>
+          </TabPill>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-2 border-b border-border">
-          <button
-            onClick={() => setTab("transactions")}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition ${
-              tab === "transactions"
-                ? "border-gold-primary text-gold-primary"
-                : "border-transparent text-muted-foreground hover:text-ivory"
-            }`}
-          >
-            سجل المعاملات
-          </button>
-          <button
-            onClick={() => setTab("transfers")}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition flex items-center gap-2 ${
-              tab === "transfers"
-                ? "border-gold-primary text-gold-primary"
-                : "border-transparent text-muted-foreground hover:text-ivory"
-            }`}
-          >
-            <Landmark className="size-4" strokeWidth={1.5} />
-            التحويلات البنكية
-            {pendingCount > 0 && (
-              <span className="min-w-[18px] h-[18px] px-1.5 rounded-full bg-gold-primary/20 text-gold-primary text-[10px] font-semibold grid place-items-center">
-                {pendingCount}
-              </span>
-            )}
-          </button>
-          <button
-            onClick={() => setTab("projects")}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition flex items-center gap-2 ${
-              tab === "projects"
-                ? "border-gold-primary text-gold-primary"
-                : "border-transparent text-muted-foreground hover:text-ivory"
-            }`}
-          >
-            <Lightbulb className="size-4" strokeWidth={1.5} />
-            مشاريع العائلة
-          </button>
-        </div>
 
         {/* TRANSACTIONS TAB */}
         {tab === "transactions" && (
