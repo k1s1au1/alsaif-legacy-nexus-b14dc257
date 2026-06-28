@@ -84,6 +84,7 @@ function AdminPage() {
   const [meId, setMeId] = useState<string | null>(null);
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
   const [isPriv, setIsPriv] = useState(false);
+  const [isChair, setIsChair] = useState(false);
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<any[]>([]);
