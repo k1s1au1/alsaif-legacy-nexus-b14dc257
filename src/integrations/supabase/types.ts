@@ -779,6 +779,30 @@ export type Database = {
         }
         Relationships: []
       }
+      section_heads: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          section: string
+          user_id: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          section: string
+          user_id: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          section?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assignee_id: string | null
