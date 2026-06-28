@@ -351,13 +351,11 @@ function AdminPage() {
             <div className="mt-8 flex justify-center md:justify-end">
                <button
                  onClick={async () => {
-                   const { data, error } = await sendFcmNotification({
-                     data: {
-                       title: "🔔 تجربة إشعارات المجلس",
-                       body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                     }
+                   const { success, error } = await sendFcmNotification({
+                     title: "🔔 تجربة إشعارات المجلس",
+                     body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
                    });
-                   if (!error) toast.success("جاري إرسال الإشعار التجريبي...");
+                   if (success) toast.success("جاري إرسال الإشعار التجريبي...");
                    else toast.error("فشل الإرسال: " + error);
                  }}
                  className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-gold-primary hover:text-black transition-all text-xs font-black border border-white/10 flex items-center gap-2"
