@@ -471,7 +471,7 @@ export function FamilyProjects({
 }
 
 function StatusBadge({ status }: { status: Project["status"] }) {
-  const map: Record<Project["status"], { label: string; cls: string; icon: JSX.Element }> = {
+  const map: Record<Project["status"], { label: string; cls: string; icon: React.ReactNode }> = {
     pending: { label: "قيد الانتظار", cls: "bg-gold-primary/10 text-gold-primary", icon: <Clock className="size-3" /> },
     approved: { label: "معتمد", cls: "bg-emerald-500/10 text-emerald-400", icon: <Check className="size-3" /> },
     rejected: { label: "مرفوض", cls: "bg-rose-500/10 text-rose-400", icon: <X className="size-3" /> },
