@@ -575,7 +575,7 @@ const SECTION_OPTIONS: { key: string; label: string }[] = [
   { key: "majlis", label: "المجلس" },
 ];
 
-function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName }: any) {
+function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false }: any) {
   const isMe = member.id === meId;
 
   return (
