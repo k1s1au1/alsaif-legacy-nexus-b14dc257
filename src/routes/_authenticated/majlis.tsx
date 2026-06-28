@@ -168,20 +168,26 @@ function MajlisPage() {
     } catch (err) {
       console.error("Load Majlis error:", err);
     } finally {
-      setLoading(false);
+      if (active) setLoading(false);
     }
   }, [meId]);
 
   useEffect(() => {
+    let active = true;
     loadData();
 
     const channel = supabase
       .channel("majlis-realtime")
-      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadData())
-      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () => loadData())
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => {
+        if (active) loadData();
+      })
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () => {
+        if (active) loadData();
+      })
       .subscribe();
 
     return () => {
+      active = false;
       supabase.removeChannel(channel);
     };
   }, [loadData]);
