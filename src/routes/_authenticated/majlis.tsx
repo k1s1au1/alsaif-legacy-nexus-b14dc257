@@ -99,44 +99,31 @@ function MajlisPage() {
         });
       }
 
+      // Using raw query to ensure we get results even if schema cache is slightly delayed
       const { data: rawPosts, error: postsErr } = await supabase
         .from("majlis_posts")
         .select("*")
-        .neq("kind", "announcement")
-        .order("pinned", { ascending: false })
-        .order("created_at", { ascending: false });
+        .neq("kind", "announcement");
 
-      if (postsErr) throw postsErr;
-
-      const authorIds = Array.from(new Set((rawPosts ?? []).map((p: any) => p.author_id).filter(Boolean)));
-      const { data: authorProfiles } = authorIds.length
-        ? await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", authorIds)
-        : { data: [] as any[] };
-      const profileMap = new Map((authorProfiles ?? []).map((p: any) => [p.id, p]));
-
-      const { data: coms } = await supabase
-        .from("majlis_comments")
-        .select("*")
-        .order("created_at", { ascending: true });
-
-      const commentAuthorIds = Array.from(new Set((coms ?? []).map((c: any) => c.author_id).filter(Boolean)));
-      const missingIds = commentAuthorIds.filter((id) => !profileMap.has(id));
-      if (missingIds.length) {
-        const { data: extra } = await supabase
-          .from("profiles")
-          .select("id, arabic_name, full_name, avatar_url")
-          .in("id", missingIds);
-        (extra ?? []).forEach((p: any) => profileMap.set(p.id, p));
+      if (postsErr) {
+        console.error("Posts fetch error:", postsErr);
+        toast.error("فشل في تحميل الأخبار");
       }
-      const enrichedComments = (coms ?? []).map((c: any) => ({ ...c, author: profileMap.get(c.author_id) || null }));
 
       if (rawPosts) {
+        // Fetch profiles for authors
+        const authorIds = Array.from(new Set(rawPosts.map((p: any) => p.author_id).filter(Boolean)));
+        const { data: authorProfiles } = authorIds.length
+          ? await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", authorIds)
+          : { data: [] };
+
+        const profileMap = new Map((authorProfiles ?? []).map((p: any) => [p.id, p]));
+
         const processed = rawPosts.map((p: any) => {
           try {
-            const kindMatch = p.body.match(/---kind:(\w+)/);
+            const kindMatch = p.body?.match(/---kind:(\w+)/);
             const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
-
-            const cleanBody = p.body
+            const cleanBody = (p.body || "")
               .replace(/---kind:.*?\n?/, "")
               .replace(/---poll:.*?--- \n?/, "")
               .trim();
@@ -148,26 +135,42 @@ function MajlisPage() {
               author: profileMap.get(p.author_id) || null,
             };
           } catch (e) {
-            console.error("Post parsing error:", p.id, e);
-            return {
-              ...p,
-              uiKind: "discussion",
-              cleanBody: "خطأ في عرض محتوى هذا المنشور.",
-              author: profileMap.get(p.author_id) || null,
-            };
+            return { ...p, uiKind: "discussion", cleanBody: p.body, author: profileMap.get(p.author_id) || null };
           }
         });
+
+        // Sorting manually to ensure order
+        processed.sort((a, b) => {
+          if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+
         setPosts(processed as any);
       }
-      setComments(enrichedComments);
 
+      // Comments fetch
+      const { data: coms } = await supabase
+        .from("majlis_comments")
+        .select("*")
+        .order("created_at", { ascending: true });
+
+      if (coms) {
+        const commentAuthorIds = Array.from(new Set(coms.map((c: any) => c.author_id).filter(Boolean)));
+        const { data: cProfs } = commentAuthorIds.length
+          ? await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", commentAuthorIds)
+          : { data: [] };
+
+        const cMap = new Map((cProfs ?? []).map((p: any) => [p.id, p]));
+        const enriched = coms.map((c: any) => ({ ...c, author: cMap.get(c.author_id) || null }));
+        setComments(enriched);
+      }
 
     } catch (err) {
       console.error("Load Majlis error:", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [meId]);
 
   useEffect(() => {
     loadData();

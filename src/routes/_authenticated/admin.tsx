@@ -75,9 +75,8 @@ const REQ_TABS = [
 ];
 
 function AdminPage() {
-  const [meId, setMeId] = useState<string | null>(null);
+  const { userId: meId, isAdmin: isSystemAdmin, isChairman: isSiteChairman, isPrivileged: isA } = useUserRole();
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
-  const [isPriv, setIsPriv] = useState(false);
   const [isChair, setIsChair] = useState(false);
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
@@ -103,29 +102,21 @@ function AdminPage() {
   const assignRoleFn = useServerFn(assignUserRole);
 
   const loadData = useCallback(async () => {
+    if (!meId) return;
     setLoading(true);
     try {
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth.user) return;
-      setMeId(auth.user.id);
+      const { data: p } = await supabase.from("profiles").select("*").eq("id", meId).maybeSingle();
 
-      const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", auth.user.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", auth.user.id),
-      ]);
+      setIsChair(isSiteChairman || isSystemAdmin);
 
-      const rs = (roles ?? []).map(r => r.role);
-      const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
-      setIsPriv(isA);
-      // Fixed: Join Requests should be visible to Technical Admin and Chairman
-      setIsChair(rs.includes("chairman") || rs.includes("admin"));
-
-          setProfile({
-            name: p.arabic_name || p.full_name || "عضو",
-            role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول تقني" : rs.includes("manager") ? "مسؤول قسم" : "عضو",
-            initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
-            avatarPath: p.avatar_url
-          });
+      if (p) {
+        setProfile({
+          name: p.arabic_name || p.full_name || "عضو",
+          role: roleLabel(isSiteChairman ? "chairman" : isSystemAdmin ? "admin" : "manager"),
+          initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
+          avatarPath: p.avatar_url
+        });
+      }
 
       if (isA) {
         try {
@@ -160,13 +151,20 @@ function AdminPage() {
             })));
           }
 
+          setPendingReqs(reqs || []);
+          setAnnouncements(anns || []);
+
           // Fetch FCM Token Count (from profiles)
           const { data: tcData } = await supabase.from("profiles").select("fcm_token");
           const count = tcData?.filter(p => p.fcm_token && p.fcm_token.length > 10).length || 0;
           setFcmTokenCount(count);
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
-          (reqs || []).forEach(r => counts[r.status as keyof typeof counts]++);
+          (reqs || []).forEach(r => {
+             if (counts[r.status as keyof typeof counts] !== undefined) {
+                counts[r.status as keyof typeof counts]++;
+             }
+          });
           setReqCounts(counts);
         } catch (err) {
           console.error("Admin data load error:", err);
@@ -176,7 +174,7 @@ function AdminPage() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [meId, isA, isSystemAdmin, isSiteChairman]);
 
   useEffect(() => { loadData(); }, [loadData]);
 
