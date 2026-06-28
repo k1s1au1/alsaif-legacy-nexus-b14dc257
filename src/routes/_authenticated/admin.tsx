@@ -587,8 +587,8 @@ function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, 
                  <button onClick={onCloseForm} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
               </div>
               <div className="space-y-4">
-                 <input value={annDraft.title} onChange={e => setAnnDraft({ ...annDraft, title: e.target.value })} placeholder="عنوان جذاب..." className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border font-black text-base focus:ring-4 focus:ring-primary/5 transition-all text-foreground placeholder:text-muted-foreground/50" />
-                 <textarea value={annDraft.body} onChange={e => setAnnDraft({ ...annDraft, body: e.target.value })} placeholder="اكتب المحتوى هنا..." rows={4} className="w-full p-6 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:ring-4 focus:ring-primary/5 transition-all resize-none text-foreground placeholder:text-muted-foreground/50" />
+                  <input value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} placeholder="عنوان جذاب..." className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border font-black text-base focus:ring-4 focus:ring-primary/5 transition-all text-foreground placeholder:text-muted-foreground/50" />
+                  <textarea value={draft.body} onChange={e => setDraft({ ...draft, body: e.target.value })} placeholder="اكتب المحتوى هنا..." rows={4} className="w-full p-6 rounded-2xl bg-muted/40 border border-border font-bold text-sm focus:ring-4 focus:ring-primary/5 transition-all resize-none text-foreground placeholder:text-muted-foreground/50" />
                  <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 transition-all overflow-hidden bg-muted/20">
                     {imagePreview ? (
                       <div className="relative w-full aspect-[21/9] rounded-2xl overflow-hidden shadow-2xl border border-white/10 bg-black/20">
