@@ -191,6 +191,7 @@ function Dashboard() {
   const [newNewsCount, setNewNewsCount] = useState(0);
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [initiatives, setInitiatives] = useState<any[]>([]);
+  const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [immersiveItem, setImmersiveItem] = useState<{ type: 'trip' | 'meeting' | 'news', data: any } | null>(null);
   const [bugBody, setBugBody] = useState("");
@@ -318,6 +319,38 @@ function Dashboard() {
         .order("created_at", { ascending: false })
         .limit(3)
         .then((r) => setInitiatives(r.data || []));
+
+      // Load active family projects with contributions
+      supabase
+        .from("family_projects")
+        .select("*")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(5)
+        .then(async (r) => {
+          const pj = r.data || [];
+          if (pj.length === 0) {
+            setActiveProjects([]);
+            return;
+          }
+          const ids = pj.map((p: any) => p.id);
+          const { data: cs } = await supabase
+            .from("family_project_contributions")
+            .select("project_id, amount")
+            .in("project_id", ids);
+          const sums: Record<string, number> = {};
+          (cs || []).forEach((c: any) => {
+            sums[c.project_id] = (sums[c.project_id] || 0) + Number(c.amount);
+          });
+          setActiveProjects(
+            pj.map((p: any) => {
+              const raised = Number(p.fund_allocation) + (sums[p.id] || 0);
+              const remaining = Math.max(0, Number(p.goal_amount) - raised);
+              const pct = Math.min(100, Math.round((raised / Number(p.goal_amount)) * 100));
+              return { ...p, raised, remaining, pct };
+            }),
+          );
+        });
     } catch (err) {
       console.error("Dashboard error:", err);
     }
@@ -603,6 +636,53 @@ function Dashboard() {
               </section>
             );
           })()}
+
+        {activeProjects.length > 0 && (
+          <section className="px-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
+            <Link to="/finance" className="block group">
+              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] border border-gold-primary/30 bg-gradient-to-br from-emerald-900 via-[#0d2620] to-black shadow-2xl p-6 md:p-10">
+                <div className="absolute top-0 left-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 -translate-x-1/2" />
+                <div className="relative z-10 space-y-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="size-12 md:size-16 rounded-2xl bg-gold-primary/20 border border-gold-primary/30 flex items-center justify-center text-gold-primary shadow-xl">
+                        <Lightbulb className="size-6 md:size-8" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">مشاريع العائلة المعتمدة</span>
+                        <h3 className="text-xl md:text-3xl font-black text-white tracking-tight mt-1">ادعم مشاريعنا</h3>
+                      </div>
+                    </div>
+                    <ArrowRight className="size-5 text-gold-primary opacity-60 group-hover:-translate-x-1 transition" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {activeProjects.slice(0, 4).map((p) => (
+                      <div key={p.id} className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="text-sm md:text-base font-bold text-white line-clamp-1">{p.title}</h4>
+                          <span className="text-[10px] font-black text-gold-primary shrink-0">{p.pct}%</span>
+                        </div>
+                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden">
+                          <div
+                            className={cn("h-full transition-all duration-700", p.pct >= 100 ? "bg-emerald-400" : "bg-gradient-to-l from-gold-primary to-emerald-400")}
+                            style={{ width: `${p.pct}%` }}
+                          />
+                        </div>
+                        <div className="flex items-center justify-between text-[10px] md:text-xs">
+                          <span className="text-white/60">المتبقي</span>
+                          <span className="font-bold text-white">
+                            {new Intl.NumberFormat("ar-SA").format(p.remaining)} <span className="text-gold-primary">ر.س</span>
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </section>
+        )}
+
 
         <section className="px-4 animate-fade-up" style={{ animationDelay: "300ms" }}>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -14,12 +14,14 @@ import {
   Check,
   X,
   Clock,
+  Lightbulb,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
+import { FamilyProjects } from "@/components/family-projects";
 
 export const Route = createFileRoute("/_authenticated/finance")({
   ssr: false,
@@ -69,7 +71,7 @@ function FinancePage() {
   const dynamicLogo = useSiteLogo();
   const [rows, setRows] = useState<Tx[]>([]);
   const [transfers, setTransfers] = useState<BankTransfer[]>([]);
-  const [tab, setTab] = useState<"transactions" | "transfers">("transactions");
+  const [tab, setTab] = useState<"transactions" | "transfers" | "projects">("transactions");
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [showTransferForm, setShowTransferForm] = useState(false);
@@ -352,6 +354,17 @@ function FinancePage() {
                 {pendingCount}
               </span>
             )}
+          </button>
+          <button
+            onClick={() => setTab("projects")}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition flex items-center gap-2 ${
+              tab === "projects"
+                ? "border-gold-primary text-gold-primary"
+                : "border-transparent text-muted-foreground hover:text-ivory"
+            }`}
+          >
+            <Lightbulb className="size-4" strokeWidth={1.5} />
+            مشاريع العائلة
           </button>
         </div>
 
@@ -643,6 +656,11 @@ function FinancePage() {
               )}
             </div>
           </>
+        )}
+
+        {/* PROJECTS TAB */}
+        {tab === "projects" && (
+          <FamilyProjects userId={userId} canManage={canManage} fundBalance={totals.balance} />
         )}
       </div>
     </AppShell>

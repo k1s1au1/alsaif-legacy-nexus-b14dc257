@@ -377,6 +377,97 @@ export type Database = {
         }
         Relationships: []
       }
+      family_project_contributions: {
+        Row: {
+          amount: number
+          contributor_id: string | null
+          created_at: string
+          id: string
+          note: string | null
+          project_id: string
+        }
+        Insert: {
+          amount: number
+          contributor_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          project_id: string
+        }
+        Update: {
+          amount?: number
+          contributor_id?: string | null
+          created_at?: string
+          id?: string
+          note?: string | null
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_project_contributions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "family_projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      family_projects: {
+        Row: {
+          created_at: string
+          description: string
+          fund_allocation: number
+          fund_transaction_id: string | null
+          goal_amount: number
+          id: string
+          proposed_by: string | null
+          review_note: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["family_project_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          fund_allocation?: number
+          fund_transaction_id?: string | null
+          goal_amount: number
+          id?: string
+          proposed_by?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["family_project_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          fund_allocation?: number
+          fund_transaction_id?: string | null
+          goal_amount?: number
+          id?: string
+          proposed_by?: string | null
+          review_note?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["family_project_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_projects_fund_transaction_id_fkey"
+            columns: ["fund_transaction_id"]
+            isOneToOne: false
+            referencedRelation: "fund_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       family_tree_extras: {
         Row: {
           created_at: string
@@ -1028,6 +1119,12 @@ export type Database = {
         | "religious"
         | "social"
         | "other"
+      family_project_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "completed"
+        | "cancelled"
       fund_tx_type: "contribution" | "expense"
       group_send_permission: "all" | "admins" | "selected"
       majlis_post_kind: "announcement" | "discussion" | "complaint"
@@ -1190,6 +1287,13 @@ export const Constants = {
         "religious",
         "social",
         "other",
+      ],
+      family_project_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "completed",
+        "cancelled",
       ],
       fund_tx_type: ["contribution", "expense"],
       group_send_permission: ["all", "admins", "selected"],
