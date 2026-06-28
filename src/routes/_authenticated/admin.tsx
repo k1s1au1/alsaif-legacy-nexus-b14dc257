@@ -77,11 +77,6 @@ function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول النظام";
   if (role === "manager") return "مدير";
   if (role === "chairman") return "رئيس المجلس";
-  if (role === "head_meetings") return "مسؤول الاجتماعات";
-  if (role === "head_events") return "مسؤول المناسبات";
-  if (role === "head_trips") return "مسؤول الترفيه";
-  if (role === "head_finance") return "مسؤول الصندوق";
-  if (role === "head_heritage") return "مسؤول إرث السيف";
   return "عضو";
 }
 
@@ -139,10 +134,11 @@ function AdminPage() {
 
       if (isA) {
         try {
-          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: anns }] = await Promise.all([
+          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: anns }] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
             supabase.from("profiles").select("*").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
+            supabase.from("section_heads" as any).select("user_id, section"),
             supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
           ]);
 
@@ -156,7 +152,17 @@ function AdminPage() {
               arr.push({ role: r.role });
               rolesByUser.set(r.user_id, arr);
             });
-            setMembers((mems || []).map((m: any) => ({ ...m, user_roles: rolesByUser.get(m.id) || [] })));
+            const headsByUser = new Map<string, string[]>();
+            ((allHeads as any[]) || []).forEach((h: any) => {
+              const arr = headsByUser.get(h.user_id) || [];
+              arr.push(h.section);
+              headsByUser.set(h.user_id, arr);
+            });
+            setMembers((mems || []).map((m: any) => ({
+              ...m,
+              user_roles: rolesByUser.get(m.id) || [],
+              section_heads: headsByUser.get(m.id) || [],
+            })));
           }
 
           // Fetch FCM Token Count (from profiles)
@@ -234,6 +240,26 @@ function AdminPage() {
       loadData();
     } catch {
       toast.error("فشل الحذف");
+    }
+  };
+
+  const toggleSectionHead = async (uid: string, section: string, currentlyHead: boolean) => {
+    try {
+      if (currentlyHead) {
+        const { error } = await supabase.from("section_heads" as any).delete().eq("user_id", uid).eq("section", section);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("section_heads" as any).insert({ user_id: uid, section } as any);
+        if (error) throw error;
+      }
+      setMembers(prev => prev.map(m => {
+        if (m.id !== uid) return m;
+        const cur: string[] = m.section_heads || [];
+        return { ...m, section_heads: currentlyHead ? cur.filter(s => s !== section) : [...cur, section] };
+      }));
+      toast.success("تم تحديث مسؤولية القسم");
+    } catch (err: any) {
+      toast.error("فشل التحديث: " + (err.message || ""));
     }
   };
 
@@ -447,7 +473,9 @@ function AdminPage() {
                         member={m}
                         meId={meId}
                         currentRole={Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member')}
+                        sectionHeads={m.section_heads || []}
                         onAssignRole={assignRole}
+                        onToggleSectionHead={toggleSectionHead}
                         onDelete={deleteMember}
                         fullName={m.arabic_name || m.full_name || "عضو"}
                       />
@@ -535,7 +563,16 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
   );
 }
 
-function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, fullName }: any) {
+const SECTION_OPTIONS: { key: string; label: string }[] = [
+  { key: "meetings", label: "الاجتماعات" },
+  { key: "events", label: "المناسبات" },
+  { key: "trips", label: "الترفيه" },
+  { key: "finance", label: "المالية" },
+  { key: "heritage", label: "إرث السيف" },
+  { key: "majlis", label: "المجلس" },
+];
+
+function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName }: any) {
   const isMe = member.id === meId;
 
   return (
@@ -561,9 +598,33 @@ function MemberAdminRow({ member, meId, currentRole, onAssignRole, onDelete, ful
              {!isMe && currentRole !== "admin" && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}
           </div>
        </div>
+       <div className="mt-4 pt-4 border-t border-border/40">
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">مسؤوليات الأقسام</p>
+          <div className="flex flex-wrap gap-1.5">
+             {SECTION_OPTIONS.map(s => {
+                const active = sectionHeads.includes(s.key);
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => onToggleSectionHead(member.id, s.key, active)}
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
+                      active
+                        ? "bg-gold-primary text-white border-gold-primary shadow-md"
+                        : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary"
+                    )}
+                  >
+                    {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
+                    {s.label}
+                  </button>
+                );
+             })}
+          </div>
+       </div>
     </div>
   );
 }
+
 
 function AnnouncementsManager({ list, formOpen, onOpenForm, onCloseForm, draft, setDraft, imagePreview, onPickImage, onClearImage, onSave, onEdit, onDelete, saving }: any) {
   return (

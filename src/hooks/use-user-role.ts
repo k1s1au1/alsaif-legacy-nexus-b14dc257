@@ -1,37 +1,28 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type AppRole =
-  | "admin"
-  | "manager"
-  | "member"
-  | "chairman"
-  | "head_meetings"
-  | "head_events"
-  | "head_trips"
-  | "head_finance"
-  | "head_heritage";
+export type AppRole = "admin" | "manager" | "member" | "chairman";
 
-export type Section = "meetings" | "events" | "trips" | "finance" | "heritage";
+export type Section = "meetings" | "events" | "trips" | "finance" | "heritage" | "majlis";
 
-const HEAD: Record<Section, AppRole> = {
-  meetings: "head_meetings",
-  events: "head_events",
-  trips: "head_trips",
-  finance: "head_finance",
-  heritage: "head_heritage",
-};
+export const SECTIONS: Section[] = ["meetings", "events", "trips", "finance", "heritage", "majlis"];
+
+export function sectionLabel(section: Section): string {
+  switch (section) {
+    case "meetings": return "الاجتماعات";
+    case "events": return "المناسبات";
+    case "trips": return "الترفيه";
+    case "finance": return "المالية";
+    case "heritage": return "إرث السيف";
+    case "majlis": return "المجلس";
+  }
+}
 
 export function roleLabel(role: AppRole | string | null): string {
   switch (role) {
     case "admin": return "مسؤول النظام";
     case "manager": return "مدير";
     case "chairman": return "رئيس المجلس";
-    case "head_meetings": return "مسؤول الاجتماعات";
-    case "head_events": return "مسؤول الفعاليات";
-    case "head_trips": return "مسؤول الترفيه";
-    case "head_finance": return "مسؤول المالية";
-    case "head_heritage": return "مسؤول إرث السيف";
     default: return "عضو";
   }
 }
@@ -39,6 +30,7 @@ export function roleLabel(role: AppRole | string | null): string {
 export function useUserRole() {
   const [userId, setUserId] = useState<string | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [sectionHeads, setSectionHeads] = useState<Section[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -51,12 +43,15 @@ export function useUserRole() {
         return;
       }
       setUserId(u.user.id);
-      const { data: r } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", u.user.id);
+
+      const [{ data: r }, { data: sh }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", u.user.id),
+        supabase.from("section_heads" as any).select("section").eq("user_id", u.user.id),
+      ]);
       if (!active) return;
+
       setRoles(((r ?? []) as { role: AppRole }[]).map((x) => x.role));
+      setSectionHeads(((sh ?? []) as unknown as { section: Section }[]).map((x) => x.section));
       setIsLoading(false);
     })();
     return () => {
@@ -67,14 +62,26 @@ export function useUserRole() {
   const isAdmin = roles.includes("admin");
   const isManager = roles.includes("manager");
   const isChairman = roles.includes("chairman");
+  const isPrivileged = isAdmin || isManager || isChairman;
 
   const canManage = (section: Section) =>
-    isAdmin || isManager || isChairman || roles.includes(HEAD[section]);
+    isPrivileged || sectionHeads.includes(section);
 
   const primaryRole: AppRole | null =
     (roles.find((r) =>
-      ["admin", "chairman", "manager", "head_meetings", "head_events", "head_trips", "head_finance", "head_heritage", "member"].includes(r),
+      ["admin", "chairman", "manager", "member"].includes(r),
     ) as AppRole) || null;
 
-  return { userId, roles, isLoading, isAdmin, isManager, isChairman, canManage, primaryRole };
+  return {
+    userId,
+    roles,
+    sectionHeads,
+    isLoading,
+    isAdmin,
+    isManager,
+    isChairman,
+    isPrivileged,
+    canManage,
+    primaryRole,
+  };
 }
