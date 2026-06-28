@@ -235,7 +235,7 @@ function MemberCard({ member, index, presenceTime, meId, canDelete, dynamicLogo,
             <div className="absolute top-0 left-0 opacity-10 -translate-x-1/3 -translate-y-1/3 pointer-events-none group-hover:opacity-20 transition-opacity duration-700">
                 <div
                   className="size-32 logo-alsaif"
-                  style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                  style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
                 />
             </div>
 

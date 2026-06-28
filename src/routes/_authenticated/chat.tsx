@@ -663,7 +663,7 @@ function NewConversationDialog({
         <div className="absolute top-0 left-0 opacity-10 -translate-x-1/4 -translate-y-1/4 pointer-events-none scale-150 transition-opacity duration-700">
            <div
              className="size-64 logo-alsaif"
-             style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+             style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
            />
         </div>
 

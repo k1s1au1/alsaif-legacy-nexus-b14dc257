@@ -504,7 +504,7 @@ function Dashboard() {
                 <div className="relative group">
                   <div className="absolute inset-0 rounded-full bg-gradient-to-br from-gold-primary/30 via-gold-primary/5 to-transparent blur-3xl group-hover:blur-4xl transition-all duration-1000" />
                   <div className="relative size-32 md:size-52 rounded-full bg-white/5 backdrop-blur-3xl border-[3px] border-gold-primary/30 shadow-[0_32px_60px_-15px_rgba(0,0,0,0.3)] flex items-center justify-center p-4 md:p-6">
-                    <div className="size-full logo-alsaif" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
+                    <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                   </div>
                 </div>
               </div>
@@ -593,7 +593,7 @@ function Dashboard() {
                       </div>
                     )}
                     <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-40">
-                      <div className="size-24 md:size-40 logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any} />
+                      <div className="size-24 md:size-40 logo-alsaif-banner" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                     </div>
                     <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 z-1" />
                     <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-10 w-full">

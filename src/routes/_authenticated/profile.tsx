@@ -357,7 +357,7 @@ function ProfilePage() {
                  <div className="absolute top-0 left-0 opacity-20 -translate-x-1/3 -translate-y-1/3 pointer-events-none scale-150 rotate-12">
                     <div
                       className="size-48 logo-alsaif-banner"
-                      style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                      style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
                     />
                  </div>
                  <h4 className="text-lg font-black tracking-tight relative z-10">إرث السيف الرقمي</h4>

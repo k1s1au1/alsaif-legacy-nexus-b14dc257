@@ -441,7 +441,7 @@ function TripDetail() {
             <div className="absolute top-10 left-10 opacity-30 pointer-events-none z-20 hidden md:block">
               <div
                 className="size-32 logo-alsaif-banner"
-                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
               />
             </div>
 

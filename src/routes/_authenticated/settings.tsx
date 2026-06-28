@@ -331,7 +331,7 @@ function SettingsPage() {
                 <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
                 <div
                   className="size-6 logo-alsaif grayscale opacity-20"
-                  style={{ "--logo-url": `url(${dynamicLogo || alsaifMark.url})` } as any}
+                  style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
                 />
              </div>
           </div>
