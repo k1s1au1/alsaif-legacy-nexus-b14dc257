@@ -13,25 +13,46 @@ export const assignUserRole = createServerFn({ method: "POST" })
     role: z.string()
   }).parse(data))
   .handler(async ({ data: { userId, role }, context }) => {
-    const { supabase, userId: callerId } = context;
+    const { userId: callerId } = context;
 
-    // 0. Verify authorization
-    const { data: roles } = await supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // 0. Verify authorization using admin client (bypasses RLS quirks)
+    const { data: roles } = await supabaseAdmin
       .from("user_roles")
       .select("role")
       .eq("user_id", callerId);
 
     const rs = (roles ?? []).map((r: any) => r.role);
-    const isAuthorized = rs.includes("admin") || rs.includes("chairman");
+    const isAdmin = rs.includes("admin");
+    const isChairman = rs.includes("chairman");
+    const isManager = rs.includes("manager");
 
     // Fallback: If no users have any role yet, allow the first one to setup
-    const { count: totalRoles } = await supabase
+    const { count: totalRoles } = await supabaseAdmin
       .from("user_roles")
       .select("*", { count: "exact", head: true });
+
+    const isAuthorized = isAdmin || isChairman || isManager;
 
     if (!isAuthorized && totalRoles !== 0) {
       throw new Error("غير مصرح لك بتغيير الصلاحيات");
     }
+
+    // Managers cannot assign admin/chairman, and cannot modify admins
+    if (!isAdmin && !isChairman) {
+      if (role === "admin" || role === "chairman") {
+        throw new Error("فقط المسؤول أو رئيس المجلس يمكنه تعيين هذه الصلاحية");
+      }
+      const { data: targetRoles } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId);
+      if ((targetRoles ?? []).some((r: any) => r.role === "admin" || r.role === "chairman")) {
+        throw new Error("لا يمكن تعديل صلاحيات المسؤول أو رئيس المجلس");
+      }
+    }
+
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
