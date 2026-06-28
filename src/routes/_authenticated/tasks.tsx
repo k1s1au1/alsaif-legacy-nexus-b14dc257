@@ -73,9 +73,8 @@ function formatDate(iso: string | null) {
 
 function TasksPage() {
   const [profile, setProfile] = useState({ name: "...", role: "عضو", initial: "ص", avatarPath: null as string | null });
-  const { userId, isAdmin, isManager, isChairman, roles, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
-  const isSectionHead = roles.some((r) => r.startsWith("head_"));
-  const isPrivileged = isAdmin || isManager || isChairman || isSectionHead;
+  const { userId, isAdmin, isManager, isChairman, sectionHeads, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
+  const isPrivileged = isAdmin || isManager || isChairman || sectionHeads.length > 0;
   const dynamicLogo = useSiteLogo();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
