@@ -44,8 +44,9 @@ export function useAppBackground(settingKey: string) {
       }
     })();
 
+    const channelId = `app-settings-${settingKey}-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;
     const channel = supabase
-      .channel(`app-settings-${settingKey}`)
+      .channel(channelId)
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "app_settings", filter: `key=eq.${settingKey}` },

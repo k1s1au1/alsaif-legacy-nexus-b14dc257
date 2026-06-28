@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -35,6 +35,41 @@ type Presentation = {
   created_at: string;
 };
 
+function normalizeSlides(value: unknown): Slide[] {
+  if (Array.isArray(value)) {
+    return value
+      .filter((slide) => slide && typeof slide === "object")
+      .map((slide: any) => ({
+        title: typeof slide.title === "string" ? slide.title : "",
+        body: typeof slide.body === "string" ? slide.body : "",
+        image_url: typeof slide.image_url === "string" ? slide.image_url : null,
+      }));
+  }
+  if (typeof value === "string" && value.trim()) {
+    try {
+      return normalizeSlides(JSON.parse(value));
+    } catch {
+      return [];
+    }
+  }
+  return [];
+}
+
+function normalizePresentation(row: any): Presentation {
+  const kind: Kind = row?.kind === "file" || row?.kind === "link" ? row.kind : "slides";
+  return {
+    id: String(row?.id ?? ""),
+    meeting_id: String(row?.meeting_id ?? ""),
+    title: String(row?.title ?? "عرض بدون عنوان"),
+    kind,
+    slides: normalizeSlides(row?.slides),
+    file_path: typeof row?.file_path === "string" ? row.file_path : null,
+    external_url: typeof row?.external_url === "string" ? row.external_url : null,
+    created_by: String(row?.created_by ?? ""),
+    created_at: String(row?.created_at ?? ""),
+  };
+}
+
 export function MeetingPresentations({
   meetingId,
   canManage,
@@ -58,7 +93,7 @@ export function MeetingPresentations({
       .eq("meeting_id", meetingId)
       .order("created_at", { ascending: false });
     if (error) toast.error("تعذر تحميل العروض");
-    setItems(((data ?? []) as unknown as Presentation[]));
+    setItems(((data ?? []) as any[]).map(normalizePresentation));
     setLoading(false);
   }, [meetingId]);
 
@@ -112,7 +147,7 @@ export function MeetingPresentations({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-4"
+            className="fixed inset-0 z-[120] bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-4"
             onClick={() => setOpen(false)}
             dir="rtl"
           >
@@ -121,9 +156,9 @@ export function MeetingPresentations({
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.95, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="bg-card border border-border rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
+              className="bg-card border border-border rounded-[28px] sm:rounded-3xl w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl"
             >
-              <div className="flex items-center justify-between p-5 border-b border-border">
+              <div className="flex flex-wrap items-center justify-between gap-3 p-4 sm:p-5 border-b border-border">
                 <div className="flex items-center gap-3">
                   <div className="size-10 rounded-xl bg-gold-primary/15 grid place-items-center text-gold-primary">
                     <Presentation size={20} />
@@ -134,18 +169,18 @@ export function MeetingPresentations({
                   {canManage && (
                     <button
                       onClick={() => setEditor("new")}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gold-primary text-black text-xs font-black hover:opacity-90"
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-gold-primary text-black text-xs font-black hover:opacity-90 shrink-0"
                     >
                       <Plus size={14} /> إضافة عرض
                     </button>
                   )}
-                  <button onClick={() => setOpen(false)} className="size-9 rounded-full bg-muted hover:bg-muted/70 grid place-items-center">
+                  <button onClick={() => setOpen(false)} className="size-9 rounded-full bg-secondary text-foreground border border-border hover:bg-muted grid place-items-center shrink-0">
                     <X size={18} />
                   </button>
                 </div>
               </div>
 
-              <div className="overflow-y-auto p-5 space-y-3 flex-1">
+              <div className="overflow-y-auto p-4 sm:p-5 space-y-3 flex-1">
                 {loading ? (
                   <div className="text-center text-muted-foreground py-10 text-sm">جاري التحميل…</div>
                 ) : items.length === 0 ? (
@@ -157,7 +192,7 @@ export function MeetingPresentations({
                   items.map((p) => (
                     <div
                       key={p.id}
-                      className="flex items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border hover:bg-secondary/60 transition"
+                      className="grid grid-cols-[auto_1fr] sm:flex sm:items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border hover:bg-secondary/60 transition"
                     >
                       <div className="size-11 rounded-xl bg-primary/10 text-primary grid place-items-center">
                         {p.kind === "slides" ? <Presentation size={18} /> : p.kind === "file" ? <FileText size={18} /> : <LinkIcon size={18} />}
@@ -168,33 +203,35 @@ export function MeetingPresentations({
                           {p.kind === "slides" ? `${p.slides.length} شريحة` : p.kind === "file" ? "ملف مرفوع" : "رابط خارجي"}
                         </p>
                       </div>
-                      <button
-                        onClick={() => openItem(p)}
-                        className="size-10 rounded-xl bg-gold-primary text-black grid place-items-center hover:opacity-90"
-                        title="عرض"
-                      >
-                        {p.kind === "slides" ? <Play size={16} /> : p.kind === "file" ? <Download size={16} /> : <ExternalLink size={16} />}
-                      </button>
-                      {canManage && (
-                        <>
-                          {p.kind === "slides" && (
+                      <div className="col-span-2 sm:col-span-1 flex items-center justify-end gap-2 pt-2 sm:pt-0">
+                        <button
+                          onClick={() => openItem(p)}
+                          className="size-10 rounded-xl bg-gold-primary text-black grid place-items-center hover:opacity-90"
+                          title="عرض"
+                        >
+                          {p.kind === "slides" ? <Play size={16} /> : p.kind === "file" ? <Download size={16} /> : <ExternalLink size={16} />}
+                        </button>
+                        {canManage && (
+                          <>
+                            {p.kind === "slides" && (
+                              <button
+                                onClick={() => setEditor(p)}
+                                className="size-10 rounded-xl bg-muted text-foreground border border-border hover:bg-secondary grid place-items-center"
+                                title="تعديل"
+                              >
+                                <Pencil size={14} />
+                              </button>
+                            )}
                             <button
-                              onClick={() => setEditor(p)}
-                              className="size-10 rounded-xl bg-muted hover:bg-muted/70 grid place-items-center"
-                              title="تعديل"
+                              onClick={() => removeOne(p)}
+                              className="size-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white grid place-items-center"
+                              title="حذف"
                             >
-                              <Pencil size={14} />
+                              <Trash2 size={14} />
                             </button>
-                          )}
-                          <button
-                            onClick={() => removeOne(p)}
-                            className="size-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white grid place-items-center"
-                            title="حذف"
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </>
-                      )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   ))
                 )}
@@ -244,6 +281,7 @@ function PresentationEditor({
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const formId = useId();
 
   const isEdit = !!initial;
 
@@ -332,7 +370,7 @@ function PresentationEditor({
           </button>
         </div>
 
-        <form onSubmit={submit} className="overflow-y-auto p-5 space-y-5 flex-1">
+        <form id={formId} onSubmit={submit} className="overflow-y-auto p-5 space-y-5 flex-1">
           <div>
             <label className="text-xs font-black text-muted-foreground uppercase tracking-widest block mb-2">عنوان العرض</label>
             <input
@@ -473,7 +511,8 @@ function PresentationEditor({
             إلغاء
           </button>
           <button
-            onClick={submit as any}
+            type="submit"
+            form={formId}
             disabled={saving}
             className="px-5 py-2.5 rounded-xl bg-gold-primary text-black text-sm font-black disabled:opacity-60"
           >
