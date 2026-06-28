@@ -319,6 +319,38 @@ function Dashboard() {
         .order("created_at", { ascending: false })
         .limit(3)
         .then((r) => setInitiatives(r.data || []));
+
+      // Load active family projects with contributions
+      supabase
+        .from("family_projects")
+        .select("*")
+        .eq("status", "approved")
+        .order("created_at", { ascending: false })
+        .limit(5)
+        .then(async (r) => {
+          const pj = r.data || [];
+          if (pj.length === 0) {
+            setActiveProjects([]);
+            return;
+          }
+          const ids = pj.map((p: any) => p.id);
+          const { data: cs } = await supabase
+            .from("family_project_contributions")
+            .select("project_id, amount")
+            .in("project_id", ids);
+          const sums: Record<string, number> = {};
+          (cs || []).forEach((c: any) => {
+            sums[c.project_id] = (sums[c.project_id] || 0) + Number(c.amount);
+          });
+          setActiveProjects(
+            pj.map((p: any) => {
+              const raised = Number(p.fund_allocation) + (sums[p.id] || 0);
+              const remaining = Math.max(0, Number(p.goal_amount) - raised);
+              const pct = Math.min(100, Math.round((raised / Number(p.goal_amount)) * 100));
+              return { ...p, raised, remaining, pct };
+            }),
+          );
+        });
     } catch (err) {
       console.error("Dashboard error:", err);
     }
