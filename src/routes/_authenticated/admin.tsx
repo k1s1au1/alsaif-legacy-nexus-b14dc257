@@ -159,11 +159,10 @@ function AdminPage() {
             setMembers((mems || []).map((m: any) => ({ ...m, user_roles: rolesByUser.get(m.id) || [] })));
           }
 
-          setAnnouncements(anns || []);
-
           // Fetch FCM Token Count (from profiles)
-          const { count: tc } = await supabase.from("profiles").select("*", { count: "exact", head: true }).not("fcm_token", "is", null);
-          setFcmTokenCount(tc || 0);
+          const { data: tcData } = await supabase.from("profiles").select("fcm_token");
+          const count = tcData?.filter(p => p.fcm_token && p.fcm_token.length > 10).length || 0;
+          setFcmTokenCount(count);
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
           (reqs || []).forEach(r => counts[r.status as keyof typeof counts]++);

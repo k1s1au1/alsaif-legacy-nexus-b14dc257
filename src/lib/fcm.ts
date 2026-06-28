@@ -15,26 +15,26 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
-    // 1. Fetch tokens from profiles table
+    // 1. Fetch tokens from profiles table - using a more flexible query
     const { data: profiles, error: fetchErr } = await (supabase as any)
       .from("profiles")
-      .select("fcm_token")
-      .not("fcm_token", "is", null);
+      .select("fcm_token");
 
     if (fetchErr) {
       console.error("FCM: Error fetching profiles:", fetchErr);
       return { success: false, error: "Database error" };
     }
 
+    // Filter tokens manually to be 100% sure we don't miss any due to "is null" cache issues
     const registration_ids = (profiles as Array<{ fcm_token: string }>)
-      .map(p => p.fcm_token)
-      .filter(Boolean);
+      ?.map(p => p.fcm_token)
+      .filter(t => t && t.length > 10); // Tokens are usually very long strings
 
-    if (registration_ids.length === 0) {
-      return { success: false, error: "No registered devices found." };
+    if (!registration_ids || registration_ids.length === 0) {
+      return { success: false, error: "لم يتم العثور على أجهزة مسجلة بعد. يرجى تحديث صفحة الإدارة والمحاولة مرة أخرى." };
     }
 
-    console.log(`FCM: Sending to ${registration_ids.length} devices...`);
+    console.log(`FCM: Attempting to send to ${registration_ids.length} devices...`);
 
     // 2. Load Service Account from Env
     const serviceAccountRaw = process.env.FCM_SERVICE_ACCOUNT;
