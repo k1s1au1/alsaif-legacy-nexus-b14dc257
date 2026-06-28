@@ -117,11 +117,12 @@ function AdminPage() {
       const rs = (roles ?? []).map(r => r.role);
       const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
       setIsPriv(isA);
+      // Fixed: Join Requests should be visible to Technical Admin and Chairman
       setIsChair(rs.includes("chairman") || rs.includes("admin"));
 
           setProfile({
             name: p.arabic_name || p.full_name || "عضو",
-            role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "مسؤول قسم",
+            role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول تقني" : rs.includes("manager") ? "مسؤول قسم" : "عضو",
             initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
             avatarPath: p.avatar_url
           });
