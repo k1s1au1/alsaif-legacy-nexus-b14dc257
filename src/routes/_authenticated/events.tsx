@@ -37,12 +37,6 @@ export const Route = createFileRoute("/_authenticated/events")({
   component: EventsPage,
 });
 
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول تقني";
-  if (role === "manager") return "مسؤول قسم";
-  return "عضو";
-}
-
 type EventType = "wedding" | "birthday" | "graduation" | "religious" | "social" | "other";
 type Rsvp = "going" | "not_going" | "maybe";
 

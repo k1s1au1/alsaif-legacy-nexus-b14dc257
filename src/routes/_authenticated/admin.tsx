@@ -38,6 +38,7 @@ import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { assignUserRole } from "@/lib/api/roles.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 
@@ -72,18 +73,6 @@ const REQ_TABS = [
   { key: "approved", label: "طلبات مقبولة" },
   { key: "rejected", label: "طلبات مرفوضة" },
 ];
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول تقني";
-  if (role === "manager") return "مسؤول قسم";
-  if (role === "chairman") return "رئيس المجلس";
-  if (role === "head_meetings") return "مسؤول الاجتماعات";
-  if (role === "head_events") return "مسؤول المهام";
-  if (role === "head_trips") return "مسؤول الترفيه";
-  if (role === "head_finance") return "مسؤول الصندوق";
-  if (role === "head_heritage") return "مسؤول إرث السيف";
-  return "عضو";
-}
 
 function AdminPage() {
   const [meId, setMeId] = useState<string | null>(null);

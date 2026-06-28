@@ -12,6 +12,7 @@ import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { toast } from "sonner";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
@@ -33,6 +34,7 @@ type MemberRow = {
 };
 
 function MembersPage() {
+  const { userId, isAdmin: isSystemAdmin, primaryRole } = useUserRole();
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState<MemberRow[]>([]);
   const [presence, setPresence] = useState<Record<string, string>>({});
@@ -58,13 +60,11 @@ function MembersPage() {
 
   useEffect(() => {
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
+      if (!userId) return;
 
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
       const rs = (roles ?? []).map((r) => r.role);
-      const isSystemAdmin = rs.includes("admin");
-      setIsAdmin(isSystemAdmin || rs.includes("manager"));
+      setIsAdmin(rs.includes("admin") || rs.includes("chairman") || rs.includes("manager"));
 
       const { data, error } = await supabase
         .from("profiles")
@@ -73,19 +73,18 @@ function MembersPage() {
 
       if (!error && data) setMembers(data as MemberRow[]);
 
-      const mine = (data as MemberRow[] | null)?.find((m) => m.id === u.user!.id);
+      const mine = (data as MemberRow[] | null)?.find((m) => m.id === userId);
       const name =
         mine?.arabic_name?.trim() ||
         mine?.full_name?.trim() ||
-        u.user.email?.split("@")[0] ||
         "عضو";
 
       setMe({
-        id: u.user.id,
+        id: userId,
         name,
         initial: (name[0] ?? "س").toUpperCase(),
         avatarPath: mine?.avatar_url ?? null,
-        role: isSystemAdmin ? "admin" : rs.includes("manager") ? "manager" : "member"
+        role: roleLabel(primaryRole)
       });
       setLoading(false);
     })();

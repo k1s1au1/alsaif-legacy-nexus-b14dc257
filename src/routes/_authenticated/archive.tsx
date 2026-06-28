@@ -18,6 +18,7 @@ import {
   Lock,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/archive")({
   ssr: false,
@@ -58,13 +59,6 @@ const SECTIONS: {
   { key: "events", label: "المهام", icon: Sparkles, hint: "الرفع والحذف لمسؤولين الأقسام والمسؤولين التقنيين فقط.", privOnly: true },
   { key: "trips", label: "الترفيه", icon: Plane, hint: "الرفع والحذف لمسؤولين الأقسام والمسؤولين التقنيين فقط.", privOnly: true },
 ];
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول تقني";
-  if (role === "manager") return "مسؤول قسم";
-  if (role === "chairman") return "رئيس المجلس";
-  return "عضو";
-}
 
 function daysLeft(expiresAt: string | null) {
   if (!expiresAt) return null;

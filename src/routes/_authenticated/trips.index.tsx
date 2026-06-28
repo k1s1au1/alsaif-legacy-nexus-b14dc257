@@ -94,7 +94,7 @@ function TripsPage() {
         const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
         setProfile({
           name,
-          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
+          role: roleLabel(primaryRole),
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
         });

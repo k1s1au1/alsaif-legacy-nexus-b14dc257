@@ -8,6 +8,7 @@ import { ArrowRight, Calendar, Eye, EyeOff, KeyRound, Loader2, Mail, Phone, User
 import { getMemberCredential } from "@/lib/api/member-credentials.functions";
 import { PresenceDot, presenceFromLastSeen, presenceLabel } from "@/lib/presence";
 import { toast } from "sonner";
+import { roleLabel } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/members/$userId")({
   ssr: false,
@@ -31,12 +32,6 @@ type ProfileRow = {
   avatar_url: string | null;
   created_at: string;
 };
-
-function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
-  return "عضو";
-}
 
 function MemberProfilePage() {
   const { userId } = useParams({ from: "/_authenticated/members/$userId" });
