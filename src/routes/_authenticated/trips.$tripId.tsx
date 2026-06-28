@@ -330,28 +330,40 @@ function TripDetail() {
 
   async function updateAttendance(status: 'going' | 'not_going') {
     if (!userId || saving) return;
+
+    const prevStatus = attendanceStatus;
+    const isRemoving = attendanceStatus === status;
+
+    // Optimistic UI so toggling between "going" and "not_going" is instant
+    setAttendanceStatus(isRemoving ? null : status);
     setSaving(true);
 
     try {
-      const isRemoving = attendanceStatus === status;
-
-      // Always clear existing attendance for this trip
-      await supabase.from("trip_attendees").delete().eq("trip_id", tripId).eq("user_id", userId);
-
       if (isRemoving) {
-        setAttendanceStatus(null);
-        toast.success("تم إلغاء اختيارك");
-      } else {
-        setAttendanceStatus(status);
         const { error } = await supabase
           .from("trip_attendees")
-          .insert({ trip_id: tripId, user_id: userId, status: status } as any);
-
+          .delete()
+          .eq("trip_id", tripId)
+          .eq("user_id", userId);
+        if (error) throw error;
+        toast.success("تم إلغاء اختيارك");
+      } else {
+        // Single atomic write — no delete+insert race when switching options
+        const { error } = await supabase
+          .from("trip_attendees")
+          .upsert(
+            { trip_id: tripId, user_id: userId, status } as any,
+            { onConflict: "trip_id,user_id" },
+          );
         if (error) {
-          // Fallback if status column is missing
-          await supabase.from("trip_attendees").insert({ trip_id: tripId, user_id: userId });
+          // Fallback for legacy schema without `status` column
+          await supabase
+            .from("trip_attendees")
+            .upsert(
+              { trip_id: tripId, user_id: userId } as any,
+              { onConflict: "trip_id,user_id" },
+            );
         }
-
         if (status === 'going') toast.success("تم تأكيد حضورك");
         else toast.info("تم تسجيل اعتذارك");
       }
@@ -360,6 +372,7 @@ function TripDetail() {
     } catch (err: any) {
       console.error("Attendance update error:", err);
       toast.error("حدث خطأ أثناء تحديث حالة الحضور");
+      setAttendanceStatus(prevStatus);
     } finally {
       setSaving(false);
     }
