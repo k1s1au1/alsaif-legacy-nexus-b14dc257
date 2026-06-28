@@ -292,26 +292,34 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
-        "group relative bg-white dark:bg-[#0D0F14] border-2 border-border/30 rounded-[44px] p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold-primary/30 hover:shadow-gold-primary/5",
+        "group relative bg-white dark:bg-card border-2 border-border/30 dark:border-white/5 rounded-[44px] p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold-primary/30 hover:shadow-gold-primary/10",
         isDone && "border-emerald-500/20 bg-emerald-500/[0.02]"
       )}
     >
        <div className="space-y-8">
           <header className="flex items-start justify-between">
-             <div className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm flex items-center gap-2", priority.color.replace('bg-', 'text-').replace('text-', 'border-').replace('border-', 'bg-') + "/10")}>
-                <span className={cn("size-1.5 rounded-full animate-pulse", priority.color)} />
+             <div className={cn("px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] border shadow-sm flex items-center gap-2",
+               task.priority === 'high' ? "bg-rose-500/10 text-rose-500 border-rose-500/20" :
+               task.priority === 'medium' ? "bg-gold-primary/10 text-gold-primary border-gold-primary/20" :
+               "bg-emerald-500/10 text-emerald-500 border-emerald-500/20"
+             )}>
+                <span className={cn("size-1.5 rounded-full animate-pulse",
+                  task.priority === 'high' ? "bg-rose-500" :
+                  task.priority === 'medium' ? "bg-gold-primary" :
+                  "bg-emerald-500"
+                )} />
                 {priority.label}
              </div>
              {canManage && (
                 <div className="flex items-center gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-300">
-                   <button onClick={onEdit} className="size-10 rounded-2xl bg-muted/60 flex items-center justify-center text-muted-foreground hover:bg-primary hover:text-white transition-all shadow-sm"><Pencil size={16} /></button>
-                   <button onClick={() => onDelete(task.id)} className="size-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>
+                   <button onClick={onEdit} className="size-10 rounded-2xl bg-muted/40 dark:bg-white/5 border border-transparent dark:border-white/10 flex items-center justify-center text-muted-foreground hover:bg-gold-primary hover:text-black transition-all shadow-sm"><Pencil size={16} /></button>
+                   <button onClick={() => onDelete(task.id)} className="size-10 rounded-2xl bg-rose-500/10 text-rose-500 border border-transparent hover:bg-rose-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>
                 </div>
              )}
           </header>
 
           <div className="space-y-3">
-             <h4 className={cn("text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors", isDone && "text-emerald-600")}>{task.title}</h4>
+             <h4 className={cn("text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors dark:text-gold-primary", isDone && "text-emerald-500 dark:text-emerald-400")}>{task.title}</h4>
              {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground dark:text-white/70 leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity">{task.description}</p>}
           </div>
 
@@ -320,20 +328,20 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
                 <div className="space-y-1">
                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">مرحلة الإنجاز</p>
                    <p className={cn("text-lg font-black tracking-tighter",
-                     isDone ? "text-emerald-500" :
-                     task.progress >= 80 ? "text-amber-500" :
-                     task.progress >= 40 ? "text-blue-500" : "text-primary"
+                     isDone ? "text-emerald-500 dark:text-emerald-400" :
+                     task.progress >= 80 ? "text-gold-primary" :
+                     task.progress >= 40 ? "text-gold-primary/80" : "text-muted-foreground"
                    )}>
-                     {isDone ? "مكتملة" :
-                      task.progress >= 80 ? "قيد المراجعة" :
-                      task.progress >= 40 ? "قيد التنفيذ" : "بانتظار البدء"}
+                     {isDone ? "مكتملة بنجاح" :
+                      task.progress >= 80 ? "قيد المراجعة النهائية" :
+                      task.progress >= 40 ? "قيد التنفيذ والعمل" : "بانتظار البدء"}
                    </p>
                 </div>
-                <span className={cn("text-3xl font-black tracking-tighter leading-none", isDone ? "text-emerald-500" : "text-primary")}>{task.progress}%</span>
+                <span className={cn("text-3xl font-black tracking-tighter leading-none", isDone ? "text-emerald-500" : "text-gold-primary")}>{task.progress}%</span>
              </div>
 
              {/* Functional Professional Toggle */}
-             <div className="flex items-center gap-1.5 p-1 bg-muted/40 rounded-2xl border border-border/10">
+             <div className="flex items-center gap-1.5 p-1 bg-muted/40 dark:bg-white/5 rounded-2xl border border-border/10 dark:border-white/5">
                 <StatusStep
                   active={task.progress === 0}
                   disabled={!isAssignee}
@@ -361,15 +369,15 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
              </div>
           </div>
 
-          <div className="flex items-center justify-between pt-8 border-t border-border/40">
+          <div className="flex items-center justify-between pt-8 border-t border-border/40 dark:border-white/5">
              {assignee ? (
                 <div className="flex items-center gap-3">
-                   <div className="size-12 rounded-[18px] overflow-hidden border-2 border-white shadow-xl ring-1 ring-border/20 group-hover:scale-110 transition-transform">
+                   <div className="size-12 rounded-[18px] overflow-hidden border-2 border-white dark:border-white/10 shadow-xl ring-1 ring-border/20 group-hover:scale-110 transition-transform">
                       <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
                    </div>
                    <div className="space-y-0.5">
-                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">المسؤول</p>
-                      <p className="text-xs font-black text-primary">{assignee.name}</p>
+                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">المسؤول عن المهمة</p>
+                      <p className="text-xs font-black text-primary dark:text-gold-primary">{assignee.name}</p>
                    </div>
                 </div>
              ) : (
@@ -378,11 +386,11 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
                 </div>
              )}
 
-             <div className="text-left bg-muted/30 px-4 py-2 rounded-2xl border border-border/20">
-                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">الاستحقاق</p>
+             <div className="text-left bg-muted/30 dark:bg-white/5 px-4 py-2 rounded-2xl border border-border/20 dark:border-white/5">
+                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">تاريخ الاستحقاق</p>
                 <div className="flex items-center gap-2">
                    <Clock className="size-3 text-gold-primary" />
-                   <span className="text-xs font-black text-primary/80">{formatDate(task.due_date)}</span>
+                   <span className="text-xs font-black text-primary/80 dark:text-white/60">{formatDate(task.due_date)}</span>
                 </div>
              </div>
           </div>
@@ -392,7 +400,7 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
          <motion.div
            initial={{ scale: 0 }}
            animate={{ scale: 1 }}
-           className="absolute -top-4 -left-4 size-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xl border-4 border-white dark:border-[#0D0F14] z-20"
+           className="absolute -top-4 -left-4 size-14 rounded-full bg-emerald-500 text-white flex items-center justify-center shadow-2xl border-4 border-white dark:border-card z-20"
          >
             <Check size={28} strokeWidth={4} />
          </motion.div>
