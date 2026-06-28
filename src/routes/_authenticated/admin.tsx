@@ -602,7 +602,10 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
           </div>
        </div>
        <div className="mt-4 pt-4 border-t border-border/40">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">مسؤوليات الأقسام</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">
+            مسؤوليات الأقسام
+            {!canManageSections && <span className="mr-2 opacity-70 normal-case">(للرئيس فقط)</span>}
+          </p>
           <div className="flex flex-wrap gap-1.5">
              {SECTION_OPTIONS.map(s => {
                 const active = sectionHeads.includes(s.key);
