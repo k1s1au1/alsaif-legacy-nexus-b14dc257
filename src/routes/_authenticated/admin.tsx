@@ -243,6 +243,26 @@ function AdminPage() {
     }
   };
 
+  const toggleSectionHead = async (uid: string, section: string, currentlyHead: boolean) => {
+    try {
+      if (currentlyHead) {
+        const { error } = await supabase.from("section_heads" as any).delete().eq("user_id", uid).eq("section", section);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.from("section_heads" as any).insert({ user_id: uid, section } as any);
+        if (error) throw error;
+      }
+      setMembers(prev => prev.map(m => {
+        if (m.id !== uid) return m;
+        const cur: string[] = m.section_heads || [];
+        return { ...m, section_heads: currentlyHead ? cur.filter(s => s !== section) : [...cur, section] };
+      }));
+      toast.success("تم تحديث مسؤولية القسم");
+    } catch (err: any) {
+      toast.error("فشل التحديث: " + (err.message || ""));
+    }
+  };
+
   // Announcement Handlers
   const onPickImage = async (file: File) => {
     try {
