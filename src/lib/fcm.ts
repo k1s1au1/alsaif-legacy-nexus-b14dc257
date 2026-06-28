@@ -46,16 +46,8 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     try {
       const sa = JSON.parse(serviceAccountRaw);
 
-      // Note: For V1 API, we need an OAuth2 token.
-      // In this environment, we'll implement a proxy or use a specialized library if available.
-      // Since we are in a server function, we can use fetch to get the access token from Google.
-
-      const registration_ids = (tokens as Array<{ token: string }>).map(t => t.token);
-
-      // Broadcasting to multiple tokens via V1 typically requires individual sends or a Topic.
-      // For stability in this environment, we will send individually or use the Legacy bridge if configured.
-
       console.log(`FCM V1: Sending to ${registration_ids.length} devices...`);
+
 
       // Implementation detail: Using a simplified notification structure for compatibility
       const results = await Promise.all(registration_ids.map(async (token) => {

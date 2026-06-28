@@ -734,6 +734,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           father_name: string | null
+          fcm_token: string | null
           first_name: string | null
           full_name: string | null
           grandfather_name: string | null
@@ -749,6 +750,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           father_name?: string | null
+          fcm_token?: string | null
           first_name?: string | null
           full_name?: string | null
           grandfather_name?: string | null
@@ -764,6 +766,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           father_name?: string | null
+          fcm_token?: string | null
           first_name?: string | null
           full_name?: string | null
           grandfather_name?: string | null
