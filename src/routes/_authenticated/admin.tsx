@@ -352,8 +352,10 @@ function AdminPage() {
                <button
                  onClick={async () => {
                    const { success, error } = await sendFcmNotification({
-                     title: "🔔 تجربة إشعارات المجلس",
-                     body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                     data: {
+                       title: "🔔 تجربة إشعارات المجلس",
+                       body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                     }
                    });
                    if (success) toast.success("جاري إرسال الإشعار التجريبي...");
                    else toast.error("فشل الإرسال: " + error);
