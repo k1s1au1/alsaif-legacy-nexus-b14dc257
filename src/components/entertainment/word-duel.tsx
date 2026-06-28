@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "zramer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Trophy,
   Clock,
