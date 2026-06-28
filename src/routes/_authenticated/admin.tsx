@@ -609,21 +609,23 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
           <div className="flex flex-wrap gap-1.5">
              {SECTION_OPTIONS.map(s => {
                 const active = sectionHeads.includes(s.key);
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => onToggleSectionHead(member.id, s.key, active)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
-                      active
-                        ? "bg-gold-primary text-white border-gold-primary shadow-md"
-                        : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary"
-                    )}
-                  >
-                    {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
-                    {s.label}
-                  </button>
-                );
+                 return (
+                   <button
+                     key={s.key}
+                     disabled={!canManageSections}
+                     onClick={() => canManageSections && onToggleSectionHead(member.id, s.key, active)}
+                     className={cn(
+                       "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
+                       active
+                         ? "bg-gold-primary text-white border-gold-primary shadow-md"
+                         : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary",
+                       !canManageSections && "opacity-50 cursor-not-allowed hover:border-border hover:text-muted-foreground"
+                     )}
+                   >
+                     {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
+                     {s.label}
+                   </button>
+                 );
              })}
           </div>
        </div>
