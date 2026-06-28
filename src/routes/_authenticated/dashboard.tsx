@@ -191,6 +191,7 @@ function Dashboard() {
   const [newNewsCount, setNewNewsCount] = useState(0);
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [initiatives, setInitiatives] = useState<any[]>([]);
+  const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [immersiveItem, setImmersiveItem] = useState<{ type: 'trip' | 'meeting' | 'news', data: any } | null>(null);
   const [bugBody, setBugBody] = useState("");
