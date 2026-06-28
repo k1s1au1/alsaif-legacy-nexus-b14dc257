@@ -637,6 +637,53 @@ export type Database = {
           },
         ]
       }
+      meeting_presentations: {
+        Row: {
+          created_at: string
+          created_by: string
+          external_url: string | null
+          file_path: string | null
+          id: string
+          kind: string
+          meeting_id: string
+          slides: Json
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          kind: string
+          meeting_id: string
+          slides?: Json
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          external_url?: string | null
+          file_path?: string | null
+          id?: string
+          kind?: string
+          meeting_id?: string
+          slides?: Json
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_presentations_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meetings: {
         Row: {
           created_at: string

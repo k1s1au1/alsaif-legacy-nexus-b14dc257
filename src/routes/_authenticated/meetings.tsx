@@ -36,6 +36,7 @@ import {
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 import { sendFcmNotification } from "@/lib/fcm";
+import { MeetingPresentations } from "@/components/meeting-presentations";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -378,6 +379,7 @@ function MeetingsPage() {
                           saving={savingRsvp === m.id}
                           ready={!rolesLoading && !!userId}
                           dynamicLogo={dynamicLogo}
+                          userId={userId}
                         />
                       </CarouselItem>
                     ))}
@@ -479,7 +481,7 @@ function MeetingsPage() {
   );
 }
 
-function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete, saving, ready, dynamicLogo }: any) {
+function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete, saving, ready, dynamicLogo, userId }: any) {
   const date = formatDate(meeting.scheduled_at);
   const going = attendeesList.filter((a: any) => a.rsvp === 'going').map((a: any) => profiles[a.user_id]).filter(Boolean);
 
@@ -618,6 +620,9 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                     <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
                   </button>
                 </div>
+             </div>
+             <div className="px-1">
+                <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
              </div>
              {canManage && (
                 <div className="flex items-center gap-2 px-1">
