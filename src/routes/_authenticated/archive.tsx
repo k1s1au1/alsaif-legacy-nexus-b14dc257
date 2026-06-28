@@ -8,6 +8,7 @@ import {
   Pin,
   PinOff,
   Trash2,
+  Loader2,
   Image as ImageIcon,
   Video as VideoIcon,
   Clock,
