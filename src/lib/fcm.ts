@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 
 /**
  * Sends a push notification using Firebase Cloud Messaging HTTP v1 API.
@@ -15,10 +14,14 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
-    // 1. Fetch tokens from profiles table - using a more flexible query
-    const { data: profiles, error: fetchErr } = await (supabase as any)
+    // Use admin client to bypass RLS — server fn has no user session here
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // 1. Fetch tokens from profiles table
+    const { data: profiles, error: fetchErr } = await (supabaseAdmin as any)
       .from("profiles")
       .select("fcm_token");
+
 
     if (fetchErr) {
       console.error("FCM: Error fetching profiles:", fetchErr);
