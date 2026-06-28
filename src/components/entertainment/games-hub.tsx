@@ -24,10 +24,13 @@ import { toast } from "sonner";
 
 import { TRIVIA_QUESTIONS } from "@/data/trivia-questions";
 
+import { WordDuel } from "./word-duel";
+
 export function GamesHub() {
-  const [activeGame, setActiveGame] = useState<"baloot" | "wheel" | "challenge30" | "auction" | "judge" | "trivia">("baloot");
+  const [activeGame, setActiveGame] = useState<"baloot" | "wheel" | "challenge30" | "auction" | "judge" | "trivia" | "word-duel">("baloot");
 
   const games = [
+    { id: "word-duel", label: "سجال الحروف", icon: Zap },
     { id: "baloot", label: "البلوت", icon: Target },
     { id: "wheel", label: "القرعة", icon: RotateCw },
     { id: "challenge30", label: "الـ 30 ثانية", icon: Timer },
@@ -58,6 +61,7 @@ export function GamesHub() {
 
        <div className="min-h-[500px]">
           <AnimatePresence mode="wait">
+             {activeGame === "word-duel" && <WordDuel key="word-duel" onClose={() => setActiveGame("baloot")} />}
              {activeGame === "baloot" && <BalootCalculator key="baloot" />}
              {activeGame === "wheel" && <SelectionWheel key="wheel" />}
              {activeGame === "challenge30" && <Challenge30s key="challenge30" />}
