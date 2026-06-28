@@ -77,11 +77,6 @@ function roleLabel(role: string | null) {
   if (role === "admin") return "مسؤول النظام";
   if (role === "manager") return "مدير";
   if (role === "chairman") return "رئيس المجلس";
-  if (role === "head_meetings") return "مسؤول الاجتماعات";
-  if (role === "head_events") return "مسؤول المناسبات";
-  if (role === "head_trips") return "مسؤول الترفيه";
-  if (role === "head_finance") return "مسؤول الصندوق";
-  if (role === "head_heritage") return "مسؤول إرث السيف";
   return "عضو";
 }
 
