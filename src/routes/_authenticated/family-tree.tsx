@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter } from "@tanstack/react-router";
-import { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import Tree from "react-d3-tree";
 import type { RawNodeDatum, CustomNodeElementProps } from "react-d3-tree";
@@ -25,26 +25,19 @@ import {
   UserPlus,
   Trash2,
   UserCircle2,
-  History,
-  Eye,
-  Camera,
-  X,
-  Plus
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { useSiteLogo } from "@/hooks/use-site-logo";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/family-tree")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "شجرة عائلة السيف — المخطوطة الحية" },
+      { title: "شجرة عائلة السيف" },
       {
         name: "description",
-        content: "عرض هرمي تفاعلي لشجرة عائلة السيف بنمط المخطوطات الملكية.",
+        content:
+          "عرض هرمي لشجرة عائلة السيف مع روابط واضحة بين الآباء والأبناء.",
       },
     ],
   }),
@@ -62,8 +55,8 @@ type Member = {
   kind: "profile" | "extra";
 };
 
-const NODE_W = 180;
-const NODE_H = 100;
+const NODE_W = 160;
+const NODE_H = 80;
 
 function FamilyTreePage() {
   const router = useRouter();
@@ -75,11 +68,10 @@ function FamilyTreePage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [draftParent, setDraftParent] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [zoom, setZoom] = useState(0.8);
-  const [translate, setTranslate] = useState({ x: 400, y: 100 });
+  const [zoom, setZoom] = useState(0.6);
+  const [translate, setTranslate] = useState({ x: 200, y: 100 });
   const [addOpen, setAddOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const dynamicLogo = useSiteLogo();
 
   const setParentFn = useServerFn(setMemberParent);
   const addExtraFn = useServerFn(addExtraMember);
@@ -88,7 +80,9 @@ function FamilyTreePage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) return;
         const [{ data: profile }, { data: roles }] = await Promise.all([
           supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
@@ -99,7 +93,7 @@ function FamilyTreePage() {
         const profileName = profile?.arabic_name || profile?.full_name || "عضو";
         setMe({
           name: profileName,
-          role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول تقني" : "عضو",
+          role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : rs.includes("manager") ? "مسؤول قسم" : "عضو",
           initial: (profileName[0] || "ع").toUpperCase(),
           avatarPath: profile?.avatar_url,
           id: user.id,
@@ -112,7 +106,13 @@ function FamilyTreePage() {
     })();
   }, []);
 
-  const load = useCallback(async () => {
+  useEffect(() => {
+    if (containerRef.current) {
+      setTranslate({ x: containerRef.current.clientWidth / 2, y: 80 });
+    }
+  }, [members.length]);
+
+  async function load() {
     setLoading(true);
     try {
       const [profilesRes, extrasRes] = await Promise.all([
@@ -142,11 +142,11 @@ function FamilyTreePage() {
       }));
       setMembers([...profileMembers, ...extraMembers]);
     } catch (e: any) {
-      toast.error("فشل مزامنة الشجرة");
+      toast.error("حدث خطأ أثناء تحميل البيانات", { description: e?.message });
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
   const treeData = useMemo<RawNodeDatum[]>(() => {
     if (members.length === 0) return [];
@@ -171,43 +171,37 @@ function FamilyTreePage() {
     if (!roots.length) return [];
     return [
       {
-        name: "جذور السيف",
+        name: "مجلس السيف",
         attributes: { memberId: "__root__" } as any,
         children: roots.map(build),
       },
     ];
   }, [members]);
 
-  useEffect(() => {
-    if (containerRef.current && treeData.length > 0) {
-      setTranslate({ x: containerRef.current.clientWidth / 2, y: 120 });
-    }
-  }, [treeData]);
-
   async function saveParent(member: Member) {
     setSaving(true);
     try {
       await setParentFn({ data: { userId: member.id, parentId: draftParent, kind: member.kind } });
-      toast.success("تم ربط الغصن بنجاح");
+      toast.success("تم التحديث بنجاح");
       setEditing(null);
       await load();
       router.invalidate();
     } catch (e: any) {
-      toast.error("فشل الربط");
+      toast.error("فشل الحفظ", { description: e.message });
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(member: Member) {
-    if (!confirm(`هل تريد استئصال ${member.first_name} من الشجرة؟`)) return;
+    if (!confirm(`حذف ${member.first_name} من الشجرة؟`)) return;
     try {
       await deleteExtraFn({ data: { id: member.id } });
       toast.success("تم الحذف");
       setEditing(null);
       await load();
     } catch (e: any) {
-      toast.error("فشل الحذف");
+      toast.error("فشل الحذف", { description: e.message });
     }
   }
 
@@ -216,190 +210,287 @@ function FamilyTreePage() {
     const m = memberId ? members.find((mem) => mem.id === memberId) : null;
     const isRoot = memberId === "__root__";
     const isMe = me?.id && m && m.id === me.id;
-    const isSearchMatch = search && m && (m.full_name || "").includes(search);
+    const isSearchMatch =
+      search &&
+      m &&
+      ((m.first_name || "").includes(search) || (m.father_name || "").includes(search));
     const isExtra = m?.kind === "extra";
 
     return (
       <g className="node-group">
-        <foreignObject width={200} height={100} x={-100} y={-50} style={{ overflow: 'visible' }}>
+        <foreignObject
+          width={NODE_W}
+          height={NODE_H}
+          x={-NODE_W / 2}
+          y={-NODE_H / 2}
+        >
           <div
             onClick={toggleNode}
+
+            style={{
+              width: `${NODE_W}px`,
+              height: `${NODE_H}px`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '8px',
+              borderRadius: '999px',
+              border: '3px solid #E5E4E0',
+              backgroundColor: 'white',
+              boxSizing: 'border-box',
+              cursor: 'pointer'
+            }}
             className={cn(
-              "relative flex flex-col items-center justify-center p-4 transition-all duration-500 cursor-pointer group",
-              "rounded-[32px] border-2 shadow-2xl",
-              isRoot ? "bg-primary border-gold-primary shadow-gold-primary/20" :
-              isMe ? "bg-[#064E3B] border-gold-primary shadow-emerald-900/50" :
-              isSearchMatch ? "bg-gold-primary border-white scale-110 shadow-xl" :
-              "bg-white dark:bg-[#1a1c20] border-border dark:border-white/10"
+              "tree-node-content",
+              isRoot && "is-root",
+              isMe && "is-me",
+              isSearchMatch && "is-match",
+              isExtra && "is-extra"
             )}
           >
-             <div className="relative z-10 flex flex-col items-center gap-1 text-center">
-                {isRoot ? (
-                   <>
-                     <Trees className="size-6 text-gold-primary mb-1" />
-                     <span className="text-xs font-black text-white uppercase tracking-widest leading-none">{nodeDatum.name}</span>
-                   </>
-                ) : m ? (
-                   <>
-                      <div className="size-10 rounded-full border-2 border-gold-primary/30 p-0.5 mb-1 bg-background overflow-hidden group-hover:border-gold-primary transition-colors">
-                         {isExtra ? <UserCircle2 className="size-full text-muted-foreground/40" /> : <UserAvatar path={m.avatar_url} name={m.first_name || "ع"} className="size-full" userId={m.id} />}
-                      </div>
-                      <span className={cn("text-base font-black tracking-tight leading-none", (isMe || isSearchMatch) ? "text-white" : "text-primary dark:text-gold-primary")}>{m.first_name}</span>
-                      <span className={cn("text-[8px] font-bold opacity-60", (isMe || isSearchMatch) ? "text-white" : "text-muted-foreground")}>{m.father_name || "السيف"}</span>
-
-                      {isPriv && (
-                         <button onClick={(e) => { e.stopPropagation(); setEditing(m.id); setDraftParent(m.parent_id); }} className="absolute -top-2 -right-2 size-8 rounded-xl bg-white dark:bg-card border border-border shadow-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all hover:bg-gold-primary hover:text-black">
-                            <Pencil size={12} />
-                         </button>
-                      )}
-                   </>
-                ) : null}
-             </div>
+            {isRoot ? (
+              <div style={{ textAlign: 'center' }}>
+                <Trees size={16} color="#D4AF37" />
+                <div style={{ fontSize: '11px', fontWeight: 900, color: 'white' }}>{nodeDatum.name}</div>
+              </div>
+            ) : m ? (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', overflow: 'hidden' }}>
+                <div style={{
+                  width: '40px',
+                  height: '40px',
+                  borderRadius: '50%',
+                  overflow: 'hidden',
+                  border: '1px solid #D4AF37',
+                  flexShrink: 0
+                }}>
+                  {isExtra ? (
+                    <UserCircle2 size={40} color="#8E7745" />
+                  ) : (
+                    <UserAvatar name={m.first_name || "ع"} path={m.avatar_url} className="size-full" userId={m.id} />
+                  )}
+                </div>
+                <div style={{ flex: 1, textAlign: 'right', overflow: 'hidden' }}>
+                  <div style={{
+                    fontSize: '13px',
+                    fontWeight: 900,
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    color: (isMe || isRoot) ? 'white' : '#1B4332'
+                  }}>
+                    {m.first_name}
+                  </div>
+                  <div style={{
+                    fontSize: '9px',
+                    fontWeight: 700,
+                    opacity: 0.7,
+                    color: (isMe || isRoot) ? 'white' : '#8E7745'
+                  }}>
+                    {isExtra ? "بدون حساب" : m.father_name || "السيف"}
+                  </div>
+                </div>
+                {isPriv && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditing(m.id);
+                      setDraftParent(m.parent_id);
+                    }}
+                    style={{ padding: '4px', opacity: 0.5 }}
+                  >
+                    <Pencil size={12} />
+                  </button>
+                )}
+              </div>
+            ) : null}
           </div>
         </foreignObject>
       </g>
     );
   };
 
+  if (!me) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="size-10 animate-spin text-gold-primary" />
+      </div>
+    );
+  }
+
+  const editingMember = editing ? members.find((m) => m.id === editing) : null;
+
   return (
-    <AppShell title="المخطوطة العائلية" user={me!}>
-      <div className="max-w-7xl mx-auto space-y-8 pb-20" dir="rtl">
+    <AppShell title="شجرة عائلة السيف" user={me}>
+      <div className="space-y-4 px-1 md:px-0">
         <QuickActionsBanner />
+        <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
+          <div className="flex items-center gap-3">
+            <div className="size-10 md:size-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
+              <Trees className="size-6 md:size-8 text-white" />
+            </div>
+            <div className="flex-1">
+              <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة عائلة السيف</h1>
+              <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">
+                استكشف تفرعات وجذور عائلة السيف العريقة
+              </p>
+            </div>
+            {isPriv && (
+              <button
+                onClick={() => setAddOpen(true)}
+                className="btn-gold flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl text-xs md:text-sm font-bold shadow-md"
+              >
+                <UserPlus className="size-4" />
+                <span className="hidden md:inline">إضافة فرد</span>
+              </button>
+            )}
+          </div>
 
-        {/* Enhanced Interactive Header */}
-        <section className="animate-fade-up">
-           <div className="relative overflow-hidden rounded-[44px] md:rounded-[56px] glass-surface border border-white/5 shadow-2xl p-8 md:p-14 group">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-gold-primary/5 pointer-events-none" />
+          <div className="flex flex-col md:flex-row items-center gap-3 w-full">
+            <div className="relative w-full md:w-auto flex-1">
+              <Search className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-[#8E8E93]" />
+              <input
+                type="text"
+                placeholder="ابحث عن فرد..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pr-11 pl-4 py-3 bg-[#F2F2F7] border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-[#1B4332]/10 transition-all"
+              />
+            </div>
+            <div className="flex gap-2 w-full md:w-auto justify-center">
+              <ControlBtn onClick={() => setZoom((z) => Math.min(2, z + 0.15))} icon={<ZoomIn size={18} />} />
+              <ControlBtn onClick={() => setZoom((z) => Math.max(0.1, z - 0.15))} icon={<ZoomOut size={18} />} />
+              <ControlBtn
+                onClick={() => {
+                  setZoom(0.6);
+                  if (containerRef.current) {
+                    setTranslate({ x: containerRef.current.clientWidth / 2, y: 80 });
+                  }
+                }}
+                icon={<Maximize2 size={18} />}
+              />
+            </div>
+          </div>
+        </header>
 
-              <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-10">
-                 <div className="space-y-4 text-center md:text-right">
-                    <div className="flex items-center justify-center md:justify-start gap-4">
-                       <History className="size-5 text-gold-primary" />
-                       <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-gold-primary">شجرة السيف التفاعلية</span>
-                    </div>
-                    <h2 className="text-4xl md:text-7xl font-black tracking-tighter leading-tight text-primary dark:text-white drop-shadow-2xl">
-                       المخطوطة<br />
-                       <span className="text-gold-primary/40">الحية</span>
-                    </h2>
-                    <p className="text-sm md:text-xl font-bold text-muted-foreground max-w-lg leading-relaxed italic">
-                       "من لا يعرف أصله، لا يعرف حاضره.. استكشف أغصان عائلتنا العريقة بنمط المخطوطات الملكية."
-                    </p>
-                 </div>
-
-                 <div className="flex flex-col items-center gap-4">
-                    {isPriv && (
-                      <button onClick={() => setAddOpen(true)} className="btn-gold px-10 py-5 rounded-[24px] font-black text-lg shadow-2xl shadow-gold-primary/20 flex items-center gap-3 active:scale-95 transition-all">
-                         <UserPlus size={24} strokeWidth={3} /> إضافة غصن جديد
-                      </button>
-                    )}
-                    <div className="flex items-center gap-3 bg-white/5 backdrop-blur-md px-6 py-2 rounded-2xl border border-white/10">
-                       <span className="text-[10px] font-black uppercase tracking-widest text-primary/40">إجمالي الأغصان: {members.length}</span>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Search & Controls Floating Bar */}
-              <div className="mt-12 flex flex-col md:flex-row items-center gap-4 bg-muted/40 p-2 rounded-[32px] border border-border/40 backdrop-blur-3xl shadow-inner">
-                 <div className="relative flex-1 w-full">
-                    <Search className="absolute right-6 top-1/2 -translate-y-1/2 size-5 text-muted-foreground opacity-40" />
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="ابحث عن فرد في الشجرة..." className="w-full h-14 pr-16 pl-8 bg-transparent border-none font-bold text-base focus:ring-0 placeholder:text-muted-foreground/30" />
-                 </div>
-                 <div className="flex items-center gap-2 p-1">
-                    <ControlBtn onClick={() => setZoom(z => Math.min(2, z + 0.2))} icon={<ZoomIn size={20} />} label="تكبير" />
-                    <ControlBtn onClick={() => setZoom(z => Math.max(0.1, z - 0.2))} icon={<ZoomOut size={20} />} label="تصغير" />
-                    <ControlBtn onClick={() => { setZoom(0.8); if(containerRef.current) setTranslate({ x: containerRef.current.clientWidth/2, y: 120 }); }} icon={<Maximize2 size={20} />} label="توسيط" />
-                 </div>
-              </div>
-           </div>
-        </section>
-
-        {/* Tree Canvas with Parchment Effect */}
         <div
           ref={containerRef}
-          className="relative w-full rounded-[60px] border-4 border-[#e5e7eb] dark:border-[#1a1c20] overflow-hidden shadow-[inset_0_0_100px_rgba(0,0,0,0.1)] group/canvas"
-          style={{ height: "calc(100vh - 280px)", minHeight: 600 }}
+          className="w-full rounded-[32px] md:rounded-[44px] bg-white border border-[#E5E4E0] overflow-hidden shadow-2xl relative"
+          style={{ height: "calc(100vh - 240px)", minHeight: 500 }}
         >
-           {/* Parchment Background Layer */}
-           <div className="absolute inset-0 bg-[#f9f7f2] dark:bg-[#0c0d10] transition-colors duration-1000 z-0">
-              <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: "url('https://www.transparenttextures.com/patterns/parchment.png')" }} />
-              <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
-              <div className="absolute bottom-0 inset-x-0 h-40 bg-gradient-to-t from-primary/5 to-transparent pointer-events-none" />
-           </div>
-
-           {loading ? (
-             <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-white/40 backdrop-blur-md">
-                <div className="relative">
-                   <Loader2 className="size-16 animate-spin text-gold-primary" strokeWidth={3} />
-                   <Trees className="absolute inset-0 m-auto size-6 text-primary" />
-                </div>
-                <p className="mt-4 font-black text-primary tracking-[0.3em] uppercase text-xs">جاري خط المخطوطة...</p>
-             </div>
-           ) : treeData.length > 0 ? (
-             <Tree
-               data={treeData[0]}
-               orientation="vertical"
-               translate={translate}
-               zoom={zoom}
-               onUpdate={(s) => { setZoom(s.zoom); setTranslate(s.translate); }}
-               pathFunc="step"
-               pathClassFunc={() => "manuscript-link"}
-               nodeSize={{ x: NODE_W + 60, y: NODE_H + 100 }}
-               renderCustomNodeElement={renderNode}
-               collapsible={false}
-               zoomable
-               draggable
-               transitionDuration={1000}
-             />
-           ) : (
-             <div className="absolute inset-0 flex items-center justify-center z-10 text-muted-foreground font-black italic">لا توجد بيانات للعرض</div>
-           )}
-
-           {/* Decorative Corner Ornaments */}
-           <div className="absolute top-10 right-10 size-20 border-t-4 border-r-4 border-gold-primary/20 rounded-tr-3xl pointer-events-none group-hover/canvas:border-gold-primary/40 transition-all duration-1000" />
-           <div className="absolute bottom-10 left-10 size-20 border-b-4 border-l-4 border-gold-primary/20 rounded-bl-3xl pointer-events-none group-hover/canvas:border-gold-primary/40 transition-all duration-1000" />
+          {loading ? (
+            <div className="absolute inset-0 flex items-center justify-center bg-white/50 backdrop-blur-sm z-10">
+              <Loader2 className="size-10 animate-spin text-gold-primary" />
+            </div>
+          ) : treeData.length > 0 ? (
+            <Tree
+              data={treeData[0]}
+              orientation="vertical"
+              translate={translate}
+              zoom={zoom}
+              onUpdate={(state) => {
+                if (Math.abs(state.zoom - zoom) > 0.01) setZoom(state.zoom);
+                if (
+                  Math.abs(state.translate.x - translate.x) > 1 ||
+                  Math.abs(state.translate.y - translate.y) > 1
+                ) {
+                  setTranslate(state.translate);
+                }
+              }}
+              pathFunc="step"
+              pathClassFunc={() => "tree-link"}
+              nodeSize={{ x: NODE_W + 40, y: NODE_H + 60 }}
+              renderCustomNodeElement={renderNode}
+              collapsible={false}
+              zoomable
+              draggable
+              transitionDuration={800}
+            />
+          ) : (
+            <div className="absolute inset-0 flex items-center justify-center text-muted-foreground font-bold">
+              لا توجد بيانات لعرضها في الشجرة
+            </div>
+          )}
         </div>
 
-        {/* Editing Dialog (Unchanged Logic, Enhanced UI) */}
-        <AnimatePresence>
-           {editing && (
-             <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4" onClick={() => setEditing(null)}>
-                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-card w-full max-w-md rounded-[40px] p-10 border border-gold-primary/20 shadow-2xl relative" onClick={e => e.stopPropagation()}>
-                   <div className="flex flex-col items-center text-center gap-6 mb-10">
-                      <div className="size-24 rounded-[32px] bg-primary flex items-center justify-center text-white shadow-xl relative">
-                         <History className="size-10" />
-                         <div className="absolute -bottom-2 -right-2 size-10 rounded-2xl bg-gold-primary flex items-center justify-center text-black border-4 border-card"><Plus size={20} strokeWidth={3} /></div>
-                      </div>
-                      <div>
-                         <h3 className="text-2xl font-black text-primary">تعديل الغصن</h3>
-                         <p className="text-sm font-bold text-muted-foreground mt-1">تغيير ارتباط {members.find(m => m.id === editing)?.first_name} في الشجرة.</p>
-                      </div>
-                   </div>
+        {editingMember && (
+          <div
+            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setEditing(null)}
+          >
+            <div
+              dir="rtl"
+              className="w-full max-w-sm rounded-[28px] border border-[#D4AF37]/30 bg-white p-6 space-y-5 shadow-2xl animate-fade-up"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3">
+                <div className="size-12 rounded-full overflow-hidden ring-2 ring-gold-primary/10 bg-[#D4AF37]/20 flex items-center justify-center">
+                  {editingMember.kind === "extra" ? (
+                    <UserCircle2 className="size-7 text-[#8E7745]" />
+                  ) : (
+                    <UserAvatar name={editingMember.first_name || "ع"} path={editingMember.avatar_url} className="size-full" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-black text-[#1B4332]">
+                    تعديل ارتباط {editingMember.first_name}
+                  </h3>
+                  <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
+                    {editingMember.kind === "extra" ? "فرد مضاف بدون حساب" : (
+                      <>
+                        <ShieldCheck size={12} /> حساب معتمد ومرتبط بالنظام
+                      </>
+                    )}
+                  </p>
+                </div>
+              </div>
 
-                   <div className="space-y-6">
-                      <div className="space-y-2">
-                         <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">ارتباط الأب</label>
-                         <select value={draftParent ?? ""} onChange={e => setDraftParent(e.target.value || null)} className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border/60 font-bold text-sm focus:ring-4 focus:ring-primary/5 transition-all appearance-none outline-none">
-                            <option value="">— جذر مستقل (بدون أب) —</option>
-                            {members.filter(x => x.id !== editing).map(x => (
-                               <option key={x.id} value={x.id}>{(x.full_name || x.first_name) + (x.kind === 'extra' ? ' (مضاف)' : '')}</option>
-                            ))}
-                         </select>
-                      </div>
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">
+                  والد العضو
+                </label>
+                <select
+                  value={draftParent ?? ""}
+                  onChange={(e) => setDraftParent(e.target.value || null)}
+                  className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary focus:ring-2 focus:ring-primary/10 transition-all"
+                >
+                  <option value="">— لا أب (رأس شجرة) —</option>
+                  {members
+                    .filter((x) => x.id !== editingMember.id)
+                    .map((x) => (
+                      <option key={x.id} value={x.id}>
+                        {(x.full_name || x.first_name) + (x.kind === "extra" ? " (بدون حساب)" : "")}
+                      </option>
+                    ))}
+                </select>
+              </div>
 
-                      <div className="flex gap-3">
-                         {members.find(m => m.id === editing)?.kind === 'extra' && (
-                           <button onClick={() => handleDelete(members.find(m => m.id === editing)!)} className="size-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><Trash2 size={24} /></button>
-                         )}
-                         <button onClick={() => setEditing(null)} className="flex-1 py-4 rounded-2xl font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
-                         <button disabled={saving} onClick={() => saveParent(members.find(m => m.id === editing)!)} className="flex-[2] btn-gold py-4 rounded-2xl font-black text-lg shadow-xl shadow-gold-primary/20 flex items-center justify-center gap-2">
-                            {saving ? <Loader2 className="size-5 animate-spin" /> : <Check size={20} strokeWidth={3} />} حفظ
-                         </button>
-                      </div>
-                   </div>
-                </motion.div>
-             </div>
-           )}
-        </AnimatePresence>
+              <div className="flex items-center justify-end gap-2 pt-1">
+                {editingMember.kind === "extra" && (
+                  <button
+                    onClick={() => handleDelete(editingMember)}
+                    className="p-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all"
+                    title="حذف"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
+                )}
+                <button
+                  onClick={() => setEditing(null)}
+                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all"
+                >
+                  إلغاء
+                </button>
+                <button
+                  onClick={() => saveParent(editingMember)}
+                  disabled={saving}
+                  className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2"
+                >
+                  {saving ? <Loader2 className="size-3 animate-spin" /> : <Check size={3} />} حفظ
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {addOpen && isPriv && (
           <AddMemberDialog
@@ -408,81 +499,101 @@ function FamilyTreePage() {
             onSubmit={async (payload) => {
               try {
                 await addExtraFn({ data: payload });
-                toast.success("تم إضافة الغصن للمخطوطة");
+                toast.success("تمت الإضافة بنجاح");
                 setAddOpen(false);
                 await load();
-              } catch (e: any) { throw e; }
+              } catch (e: any) {
+                toast.error("فشل الإضافة", { description: e.message });
+                throw e;
+              }
             }}
           />
         )}
       </div>
 
       <style>{`
-        /* Living Manuscript Styles */
-        .rd3t-tree-container { width: 100%; height: 100%; cursor: grab; }
-        .rd3t-tree-container:active { cursor: grabbing; }
-
-        .manuscript-link {
+        .tree-link {
           fill: none;
-          stroke: #D4AF37;
-          stroke-width: 1.5px;
-          stroke-opacity: 0.3;
-          stroke-dasharray: 2000;
-          stroke-dashoffset: 2000;
-          animation: drawPath 3s ease forwards;
-          transition: all 0.5s ease;
+          stroke: #1B4332;
+          stroke-width: 2px;
+          stroke-dasharray: 6;
+          opacity: 0.15;
+        }
+        .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 20px 20px; }
+
+        /* iOS Safari Fixes */
+        .tree-node-content {
+          border-color: #E5E4E0;
+          background-color: white;
+        }
+        .tree-node-content.is-root {
+          background-color: #1B4332 !important;
+          border-color: #D4AF37 !important;
+        }
+        .tree-node-content.is-me {
+          background-color: #1B4332 !important;
+          border-color: #D4AF37 !important;
+        }
+        .tree-node-content.is-match {
+          background-color: #D4AF37 !important;
+          border-color: white !important;
+        }
+        .tree-node-content.is-extra {
+          background-color: #FFF8E7 !important;
+          border-color: #D4AF37 !important;
         }
 
-        .manuscript-node:hover ~ .manuscript-link {
-           stroke-opacity: 0.8;
-           stroke-width: 2.5px;
-        }
-
-        @keyframes drawPath {
-          to { stroke-dashoffset: 0; }
-        }
-
-        .leaf-sway {
-          animation: sway 10s ease-in-out infinite alternate;
-          transform-origin: top center;
-        }
-
-        @keyframes sway {
-          from { transform: rotate(-1deg) translateX(-1px); }
-          to { transform: rotate(1deg) translateX(1px); }
-        }
-
-        .node-group foreignObject { overflow: visible; }
-
-        /* Calligraphic Fonts */
-        .manuscript-node span {
-           font-family: 'Amiri', serif;
+        /* Force GPU rendering for SVG nodes on iOS */
+        foreignObject {
+          transform: translateZ(0);
+          -webkit-transform: translateZ(0);
         }
       `}</style>
     </AppShell>
   );
 }
 
-function ControlBtn({ onClick, icon, label }: any) {
+function ControlBtn({ onClick, icon }: { onClick: () => void; icon: React.ReactNode }) {
   return (
-    <button onClick={onClick} className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-white dark:bg-card border border-border/40 hover:bg-primary hover:text-white transition-all shadow-sm group">
-       {icon}
-       <span className="text-[10px] font-black uppercase tracking-widest hidden lg:inline">{label}</span>
+    <button
+      onClick={onClick}
+      className="size-10 md:size-12 rounded-xl bg-[#F2F2F7] text-[#1B4332] flex items-center justify-center hover:bg-[#1B4332] hover:text-white transition-all shadow-sm shrink-0"
+    >
+      {icon}
     </button>
   );
 }
 
-// AddMemberDialog remains similar but with updated colors to match the manuscript theme
-function AddMemberDialog({ members, onClose, onSubmit }: any) {
+type AddPayload = {
+  firstName: string;
+  fatherName?: string | null;
+  grandfatherName?: string | null;
+  relation: "child" | "father" | "grandfather" | "root";
+  targetId?: string | null;
+  targetKind?: "profile" | "extra" | null;
+};
+
+function AddMemberDialog({
+  members,
+  onClose,
+  onSubmit,
+}: {
+  members: Member[];
+  onClose: () => void;
+  onSubmit: (payload: AddPayload) => Promise<void>;
+}) {
   const [firstName, setFirstName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [grandfatherName, setGrandfatherName] = useState("");
-  const [relation, setRelation] = useState("child");
-  const [targetId, setTargetId] = useState("");
+  const [relation, setRelation] = useState<AddPayload["relation"]>("child");
+  const [targetId, setTargetId] = useState<string>("");
   const [saving, setSaving] = useState(false);
+
+  const target = members.find((m) => m.id === targetId);
 
   async function handleSubmit() {
     if (!firstName.trim()) return toast.error("الاسم الأول مطلوب");
+    if (relation !== "root" && !target) return toast.error("اختر العضو المرجعي");
     setSaving(true);
     try {
       await onSubmit({
@@ -490,63 +601,124 @@ function AddMemberDialog({ members, onClose, onSubmit }: any) {
         fatherName: fatherName.trim() || null,
         grandfatherName: grandfatherName.trim() || null,
         relation,
-        targetId: targetId || null,
+        targetId: target?.id ?? null,
+        targetKind: target?.kind ?? null,
       });
-    } finally { setSaving(false); }
+    } catch {
+      // toast already shown
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4" onClick={onClose}>
-       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card w-full max-w-xl rounded-[40px] p-8 md:p-12 border border-gold-primary/20 shadow-2xl overflow-y-auto max-h-[90vh]" onClick={e => e.stopPropagation()}>
-          <div className="flex items-center justify-between mb-10">
-             <div className="flex items-center gap-4">
-                <div className="size-14 rounded-2xl bg-primary flex items-center justify-center text-white"><UserPlus size={28} /></div>
-                <h3 className="text-2xl font-black text-primary">إضافة غصن جديد</h3>
-             </div>
-             <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center"><X size={24} /></button>
+    <div
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      onClick={onClose}
+    >
+      <div
+        dir="rtl"
+        className="w-full max-w-md rounded-[28px] border border-[#D4AF37]/30 bg-white p-6 space-y-4 shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center gap-3">
+          <div className="size-12 rounded-2xl bg-primary flex items-center justify-center">
+            <UserPlus className="size-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-black text-[#1B4332]">إضافة فرد إلى الشجرة</h3>
+            <p className="text-[10px] font-bold text-[#8E7745]">بدون الحاجة لإنشاء حساب</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-3">
+          <Field label="الاسم الأول *">
+            <input
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
+            />
+          </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="اسم الأب">
+              <input
+                value={fatherName}
+                onChange={(e) => setFatherName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
+              />
+            </Field>
+            <Field label="اسم الجد">
+              <input
+                value={grandfatherName}
+                onChange={(e) => setGrandfatherName(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
+              />
+            </Field>
           </div>
 
-          <div className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="الاسم الأول *"><input value={firstName} onChange={e => setFirstName(e.target.value)} className="input-fancier" placeholder="مثال: خالد" /></Field>
-                <Field label="صلة القرابة">
-                   <select value={relation} onChange={e => setRelation(e.target.value)} className="input-fancier">
-                      <option value="child">ابن لـ ...</option>
-                      <option value="father">أب لـ ...</option>
-                      <option value="root">جذر جديد</option>
-                   </select>
-                </Field>
-             </div>
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Field label="اسم الأب"><input value={fatherName} onChange={e => setFatherName(e.target.value)} className="input-fancier" /></Field>
-                <Field label="اسم الجد"><input value={grandfatherName} onChange={e => setGrandfatherName(e.target.value)} className="input-fancier" /></Field>
-             </div>
-             {relation !== "root" && (
-                <Field label="المرجع في الشجرة">
-                   <select value={targetId} onChange={e => setTargetId(e.target.value)} className="input-fancier">
-                      <option value="">— اختر العضو المرجعي —</option>
-                      {members.map((m: any) => <option key={m.id} value={m.id}>{m.full_name || m.first_name}</option>)}
-                   </select>
-                </Field>
-             )}
+          <Field label="صلة القرابة">
+            <select
+              value={relation}
+              onChange={(e) => setRelation(e.target.value as AddPayload["relation"])}
+              className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
+            >
+              <option value="child">ابن لـ ...</option>
+              <option value="father">أب لـ ...</option>
+              <option value="grandfather">جد لـ ...</option>
+              <option value="root">رأس شجرة (بدون أب)</option>
+            </select>
+          </Field>
 
-             <div className="flex gap-4 pt-6">
-                <button onClick={onClose} className="flex-1 py-5 rounded-3xl font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button>
-                <button disabled={saving} onClick={handleSubmit} className="flex-[2] btn-gold py-5 rounded-3xl font-black text-xl shadow-2xl flex items-center justify-center gap-3">
-                   {saving ? <Loader2 className="animate-spin size-6" /> : <><Plus size={24} strokeWidth={3} /> إضافة</>}
-                </button>
-             </div>
-          </div>
-       </motion.div>
+          {relation !== "root" && (
+            <Field label="العضو المرجعي">
+              <select
+                value={targetId}
+                onChange={(e) => setTargetId(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
+              >
+                <option value="">— اختر —</option>
+                {members.map((x) => (
+                  <option key={x.id} value={x.id}>
+                    {(x.full_name || x.first_name) + (x.kind === "extra" ? " (بدون حساب)" : "")}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          )}
+
+          <p className="text-[10px] font-bold text-[#8E7745] leading-relaxed bg-[#FFF8E7] rounded-xl p-3">
+            {relation === "child" && "سيتم إضافة الفرد الجديد كابن مباشر للعضو المختار."}
+            {relation === "father" && "سيتم إضافة الفرد كأب للعضو المختار، وسيرث ارتباط جدّه إن وجد."}
+            {relation === "grandfather" && "سيتم إضافة الفرد كجد، أي والداً لأب العضو المختار. يجب أن يكون للعضو أب مسجّل."}
+            {relation === "root" && "سيظهر الفرد كرأس شجرة مستقل."}
+          </p>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-1">
+          <button
+            onClick={onClose}
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all"
+          >
+            إلغاء
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={saving}
+            className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2"
+          >
+            {saving ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />} إضافة
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
-function Field({ label, children }: any) {
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2">
-       <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">{label}</label>
-       {children}
+    <div className="space-y-1.5">
+      <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">{label}</label>
+      {children}
     </div>
   );
 }
