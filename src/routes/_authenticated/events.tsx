@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
+import { useUserRole, roleLabel } from "@/hooks/use-user-role";
+import { useSiteLogo } from "@/hooks/use-site-logo";
 
 export const Route = createFileRoute("/_authenticated/events")({
   ssr: false,
