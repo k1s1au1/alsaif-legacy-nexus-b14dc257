@@ -134,10 +134,11 @@ function AdminPage() {
 
       if (isA) {
         try {
-          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: anns }] = await Promise.all([
+          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: anns }] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
             supabase.from("profiles").select("*").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
+            supabase.from("section_heads" as any).select("user_id, section"),
             supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
           ]);
 
@@ -151,7 +152,17 @@ function AdminPage() {
               arr.push({ role: r.role });
               rolesByUser.set(r.user_id, arr);
             });
-            setMembers((mems || []).map((m: any) => ({ ...m, user_roles: rolesByUser.get(m.id) || [] })));
+            const headsByUser = new Map<string, string[]>();
+            ((allHeads as any[]) || []).forEach((h: any) => {
+              const arr = headsByUser.get(h.user_id) || [];
+              arr.push(h.section);
+              headsByUser.set(h.user_id, arr);
+            });
+            setMembers((mems || []).map((m: any) => ({
+              ...m,
+              user_roles: rolesByUser.get(m.id) || [],
+              section_heads: headsByUser.get(m.id) || [],
+            })));
           }
 
           // Fetch FCM Token Count (from profiles)
