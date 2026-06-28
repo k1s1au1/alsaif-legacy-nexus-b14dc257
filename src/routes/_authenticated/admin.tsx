@@ -473,7 +473,9 @@ function AdminPage() {
                         member={m}
                         meId={meId}
                         currentRole={Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member')}
+                        sectionHeads={m.section_heads || []}
                         onAssignRole={assignRole}
+                        onToggleSectionHead={toggleSectionHead}
                         onDelete={deleteMember}
                         fullName={m.arabic_name || m.full_name || "عضو"}
                       />
