@@ -74,8 +74,8 @@ const REQ_TABS = [
 ];
 
 function roleLabel(role: string | null) {
-  if (role === "admin") return "مسؤول النظام";
-  if (role === "manager") return "مدير";
+  if (role === "admin") return "مسؤول تقني";
+  if (role === "manager") return "مسؤول قسم";
   if (role === "chairman") return "رئيس المجلس";
   return "عضو";
 }
@@ -128,7 +128,7 @@ function AdminPage() {
       if (p) {
         setProfile({
           name: p.arabic_name || p.full_name || "عضو",
-          role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "مشرف",
+          role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "مسؤول قسم",
           initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
           avatarPath: p.avatar_url
         });
@@ -213,6 +213,30 @@ function AdminPage() {
   };
 
   const assignRole = async (uid: string, role: string) => {
+    // Constraint: Max 2 Technical Admins (admin role)
+    if (role === "admin") {
+      const currentAdmins = members.filter(m => {
+        const r = Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member');
+        return r === "admin";
+      });
+      if (currentAdmins.length >= 2 && !currentAdmins.find(a => a.id === uid)) {
+        toast.error("عذراً، لا يمكن تعيين أكثر من 2 مسؤولين تقنيين في النظام.");
+        return;
+      }
+    }
+
+    // Constraint: Max 2 Chairmen (chairman role)
+    if (role === "chairman") {
+      const currentChairmen = members.filter(m => {
+        const r = Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member');
+        return r === "chairman";
+      });
+      if (currentChairmen.length >= 2 && !currentChairmen.find(c => c.id === uid)) {
+        toast.error("عذراً، لا يمكن تعيين أكثر من 2 رؤساء مجلس في النظام.");
+        return;
+      }
+    }
+
     setUpdatingRole(uid);
     try {
       await assignRoleFn({ data: { userId: uid, role } });
@@ -365,7 +389,7 @@ function AdminPage() {
               <div className="space-y-3 md:space-y-5 text-center md:text-right">
                 <div className="flex items-center justify-center md:justify-start gap-3">
                   <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
-                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المجلس</span>
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">إدارة الأخبار</span>
                 </div>
                 <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">لوحة الإدارة</h2>
                 <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">إدارة طلبات الانضمام، الصلاحيات، وإعدادات الهوية البصرية.</p>
@@ -568,11 +592,11 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
 
 const SECTION_OPTIONS: { key: string; label: string }[] = [
   { key: "meetings", label: "الاجتماعات" },
-  { key: "events", label: "المناسبات" },
+  { key: "events", label: "المهام" },
   { key: "trips", label: "الترفيه" },
   { key: "finance", label: "المالية" },
   { key: "heritage", label: "إرث السيف" },
-  { key: "majlis", label: "المجلس" },
+  { key: "majlis", label: "الأخبار" },
 ];
 
 function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false }: any) {
@@ -593,9 +617,9 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
           </div>
           <div className="flex flex-wrap items-center gap-2">
              <div className="flex items-center gap-1.5 flex-wrap">
-               <RoleToggleBtn active={currentRole === "chairman"} onClick={() => onAssignRole(member.id, "chairman")} icon={<ShieldCheck className="size-3.5" />} label="رئيس" activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary" />
-               <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
-               <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مشرف" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
+               <RoleToggleBtn active={currentRole === "chairman"} onClick={() => onAssignRole(member.id, "chairman")} icon={<ShieldCheck className="size-3.5" />} label="رئيس المجلس" activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary" />
+               <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول تقني" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
+               <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مسؤول قسم" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
                <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
              </div>
              {!isMe && currentRole !== "admin" && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}

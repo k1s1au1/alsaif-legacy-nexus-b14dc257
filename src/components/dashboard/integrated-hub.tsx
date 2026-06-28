@@ -88,9 +88,9 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
   }, [tripApi]);
 
   const tabs = [
-    { id: "trips", label: "ترفيه", icon: Plane, color: "text-indigo-400" },
-    { id: "meetings", label: "اجتماعات", icon: CalendarDays, color: "text-amber-400" },
-    { id: "tasks", label: "مسؤوليات", icon: ListChecks, color: "text-rose-400" },
+    { id: "trips", label: "الترفيه", icon: Plane, color: "text-indigo-400" },
+    { id: "meetings", label: "المهام", icon: CalendarDays, color: "text-amber-400" },
+    { id: "tasks", label: "المسؤوليات", icon: ListChecks, color: "text-rose-400" },
   ];
 
   const currentTripImage = upcomingTrips[activeTripIndex]?.image_url;
@@ -246,7 +246,7 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                                      <div className="space-y-4 text-center md:text-right flex-1">
                                         <div className="flex items-center justify-center md:justify-start gap-3 text-amber-400">
                                            <CalendarDays size={16} />
-                                           <span className="text-[10px] font-black uppercase tracking-[0.3em]">اجتماع العائلة</span>
+                                           <span className="text-[10px] font-black uppercase tracking-[0.3em]">المهام القادمة</span>
                                         </div>
                                         <h3 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight line-clamp-2 md:line-clamp-none">{meeting.title}</h3>
                                         <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-6 text-white/50 font-bold text-[10px] md:text-xs">

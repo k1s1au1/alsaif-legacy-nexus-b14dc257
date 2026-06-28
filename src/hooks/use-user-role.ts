@@ -10,18 +10,18 @@ export const SECTIONS: Section[] = ["meetings", "events", "trips", "finance", "h
 export function sectionLabel(section: Section): string {
   switch (section) {
     case "meetings": return "الاجتماعات";
-    case "events": return "المناسبات";
+    case "events": return "المهام";
     case "trips": return "الترفيه";
     case "finance": return "المالية";
     case "heritage": return "إرث السيف";
-    case "majlis": return "المجلس";
+    case "majlis": return "الأخبار";
   }
 }
 
 export function roleLabel(role: AppRole | string | null): string {
   switch (role) {
-    case "admin": return "مسؤول النظام";
-    case "manager": return "مدير";
+    case "admin": return "مسؤول تقني";
+    case "manager": return "مسؤول قسم";
     case "chairman": return "رئيس المجلس";
     default: return "عضو";
   }

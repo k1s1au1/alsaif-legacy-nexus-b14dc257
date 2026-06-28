@@ -28,8 +28,8 @@ export const Route = createFileRoute("/_authenticated/events")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "المناسبات — السيف" },
-      { name: "description", content: "مناسبات وأنشطة العائلة القادمة." },
+      { title: "المهام — السيف" },
+      { name: "description", content: "مهام وأنشطة العائلة القادمة." },
     ],
   }),
   component: EventsPage,
@@ -303,14 +303,14 @@ function EventsPage() {
   );
 
   return (
-    <AppShell title="المناسبات" user={profile}>
+    <AppShell title="المهام" user={profile}>
       <div className="space-y-8" dir="rtl">
         <QuickActionsBanner />
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h2 className="text-2xl font-semibold tracking-tight">مناسبات العائلة</h2>
+            <h2 className="text-2xl font-semibold tracking-tight">مهام العائلة</h2>
             <p className="text-sm text-muted-foreground mt-1">
-              أعراس، أعياد، تخرّجات وكل ما يجمع العائلة.
+              متابعة المهام وكل ما يجمع العائلة.
             </p>
           </div>
           {canManage && (
@@ -319,7 +319,7 @@ function EventsPage() {
               className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-gold-primary text-navy-base text-sm font-medium hover:opacity-90 transition"
             >
               <Plus className="size-4" strokeWidth={2} />
-              مناسبة جديدة
+              مهمة جديدة
             </button>
           )}
         </div>

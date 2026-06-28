@@ -538,7 +538,7 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
 
         sendFcmNotification({
           data: {
-            title: "خبر جديد في المجلس",
+            title: "خبر جديد في الأخبار",
             body: form.title,
           }
         }).catch(err => console.warn("FCM error:", err));

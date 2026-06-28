@@ -40,18 +40,25 @@ export const assignUserRole = createServerFn({ method: "POST" })
       throw new Error("غير مصرح لك بتغيير الصلاحيات — هذه الصلاحية لرئيس المجلس فقط");
     }
 
-
-
-
-    // If assigning chairman, demote any existing chairman first (only one allowed)
-    if (role === "chairman") {
-      await supabaseAdmin
-        .from("user_roles")
-        .delete()
-        .eq("role", "chairman");
+    // 1. Enforce Role Counts
+    if (role === "admin") {
+      const { count } = await supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin");
+      // Check if user already is an admin (updating themselves)
+      const { data: existing } = await supabaseAdmin.from("user_roles").select("*").eq("user_id", userId).eq("role", "admin").maybeSingle();
+      if ((count || 0) >= 2 && !existing) {
+        throw new Error("عذراً، لا يمكن تعيين أكثر من 2 مسؤولين تقنيين.");
+      }
     }
 
-    // 1. Delete existing roles for this user
+    if (role === "chairman") {
+      const { count } = await supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "chairman");
+      const { data: existing } = await supabaseAdmin.from("user_roles").select("*").eq("user_id", userId).eq("role", "chairman").maybeSingle();
+      if ((count || 0) >= 2 && !existing) {
+        throw new Error("عذراً، لا يمكن تعيين أكثر من 2 رؤساء مجلس.");
+      }
+    }
+
+    // 2. Delete existing roles for this user
     await supabaseAdmin
       .from("user_roles")
       .delete()

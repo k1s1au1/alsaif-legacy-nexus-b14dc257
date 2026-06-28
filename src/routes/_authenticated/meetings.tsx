@@ -42,7 +42,7 @@ export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "المناسبات العائلية — السيف" },
+      { title: "المهام العائلية — السيف" },
       { name: "description", content: "جدول اجتماعات وفعاليات عائلة السيف." },
     ],
   }),
@@ -351,7 +351,7 @@ function MeetingsPage() {
             <section className="space-y-8 animate-fade-up">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-4 text-primary font-black uppercase tracking-widest text-xs">
-                   <Timer className="size-4 text-gold-primary" /> أهم المناسبات القادمة
+                   <Timer className="size-4 text-gold-primary" /> أهم المهام القادمة
                 </div>
               </div>
 

@@ -217,7 +217,7 @@ function Dashboard() {
 
       setProfile({
         name,
-        role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو المجلس",
+        role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "عضو الأخبار",
         initial: (name ? name[0] : "ع").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
         userId: u.id,
@@ -410,7 +410,7 @@ function Dashboard() {
 
     // Check News
     if (newNewsCount > 0) {
-      parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'تحديث جديد' : 'تحديثات جديدة'} في المجلس`);
+      parts.push(`هناك ${newNewsCount} ${newNewsCount === 1 ? 'تحديث جديد' : 'تحديثات جديدة'} في الأخبار`);
     }
 
     // Check Upcoming Trips (within 3 days)
@@ -592,10 +592,7 @@ function Dashboard() {
                         <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-transparent to-transparent" />
                       </div>
                     )}
-                    <div className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-700 group-hover:scale-110 group-hover:opacity-40">
-                      <div className="size-24 md:size-40 logo-alsaif-banner" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
-                    </div>
-                    <div className="absolute top-0 right-0 size-72 bg-gold-primary/10 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 z-1" />
+                    <div className="absolute top-4 right-4 size-8 z-10 logo-alsaif opacity-40 hover:opacity-100 transition-opacity" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                     <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-5 md:gap-10 w-full">
                       <div className="flex items-center gap-4 shrink-0">
                         <div className="size-12 md:size-20 rounded-2xl md:rounded-[24px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-xl">
