@@ -51,7 +51,7 @@ export function useUserRole() {
       if (!active) return;
 
       setRoles(((r ?? []) as { role: AppRole }[]).map((x) => x.role));
-      setSectionHeads(((sh ?? []) as { section: Section }[]).map((x) => x.section));
+      setSectionHeads(((sh ?? []) as unknown as { section: Section }[]).map((x) => x.section));
       setIsLoading(false);
     })();
     return () => {
