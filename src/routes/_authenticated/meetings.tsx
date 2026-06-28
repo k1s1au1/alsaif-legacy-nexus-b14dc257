@@ -236,39 +236,44 @@ function MeetingsPage() {
   const setRsvp = async (meetingId: string, rsvp: Rsvp) => {
     if (!userId || savingRsvp === meetingId) return;
 
-    const prevAttendees = [...attendees];
+    const prevAttendees = attendees;
     const current = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
     const isRemoving = current?.rsvp === rsvp;
 
     setSavingRsvp(meetingId);
 
-    // Optimistic Update: Update UI immediately to prevent flickering
-    if (isRemoving) {
-      setAttendees(prev => prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)));
-    } else {
-      const newEntry = { meeting_id: meetingId, user_id: userId, rsvp };
-      setAttendees(prev => [...prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId)), newEntry]);
-    }
+    // Optimistic update so toggling between "going" / "not_going" feels instant
+    setAttendees(prev => {
+      const without = prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId));
+      return isRemoving ? without : [...without, { meeting_id: meetingId, user_id: userId, rsvp }];
+    });
 
     try {
-      // Step 1: Always clear existing attendance for this meeting
-      await supabase.from("meeting_attendees").delete().eq("meeting_id", meetingId).eq("user_id", userId);
-
-      if (!isRemoving) {
-        // Step 2: Insert new RSVP status
-        const { error } = await supabase.from("meeting_attendees").insert({ meeting_id: meetingId, user_id: userId, rsvp });
+      if (isRemoving) {
+        const { error } = await supabase
+          .from("meeting_attendees")
+          .delete()
+          .eq("meeting_id", meetingId)
+          .eq("user_id", userId);
         if (error) throw error;
-        toast.success(rsvp === 'going' ? "ننتظر تشريفك!" : "تم التحديث");
+        toast.success("تم إلغاء الرد");
       } else {
-        toast.success("تم الإلغاء");
+        // Single atomic write — no delete+insert race when toggling between options
+        const { error } = await supabase
+          .from("meeting_attendees")
+          .upsert(
+            { meeting_id: meetingId, user_id: userId, rsvp },
+            { onConflict: "meeting_id,user_id" },
+          );
+        if (error) throw error;
+        toast.success(rsvp === "going" ? "ننتظر تشريفك!" : "تم تسجيل اعتذارك");
       }
     } catch (error) {
       console.error("Meeting RSVP error:", error);
       toast.error("تعذر تحديث حالة الحضور");
-      setAttendees(prevAttendees); // Rollback on failure
+      setAttendees(prevAttendees);
     } finally {
       setSavingRsvp(null);
-      // Realtime subscription will sync any other background changes
     }
   };
 
