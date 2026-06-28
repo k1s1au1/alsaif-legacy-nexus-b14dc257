@@ -26,32 +26,20 @@ export const assignUserRole = createServerFn({ method: "POST" })
     const rs = (roles ?? []).map((r: any) => r.role);
     const isAdmin = rs.includes("admin");
     const isChairman = rs.includes("chairman");
-    const isManager = rs.includes("manager");
 
     // Fallback: If no users have any role yet, allow the first one to setup
     const { count: totalRoles } = await supabaseAdmin
       .from("user_roles")
       .select("*", { count: "exact", head: true });
 
-    const isAuthorized = isAdmin || isChairman || isManager;
+    // Only the chairman can change roles. Admin kept as system-level fallback
+    // (technical owner) so the project never gets locked out.
+    const isAuthorized = isChairman || isAdmin;
 
     if (!isAuthorized && totalRoles !== 0) {
-      throw new Error("غير مصرح لك بتغيير الصلاحيات");
+      throw new Error("غير مصرح لك بتغيير الصلاحيات — هذه الصلاحية لرئيس المجلس فقط");
     }
 
-    // Managers cannot assign admin/chairman, and cannot modify admins
-    if (!isAdmin && !isChairman) {
-      if (role === "admin" || role === "chairman") {
-        throw new Error("فقط المسؤول أو رئيس المجلس يمكنه تعيين هذه الصلاحية");
-      }
-      const { data: targetRoles } = await supabaseAdmin
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
-      if ((targetRoles ?? []).some((r: any) => r.role === "admin" || r.role === "chairman")) {
-        throw new Error("لا يمكن تعديل صلاحيات المسؤول أو رئيس المجلس");
-      }
-    }
 
 
 
