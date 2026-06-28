@@ -657,6 +657,11 @@ function FinancePage() {
             </div>
           </>
         )}
+
+        {/* PROJECTS TAB */}
+        {tab === "projects" && (
+          <FamilyProjects userId={userId} canManage={canManage} fundBalance={totals.balance} />
+        )}
       </div>
     </AppShell>
   );
