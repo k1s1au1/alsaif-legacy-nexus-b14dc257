@@ -84,6 +84,7 @@ function AdminPage() {
   const [meId, setMeId] = useState<string | null>(null);
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
   const [isPriv, setIsPriv] = useState(false);
+  const [isChair, setIsChair] = useState(false);
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -122,6 +123,7 @@ function AdminPage() {
       const rs = (roles ?? []).map(r => r.role);
       const isA = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
       setIsPriv(isA);
+      setIsChair(rs.includes("chairman") || rs.includes("admin"));
 
       if (p) {
         setProfile({
@@ -478,6 +480,7 @@ function AdminPage() {
                         onToggleSectionHead={toggleSectionHead}
                         onDelete={deleteMember}
                         fullName={m.arabic_name || m.full_name || "عضو"}
+                        canManageSections={isChair}
                       />
                     ))}
                     {filteredMembers.length === 0 && !loading && (
@@ -572,7 +575,7 @@ const SECTION_OPTIONS: { key: string; label: string }[] = [
   { key: "majlis", label: "المجلس" },
 ];
 
-function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName }: any) {
+function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false }: any) {
   const isMe = member.id === meId;
 
   return (
@@ -599,25 +602,30 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
           </div>
        </div>
        <div className="mt-4 pt-4 border-t border-border/40">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">مسؤوليات الأقسام</p>
+          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">
+            مسؤوليات الأقسام
+            {!canManageSections && <span className="mr-2 opacity-70 normal-case">(للرئيس فقط)</span>}
+          </p>
           <div className="flex flex-wrap gap-1.5">
              {SECTION_OPTIONS.map(s => {
                 const active = sectionHeads.includes(s.key);
-                return (
-                  <button
-                    key={s.key}
-                    onClick={() => onToggleSectionHead(member.id, s.key, active)}
-                    className={cn(
-                      "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
-                      active
-                        ? "bg-gold-primary text-white border-gold-primary shadow-md"
-                        : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary"
-                    )}
-                  >
-                    {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
-                    {s.label}
-                  </button>
-                );
+                 return (
+                   <button
+                     key={s.key}
+                     disabled={!canManageSections}
+                     onClick={() => canManageSections && onToggleSectionHead(member.id, s.key, active)}
+                     className={cn(
+                       "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
+                       active
+                         ? "bg-gold-primary text-white border-gold-primary shadow-md"
+                         : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary",
+                       !canManageSections && "opacity-50 cursor-not-allowed hover:border-border hover:text-muted-foreground"
+                     )}
+                   >
+                     {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
+                     {s.label}
+                   </button>
+                 );
              })}
           </div>
        </div>
