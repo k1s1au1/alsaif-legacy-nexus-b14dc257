@@ -43,19 +43,8 @@ export const assignUserRole = createServerFn({ method: "POST" })
 
 
 
-    // If assigning chairman, ensure the target is not currently a manager,
-    // then demote any existing chairman first (only one allowed)
+    // If assigning chairman, demote any existing chairman first (only one allowed)
     if (role === "chairman") {
-      const { data: targetRoles } = await supabaseAdmin
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", userId);
-
-      const targetRoleList = (targetRoles ?? []).map((r: any) => r.role);
-      if (targetRoleList.includes("manager")) {
-        throw new Error("لا يمكن تعيين المشرف رئيسًا للمجلس. يجب تنزيله إلى عضو أولاً.");
-      }
-
       await supabaseAdmin
         .from("user_roles")
         .delete()
