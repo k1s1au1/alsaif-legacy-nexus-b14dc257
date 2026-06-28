@@ -127,10 +127,14 @@ export function AppShell({
       </AnimatePresence>
 
       {/* Edge trigger for swiping open — invisible but interactive */}
+      {/* Edge trigger for swiping open — narrower & touch-only to prevent accidental desktop opens */}
       {!sidebarOpen && (
         <div
-          className="fixed inset-y-0 right-0 w-8 z-[55] lg:hidden"
-          onPointerDown={() => setSidebarOpen(true)}
+          className="fixed inset-y-0 right-0 w-3 z-[55]"
+          onPointerDown={(e) => {
+            if (e.pointerType === "mouse") return;
+            setSidebarOpen(true);
+          }}
         />
       )}
 
@@ -138,15 +142,16 @@ export function AppShell({
         drag="x"
         dragDirectionLock
         dragConstraints={{ left: 0, right: 350 }}
-        dragElastic={0.05}
+        dragElastic={0.08}
+        dragMomentum={false}
         onDragEnd={(_, info) => {
-          // If swiped right (towards the edge) with enough velocity or distance
-          if (info.offset.x > 50 || info.velocity.x > 300) {
+          // Require a clearer intent before closing to reduce accidental dismissal
+          if (info.offset.x > 120 || info.velocity.x > 500) {
             setSidebarOpen(false);
           }
         }}
         animate={{ x: sidebarOpen ? 0 : 350 }}
-        transition={{ type: "spring", damping: 30, stiffness: 350, mass: 0.8 }}
+        transition={{ type: "spring", damping: 32, stiffness: 320, mass: 0.7 }}
         className={cn(
           "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl",
           "w-[85vw] max-w-[320px] rounded-l-[32px] touch-pan-y",
