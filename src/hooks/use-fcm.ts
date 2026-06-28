@@ -87,11 +87,10 @@ export function useFcm() {
             console.warn("No FCM token returned");
           }
         } catch (err: any) {
-          console.warn("Web FCM initialization failed:", err);
-          if (err?.code !== 'messaging/permission-blocked') {
-            toast.error("تعذر تسجيل المتصفح في نظام الإشعارات");
-          }
+          console.warn("Web FCM initialization failed:", err?.code, err?.message, err);
+          // Silent fail — don't show toast on every page load. User can re-enable from settings.
         }
+
       }
     };
 
