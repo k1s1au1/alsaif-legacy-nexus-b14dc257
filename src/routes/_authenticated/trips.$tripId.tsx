@@ -143,30 +143,54 @@ function TripDetail() {
 
   async function loadChecklist(tid: string) {
     try {
-      // Fetch special posts that represent checklist items for this trip
-      const { data, error } = await supabase
+      // Fetch special posts that represent checklist items for this trip.
+      // Keep profile loading separate so this does not depend on a database FK relationship.
+      const { data: posts, error } = await supabase
         .from("majlis_posts")
-        .select("*, author:profiles(arabic_name, full_name, avatar_url)")
+        .select("id,title,body,created_at,author_id")
         .eq("kind", "discussion")
         .ilike("title", `[TRIP-ITEM:${tid}]%`)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
 
-      const items = (data || []).map(p => {
-        const item_name = p.title.split("] ")[1] || p.title;
-        // Parse assigned user from body if exists
-        const assigned_to = p.body.startsWith("ASSIGNED:") ? p.body.split("\n")[0].split(":")[1] : null;
-        const assignee_name = p.body.startsWith("ASSIGNED:") ? p.body.split("\n")[1] : null;
+      const parsedItems = ((posts ?? []) as any[]).map((p) => {
+        const body = typeof p.body === "string" ? p.body : "";
+        const [statusLine = "", ...nameLines] = body.split("\n");
+        const assigned_to = statusLine.startsWith("ASSIGNED:")
+          ? statusLine.slice("ASSIGNED:".length).trim() || null
+          : null;
 
         return {
           id: p.id,
-          item_name,
+          item_name: p.title.split("] ")[1] || p.title,
           assigned_to,
-          assignee_name,
+          assignee_name: assigned_to ? nameLines.join("\n").trim() || null : null,
+          author_id: p.author_id,
           created_at: p.created_at
         };
       });
+
+      const profileIds = Array.from(
+        new Set(
+          parsedItems
+            .flatMap((item) => [item.author_id, item.assigned_to])
+            .filter(Boolean),
+        ),
+      );
+      const { data: profs } = profileIds.length
+        ? await supabase
+            .from("profiles")
+            .select("id, arabic_name, full_name, avatar_url")
+            .in("id", profileIds)
+        : { data: [] as any[] };
+      const profileMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
+
+      const items = parsedItems.map((item) => ({
+        ...item,
+        author: profileMap.get(item.author_id) ?? null,
+        assignee: item.assigned_to ? profileMap.get(item.assigned_to) ?? null : null,
+      }));
 
       setChecklist(items);
     } catch (err: any) {
@@ -296,7 +320,7 @@ function TripDetail() {
     const channel = supabase
       .channel(`trip-${tripId}-realtime`)
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees", filter: `trip_id=eq.${tripId}` }, () => loadAttendees(tripId))
-      .on("postgres_changes", { event: "*", schema: "public", table: "trip_checklists", filter: `trip_id=eq.${tripId}` }, () => loadChecklist(tripId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadChecklist(tripId))
       .subscribe();
 
     return () => {
@@ -493,7 +517,7 @@ function TripDetail() {
                       {checklist.map((item) => {
                         const isMine = item.assigned_to === userId;
                         const isTaken = !!item.assigned_to;
-                        const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || "عضو";
+                         const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || item.assignee_name || "عضو";
 
                         return (
                           <div key={item.id} className={cn(

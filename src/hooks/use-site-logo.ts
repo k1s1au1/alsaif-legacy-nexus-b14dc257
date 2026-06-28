@@ -14,7 +14,7 @@ let globalCheckDone = false;
  * Returns the fallback logo immediately and updates once the dynamic logo is fetched.
  */
 export function useSiteLogo() {
-  const [logoUrl, setLogoUrl] = useState<string | null>(globalCheckDone ? globalLogoUrl : alsaifMark.url);
+  const [logoUrl, setLogoUrl] = useState<string | null>(alsaifMark.url);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
