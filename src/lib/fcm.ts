@@ -97,21 +97,25 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
       console.log(`FCM V1: Sending to ${registration_ids.length} devices...`);
 
       const results = await Promise.all(registration_ids.map(async (token) => {
-        const res = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`
-          },
-          body: JSON.stringify({
-            message: {
-              token,
-              notification: { title, body },
-              data: customData
-            }
-          })
-        });
-        return res.ok;
+        try {
+          const res = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${accessToken}`
+            },
+            body: JSON.stringify({
+              message: {
+                token,
+                notification: { title, body },
+                data: customData
+              }
+            })
+          });
+          return res.ok;
+        } catch (e) {
+          return false;
+        }
       }));
 
       const successCount = results.filter(Boolean).length;
