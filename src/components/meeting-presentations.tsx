@@ -388,14 +388,14 @@ function PresentationEditor({
                     type="text"
                     value={s.title}
                     onChange={(e) => updateSlide(i, { title: e.target.value })}
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm font-bold"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-border text-sm font-bold text-slate-900 placeholder:text-slate-400"
                     placeholder="عنوان الشريحة"
                   />
                   <textarea
                     value={s.body}
                     onChange={(e) => updateSlide(i, { body: e.target.value })}
                     rows={3}
-                    className="w-full px-3 py-2 rounded-lg bg-background border border-border text-sm"
+                    className="w-full px-3 py-2 rounded-lg bg-white border border-border text-sm text-slate-900 placeholder:text-slate-400"
                     placeholder="محتوى الشريحة (اختياري)"
                   />
                   <div className="flex items-center gap-2">
