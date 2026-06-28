@@ -35,7 +35,15 @@ export const assignUserRole = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // 1. Delete existing roles
+    // If assigning chairman, demote any existing chairman first (only one allowed)
+    if (role === "chairman") {
+      await supabaseAdmin
+        .from("user_roles")
+        .delete()
+        .eq("role", "chairman");
+    }
+
+    // 1. Delete existing roles for this user
     await supabaseAdmin
       .from("user_roles")
       .delete()
@@ -48,6 +56,7 @@ export const assignUserRole = createServerFn({ method: "POST" })
         user_id: userId,
         role: role as any
       });
+
 
     if (error) {
       console.error("Role assignment error:", error);
