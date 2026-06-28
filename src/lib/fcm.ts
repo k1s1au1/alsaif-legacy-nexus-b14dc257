@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { supabase } from "@/integrations/supabase/client";
 
 async function getGoogleAccessToken(serviceAccount: any) {
   const iat = Math.floor(Date.now() / 1000);
@@ -72,10 +71,12 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
     try {
-      // 1. Fetch tokens from profiles table
-      const { data: profiles, error: fetchErr } = await (supabase as any)
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      // 1. Fetch tokens from profiles table (admin bypasses RLS)
+      const { data: profiles, error: fetchErr } = await (supabaseAdmin as any)
         .from("profiles")
-        .select("fcm_token");
+        .select("fcm_token")
+        .not("fcm_token", "is", null);
 
       if (fetchErr) throw new Error(`Database error: ${fetchErr.message}`);
 
