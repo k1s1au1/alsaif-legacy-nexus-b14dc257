@@ -2,6 +2,62 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 
+async function getGoogleAccessToken(serviceAccount: any) {
+  const iat = Math.floor(Date.now() / 1000);
+  const exp = iat + 3600;
+
+  const header = { alg: "RS256", typ: "JWT" };
+  const claim = {
+    iss: serviceAccount.client_email,
+    scope: "https://www.googleapis.com/auth/firebase.messaging",
+    aud: "https://oauth2.googleapis.com/token",
+    exp,
+    iat,
+  };
+
+  const b64Header = btoa(JSON.stringify(header)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const b64Claim = btoa(JSON.stringify(claim)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+  const unsignedJwt = `${b64Header}.${b64Claim}`;
+
+  const pemContents = serviceAccount.private_key
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .replace(/\s/g, "");
+
+  const binaryDer = Uint8Array.from(atob(pemContents), (c) => c.charCodeAt(0));
+
+  const key = await crypto.subtle.importKey(
+    "pkcs8",
+    binaryDer,
+    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+
+  const signature = await crypto.subtle.sign(
+    "RSASSA-PKCS1-v1_5",
+    key,
+    new TextEncoder().encode(unsignedJwt)
+  );
+
+  const b64Signature = btoa(String.fromCharCode(...new Uint8Array(signature)))
+    .replace(/=/g, "")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_");
+
+  const jwt = `${unsignedJwt}.${b64Signature}`;
+
+  const response = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+  });
+
+  const data = await response.json();
+  if (data.error) throw new Error(`OAuth Error: ${data.error_description || data.error}`);
+  return data.access_token;
+}
+
 /**
  * Sends a push notification using Firebase Cloud Messaging HTTP v1 API.
  * Requires FCM_SERVICE_ACCOUNT (JSON string) in environment variables.
@@ -15,48 +71,37 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
     }).parse(data)
   )
   .handler(async ({ data: { title, body, data: customData } }) => {
-    // 1. Fetch tokens from profiles table - using a more flexible query
-    const { data: profiles, error: fetchErr } = await (supabase as any)
-      .from("profiles")
-      .select("fcm_token");
-
-    if (fetchErr) {
-      console.error("FCM: Error fetching profiles:", fetchErr);
-      return { success: false, error: "Database error" };
-    }
-
-    // Filter tokens manually to be 100% sure we don't miss any due to "is null" cache issues
-    const registration_ids = (profiles as Array<{ fcm_token: string }>)
-      ?.map(p => p.fcm_token)
-      .filter(t => t && t.length > 10); // Tokens are usually very long strings
-
-    if (!registration_ids || registration_ids.length === 0) {
-      return { success: false, error: "لم يتم العثور على أجهزة مسجلة بعد. يرجى تحديث صفحة الإدارة والمحاولة مرة أخرى." };
-    }
-
-    console.log(`FCM: Attempting to send to ${registration_ids.length} devices...`);
-
-    // 2. Load Service Account from Env
-    const serviceAccountRaw = process.env.FCM_SERVICE_ACCOUNT;
-    if (!serviceAccountRaw) {
-      console.warn("FCM_SERVICE_ACCOUNT is missing.");
-      return { success: false, error: "Configuration missing" };
-    }
-
     try {
+      // 1. Fetch tokens from profiles table
+      const { data: profiles, error: fetchErr } = await (supabase as any)
+        .from("profiles")
+        .select("fcm_token");
+
+      if (fetchErr) throw new Error(`Database error: ${fetchErr.message}`);
+
+      const registration_ids = (profiles as Array<{ fcm_token: string }>)
+        ?.map(p => p.fcm_token)
+        .filter(t => t && t.length > 10);
+
+      if (!registration_ids || registration_ids.length === 0) {
+        return { success: false, error: "لا يوجد أجهزة مسجلة حالياً." };
+      }
+
+      // 2. Load Service Account
+      const serviceAccountRaw = process.env.FCM_SERVICE_ACCOUNT;
+      if (!serviceAccountRaw) throw new Error("FCM Configuration missing (FCM_SERVICE_ACCOUNT)");
+
       const sa = JSON.parse(serviceAccountRaw);
+      const accessToken = await getGoogleAccessToken(sa);
 
       console.log(`FCM V1: Sending to ${registration_ids.length} devices...`);
 
-
-      // Implementation detail: Using a simplified notification structure for compatibility
       const results = await Promise.all(registration_ids.map(async (token) => {
-        return fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
+        const res = await fetch(`https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // Authorization handled via specialized token generator in production
-            "Authorization": `Bearer ${process.env.FCM_ACCESS_TOKEN || ''}`
+            "Authorization": `Bearer ${accessToken}`
           },
           body: JSON.stringify({
             message: {
@@ -66,11 +111,13 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
             }
           })
         });
+        return res.ok;
       }));
 
-      return { success: true, count: results.length };
-    } catch (error) {
+      const successCount = results.filter(Boolean).length;
+      return { success: true, count: successCount };
+    } catch (error: any) {
       console.error("FCM Send Error:", error);
-      return { success: false, error: "Failed to send FCM" };
+      return { success: false, error: error.message || "حدث خطأ غير متوقع أثناء الإرسال" };
     }
   });
