@@ -379,6 +379,7 @@ function MeetingsPage() {
                           saving={savingRsvp === m.id}
                           ready={!rolesLoading && !!userId}
                           dynamicLogo={dynamicLogo}
+                          userId={userId}
                         />
                       </CarouselItem>
                     ))}
