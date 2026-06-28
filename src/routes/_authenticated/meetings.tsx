@@ -481,7 +481,7 @@ function MeetingsPage() {
   );
 }
 
-function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete, saving, ready, dynamicLogo }: any) {
+function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete, saving, ready, dynamicLogo, userId }: any) {
   const date = formatDate(meeting.scheduled_at);
   const going = attendeesList.filter((a: any) => a.rsvp === 'going').map((a: any) => profiles[a.user_id]).filter(Boolean);
 
