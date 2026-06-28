@@ -158,7 +158,7 @@ export function AppShell({
         )}
       >
         {/* Visual drag handle for mobile */}
-        <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-border/40 rounded-full lg:hidden ml-1" />
+        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-14 bg-border/60 rounded-full" />
 
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
           <div
