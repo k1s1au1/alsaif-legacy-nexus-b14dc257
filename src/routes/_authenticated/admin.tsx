@@ -410,7 +410,7 @@ function AdminPage() {
           </div>
         </section>
 
-        {isPriv && (
+        {isA && (
           <div className="px-4 md:px-0 flex flex-col md:flex-row items-center justify-between gap-4">
              <div className="flex items-center gap-3 bg-primary/5 px-6 py-2.5 rounded-xl border border-primary/10">
                 <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
@@ -436,7 +436,7 @@ function AdminPage() {
           </div>
         )}
 
-        {!isPriv ? (
+        {!isA ? (
           <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60 animate-fade-up">
              <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Shield size={40} /></div>
              <p className="text-xl font-black">الدخول محدود لمسؤولي النظام فقط.</p>
