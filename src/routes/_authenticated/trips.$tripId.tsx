@@ -617,10 +617,10 @@ function TripDetail() {
             {/* Right Sidebar Column */}
             <div className="space-y-8">
               {/* Attendance Card — redesigned as two clear options */}
-              <div className="relative overflow-hidden rounded-[40px] bg-emerald-800 p-8 text-white shadow-2xl ring-1 ring-white/10">
+              <div className="relative overflow-hidden rounded-[40px] bg-emerald-950 p-8 text-white shadow-2xl ring-1 ring-white/10">
                 {/* Top-right clock icon */}
                 <div className="absolute top-6 left-6">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-emerald-700/70 ring-1 ring-white/20 backdrop-blur-sm">
+                  <div className="flex size-12 items-center justify-center rounded-full bg-emerald-800/70 ring-1 ring-white/20 backdrop-blur-sm">
                     <Clock className="size-6 text-white" strokeWidth={2.5} />
                   </div>
                 </div>
@@ -641,8 +641,8 @@ function TripDetail() {
                     className={cn(
                       "flex w-full items-center justify-center gap-3 rounded-2xl py-4 font-black text-base transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
                       attendanceStatus === 'going'
-                        ? "bg-white text-emerald-800 shadow-lg"
-                        : "bg-emerald-700/50 text-white ring-1 ring-white/20 hover:bg-emerald-700/70"
+                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                        : "bg-emerald-500/15 text-white ring-1 ring-emerald-400/30 hover:bg-emerald-500/25"
                     )}
                   >
                     {saving && attendanceStatus === 'going' ? (
@@ -659,8 +659,8 @@ function TripDetail() {
                     className={cn(
                       "flex w-full items-center justify-center gap-3 rounded-2xl py-4 font-black text-base transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
                       attendanceStatus === 'not_going'
-                        ? "bg-white text-emerald-800 shadow-lg"
-                        : "bg-emerald-700/50 text-white ring-1 ring-white/20 hover:bg-emerald-700/70"
+                        ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30"
+                        : "bg-rose-500/15 text-white ring-1 ring-rose-400/30 hover:bg-rose-500/25"
                     )}
                   >
                     {saving && attendanceStatus === 'not_going' ? (
