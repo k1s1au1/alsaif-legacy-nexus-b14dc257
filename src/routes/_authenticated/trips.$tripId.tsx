@@ -628,29 +628,28 @@ function TripDetail() {
               <div className="absolute inset-0 bg-white/10 opacity-0 group-hover/action:opacity-100 transition-opacity" />
 
               <div className="relative z-10 space-y-4">
-                {attendanceStatus === 'going' ? (
-                  <>
-                    <div className="size-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 shadow-inner">
-                      <CheckCircle2 className="size-8 text-white" strokeWidth={4} />
-                    </div>
-                    <h3 className="text-4xl font-black tracking-tight">ننتظر تشريفك!</h3>
-                    <p className="text-base font-bold text-white/90 leading-relaxed">تم تأكيد حضورك للرحلة. يسعدنا جداً انضمامك إلينا، ونتطلع لقضاء وقت ممتع سوياً.</p>
-                  </>
-                ) : attendanceStatus === 'not_going' ? (
-                  <>
-                    <div className="size-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 shadow-inner">
-                      <X className="size-8 text-white" strokeWidth={4} />
-                    </div>
-                    <h3 className="text-4xl font-black tracking-tight">نعتذر لعدم حضورك</h3>
-                    <p className="text-base font-bold text-white/90 leading-relaxed">يؤسفنا جداً عدم تمكنك من التواجد معنا في هذه الرحلة. مكانك سيظل خالياً، ونتطلع لرؤيتك في مناسبات قادمة بإذن الله.</p>
-                  </>
-                ) : (
-                  <>
-                    <Clock className="size-8 opacity-40 animate-pulse" />
-                    <h3 className="text-3xl font-black tracking-tight">هل ستنضم إلينا؟</h3>
-                    <p className="text-sm font-bold opacity-70 leading-relaxed">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
-                  </>
-                )}
+                <div className={cn(
+                  "size-14 rounded-2xl bg-white/20 flex items-center justify-center mb-4 shadow-inner transition-all",
+                  attendanceStatus === 'not_going' && "bg-white/10"
+                )}>
+                  {attendanceStatus === 'going' ? (
+                    <CheckCircle2 className="size-8 text-white" strokeWidth={4} />
+                  ) : attendanceStatus === 'not_going' ? (
+                    <X className="size-8 text-white" strokeWidth={4} />
+                  ) : (
+                    <Clock className="size-8 text-white animate-pulse" />
+                  )}
+                </div>
+                <h3 className="text-4xl font-black tracking-tight">
+                  {attendanceStatus === 'going' ? "ننتظر تشريفك!" : attendanceStatus === 'not_going' ? "نعتذر لعدم حضورك" : "هل ستنضم إلينا؟"}
+                </h3>
+                <p className="text-base font-bold text-white/90 leading-relaxed">
+                  {attendanceStatus === 'going'
+                    ? "تم تأكيد حضورك للرحلة. يسعدنا جداً انضمامك إلينا، ونتطلع لقضاء وقت ممتع سوياً."
+                    : attendanceStatus === 'not_going'
+                    ? "يؤسفنا عدم تمكنك من التواجد معنا. مكانك سيظل خالياً، ونتطلع لرؤيتك في مناسبات قادمة بإذن الله."
+                    : "أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل."}
+                </p>
               </div>
 
               <div className="flex flex-col gap-3">
@@ -660,37 +659,39 @@ function TripDetail() {
                   className={cn(
                     "relative w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95",
                     attendanceStatus === 'going'
-                      ? "bg-white/10 text-white border border-white/20 hover:bg-white/20"
-                      : "bg-gold-primary text-black hover:scale-[1.02] hover:shadow-gold-primary/20"
+                      ? "bg-white text-emerald-600 hover:bg-white/90"
+                      : "bg-white/10 text-white border border-white/20 hover:bg-white/20"
                   )}
                 >
-                  {saving ? (
+                  {saving && attendanceStatus !== 'going' ? (
                     <Loader2 size={24} className="animate-spin" />
-                  ) : attendanceStatus === 'going' ? (
-                    <>
-                      <CheckCircle2 size={20} strokeWidth={3} />
-                      تم تأكيد حضورك
-                    </>
                   ) : (
                     <>
+                      <CheckCircle2 size={20} strokeWidth={3} />
                       سأحضر
-                      <ChevronLeft size={20} strokeWidth={3} />
                     </>
                   )}
                 </button>
 
-                {attendanceStatus !== 'not_going' && (
-                  <button
-                    onClick={() => updateAttendance('not_going')}
-                    disabled={saving || !userId || !attendanceLoaded || rolesLoading}
-                    className={cn(
-                      "relative w-full py-4 rounded-[24px] font-black text-sm transition-all flex items-center justify-center gap-3 active:scale-95 border",
-                      "bg-transparent text-white/60 border-white/10 hover:bg-white/5 hover:text-white"
-                    )}
-                  >
-                    لن أحضر
-                  </button>
-                )}
+                <button
+                  onClick={() => updateAttendance('not_going')}
+                  disabled={saving || !userId || !attendanceLoaded || rolesLoading}
+                  className={cn(
+                    "relative w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 shadow-xl active:scale-95",
+                    attendanceStatus === 'not_going'
+                      ? "bg-white text-rose-600 hover:bg-white/90"
+                      : "bg-white/10 text-white border border-white/20 hover:bg-white/20"
+                  )}
+                >
+                  {saving && attendanceStatus !== 'not_going' ? (
+                    <Loader2 size={24} className="animate-spin" />
+                  ) : (
+                    <>
+                      <X size={20} strokeWidth={3} />
+                      اعتذر
+                    </>
+                  )}
+                </button>
               </div>
             </div>
 
