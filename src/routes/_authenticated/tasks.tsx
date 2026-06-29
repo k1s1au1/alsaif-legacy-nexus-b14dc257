@@ -292,8 +292,8 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
-        "group relative bg-white dark:bg-card border-2 border-border/30 dark:border-white/5 rounded-[44px] p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold-primary/30 hover:shadow-gold-primary/10",
-        isDone && "border-emerald-500/20 bg-emerald-500/[0.02]"
+        "group relative bg-card text-card-foreground border-2 border-border/40 rounded-[44px] p-8 md:p-10 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-gold-primary/40 hover:shadow-gold-primary/10",
+        isDone && "border-emerald-500/30"
       )}
     >
        <div className="space-y-8">
