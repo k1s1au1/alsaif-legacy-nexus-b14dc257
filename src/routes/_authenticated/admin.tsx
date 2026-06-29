@@ -120,12 +120,12 @@ function AdminPage() {
 
       if (isA) {
         try {
-          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: anns }] = await Promise.all([
+          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: mreqs }] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
             supabase.from("profiles").select("*").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
             supabase.from("section_heads" as any).select("user_id, section"),
-            supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
+            supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false })
           ]);
 
           if (memErr) {
