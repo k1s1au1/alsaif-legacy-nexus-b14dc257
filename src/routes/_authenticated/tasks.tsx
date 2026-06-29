@@ -292,8 +292,8 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 30 }}
       className={cn(
-        "group relative bg-white dark:bg-card border-2 border-border/30 dark:border-white/5 rounded-[44px] p-8 md:p-10 shadow-2xl transition-all duration-500 hover:border-gold-primary/30 hover:shadow-gold-primary/10",
-        isDone && "border-emerald-500/20 bg-emerald-500/[0.02]"
+        "group relative bg-card text-card-foreground border-2 border-border/40 rounded-[44px] p-8 md:p-10 shadow-2xl backdrop-blur-xl transition-all duration-500 hover:border-gold-primary/40 hover:shadow-gold-primary/10",
+        isDone && "border-emerald-500/30"
       )}
     >
        <div className="space-y-8">
@@ -319,18 +319,18 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
           </header>
 
           <div className="space-y-3">
-             <h4 className={cn("text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors dark:text-gold-primary", isDone && "text-emerald-500 dark:text-emerald-400")}>{task.title}</h4>
-             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground dark:text-white/70 leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity">{task.description}</p>}
+             <h4 className={cn("text-2xl md:text-3xl font-black text-foreground leading-[1.1] tracking-tight transition-colors", isDone && "text-emerald-500 dark:text-emerald-400")}>{task.title}</h4>
+             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground leading-relaxed line-clamp-3">{task.description}</p>}
           </div>
 
           <div className="space-y-6">
              <div className="flex items-end justify-between">
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">مرحلة الإنجاز</p>
+                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-80">مرحلة الإنجاز</p>
                    <p className={cn("text-lg font-black tracking-tighter",
                      isDone ? "text-emerald-500 dark:text-emerald-400" :
                      task.progress >= 80 ? "text-gold-primary" :
-                     task.progress >= 40 ? "text-gold-primary/80" : "text-muted-foreground"
+                     task.progress >= 40 ? "text-foreground" : "text-muted-foreground"
                    )}>
                      {isDone ? "مكتملة بنجاح" :
                       task.progress >= 80 ? "قيد المراجعة النهائية" :
@@ -376,21 +376,21 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
                       <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
                    </div>
                    <div className="space-y-0.5">
-                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">المسؤول عن المهمة</p>
-                      <p className="text-xs font-black text-primary dark:text-gold-primary">{assignee.name}</p>
+                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-80">المسؤول عن المهمة</p>
+                      <p className="text-xs font-black text-foreground">{assignee.name}</p>
                    </div>
                 </div>
              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground/30 italic text-[10px] font-black uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-muted-foreground italic text-[10px] font-black uppercase tracking-widest">
                    <X size={12} strokeWidth={3} /> بانتظار تكليف
                 </div>
              )}
 
-             <div className="text-left bg-muted/30 dark:bg-white/5 px-4 py-2 rounded-2xl border border-border/20 dark:border-white/5">
-                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">تاريخ الاستحقاق</p>
+             <div className="text-left bg-muted/40 px-4 py-2 rounded-2xl border border-border/30">
+                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-80">تاريخ الاستحقاق</p>
                 <div className="flex items-center gap-2">
                    <Clock className="size-3 text-gold-primary" />
-                   <span className="text-xs font-black text-primary/80 dark:text-white/60">{formatDate(task.due_date)}</span>
+                   <span className="text-xs font-black text-foreground">{formatDate(task.due_date)}</span>
                 </div>
              </div>
           </div>
