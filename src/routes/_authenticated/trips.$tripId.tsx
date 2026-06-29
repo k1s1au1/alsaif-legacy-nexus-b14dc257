@@ -143,40 +143,24 @@ function TripDetail() {
 
   async function loadChecklist(tid: string) {
     try {
-      // Fetch special posts that represent checklist items for this trip.
-      // Keep profile loading separate so this does not depend on a database FK relationship.
-      const { data: posts, error } = await supabase
-        .from("majlis_posts")
-        .select("id,title,body,created_at,author_id")
-        .eq("kind", "discussion")
-        .ilike("title", `[TRIP-ITEM:${tid}]%`)
+      const { data: items, error } = await supabase
+        .from("trip_items")
+        .select("id,name,assigned_to,created_by,created_at")
+        .eq("trip_id", tid)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
 
-      const parsedItems = ((posts ?? []) as any[]).map((p) => {
-        const body = typeof p.body === "string" ? p.body : "";
-        const [statusLine = "", ...nameLines] = body.split("\n");
-        const assigned_to = statusLine.startsWith("ASSIGNED:")
-          ? statusLine.slice("ASSIGNED:".length).trim() || null
-          : null;
-
-        return {
-          id: p.id,
-          item_name: p.title.split("] ")[1] || p.title,
-          assigned_to,
-          assignee_name: assigned_to ? nameLines.join("\n").trim() || null : null,
-          author_id: p.author_id,
-          created_at: p.created_at
-        };
-      });
+      const parsedItems = ((items ?? []) as any[]).map((item) => ({
+        id: item.id,
+        name: item.name,
+        assigned_to: item.assigned_to,
+        created_by: item.created_by,
+        created_at: item.created_at,
+      }));
 
       const profileIds = Array.from(
-        new Set(
-          parsedItems
-            .flatMap((item) => [item.author_id, item.assigned_to])
-            .filter(Boolean),
-        ),
+        new Set(parsedItems.flatMap((item) => [item.created_by, item.assigned_to]).filter(Boolean))
       );
       const { data: profs } = profileIds.length
         ? await supabase
@@ -186,17 +170,18 @@ function TripDetail() {
         : { data: [] as any[] };
       const profileMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
 
-      const items = parsedItems.map((item) => ({
+      const enriched = parsedItems.map((item) => ({
         ...item,
-        author: profileMap.get(item.author_id) ?? null,
+        creator: profileMap.get(item.created_by) ?? null,
         assignee: item.assigned_to ? profileMap.get(item.assigned_to) ?? null : null,
       }));
 
-      setChecklist(items);
+      setChecklist(enriched);
     } catch (err: any) {
       console.error("Load checklist error:", err);
     }
   }
+
 
   async function addItem() {
     if (!newItemName.trim() || !userId) return;
