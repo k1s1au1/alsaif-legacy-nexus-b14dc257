@@ -540,7 +540,7 @@ function Dashboard() {
           }
         }).catch(err => console.warn("Bug notification error:", err));
 
-        showIsland("تم إرسال البلاغ للمشرفين بنجاح", "success");
+        showIsland("تم إرسال البلاغ للمسؤول التقني بنجاح", "success");
         setBugBody(""); setBugImage(null); setBugImagePreview(null); setShowBugReport(false);
       } else {
         showIsland("تعذر إرسال البلاغ", "error");
