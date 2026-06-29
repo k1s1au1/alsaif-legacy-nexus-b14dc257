@@ -513,30 +513,30 @@ function TripDetail() {
                    </div>
                  ) : (
                    <div className="grid grid-cols-1 gap-3">
-                      {checklist.map((item) => {
-                        const isMine = item.assigned_to === userId;
-                        const isTaken = !!item.assigned_to;
-                         const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || item.assignee_name || "عضو";
+                       {checklist.map((item) => {
+                         const isMine = item.assigned_to === userId;
+                         const isTaken = !!item.assigned_to;
+                          const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || "عضو";
 
-                        return (
-                          <div key={item.id} className={cn(
-                            "group flex items-center justify-between p-4 md:p-6 rounded-3xl border transition-all duration-300",
-                            isTaken ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/40"
-                          )}>
-                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className={cn(
-                                  "size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                                  isTaken ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
-                                )}>
-                                   {isTaken ? <UserCheck size={20} /> : <Tent size={20} />}
-                                </div>
-                                <div className="min-w-0">
-                                   <p className={cn("text-base md:text-lg font-black truncate", isTaken && "text-emerald-600")}>{item.item_name}</p>
-                                   {isTaken && (
-                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">سيحضره: {assigneeName} {isMine && "(أنت)"}</p>
-                                   )}
-                                </div>
-                             </div>
+                         return (
+                           <div key={item.id} className={cn(
+                             "group flex items-center justify-between p-4 md:p-6 rounded-3xl border transition-all duration-300",
+                             isTaken ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/40"
+                           )}>
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                 <div className={cn(
+                                   "size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                                   isTaken ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                                 )}>
+                                    {isTaken ? <UserCheck size={20} /> : <Tent size={20} />}
+                                 </div>
+                                 <div className="min-w-0">
+                                    <p className={cn("text-base md:text-lg font-black truncate", isTaken && "text-emerald-600")}>{item.name}</p>
+                                    {isTaken && (
+                                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">سيحضره: {assigneeName} {isMine && "(أنت)"}</p>
+                                    )}
+                                 </div>
+                              </div>
 
                              <div className="flex items-center gap-2">
                                 {isPrivileged && (
