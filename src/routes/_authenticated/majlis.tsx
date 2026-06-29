@@ -49,6 +49,7 @@ function MajlisPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingPost, setEditingPost] = useState<MajlisPost | null>(null);
   const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
