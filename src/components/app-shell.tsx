@@ -13,7 +13,6 @@ import {
   Settings,
   X,
   Newspaper,
-  
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
