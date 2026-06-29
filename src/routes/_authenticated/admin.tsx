@@ -106,7 +106,7 @@ function AdminPage() {
     if (!meId) return;
     setLoading(true);
     try {
-      const { data: p } = await supabase.from("profiles").select("*").eq("id", meId).maybeSingle();
+      const { data: p } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, first_name, father_name, grandfather_name").eq("id", meId).maybeSingle();
 
       setIsChair(isSiteChairman || isSystemAdmin);
 
