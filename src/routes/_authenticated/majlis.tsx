@@ -221,7 +221,12 @@ function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: an
               </span>
             )}
             <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
-            <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.cleanBody}</p>
+            {post.cleanBody && <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.cleanBody}</p>}
+            {post.imageUrl && (
+              <a href={post.imageUrl} target="_blank" rel="noreferrer" className="block rounded-3xl overflow-hidden border border-border/50 bg-muted shadow-lg max-h-[520px]">
+                <img src={post.imageUrl} alt={post.title} className="w-full h-auto object-cover" loading="lazy" />
+              </a>
+            )}
           </div>
         </div>
         {canDelete && (
