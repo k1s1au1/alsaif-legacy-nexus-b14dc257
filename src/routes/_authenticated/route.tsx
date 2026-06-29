@@ -30,7 +30,8 @@ export const Route = createFileRoute("/_authenticated")({
          </div>
       </div>
     </div>
-  ),
+    );
+  },
   beforeLoad: async ({ location }) => {
     try {
       const { data, error } = await supabase.auth.getUser();
