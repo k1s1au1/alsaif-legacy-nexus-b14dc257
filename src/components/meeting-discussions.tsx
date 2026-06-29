@@ -338,7 +338,7 @@ function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
   );
 }
 
-function AddDialog({ meId, onClose, onSaved }: any) {
+function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", kind: "discussion" as UiKind });
   const [isPoll, setIsPoll] = useState(false);
