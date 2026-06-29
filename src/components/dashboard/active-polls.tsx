@@ -50,7 +50,7 @@ export function ActivePolls({ userId }: { userId: string | null }) {
 
     const enriched: EnrichedPoll[] = [];
     for (const post of list) {
-      const match = (post.body || "").match(/^---poll:({.*?})---/s);
+      const match = (post.body || "").match(/---poll:({.*?})---/s);
       if (!match) continue;
       try {
         const poll = JSON.parse(match[1]) as PollData;
