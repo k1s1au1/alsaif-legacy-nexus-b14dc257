@@ -65,19 +65,19 @@
 .dark {
   /* Comprehensive Dark Theme - Luxury Edition */
   --background: #0a0c10;
-  --foreground: #eceff4; /* Softer Ivory-White to prevent glare */
+  --foreground: #f8fafc; /* Crisp white for maximum clarity */
   --card: #12141c;
-  --card-foreground: #eceff4;
+  --card-foreground: #f8fafc;
   --popover: #12141c;
-  --popover-foreground: #eceff4;
+  --popover-foreground: #f8fafc;
   --primary: #d4af37; /* Alsaif Gold */
   --primary-foreground: #0a0c10;
   --secondary: #1e2229;
-  --secondary-foreground: #eceff4;
+  --secondary-foreground: #f8fafc;
   --muted: #161920;
-  --muted-foreground: #d8dee9; /* Brighter for better legibility */
+  --muted-foreground: #e2e8f0; /* Brighter for better legibility */
   --accent: #1e2229;
-  --accent-foreground: #eceff4;
+  --accent-foreground: #f8fafc;
   --border: rgba(212, 175, 55, 0.15); /* Softer Gold border */
   --gold-primary: #e6c25c;
   --gold-soft: #f9e29c;
@@ -109,22 +109,40 @@
   .dark body {
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
+    color: #f8fafc;
   }
   /* Boost contrast for commonly low-opacity text in dark mode */
   .dark .text-muted-foreground {
-    color: #d8dee9;
+    color: #e2e8f0;
   }
   .dark .text-foreground\/60,
   .dark .text-foreground\/70,
   .dark .text-white\/60,
-  .dark .text-white\/70 {
-    color: rgba(245, 247, 250, 0.88) !important;
+  .dark .text-white\/70,
+  .dark .text-black\/60,
+  .dark .text-black\/70 {
+    color: rgba(248, 250, 252, 0.92) !important;
   }
   .dark .text-foreground\/40,
   .dark .text-foreground\/50,
   .dark .text-white\/40,
-  .dark .text-white\/50 {
-    color: rgba(245, 247, 250, 0.75) !important;
+  .dark .text-white\/50,
+  .dark .text-black\/40,
+  .dark .text-black\/50 {
+    color: rgba(248, 250, 252, 0.82) !important;
+  }
+  /* Force any dark text utilities to light in dark mode */
+  .dark .text-black,
+  .dark .text-slate-950,
+  .dark .text-gray-900,
+  .dark .text-zinc-900,
+  .dark .text-neutral-900,
+  .dark .text-stone-950,
+  .dark .text-slate-800,
+  .dark .text-gray-800,
+  .dark .text-zinc-800,
+  .dark .text-neutral-800 {
+    color: #f8fafc !important;
   }
   /* Strengthen text over glass cards / image overlays */
   .dark .glass-text,
