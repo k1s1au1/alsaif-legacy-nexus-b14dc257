@@ -597,6 +597,78 @@ function AdminPage() {
                 </div>
               </section>
             )}
+
+            {tab === "bugs" && (isSystemAdmin || isSiteChairman) && (
+              <section className="animate-fade-up space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-primary tracking-tight">بلاغات الدعم التقني</h3>
+                  <p className="text-sm font-bold text-muted-foreground opacity-60">البلاغات التي يرسلها الأعضاء عن الأخطاء التقنية في النظام.</p>
+                </div>
+                <div className="grid gap-4">
+                  {bugReports.length === 0 && (
+                    <div className="p-16 text-center text-muted-foreground italic bg-muted/20 rounded-[36px] border-2 border-dashed">
+                      لا توجد بلاغات تقنية حالياً.
+                    </div>
+                  )}
+                  {bugReports.map((b: any) => {
+                    const name = b.reporter?.arabic_name || b.reporter?.full_name || "عضو";
+                    const isResolved = b.status === 'resolved';
+                    return (
+                      <div key={b.id} className={cn("card-surface p-6 md:p-8 space-y-4", isResolved && "opacity-60")}>
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="size-12 rounded-2xl border-2 border-gold-primary/20 overflow-hidden shrink-0">
+                              <UserAvatar path={b.reporter?.avatar_url} name={name} className="size-full" userId={b.reporter_id} />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-base font-black text-primary truncate">{name}</h4>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                {new Date(b.created_at).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <span className={cn("px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest", isResolved ? "bg-emerald-500/15 text-emerald-600" : "bg-rose-500/15 text-rose-600")}>
+                              {isResolved ? "مُعالَج" : "مفتوح"}
+                            </span>
+                            <button
+                              onClick={async () => {
+                                const next = isResolved ? 'open' : 'resolved';
+                                const { error } = await supabase.from("bug_reports" as any).update({ status: next }).eq("id", b.id);
+                                if (error) toast.error("تعذر التحديث");
+                                else { toast.success(next === 'resolved' ? "تم تعليمه كمُعالَج" : "تمت إعادة الفتح"); loadData(); }
+                              }}
+                              className="size-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all"
+                              title={isResolved ? "إعادة فتح" : "تعليم كمُعالَج"}
+                            >
+                              <Check size={16} />
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm("حذف البلاغ نهائياً؟")) return;
+                                const { error } = await supabase.from("bug_reports" as any).delete().eq("id", b.id);
+                                if (error) toast.error("تعذر الحذف");
+                                else { toast.success("تم الحذف"); loadData(); }
+                              }}
+                              className="size-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
+                              title="حذف"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-sm font-bold text-foreground/90 whitespace-pre-wrap leading-relaxed">{b.body}</p>
+                        {b.image_url && (
+                          <a href={b.image_url} target="_blank" rel="noreferrer" className="block">
+                            <img src={b.image_url} alt="لقطة شاشة" className="max-h-80 w-auto rounded-2xl border border-border/40" />
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
           </>
         )}
       </div>
