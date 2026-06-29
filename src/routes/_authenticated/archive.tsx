@@ -145,7 +145,7 @@ function ArchivePage() {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) return;
       const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", u.user.id).maybeSingle(),
+        supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").eq("id", u.user.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.user.id),
       ]);
       const name = p?.arabic_name?.trim() || p?.full_name?.trim() || u.user.email?.split("@")[0] || "عضو العائلة";

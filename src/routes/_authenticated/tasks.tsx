@@ -107,7 +107,7 @@ function TasksPage() {
   useEffect(() => {
     (async () => {
       if (userId) {
-        const { data: p } = await supabase.from("profiles").select("*").eq("id", userId).maybeSingle();
+        const { data: p } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").eq("id", userId).maybeSingle();
         const name = p?.arabic_name || p?.full_name || "عضو";
         setProfile({
           name,

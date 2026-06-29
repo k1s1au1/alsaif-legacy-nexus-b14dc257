@@ -85,7 +85,7 @@ function FamilyTreePage() {
         } = await supabase.auth.getUser();
         if (!user) return;
         const [{ data: profile }, { data: roles }] = await Promise.all([
-          supabase.from("profiles").select("*").eq("id", user.id).maybeSingle(),
+          supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").eq("id", user.id).maybeSingle(),
           supabase.from("user_roles").select("role").eq("user_id", user.id),
         ]);
         const rs = (roles ?? []).map((r) => r.role);
@@ -116,7 +116,7 @@ function FamilyTreePage() {
     setLoading(true);
     try {
       const [profilesRes, extrasRes] = await Promise.all([
-        supabase.from("profiles").select("*").order("first_name", { ascending: true }),
+        supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").order("first_name", { ascending: true }),
         supabase.from("family_tree_extras" as any).select("*").order("first_name", { ascending: true }),
       ]);
       if (profilesRes.error) throw profilesRes.error;
