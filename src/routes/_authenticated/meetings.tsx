@@ -6,7 +6,6 @@ import {
   CalendarDays,
   MapPin,
   Clock,
-  Users,
   X,
   Trash2,
   Pencil,
@@ -37,7 +36,6 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 import { sendFcmNotification } from "@/lib/fcm";
 import { MeetingPresentations } from "@/components/meeting-presentations";
-import { MeetingDiscussions } from "@/components/meeting-discussions";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -295,12 +293,11 @@ function MeetingsPage() {
     return attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.rsvp ?? null;
   };
 
-  const [tab, setTab] = useState<"upcoming" | "past" | "discussions">("upcoming");
+  const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
   const tabs: { key: typeof tab; label: string; count?: number; icon: any }[] = [
     { key: "upcoming", label: "القادمة", count: upcoming.length, icon: Timer },
     { key: "past", label: "الأرشيف", count: past.length, icon: Clock },
-    { key: "discussions", label: "النقاشات", icon: Users },
   ];
 
   return (
@@ -334,7 +331,7 @@ function MeetingsPage() {
         </section>
 
         {/* Tabs */}
-        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
+        <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
           {tabs.map(t => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -439,9 +436,6 @@ function MeetingsPage() {
               )
             )}
 
-            {tab === "discussions" && (
-              <MeetingDiscussions meId={userId} isAdmin={isAdmin} isChairman={isChairman} canManage={canManage} />
-            )}
           </div>
         )}
       </div>
