@@ -106,7 +106,7 @@ function AdminPage() {
     if (!meId) return;
     setLoading(true);
     try {
-      const { data: p } = await supabase.from("profiles").select("*").eq("id", meId).maybeSingle();
+      const { data: p } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, first_name, father_name, grandfather_name").eq("id", meId).maybeSingle();
 
       setIsChair(isSiteChairman || isSystemAdmin);
 
@@ -123,7 +123,7 @@ function AdminPage() {
         try {
           const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: mreqs }, { data: bugs }] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
-            supabase.from("profiles").select("*").order("full_name"),
+            supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
             supabase.from("section_heads" as any).select("user_id, section"),
             isSiteChairman ? supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),

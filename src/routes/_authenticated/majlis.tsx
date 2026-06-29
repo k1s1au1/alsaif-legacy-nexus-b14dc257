@@ -57,7 +57,7 @@ function MajlisPage() {
     setLoading(true);
     try {
       const [{ data: p }, { data: roles }] = await Promise.all([
-        supabase.from("profiles").select("*").eq("id", meId).maybeSingle(),
+        supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").eq("id", meId).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", meId),
       ]);
       const rs = (roles ?? []).map(r => r.role);
