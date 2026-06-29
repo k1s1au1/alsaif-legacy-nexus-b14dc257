@@ -190,7 +190,7 @@ function MajlisPage() {
   );
 }
 
-function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: any) {
+function PostCard({ post, meId, isChairman, canDelete, canEdit, onEdit, onRefresh, comments }: any) {
   const authorName = post.author?.arabic_name || post.author?.full_name || "عضو";
 
   const deletePost = async () => {
