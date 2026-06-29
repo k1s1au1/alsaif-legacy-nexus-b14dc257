@@ -13,7 +13,7 @@ import {
   Settings,
   X,
   Newspaper,
-  Archive,
+  
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -36,7 +36,7 @@ import {
 
 const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-  { to: "/archive", label: "الألبوم العائلي", icon: Archive },
+  
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/settings", label: "الإعدادات", icon: Settings },

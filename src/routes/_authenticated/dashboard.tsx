@@ -24,7 +24,7 @@ import {
   Newspaper,
   Scroll,
   Lightbulb,
-  Heart,
+  
   ArrowRight,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -192,7 +192,6 @@ function Dashboard() {
   const [myTasksCount, setMyTasksCount] = useState(0);
   const [newNewsCount, setNewNewsCount] = useState(0);
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
-  const [initiatives, setInitiatives] = useState<any[]>([]);
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [immersiveItem, setImmersiveItem] = useState<{ type: 'trip' | 'meeting' | 'news', data: any } | null>(null);
@@ -200,46 +199,9 @@ function Dashboard() {
   const [bugImage, setBugImage] = useState<File | null>(null);
   const [bugImagePreview, setBugImagePreview] = useState<string | null>(null);
   const [bugSending, setBugSending] = useState(false);
-  const [showInitiativeForm, setShowInitiativeForm] = useState(false);
-  const [initTitle, setInitTitle] = useState("");
-  const [initBody, setInitBody] = useState("");
-  const [initSending, setInitSending] = useState(false);
 
-  const reloadInitiatives = useCallback(async () => {
-    const { data } = await supabase
-      .from("majlis_posts")
-      .select("*")
-      .eq("kind", "discussion")
-      .ilike("title", "[مبادرة]%")
-      .order("created_at", { ascending: false })
-      .limit(6);
-    const rows = (data || []) as any[];
-    if (rows.length === 0) { setInitiatives([]); return; }
-    const ids = Array.from(new Set(rows.map((x) => x.author_id).filter(Boolean)));
-    const { data: profs } = await supabase.from("profiles").select("id, arabic_name, full_name").in("id", ids);
-    const map = new Map((profs || []).map((p: any) => [p.id, p]));
-    setInitiatives(rows.map((row) => ({ ...row, author: map.get(row.author_id) || null })));
-  }, []);
-
-  const submitInitiative = async () => {
-    if (!profile.userId) { toast.error("يجب تسجيل الدخول"); return; }
-    const t = initTitle.trim();
-    const b = initBody.trim();
-    if (t.length < 3) { toast.error("اكتب عنواناً للمبادرة"); return; }
-    setInitSending(true);
-    const { error } = await supabase.from("majlis_posts").insert({
-      kind: "discussion",
-      title: `[مبادرة] ${t}`,
-      body: b,
-      author_id: profile.userId,
-    });
-    setInitSending(false);
-    if (error) { toast.error("تعذر نشر المبادرة"); return; }
-    toast.success("تم نشر مبادرتك");
-    setInitTitle(""); setInitBody(""); setShowInitiativeForm(false);
-    reloadInitiatives();
-  };
   const hasGreeted = useRef(false);
+
   const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
@@ -778,96 +740,8 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* Initiatives Section */}
-        <section className="px-4 space-y-8 animate-fade-up" style={{ animationDelay: "500ms" }}>
-           <div className="flex items-center justify-between px-4">
-              <div className="flex items-center gap-3 text-primary font-black uppercase tracking-widest text-xs">
-                 <Lightbulb className="size-4 text-gold-primary" /> مبادرات السيف
-              </div>
-              <button
-                onClick={() => setShowInitiativeForm(true)}
-                className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline"
-              >+ قدم مبادرة جديدة</button>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {initiatives.length > 0 ? initiatives.map((ini) => (
-                <div key={ini.id} className="card-surface p-8 flex flex-col justify-between group hover:border-gold-primary/30 transition-all">
-                   <div className="space-y-4">
-                      <h4 className="text-lg font-black text-primary line-clamp-2">{ini.title.replace("[مبادرة]", "").trim()}</h4>
-                      <p className="text-xs font-bold text-muted-foreground line-clamp-3 leading-relaxed">{ini.body}</p>
-                   </div>
-                   <div className="mt-8 pt-4 border-t border-border/40 flex items-center justify-between">
-                      <span className="text-[9px] font-black text-primary/40 uppercase">{ini.author?.arabic_name || ini.author?.full_name || "عضو"}</span>
-                      <Link to="/majlis" className="flex items-center gap-1.5 text-rose-500 bg-rose-500/5 px-3 py-1.5 rounded-full hover:bg-rose-500 hover:text-white transition-all">
-                         <Heart size={12} fill="currentColor" />
-                         <span className="text-[10px] font-black">أدعم الفكرة</span>
-                      </Link>
-                   </div>
-                </div>
-              )) : (
-                <div className="col-span-full py-16 text-center bg-muted/20 rounded-[40px] border-2 border-dashed text-muted-foreground italic text-sm">
-                   لا توجد مبادرات نشطة حالياً. كن أول من يقترح!
-                </div>
-              )}
-           </div>
-        </section>
       </div>
 
-      <AnimatePresence>
-        {showInitiativeForm && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
-            onClick={() => !initSending && setShowInitiativeForm(false)}
-            dir="rtl"
-          >
-            <motion.div
-              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
-              onClick={(e) => e.stopPropagation()}
-              className="bg-white rounded-[32px] w-full max-w-lg p-8 space-y-5 shadow-2xl"
-            >
-              <div className="flex items-center gap-3">
-                <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
-                  <Lightbulb size={22} />
-                </div>
-                <div>
-                  <h3 className="text-xl font-black text-primary">قدّم مبادرة جديدة</h3>
-                  <p className="text-xs font-bold text-muted-foreground">شاركنا فكرتك لخدمة العائلة</p>
-                </div>
-              </div>
-              <input
-                value={initTitle}
-                onChange={(e) => setInitTitle(e.target.value)}
-                placeholder="عنوان المبادرة"
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-border/40 text-slate-900 placeholder:text-slate-400 font-bold focus:border-gold-primary outline-none"
-              />
-              <textarea
-                value={initBody}
-                onChange={(e) => setInitBody(e.target.value)}
-                placeholder="اشرح فكرتك بإيجاز..."
-                rows={5}
-                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-border/40 text-slate-900 placeholder:text-slate-400 font-medium focus:border-gold-primary outline-none resize-none"
-              />
-              <div className="flex items-center justify-end gap-3 pt-2">
-                <button
-                  onClick={() => setShowInitiativeForm(false)}
-                  disabled={initSending}
-                  className="px-5 py-2.5 rounded-xl font-black text-sm text-muted-foreground hover:bg-muted/30"
-                >إلغاء</button>
-                <button
-                  onClick={submitInitiative}
-                  disabled={initSending}
-                  className="px-6 py-2.5 rounded-xl font-black text-sm bg-gold-primary text-white hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
-                >
-                  {initSending && <Loader2 size={14} className="animate-spin" />}
-                  نشر المبادرة
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       <AnimatePresence>
         {immersiveItem && (
