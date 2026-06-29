@@ -525,11 +525,10 @@ function Dashboard() {
           imageUrl = sign?.signedUrl || "";
         }
       }
-      const { error } = await supabase.from("majlis_posts").insert({
-        author_id: u.user.id,
-        kind: "complaint",
-        title: "تقرير خطأ في النظام",
-        body: `تم إرسال بلاغ عن خطأ:\n\n${bugBody.trim()}${imageUrl ? `\n\n[رابط الصورة المصاحبة]: ${imageUrl}` : ""}`,
+      const { error } = await supabase.from("bug_reports" as any).insert({
+        reporter_id: u.user.id,
+        body: bugBody.trim(),
+        image_url: imageUrl || null,
       } as any);
 
       if (!error) {
