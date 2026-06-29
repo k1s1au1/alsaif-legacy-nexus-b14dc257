@@ -773,7 +773,10 @@ function Dashboard() {
               <div className="flex items-center gap-3 text-primary font-black uppercase tracking-widest text-xs">
                  <Lightbulb className="size-4 text-gold-primary" /> مبادرات السيف
               </div>
-              <Link to="/majlis" className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline">+ قدم مبادرة جديدة</Link>
+              <button
+                onClick={() => setShowInitiativeForm(true)}
+                className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline"
+              >+ قدم مبادرة جديدة</button>
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -784,11 +787,11 @@ function Dashboard() {
                       <p className="text-xs font-bold text-muted-foreground line-clamp-3 leading-relaxed">{ini.body}</p>
                    </div>
                    <div className="mt-8 pt-4 border-t border-border/40 flex items-center justify-between">
-                      <span className="text-[9px] font-black text-primary/40 uppercase">{ini.author?.arabic_name || "عضو"}</span>
-                      <button className="flex items-center gap-1.5 text-rose-500 bg-rose-500/5 px-3 py-1.5 rounded-full hover:bg-rose-500 hover:text-white transition-all">
+                      <span className="text-[9px] font-black text-primary/40 uppercase">{ini.author?.arabic_name || ini.author?.full_name || "عضو"}</span>
+                      <Link to="/majlis" className="flex items-center gap-1.5 text-rose-500 bg-rose-500/5 px-3 py-1.5 rounded-full hover:bg-rose-500 hover:text-white transition-all">
                          <Heart size={12} fill="currentColor" />
                          <span className="text-[10px] font-black">أدعم الفكرة</span>
-                      </button>
+                      </Link>
                    </div>
                 </div>
               )) : (
@@ -799,6 +802,61 @@ function Dashboard() {
            </div>
         </section>
       </div>
+
+      <AnimatePresence>
+        {showInitiativeForm && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] bg-black/60 backdrop-blur-md flex items-center justify-center p-4"
+            onClick={() => !initSending && setShowInitiativeForm(false)}
+            dir="rtl"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white rounded-[32px] w-full max-w-lg p-8 space-y-5 shadow-2xl"
+            >
+              <div className="flex items-center gap-3">
+                <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary">
+                  <Lightbulb size={22} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-black text-primary">قدّم مبادرة جديدة</h3>
+                  <p className="text-xs font-bold text-muted-foreground">شاركنا فكرتك لخدمة العائلة</p>
+                </div>
+              </div>
+              <input
+                value={initTitle}
+                onChange={(e) => setInitTitle(e.target.value)}
+                placeholder="عنوان المبادرة"
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-border/40 text-slate-900 placeholder:text-slate-400 font-bold focus:border-gold-primary outline-none"
+              />
+              <textarea
+                value={initBody}
+                onChange={(e) => setInitBody(e.target.value)}
+                placeholder="اشرح فكرتك بإيجاز..."
+                rows={5}
+                className="w-full px-4 py-3 rounded-2xl bg-slate-50 border-2 border-border/40 text-slate-900 placeholder:text-slate-400 font-medium focus:border-gold-primary outline-none resize-none"
+              />
+              <div className="flex items-center justify-end gap-3 pt-2">
+                <button
+                  onClick={() => setShowInitiativeForm(false)}
+                  disabled={initSending}
+                  className="px-5 py-2.5 rounded-xl font-black text-sm text-muted-foreground hover:bg-muted/30"
+                >إلغاء</button>
+                <button
+                  onClick={submitInitiative}
+                  disabled={initSending}
+                  className="px-6 py-2.5 rounded-xl font-black text-sm bg-gold-primary text-white hover:opacity-90 disabled:opacity-50 flex items-center gap-2"
+                >
+                  {initSending && <Loader2 size={14} className="animate-spin" />}
+                  نشر المبادرة
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {immersiveItem && (
