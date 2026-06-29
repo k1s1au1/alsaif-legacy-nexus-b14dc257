@@ -312,15 +312,25 @@ function Dashboard() {
             });
           }
         });
-      // Load Initiatives
+      // Load Initiatives (separate author fetch to avoid FK join errors)
       supabase
         .from("majlis_posts")
-        .select("*, author:profiles(arabic_name, full_name)")
+        .select("*")
         .eq("kind", "discussion")
         .ilike("title", "[مبادرة]%")
         .order("created_at", { ascending: false })
-        .limit(3)
-        .then((r) => setInitiatives(r.data || []));
+        .limit(6)
+        .then(async (r) => {
+          const rows = (r.data || []) as any[];
+          if (rows.length === 0) { setInitiatives([]); return; }
+          const authorIds = Array.from(new Set(rows.map((x) => x.author_id).filter(Boolean)));
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, arabic_name, full_name")
+            .in("id", authorIds);
+          const map = new Map((profs || []).map((p: any) => [p.id, p]));
+          setInitiatives(rows.map((row) => ({ ...row, author: map.get(row.author_id) || null })));
+        });
 
       // Load active family projects with contributions
       supabase
