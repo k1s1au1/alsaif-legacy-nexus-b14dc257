@@ -9,7 +9,7 @@ import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { sendFcmNotification } from "@/lib/fcm";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -80,17 +80,9 @@ function AuthPage() {
       return;
     }
 
-    // Notify Technical Admin and Chairman about new request
-    try {
-      sendFcmNotification({
-        data: {
-          title: "📥 طلب انضمام جديد",
-          body: `رغبة في الانضمام من: ${reqFirstName} ${reqFatherName}`,
-        }
-      }).catch(e => console.warn("FCM silent fail:", e));
-    } catch (err) {
-      console.warn("FCM Notification error:", err);
-    }
+    // Notification dispatch to admins is intentionally handled server-side
+    // (e.g., via DB triggers / admin polling) — never from this unauthenticated
+    // path. Sending FCM from here would expose the dispatcher to abuse.
 
     toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة الطلب من قبل الإدارة وإشعارك قريباً." });
     setAuthMode("login");
