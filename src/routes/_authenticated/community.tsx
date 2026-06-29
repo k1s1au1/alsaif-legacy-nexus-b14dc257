@@ -121,7 +121,7 @@ function CommunityPage() {
   }, [loadData]);
 
   const filtered = useMemo(() => {
-    // الطلبات سرّية: العضو يرى طلباته فقط، ورئيس المجلس/المسؤول التقني يرى الكل.
+    // الطلبات سرّية: العضو يرى طلباته فقط، ورئيس المجلس فقط يرى جميع الطلبات.
     const visible = posts.filter(p => p.kind !== "request" || isChair || p.author_id === meId);
     return filter === "all" ? visible : visible.filter(p => p.kind === filter);
   }, [posts, filter, isChair, meId]);
