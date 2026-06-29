@@ -726,6 +726,109 @@ export type Database = {
         }
         Relationships: []
       }
+      member_post_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "member_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_post_votes: {
+        Row: {
+          created_at: string
+          id: string
+          option_index: number
+          post_id: string
+          voter_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          option_index: number
+          post_id: string
+          voter_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          option_index?: number
+          post_id?: string
+          voter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "member_post_votes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "member_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      member_posts: {
+        Row: {
+          author_id: string
+          body: string | null
+          created_at: string
+          id: string
+          image_urls: string[]
+          kind: string
+          pinned: boolean
+          poll_options: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_urls?: string[]
+          kind?: string
+          pinned?: boolean
+          poll_options?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string | null
+          created_at?: string
+          id?: string
+          image_urls?: string[]
+          kind?: string
+          pinned?: boolean
+          poll_options?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       message_deliveries: {
         Row: {
           conversation_id: string
