@@ -137,7 +137,7 @@ export function MeetingDiscussions({ meId, isAdmin, isChairman, canManage }: {
       </div>
 
       <AnimatePresence>
-        {showAdd && <AddDialog meId={meId} onClose={() => setShowAdd(false)} onSaved={loadData} />}
+        {showAdd && <AddDialog meId={meId} isChairman={isAdmin || isChairman} onClose={() => setShowAdd(false)} onSaved={loadData} />}
       </AnimatePresence>
     </section>
   );
