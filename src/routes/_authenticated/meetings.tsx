@@ -78,7 +78,7 @@ function formatDate(iso: string) {
 
 function MeetingsPage() {
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "ص", avatarPath: null as string | null });
-  const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
+  const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole, isAdmin, isChairman } = useUserRole();
   const dynamicLogo = useSiteLogo();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [attendees, setAttendees] = useState<Attendee[]>([]);
