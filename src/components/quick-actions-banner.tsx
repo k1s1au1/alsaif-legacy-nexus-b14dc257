@@ -6,7 +6,6 @@ import {
   CalendarDays,
   ListChecks,
   Newspaper,
-  Megaphone,
   Trees,
   Wallet,
   User,
@@ -50,7 +49,7 @@ export function QuickActionsBanner() {
           <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-green-700" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-green-700" />
           <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-green-700" />
-          <QuickAction to="/majlis" label="إعلانات" icon={<Megaphone />} color="bg-green-700" />
+          <QuickAction to="/majlis" label="الأخبار" icon={<Newspaper />} color="bg-green-700" />
           <QuickAction to="/archive" label="الألبوم" icon={<Archive />} color="bg-green-700" />
           <QuickAction to="/heritage" label="الإرث" icon={<History />} color="bg-green-700" />
           <QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-green-700" />
