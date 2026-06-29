@@ -402,14 +402,16 @@ function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
             <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder="اكتب التفاصيل هنا..." rows={4}
               className="w-full p-6 rounded-[28px] bg-muted/40 border border-border/60 font-bold text-base focus:ring-4 focus:ring-primary/5 focus:border-primary resize-none outline-none" required />
           </div>
-          <div>
-            <button type="button" onClick={() => setIsPoll(!isPoll)}
-              className={cn("flex items-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all",
-                isPoll ? "bg-gold-primary text-white border-gold-primary shadow-lg" : "bg-muted/30 border-dashed border-border/60 text-muted-foreground")}>
-              <Vote size={18} />
-              <span className="font-black text-xs">{isPoll ? "إلغاء التصويت" : "إضافة استبيان / تصويت"}</span>
-            </button>
-          </div>
+          {isChairman && (
+            <div>
+              <button type="button" onClick={() => setIsPoll(!isPoll)}
+                className={cn("flex items-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all",
+                  isPoll ? "bg-gold-primary text-white border-gold-primary shadow-lg" : "bg-muted/30 border-dashed border-border/60 text-muted-foreground")}>
+                <Vote size={18} />
+                <span className="font-black text-xs">{isPoll ? "إلغاء التصويت" : "إضافة استبيان / تصويت (رئيس المجلس)"}</span>
+              </button>
+            </div>
+          )}
           <AnimatePresence>
             {isPoll && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
