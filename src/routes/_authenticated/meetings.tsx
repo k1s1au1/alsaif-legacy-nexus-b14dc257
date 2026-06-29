@@ -597,64 +597,48 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
        </div>
 
 
-       {/* Bottom: actions */}
-       <div className="relative z-10 flex flex-col gap-3 md:gap-4 w-full">
-          <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-2xl md:rounded-[32px] flex items-center shadow-2xl h-[56px] md:h-[64px] overflow-hidden">
-             <div className="absolute inset-1.5 flex z-0">
-               <AnimatePresence initial={false}>
-                 {myRsvp && (
-                   <motion.div
-                     layoutId={`rsvp-active-bg-${meeting.id}`}
-                     initial={false}
-                     animate={{
-                       x: myRsvp === 'going' ? 0 : 'calc(-100% - 4px)',
-                       backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
-                     }}
-                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                     className="h-full w-[calc(50%-2px)] rounded-xl md:rounded-[26px] shadow-lg shadow-black/20"
-                     style={{ marginLeft: 'auto' }}
-                   />
-                 )}
-               </AnimatePresence>
-             </div>
+        {/* Bottom: actions */}
+        <div className="relative z-10 flex flex-col gap-3 md:gap-4 w-full">
+           <div className="relative bg-black/20 backdrop-blur-2xl border border-white/10 p-2 md:p-2.5 rounded-2xl md:rounded-[32px] flex items-center shadow-2xl overflow-hidden">
+              <button
+                onClick={() => onRsvp(meeting.id, 'going')}
+                disabled={!ready || saving}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 rounded-xl md:rounded-[26px] h-[44px] md:h-[52px] font-black text-xs md:text-sm transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
+                  myRsvp === 'going'
+                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
+                    : "bg-emerald-500/10 text-white/80 hover:bg-emerald-500/20 hover:text-white"
+                )}
+              >
+                <UserCheck size={18} className="shrink-0" />
+                <span>{saving && myRsvp === 'going' ? "..." : "سأحضر"}</span>
+              </button>
 
-             <div className="relative z-10 flex w-full h-full">
-               <button
-                 onClick={() => onRsvp(meeting.id, 'going')}
-                 disabled={!ready || saving}
-                 className={cn(
-                   "flex-1 flex items-center justify-center gap-2 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
-                   myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
-                 )}
-               >
-                 <UserCheck size={18} className="shrink-0" />
-                 <span>{saving && myRsvp === 'going' ? "..." : "سأحضر"}</span>
-               </button>
+              <button
+                onClick={() => onRsvp(meeting.id, 'not_going')}
+                disabled={!ready || saving}
+                className={cn(
+                  "flex-1 flex items-center justify-center gap-2 rounded-xl md:rounded-[26px] h-[44px] md:h-[52px] font-black text-xs md:text-sm transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
+                  myRsvp === 'not_going'
+                    ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30"
+                    : "bg-rose-500/10 text-white/80 hover:bg-rose-500/20 hover:text-white"
+                )}
+              >
+                <UserX size={18} className="shrink-0" />
+                <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
+              </button>
+           </div>
 
-               <button
-                 onClick={() => onRsvp(meeting.id, 'not_going')}
-                 disabled={!ready || saving}
-                 className={cn(
-                   "flex-1 flex items-center justify-center gap-2 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
-                   myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
-                 )}
-               >
-                 <UserX size={18} className="shrink-0" />
-                 <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
-               </button>
-             </div>
-          </div>
+           <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
 
-          <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
-
-          {canManage && (
-             <div className="flex items-center gap-2">
-                <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
-                <button onClick={() => onDelete(meeting.id)} className="flex-1 py-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
-             </div>
-          )}
-       </div>
-    </article>
+           {canManage && (
+              <div className="flex items-center gap-2">
+                 <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
+                 <button onClick={() => onDelete(meeting.id)} className="flex-1 py-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
+              </div>
+           )}
+        </div>
+     </article>
 
   );
 }
