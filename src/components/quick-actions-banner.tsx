@@ -45,7 +45,7 @@ export function QuickActionsBanner() {
          <h3 className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع</h3>
          <div className="h-px w-10 bg-gradient-to-l from-transparent to-primary" />
        </div>
-       <div className="flex overflow-x-auto no-scrollbar gap-8 px-8 pb-4 sm:grid sm:grid-cols-5 lg:grid-cols-10 sm:overflow-visible sm:justify-items-center">
+       <div className="flex overflow-x-auto no-scrollbar gap-8 px-8 pb-4 sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 sm:overflow-visible sm:justify-items-center">
           <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#0f6a4b]" />
           <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#b8972e]" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1b4332]" />
