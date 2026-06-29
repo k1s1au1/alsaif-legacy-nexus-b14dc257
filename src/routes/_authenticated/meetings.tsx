@@ -603,64 +603,64 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
        </div>
 
 
-          <div className="flex flex-col gap-3 md:gap-4 w-full md:w-auto min-w-full md:min-w-[320px]">
-             <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[32px] flex items-center shadow-2xl h-[64px] overflow-hidden">
-                {/* Sliding Background Indicator */}
-                <div className="absolute inset-1.5 flex z-0">
-                  <AnimatePresence initial={false}>
-                    {myRsvp && (
-                      <motion.div
-                        layoutId={`rsvp-active-bg-${meeting.id}`}
-                        initial={false}
-                        animate={{
-                          x: myRsvp === 'going' ? 0 : 'calc(-100% - 4px)',
-                          backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
-                        }}
-                        transition={{ type: "spring", stiffness: 500, damping: 40 }}
-                        className="h-full w-[calc(50%-2px)] rounded-[26px] shadow-lg shadow-black/20"
-                        style={{ marginLeft: 'auto' }}
-                      />
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                <div className="relative z-10 flex w-full h-full">
-                  <button
-                    onClick={() => onRsvp(meeting.id, 'going')}
-                    disabled={!ready || saving}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
-                      myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
-                    )}
-                  >
-                    <UserCheck size={20} />
-                    <span>{saving && myRsvp === 'going' ? "..." : "سأحضر"}</span>
-                  </button>
-
-                  <button
-                    onClick={() => onRsvp(meeting.id, 'not_going')}
-                    disabled={!ready || saving}
-                    className={cn(
-                      "flex-1 flex items-center justify-center gap-2 md:gap-3 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
-                      myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
-                    )}
-                  >
-                    <UserX size={20} />
-                    <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
-                  </button>
-                </div>
+       {/* Bottom: actions */}
+       <div className="relative z-10 flex flex-col gap-3 md:gap-4 w-full">
+          <div className="relative bg-white/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-2xl md:rounded-[32px] flex items-center shadow-2xl h-[56px] md:h-[64px] overflow-hidden">
+             <div className="absolute inset-1.5 flex z-0">
+               <AnimatePresence initial={false}>
+                 {myRsvp && (
+                   <motion.div
+                     layoutId={`rsvp-active-bg-${meeting.id}`}
+                     initial={false}
+                     animate={{
+                       x: myRsvp === 'going' ? 0 : 'calc(-100% - 4px)',
+                       backgroundColor: myRsvp === 'going' ? '#10b981' : '#f43f5e'
+                     }}
+                     transition={{ type: "spring", stiffness: 500, damping: 40 }}
+                     className="h-full w-[calc(50%-2px)] rounded-xl md:rounded-[26px] shadow-lg shadow-black/20"
+                     style={{ marginLeft: 'auto' }}
+                   />
+                 )}
+               </AnimatePresence>
              </div>
-             <div className="px-1">
-                <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
+
+             <div className="relative z-10 flex w-full h-full">
+               <button
+                 onClick={() => onRsvp(meeting.id, 'going')}
+                 disabled={!ready || saving}
+                 className={cn(
+                   "flex-1 flex items-center justify-center gap-2 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
+                   myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white"
+                 )}
+               >
+                 <UserCheck size={18} className="shrink-0" />
+                 <span>{saving && myRsvp === 'going' ? "..." : "سأحضر"}</span>
+               </button>
+
+               <button
+                 onClick={() => onRsvp(meeting.id, 'not_going')}
+                 disabled={!ready || saving}
+                 className={cn(
+                   "flex-1 flex items-center justify-center gap-2 transition-colors duration-500 font-black text-xs md:text-sm disabled:opacity-60 disabled:cursor-not-allowed",
+                   myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white"
+                 )}
+               >
+                 <UserX size={18} className="shrink-0" />
+                 <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
+               </button>
              </div>
-             {canManage && (
-                <div className="flex items-center gap-2 px-1">
-                   <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-white/5 hover:bg-white/10 transition-all text-[9px] md:text-[10px] font-black flex items-center justify-center gap-2 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
-                   <button onClick={() => onDelete(meeting.id)} className="flex-1 py-2.5 md:py-3 rounded-xl md:rounded-2xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[9px] md:text-[10px] font-black flex items-center justify-center gap-2 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
-                </div>
-             )}
           </div>
+
+          <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
+
+          {canManage && (
+             <div className="flex items-center gap-2">
+                <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
+                <button onClick={() => onDelete(meeting.id)} className="flex-1 py-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
+             </div>
+          )}
        </div>
     </article>
+
   );
 }
