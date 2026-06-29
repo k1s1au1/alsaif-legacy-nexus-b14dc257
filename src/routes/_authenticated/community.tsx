@@ -66,7 +66,7 @@ function CommunityPage() {
         supabase.from("user_roles").select("role").eq("user_id", meId),
       ]);
       const rs = (roles ?? []).map(r => r.role);
-      setIsChair(rs.includes("chairman") || rs.includes("admin"));
+      setIsChair(rs.includes("chairman"));
       if (p) {
         setProfile({
           name: p.arabic_name || p.full_name || "عضو",
