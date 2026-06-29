@@ -205,6 +205,11 @@ function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: an
             </div>
           </div>
           <div className="space-y-4">
+            {post.kind === "announcement" && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-primary/15 text-gold-primary text-[10px] font-black uppercase tracking-widest">
+                <Pin size={10} /> إعلان المجلس
+              </span>
+            )}
             <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
             <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.cleanBody}</p>
           </div>
