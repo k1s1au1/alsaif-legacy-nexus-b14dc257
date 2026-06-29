@@ -143,40 +143,24 @@ function TripDetail() {
 
   async function loadChecklist(tid: string) {
     try {
-      // Fetch special posts that represent checklist items for this trip.
-      // Keep profile loading separate so this does not depend on a database FK relationship.
-      const { data: posts, error } = await supabase
-        .from("majlis_posts")
-        .select("id,title,body,created_at,author_id")
-        .eq("kind", "discussion")
-        .ilike("title", `[TRIP-ITEM:${tid}]%`)
+      const { data: items, error } = await supabase
+        .from("trip_items")
+        .select("id,name,assigned_to,created_by,created_at")
+        .eq("trip_id", tid)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
 
-      const parsedItems = ((posts ?? []) as any[]).map((p) => {
-        const body = typeof p.body === "string" ? p.body : "";
-        const [statusLine = "", ...nameLines] = body.split("\n");
-        const assigned_to = statusLine.startsWith("ASSIGNED:")
-          ? statusLine.slice("ASSIGNED:".length).trim() || null
-          : null;
-
-        return {
-          id: p.id,
-          item_name: p.title.split("] ")[1] || p.title,
-          assigned_to,
-          assignee_name: assigned_to ? nameLines.join("\n").trim() || null : null,
-          author_id: p.author_id,
-          created_at: p.created_at
-        };
-      });
+      const parsedItems = ((items ?? []) as any[]).map((item) => ({
+        id: item.id,
+        name: item.name,
+        assigned_to: item.assigned_to,
+        created_by: item.created_by,
+        created_at: item.created_at,
+      }));
 
       const profileIds = Array.from(
-        new Set(
-          parsedItems
-            .flatMap((item) => [item.author_id, item.assigned_to])
-            .filter(Boolean),
-        ),
+        new Set(parsedItems.flatMap((item) => [item.created_by, item.assigned_to]).filter(Boolean))
       );
       const { data: profs } = profileIds.length
         ? await supabase
@@ -186,17 +170,18 @@ function TripDetail() {
         : { data: [] as any[] };
       const profileMap = new Map((profs ?? []).map((p: any) => [p.id, p]));
 
-      const items = parsedItems.map((item) => ({
+      const enriched = parsedItems.map((item) => ({
         ...item,
-        author: profileMap.get(item.author_id) ?? null,
+        creator: profileMap.get(item.created_by) ?? null,
         assignee: item.assigned_to ? profileMap.get(item.assigned_to) ?? null : null,
       }));
 
-      setChecklist(items);
+      setChecklist(enriched);
     } catch (err: any) {
       console.error("Load checklist error:", err);
     }
   }
+
 
   async function addItem() {
     if (!newItemName.trim() || !userId) return;
@@ -204,12 +189,12 @@ function TripDetail() {
 
     try {
       const { error } = await supabase
-        .from("majlis_posts")
+        .from("trip_items")
         .insert({
-          author_id: userId,
-          kind: "discussion",
-          title: `[TRIP-ITEM:${tripId}] ${newItemName.trim()}`,
-          body: "AVAILABLE", // Initial state
+          trip_id: tripId,
+          name: newItemName.trim(),
+          created_by: userId,
+          assigned_to: null,
         });
 
       if (error) throw error;
@@ -229,7 +214,7 @@ function TripDetail() {
     if (!confirm("حذف الغرض؟")) return;
     try {
       const { error } = await supabase
-        .from("majlis_posts")
+        .from("trip_items")
         .delete()
         .eq("id", id);
 
@@ -245,12 +230,12 @@ function TripDetail() {
     if (!userId) return;
 
     const isMine = item.assigned_to === userId;
-    const newBody = isMine ? "AVAILABLE" : `ASSIGNED:${userId}\n${profile.name}`;
+    const newAssignedTo = isMine ? null : userId;
 
     try {
       const { error } = await supabase
-        .from("majlis_posts")
-        .update({ body: newBody })
+        .from("trip_items")
+        .update({ assigned_to: newAssignedTo })
         .eq("id", item.id);
 
       if (error) throw error;
@@ -261,6 +246,7 @@ function TripDetail() {
       toast.error("فشل تحديث الحالة");
     }
   }
+
 
   useEffect(() => {
     (async () => {
@@ -320,7 +306,7 @@ function TripDetail() {
     const channel = supabase
       .channel(`trip-${tripId}-realtime`)
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees", filter: `trip_id=eq.${tripId}` }, () => loadAttendees(tripId))
-      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadChecklist(tripId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "trip_items", filter: `trip_id=eq.${tripId}` }, () => loadChecklist(tripId))
       .subscribe();
 
     return () => {
@@ -527,30 +513,30 @@ function TripDetail() {
                    </div>
                  ) : (
                    <div className="grid grid-cols-1 gap-3">
-                      {checklist.map((item) => {
-                        const isMine = item.assigned_to === userId;
-                        const isTaken = !!item.assigned_to;
-                         const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || item.assignee_name || "عضو";
+                       {checklist.map((item) => {
+                         const isMine = item.assigned_to === userId;
+                         const isTaken = !!item.assigned_to;
+                          const assigneeName = item.assignee?.arabic_name || item.assignee?.full_name || "عضو";
 
-                        return (
-                          <div key={item.id} className={cn(
-                            "group flex items-center justify-between p-4 md:p-6 rounded-3xl border transition-all duration-300",
-                            isTaken ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/40"
-                          )}>
-                             <div className="flex items-center gap-4 flex-1 min-w-0">
-                                <div className={cn(
-                                  "size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                                  isTaken ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
-                                )}>
-                                   {isTaken ? <UserCheck size={20} /> : <Tent size={20} />}
-                                </div>
-                                <div className="min-w-0">
-                                   <p className={cn("text-base md:text-lg font-black truncate", isTaken && "text-emerald-600")}>{item.item_name}</p>
-                                   {isTaken && (
-                                     <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">سيحضره: {assigneeName} {isMine && "(أنت)"}</p>
-                                   )}
-                                </div>
-                             </div>
+                         return (
+                           <div key={item.id} className={cn(
+                             "group flex items-center justify-between p-4 md:p-6 rounded-3xl border transition-all duration-300",
+                             isTaken ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/40"
+                           )}>
+                              <div className="flex items-center gap-4 flex-1 min-w-0">
+                                 <div className={cn(
+                                   "size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
+                                   isTaken ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground"
+                                 )}>
+                                    {isTaken ? <UserCheck size={20} /> : <Tent size={20} />}
+                                 </div>
+                                 <div className="min-w-0">
+                                    <p className={cn("text-base md:text-lg font-black truncate", isTaken && "text-emerald-600")}>{item.name}</p>
+                                    {isTaken && (
+                                      <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">سيحضره: {assigneeName} {isMine && "(أنت)"}</p>
+                                    )}
+                                 </div>
+                              </div>
 
                              <div className="flex items-center gap-2">
                                 {isPrivileged && (
