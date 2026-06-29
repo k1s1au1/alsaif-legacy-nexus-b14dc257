@@ -601,6 +601,7 @@ function Dashboard() {
         <QuickActionsBanner />
 
         <ActivePolls userId={profile.userId ?? null} />
+        <PollsPopup userId={profile.userId ?? null} />
 
         <IntegratedHub
           upcomingMeetings={upcomingMeetings}
