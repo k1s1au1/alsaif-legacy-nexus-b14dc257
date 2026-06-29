@@ -458,8 +458,9 @@ function AdminPage() {
                <button onClick={() => setTab("members")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "members" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
                  <Users size={18} /> إدارة الأعضاء
                </button>
-               <button onClick={() => setTab("announcements")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "announcements" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                 <Newspaper size={18} /> الإعلانات
+               <button onClick={() => setTab("member_requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "member_requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
+                 <Megaphone size={18} /> طلبات
+                 {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
                </button>
             </div>
 
