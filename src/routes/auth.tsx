@@ -41,8 +41,7 @@ function AuthPage() {
   const [reqPassword, setReqPassword] = useState("");
   const [reqNote, setReqNote] = useState("");
 
-  const { url: authBg, palette: authPalette } = useAppBackground("auth_bg");
-  const paletteVars = authPalette ? paletteToCssVars(authPalette) : undefined;
+  const { url: authBg } = useAppBackground("auth_bg");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
