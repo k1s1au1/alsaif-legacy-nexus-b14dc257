@@ -37,6 +37,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 import { sendFcmNotification } from "@/lib/fcm";
 import { MeetingPresentations } from "@/components/meeting-presentations";
+import { MeetingDiscussions } from "@/components/meeting-discussions";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
