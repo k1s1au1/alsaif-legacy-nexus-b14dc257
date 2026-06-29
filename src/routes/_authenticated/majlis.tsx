@@ -84,19 +84,29 @@ function MajlisPage() {
           const uiKind = kindMatch
             ? kindMatch[1]
             : (p.kind === "announcement" ? "announcement" : p.kind === "complaint" ? "complaint" : "sharing");
+          const imageMatch = (p.body || "").match(/---image:([^\n]+)\n?/);
+          const imagePath = imageMatch ? imageMatch[1].trim() : null;
           const cleanBody = (p.body || "")
+            .replace(/^---image:[^\n]+\n?/, "")
             .replace(/---kind:.*?\n?/, "")
             .replace(/---poll:.*?--- \n?/, "")
             .replace(/^---poll:.*?---/s, "")
             .trim();
-          return { ...p, uiKind, cleanBody: cleanBody || p.body, author: profileMap.get(p.author_id) || null };
+          return { ...p, uiKind, imagePath, cleanBody: cleanBody || "", author: profileMap.get(p.author_id) || null };
         }).filter((p: any) => p.uiKind === "sharing" || p.uiKind === "announcement" || p.kind === "announcement");
 
-        processed.sort((a: any, b: any) => {
+        // Sign image URLs in parallel
+        const withImages = await Promise.all(processed.map(async (p: any) => {
+          if (!p.imagePath) return p;
+          const { data } = await supabase.storage.from("trip-images").createSignedUrl(p.imagePath, 60 * 60 * 24);
+          return { ...p, imageUrl: data?.signedUrl || null };
+        }));
+
+        withImages.sort((a: any, b: any) => {
           if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
-        setPosts(processed as any);
+        setPosts(withImages as any);
       }
 
       const { data: coms } = await supabase
