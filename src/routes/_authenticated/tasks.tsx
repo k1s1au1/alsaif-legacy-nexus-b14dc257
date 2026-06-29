@@ -319,18 +319,18 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
           </header>
 
           <div className="space-y-3">
-             <h4 className={cn("text-2xl md:text-3xl font-black text-primary leading-[1.1] tracking-tight transition-colors dark:text-gold-primary", isDone && "text-emerald-500 dark:text-emerald-400")}>{task.title}</h4>
-             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground dark:text-white/70 leading-relaxed line-clamp-3 opacity-70 group-hover:opacity-100 transition-opacity">{task.description}</p>}
+             <h4 className={cn("text-2xl md:text-3xl font-black text-foreground leading-[1.1] tracking-tight transition-colors", isDone && "text-emerald-500 dark:text-emerald-400")}>{task.title}</h4>
+             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground leading-relaxed line-clamp-3">{task.description}</p>}
           </div>
 
           <div className="space-y-6">
              <div className="flex items-end justify-between">
                 <div className="space-y-1">
-                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-50">مرحلة الإنجاز</p>
+                   <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-80">مرحلة الإنجاز</p>
                    <p className={cn("text-lg font-black tracking-tighter",
                      isDone ? "text-emerald-500 dark:text-emerald-400" :
                      task.progress >= 80 ? "text-gold-primary" :
-                     task.progress >= 40 ? "text-gold-primary/80" : "text-muted-foreground"
+                     task.progress >= 40 ? "text-foreground" : "text-muted-foreground"
                    )}>
                      {isDone ? "مكتملة بنجاح" :
                       task.progress >= 80 ? "قيد المراجعة النهائية" :
