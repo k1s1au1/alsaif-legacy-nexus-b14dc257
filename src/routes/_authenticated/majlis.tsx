@@ -68,8 +68,7 @@ function MajlisPage() {
 
       const { data: rawPosts, error } = await supabase
         .from("majlis_posts")
-        .select("*")
-        .neq("kind", "announcement");
+        .select("*");
       if (error) console.error("Posts fetch error:", error);
 
       if (rawPosts) {
@@ -82,14 +81,16 @@ function MajlisPage() {
         // Only "sharing" — meaning no poll and uiKind=sharing (or legacy kind=discussion without kind tag)
         const processed = rawPosts.map((p: any) => {
           const kindMatch = p.body?.match(/---kind:(\w+)/);
-          const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
+          const uiKind = kindMatch
+            ? kindMatch[1]
+            : (p.kind === "announcement" ? "announcement" : p.kind === "complaint" ? "complaint" : "sharing");
           const cleanBody = (p.body || "")
             .replace(/---kind:.*?\n?/, "")
             .replace(/---poll:.*?--- \n?/, "")
             .replace(/^---poll:.*?---/s, "")
             .trim();
           return { ...p, uiKind, cleanBody: cleanBody || p.body, author: profileMap.get(p.author_id) || null };
-        }).filter((p: any) => p.uiKind === "sharing");
+        }).filter((p: any) => p.uiKind === "sharing" || p.uiKind === "announcement" || p.kind === "announcement");
 
         processed.sort((a: any, b: any) => {
           if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
@@ -204,6 +205,11 @@ function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: an
             </div>
           </div>
           <div className="space-y-4">
+            {post.kind === "announcement" && (
+              <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-primary/15 text-gold-primary text-[10px] font-black uppercase tracking-widest">
+                <Pin size={10} /> إعلان المجلس
+              </span>
+            )}
             <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
             <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.cleanBody}</p>
           </div>
