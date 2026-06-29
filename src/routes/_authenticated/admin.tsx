@@ -588,6 +588,7 @@ const SECTION_OPTIONS: { key: string; label: string }[] = [
   { key: "finance", label: "المالية" },
   { key: "heritage", label: "إرث السيف" },
   { key: "majlis", label: "الأخبار" },
+  { key: "community", label: "ركن الأعضاء" },
 ];
 
 function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false }: any) {

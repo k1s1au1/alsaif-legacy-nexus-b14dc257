@@ -11,6 +11,7 @@ import {
   User,
   History,
   Archive,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -44,12 +45,13 @@ export function QuickActionsBanner() {
          <h3 className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع</h3>
          <div className="h-px w-10 bg-gradient-to-l from-transparent to-primary" />
        </div>
-       <div className="flex overflow-x-auto no-scrollbar gap-8 px-8 pb-4 sm:grid sm:grid-cols-5 lg:grid-cols-10 sm:overflow-visible sm:justify-items-center">
+       <div className="flex overflow-x-auto no-scrollbar gap-8 px-8 pb-4 sm:grid sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-11 sm:overflow-visible sm:justify-items-center">
           <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#0f6a4b]" />
           <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#b8972e]" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1b4332]" />
           <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-[#8e7745]" />
           <QuickAction to="/majlis" label="الأخبار" icon={<Newspaper />} color="bg-[#0f6a4b]" />
+          <QuickAction to="/community" label="ركن الأعضاء" icon={<Users />} color="bg-[#2f7d4a]" />
           <QuickAction to="/archive" label="الألبوم" icon={<Archive />} color="bg-[#af9867]" />
           <QuickAction to="/heritage" label="الإرث" icon={<History />} color="bg-[#8b6b23]" />
           <QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-[#1b4332]" />

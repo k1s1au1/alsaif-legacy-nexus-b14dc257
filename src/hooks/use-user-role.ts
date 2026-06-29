@@ -3,9 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "admin" | "manager" | "member" | "chairman";
 
-export type Section = "meetings" | "tasks" | "trips" | "finance" | "heritage" | "news";
+export type Section = "meetings" | "tasks" | "trips" | "finance" | "heritage" | "news" | "community";
 
-export const SECTIONS: Section[] = ["meetings", "tasks", "trips", "finance", "heritage", "news"];
+export const SECTIONS: Section[] = ["meetings", "tasks", "trips", "finance", "heritage", "news", "community"];
+
 
 export function sectionLabel(section: Section): string {
   switch (section) {
@@ -15,6 +16,7 @@ export function sectionLabel(section: Section): string {
     case "finance": return "المالية";
     case "heritage": return "إرث السيف";
     case "news": return "الأخبار";
+    case "community": return "ركن الأعضاء";
   }
 }
 
