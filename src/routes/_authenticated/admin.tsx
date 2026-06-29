@@ -480,8 +480,14 @@ function AdminPage() {
                     <Megaphone size={18} /> طلبات
                     {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
                   </button>
-                )}
-             </div>
+                 )}
+                 {(isSystemAdmin || isSiteChairman) && (
+                   <button onClick={() => setTab("bugs")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "bugs" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
+                     <Shield size={18} /> بلاغات تقنية
+                     {bugReports.filter((b: any) => b.status === 'open').length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{bugReports.filter((b: any) => b.status === 'open').length}</span>}
+                   </button>
+                 )}
+              </div>
 
             {tab === "requests" && (
               <section className="space-y-8 animate-fade-up">
