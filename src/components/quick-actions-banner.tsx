@@ -51,6 +51,7 @@ export function QuickActionsBanner() {
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1b4332]" />
           <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-[#8e7745]" />
           <QuickAction to="/majlis" label="الأخبار" icon={<Newspaper />} color="bg-[#0f6a4b]" />
+          <QuickAction to="/community" label="ركن الأعضاء" icon={<Users />} color="bg-[#2f7d4a]" />
           <QuickAction to="/archive" label="الألبوم" icon={<Archive />} color="bg-[#af9867]" />
           <QuickAction to="/heritage" label="الإرث" icon={<History />} color="bg-[#8b6b23]" />
           <QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-[#1b4332]" />
