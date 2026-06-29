@@ -179,7 +179,7 @@ function MajlisPage() {
       </div>
 
       <AnimatePresence>
-        {showAdd && <AddPostDialog meId={meId} onClose={() => setShowAdd(false)} onSaved={loadData} />}
+        {showAdd && <AddPostDialog meId={meId} canManageNews={canManage} onClose={() => setShowAdd(false)} onSaved={loadData} />}
       </AnimatePresence>
     </AppShell>
   );
@@ -308,23 +308,46 @@ function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
   );
 }
 
-function AddPostDialog({ meId, onClose, onSaved }: any) {
+function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ title: "", body: "" });
+  const [kind, setKind] = useState<"sharing" | "announcement">("sharing");
+  const [image, setImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  const pickImage = (e: any) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setImage(f);
+    setImagePreview(URL.createObjectURL(f));
+  };
 
   const submit = async (e: any) => {
     e.preventDefault();
     const title = form.title.trim(), body = form.body.trim();
     if (!title || !body) return toast.error("يرجى إكمال البيانات الأساسية");
     setSaving(true);
-    const finalBody = `---kind:sharing\n${body}`;
     try {
+      let imagePrefix = "";
+      if (image && kind === "announcement") {
+        setUploading(true);
+        const ext = image.name.split(".").pop() || "jpg";
+        const path = `anns/${crypto.randomUUID()}.${ext}`;
+        const { error: upErr } = await supabase.storage.from("trip-images").upload(path, image);
+        setUploading(false);
+        if (upErr) { toast.error("تعذر رفع الصورة"); setSaving(false); return; }
+        imagePrefix = `---image:${path}\n`;
+      }
+
+      const isAnn = kind === "announcement" && canManageNews;
+      const finalBody = isAnn ? `${imagePrefix}${body}` : `---kind:sharing\n${body}`;
       const { error } = await supabase.from("majlis_posts").insert({
-        title, body: finalBody, kind: "discussion", author_id: meId,
+        title, body: finalBody, kind: isAnn ? "announcement" : "discussion", author_id: meId,
       });
       if (!error) {
-        toast.success("تم النشر بنجاح");
-        sendFcmNotification({ data: { title: "منشور جديد", body: title } }).catch(() => {});
+        toast.success(isAnn ? "تم نشر الإعلان" : "تم النشر بنجاح");
+        sendFcmNotification({ data: { title: isAnn ? "📢 إعلان جديد" : "منشور جديد", body: title } }).catch(() => {});
         onSaved(); onClose();
       } else toast.error("تعذر النشر: " + error.message);
     } finally { setSaving(false); }
@@ -336,25 +359,66 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
         <header className="p-8 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg"><Plus size={24} strokeWidth={3} /></div>
-            <h3 className="text-2xl font-black text-primary">منشور جديد</h3>
+            <h3 className="text-2xl font-black text-primary">{kind === "announcement" ? "إعلان جديد" : "منشور جديد"}</h3>
           </div>
           <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"><X size={24} /></button>
         </header>
         <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1 text-foreground">
+          {canManageNews && (
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setKind("sharing")} className={cn(
+                "p-4 rounded-2xl border-2 font-black text-sm transition-all",
+                kind === "sharing" ? "bg-primary text-white border-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:border-primary/40"
+              )}>منشور عائلي</button>
+              <button type="button" onClick={() => setKind("announcement")} className={cn(
+                "p-4 rounded-2xl border-2 font-black text-sm transition-all flex items-center justify-center gap-2",
+                kind === "announcement" ? "bg-gold-primary text-black border-gold-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:border-gold-primary/40"
+              )}><Pin size={14} /> إعلان المجلس</button>
+            </div>
+          )}
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان المنشور</label>
-            <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="عنوان المنشور..."
+            <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان {kind === "announcement" ? "الإعلان" : "المنشور"}</label>
+            <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="العنوان..."
               className="w-full h-16 px-8 rounded-3xl bg-muted/40 border border-border/60 font-black text-xl focus:ring-4 focus:ring-primary/5 focus:border-primary shadow-inner outline-none" required />
           </div>
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">تفاصيل المنشور</label>
-            <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder="اكتب تفاصيل المنشور هنا..." rows={6}
+            <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">التفاصيل</label>
+            <textarea value={form.body} onChange={e => setForm({ ...form, body: e.target.value })} placeholder="اكتب التفاصيل هنا..." rows={6}
               className="w-full p-8 rounded-[40px] bg-muted/40 border border-border/60 font-bold text-lg focus:ring-4 focus:ring-primary/5 focus:border-primary resize-none shadow-inner outline-none" required />
           </div>
+
+          {kind === "announcement" && canManageNews && (
+            <div className="space-y-3">
+              <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary px-2">صورة الخلفية (تظهر كخلفية في بنر لوحة التحكم)</label>
+              {imagePreview ? (
+                <div className="relative rounded-3xl overflow-hidden border-2 border-gold-primary/30 shadow-xl">
+                  <img src={imagePreview} alt="" className="w-full max-h-64 object-cover" />
+                  <button type="button" onClick={() => { setImage(null); setImagePreview(null); }}
+                    className="absolute top-3 left-3 size-10 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-rose-500">
+                    <X size={18} />
+                  </button>
+                </div>
+              ) : (
+                <label className="block w-full p-8 rounded-3xl border-2 border-dashed border-gold-primary/40 bg-gold-primary/5 hover:bg-gold-primary/10 cursor-pointer text-center transition-all">
+                  {uploading ? (
+                    <Loader2 className="animate-spin size-8 mx-auto text-gold-primary" />
+                  ) : (
+                    <div className="space-y-2">
+                      <Plus className="size-10 mx-auto text-gold-primary" />
+                      <p className="text-sm font-black text-gold-primary">اختر صورة الخلفية</p>
+                      <p className="text-[10px] font-bold text-muted-foreground">PNG / JPG حتى 5MB</p>
+                    </div>
+                  )}
+                  <input type="file" accept="image/*" className="hidden" onChange={pickImage} />
+                </label>
+              )}
+            </div>
+          )}
+
           <div className="flex gap-4 pt-6">
             <button type="button" onClick={onClose} className="flex-1 py-5 rounded-[28px] font-black text-muted-foreground hover:bg-muted">تراجع</button>
             <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-[28px] font-black text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 active:scale-[0.98]">
-              {saving ? <Loader2 className="animate-spin size-6" /> : <><Send size={24} /> <span>نشر الآن</span></>}
+              {saving ? <Loader2 className="animate-spin size-6" /> : <><Send size={24} /> <span>{kind === "announcement" ? "نشر الإعلان" : "نشر الآن"}</span></>}
             </button>
           </div>
         </form>
