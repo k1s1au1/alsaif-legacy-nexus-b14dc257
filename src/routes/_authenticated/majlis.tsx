@@ -81,14 +81,16 @@ function MajlisPage() {
         // Only "sharing" — meaning no poll and uiKind=sharing (or legacy kind=discussion without kind tag)
         const processed = rawPosts.map((p: any) => {
           const kindMatch = p.body?.match(/---kind:(\w+)/);
-          const uiKind = kindMatch ? kindMatch[1] : (p.kind === "complaint" ? "complaint" : "sharing");
+          const uiKind = kindMatch
+            ? kindMatch[1]
+            : (p.kind === "announcement" ? "announcement" : p.kind === "complaint" ? "complaint" : "sharing");
           const cleanBody = (p.body || "")
             .replace(/---kind:.*?\n?/, "")
             .replace(/---poll:.*?--- \n?/, "")
             .replace(/^---poll:.*?---/s, "")
             .trim();
           return { ...p, uiKind, cleanBody: cleanBody || p.body, author: profileMap.get(p.author_id) || null };
-        }).filter((p: any) => p.uiKind === "sharing");
+        }).filter((p: any) => p.uiKind === "sharing" || p.uiKind === "announcement" || p.kind === "announcement");
 
         processed.sort((a: any, b: any) => {
           if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
