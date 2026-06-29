@@ -284,7 +284,7 @@ function Dashboard() {
       // Consolidated fetching with individual error handling to prevent total blackout
       const fetchCounts = async () => {
         supabase.from("trips").select("*", { count: "exact", head: true }).then(r => setTripsCount(r.count || 0));
-        supabase.from("profiles").select("*", { count: "exact", head: true }).then(r => setMembersCount(r.count || 0));
+        supabase.from("profiles").select("id", { count: "exact", head: true }).then(r => setMembersCount(r.count || 0));
         supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then(r => setTasksCount(r.count || 0));
         supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done").then(r => setMyTasksCount(r.count || 0));
         supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday).then(r => setNewNewsCount(r.count || 0));
