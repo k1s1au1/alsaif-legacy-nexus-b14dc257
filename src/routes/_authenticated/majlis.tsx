@@ -34,6 +34,9 @@ type MajlisPost = {
   pinned: boolean;
   created_at: string;
   cleanBody?: string;
+  imagePath?: string | null;
+  imageUrl?: string | null;
+  uiKind?: string;
   author?: { arabic_name: string | null; full_name: string | null; avatar_url: string | null };
 };
 
