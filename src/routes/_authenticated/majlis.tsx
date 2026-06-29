@@ -312,7 +312,7 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({ title: "", body: "" });
-  const [kind, setKind] = useState<"sharing" | "announcement">("sharing");
+  const [kind] = useState<"announcement">("announcement");
   const [image, setImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -364,18 +364,6 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
           <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"><X size={24} /></button>
         </header>
         <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1 text-foreground">
-          {canManageNews && (
-            <div className="grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setKind("sharing")} className={cn(
-                "p-4 rounded-2xl border-2 font-black text-sm transition-all",
-                kind === "sharing" ? "bg-primary text-white border-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:border-primary/40"
-              )}>منشور عائلي</button>
-              <button type="button" onClick={() => setKind("announcement")} className={cn(
-                "p-4 rounded-2xl border-2 font-black text-sm transition-all flex items-center justify-center gap-2",
-                kind === "announcement" ? "bg-gold-primary text-black border-gold-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:border-gold-primary/40"
-              )}><Pin size={14} /> إعلان المجلس</button>
-            </div>
-          )}
           <div className="space-y-3">
             <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان {kind === "announcement" ? "الإعلان" : "المنشور"}</label>
             <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="العنوان..."
