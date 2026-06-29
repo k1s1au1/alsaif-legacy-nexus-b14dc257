@@ -6,6 +6,7 @@ import {
   CalendarDays,
   ListChecks,
   Newspaper,
+  Megaphone,
   Trees,
   Wallet,
   User,
