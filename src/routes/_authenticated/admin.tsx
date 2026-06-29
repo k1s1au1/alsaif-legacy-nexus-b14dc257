@@ -164,6 +164,16 @@ function AdminPage() {
           }
           setMemberRequests(mreqList.map(p => ({ ...p, author: authMap.get(p.author_id) || null })));
 
+          // Enrich bug reports with reporter profile
+          const bugList = (bugs as any[]) || [];
+          const bids = Array.from(new Set(bugList.map(b => b.reporter_id).filter(Boolean)));
+          const bMap = new Map<string, any>();
+          if (bids.length) {
+            const { data: bps } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", bids);
+            (bps || []).forEach((a: any) => bMap.set(a.id, a));
+          }
+          setBugReports(bugList.map(b => ({ ...b, reporter: bMap.get(b.reporter_id) || null })));
+
           // Fetch FCM Token Count (from profiles)
           const { data: tcData } = await supabase.from("profiles").select("fcm_token");
           const count = tcData?.filter(p => p.fcm_token && p.fcm_token.length > 10).length || 0;
