@@ -68,8 +68,7 @@ function MajlisPage() {
 
       const { data: rawPosts, error } = await supabase
         .from("majlis_posts")
-        .select("*")
-        .neq("kind", "announcement");
+        .select("*");
       if (error) console.error("Posts fetch error:", error);
 
       if (rawPosts) {
