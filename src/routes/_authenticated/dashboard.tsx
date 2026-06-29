@@ -291,10 +291,11 @@ function Dashboard() {
       };
 
       const fetchData = async () => {
-        const [{ data: meetings }, { data: tData }, { data: annData }, { data: transactions }] = await Promise.all([
+        const [{ data: meetings }, { data: tData }, { data: annData }, { data: newsData }, { data: transactions }] = await Promise.all([
           supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5),
           supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
           supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
+          supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "discussion").order("created_at", { ascending: false }).limit(15),
           supabase.from("fund_transactions").select("amount, type")
         ]);
 
@@ -309,9 +310,20 @@ function Dashboard() {
           setFundBalance(bal);
         }
 
-        if (annData) {
+        const sharingNews = (newsData || []).filter((p: any) => {
+          const m = p.body?.match(/---kind:(\w+)/);
+          const uiKind = m ? m[1] : "sharing";
+          return uiKind === "sharing";
+        }).slice(0, 5).map((p: any) => ({ ...p, _label: "أخبار العائلة" }));
+
+        const merged = [
+          ...((annData || []) as any[]).map((p: any) => ({ ...p, _label: "إعلان المجلس" })),
+          ...sharingNews,
+        ];
+
+        if (merged.length > 0) {
           const withImages = await Promise.all(
-            annData.map(async (a: any) => {
+            merged.map(async (a: any) => {
               const imgMatch = a.body.match(/^---image:(.*)\n/);
               let url = null;
               if (imgMatch) {
@@ -322,7 +334,7 @@ function Dashboard() {
               return {
                 ...a,
                 imageUrl: url,
-                cleanBody: imgMatch ? a.body.replace(/^---image:.*\n/, "") : a.body,
+                cleanBody: a.body.replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, ""),
               };
             }),
           );
