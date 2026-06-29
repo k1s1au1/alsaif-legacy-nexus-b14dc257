@@ -179,7 +179,7 @@ function MajlisPage() {
       </div>
 
       <AnimatePresence>
-        {showAdd && <AddPostDialog meId={meId} onClose={() => setShowAdd(false)} onSaved={loadData} />}
+        {showAdd && <AddPostDialog meId={meId} canManageNews={canManage} onClose={() => setShowAdd(false)} onSaved={loadData} />}
       </AnimatePresence>
     </AppShell>
   );
