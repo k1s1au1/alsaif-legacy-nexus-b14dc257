@@ -376,21 +376,21 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
                       <UserAvatar path={assignee.avatar_url} name={assignee.name} className="size-full" userId={assignee.id} />
                    </div>
                    <div className="space-y-0.5">
-                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">المسؤول عن المهمة</p>
-                      <p className="text-xs font-black text-primary dark:text-gold-primary">{assignee.name}</p>
+                      <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-80">المسؤول عن المهمة</p>
+                      <p className="text-xs font-black text-foreground">{assignee.name}</p>
                    </div>
                 </div>
              ) : (
-                <div className="flex items-center gap-2 text-muted-foreground/30 italic text-[10px] font-black uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-muted-foreground italic text-[10px] font-black uppercase tracking-widest">
                    <X size={12} strokeWidth={3} /> بانتظار تكليف
                 </div>
              )}
 
-             <div className="text-left bg-muted/30 dark:bg-white/5 px-4 py-2 rounded-2xl border border-border/20 dark:border-white/5">
-                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-50">تاريخ الاستحقاق</p>
+             <div className="text-left bg-muted/40 px-4 py-2 rounded-2xl border border-border/30">
+                <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest opacity-80">تاريخ الاستحقاق</p>
                 <div className="flex items-center gap-2">
                    <Clock className="size-3 text-gold-primary" />
-                   <span className="text-xs font-black text-primary/80 dark:text-white/60">{formatDate(task.due_date)}</span>
+                   <span className="text-xs font-black text-foreground">{formatDate(task.due_date)}</span>
                 </div>
              </div>
           </div>
