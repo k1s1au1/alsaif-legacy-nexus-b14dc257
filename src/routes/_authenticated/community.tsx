@@ -439,7 +439,22 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
     } as any);
     setSaving(false);
     if (error) toast.error("تعذر النشر: " + error.message);
-    else { toast.success("تم النشر"); onSaved(); onClose(); }
+    else {
+      toast.success("تم النشر");
+      if (kind === "request") {
+        try {
+          const { sendFcmNotification } = await import("@/lib/fcm");
+          sendFcmNotification({
+            data: {
+              title: "📩 طلب جديد من عضو",
+              body: title.trim(),
+            },
+          }).catch(() => {});
+        } catch {}
+      }
+      onSaved();
+      onClose();
+    }
   };
 
   return (
