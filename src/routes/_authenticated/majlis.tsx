@@ -184,6 +184,7 @@ function MajlisPage() {
 
       <AnimatePresence>
         {showAdd && <AddPostDialog meId={meId} canManageNews={canManage} onClose={() => setShowAdd(false)} onSaved={loadData} />}
+        {editingPost && <AddPostDialog meId={meId} canManageNews={canManage} editPost={editingPost} onClose={() => setEditingPost(null)} onSaved={loadData} />}
       </AnimatePresence>
     </AppShell>
   );
