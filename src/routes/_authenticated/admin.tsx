@@ -512,6 +512,7 @@ function AdminPage() {
                         onDelete={deleteMember}
                         fullName={m.arabic_name || m.full_name || "عضو"}
                         canManageSections={isChair}
+                        canManageRoles={isChair}
                       />
                     ))}
                     {filteredMembers.length === 0 && !loading && (
