@@ -16,6 +16,7 @@ export function sectionLabel(section: Section): string {
     case "finance": return "المالية";
     case "heritage": return "إرث السيف";
     case "news": return "الأخبار";
+    case "community": return "ركن الأعضاء";
   }
 }
 
