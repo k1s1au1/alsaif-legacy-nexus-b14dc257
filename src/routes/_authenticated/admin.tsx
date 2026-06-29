@@ -81,9 +81,9 @@ function AdminPage() {
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [memberRequests, setMemberRequests] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"requests" | "members" | "announcements">("requests");
+  const [tab, setTab] = useState<"requests" | "members" | "member_requests">("requests");
   const [reqCounts, setReqCounts] = useState<Record<string, number>>({ pending: 0, approved: 0, rejected: 0 });
   const [fcmTokenCount, setFcmTokenCount] = useState(0);
   const [memberSearch, setMemberSearch] = useState("");
@@ -120,12 +120,12 @@ function AdminPage() {
 
       if (isA) {
         try {
-          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: anns }] = await Promise.all([
+          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: mreqs }] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
             supabase.from("profiles").select("*").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
             supabase.from("section_heads" as any).select("user_id, section"),
-            supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false })
+            supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false })
           ]);
 
           if (memErr) {
@@ -152,7 +152,15 @@ function AdminPage() {
           }
 
           setPendingReqs(reqs || []);
-          setAnnouncements(anns || []);
+          // Enrich member requests with author profile
+          const mreqList = (mreqs as any[]) || [];
+          const aids = Array.from(new Set(mreqList.map(p => p.author_id).filter(Boolean)));
+          const authMap = new Map<string, any>();
+          if (aids.length) {
+            const { data: aps } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", aids);
+            (aps || []).forEach((a: any) => authMap.set(a.id, a));
+          }
+          setMemberRequests(mreqList.map(p => ({ ...p, author: authMap.get(p.author_id) || null })));
 
           // Fetch FCM Token Count (from profiles)
           const { data: tcData } = await supabase.from("profiles").select("fcm_token");
@@ -310,8 +318,8 @@ function AdminPage() {
         body = `---image:${path}\n${body}`;
       } else if (annDraft.id) {
         // Keep existing image if not uploading a new one during edit
-        const existing = announcements.find(a => a.id === annDraft.id);
-        const imgMatch = existing?.body.match(/^---image:.*\n/);
+        const existing = memberRequests.find((a: any) => a.id === annDraft.id);
+        const imgMatch = existing?.body?.match(/^---image:.*\n/);
         if (imgMatch) body = imgMatch[0] + body;
       }
 
@@ -450,8 +458,9 @@ function AdminPage() {
                <button onClick={() => setTab("members")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "members" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
                  <Users size={18} /> إدارة الأعضاء
                </button>
-               <button onClick={() => setTab("announcements")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "announcements" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                 <Newspaper size={18} /> الإعلانات
+               <button onClick={() => setTab("member_requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "member_requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
+                 <Megaphone size={18} /> طلبات
+                 {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
                </button>
             </div>
 
@@ -507,32 +516,59 @@ function AdminPage() {
               </section>
             )}
 
-            {tab === "announcements" && (
-              <section className="animate-fade-up">
-                 <AnnouncementsManager
-                   list={announcements}
-                   formOpen={showAnnForm}
-                   onOpenForm={() => { setAnnDraft({ id: "", title: "", body: "" }); setAnnImage(null); setAnnImagePreview(null); setShowAnnForm(true); }}
-                   onCloseForm={() => setShowAnnForm(false)}
-                   draft={annDraft}
-                   setDraft={setAnnDraft}
-                   imagePreview={annImagePreview}
-                   onPickImage={onPickImage}
-                   onClearImage={() => { setAnnImage(null); setAnnImagePreview(null); }}
-                   onSave={handleSaveAnn}
-                   onEdit={(a: any) => {
-                     setAnnDraft({ id: a.id, title: a.title, body: a.body.replace(/^---image:.*\n/, "") });
-                     const imgMatch = a.body.match(/^---image:(.*)\n/);
-                     if (imgMatch) {
-                       // We don't have the signed URL here easily without re-fetching,
-                       // but the user can re-upload if they want a new one.
-                       setAnnImagePreview(null);
-                     }
-                     setShowAnnForm(true);
-                   }}
-                   onDelete={async (id: string) => { if (confirm("حذف الإعلان؟")) { await supabase.from("majlis_posts").delete().eq("id", id); loadData(); } }}
-                   saving={annSaving}
-                 />
+            {tab === "member_requests" && (
+              <section className="animate-fade-up space-y-6">
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-primary tracking-tight">طلبات الأعضاء</h3>
+                  <p className="text-sm font-bold text-muted-foreground opacity-60">الطلبات التي ينشرها الأعضاء من ركن الأعضاء — يطّلع عليها رئيس المجلس مباشرة.</p>
+                </div>
+                <div className="grid gap-4">
+                  {memberRequests.length === 0 && (
+                    <div className="p-16 text-center text-muted-foreground italic bg-muted/20 rounded-[36px] border-2 border-dashed">
+                      لا توجد طلبات من الأعضاء حالياً.
+                    </div>
+                  )}
+                  {memberRequests.map((r: any) => {
+                    const author = r.author?.arabic_name || r.author?.full_name || "عضو";
+                    const cleanBody = (r.body || "").replace(/^---image:.*\n/, "");
+                    return (
+                      <div key={r.id} className="card-surface p-6 md:p-8 space-y-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="size-12 rounded-2xl border-2 border-gold-primary/20 overflow-hidden shrink-0">
+                              <UserAvatar path={r.author?.avatar_url} name={author} className="size-full" userId={r.author_id} />
+                            </div>
+                            <div className="min-w-0">
+                              <h4 className="text-base font-black text-primary truncate">{author}</h4>
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                                {new Date(r.created_at).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={async () => {
+                              if (!confirm("حذف الطلب؟")) return;
+                              const { error } = await supabase.from("member_posts" as any).delete().eq("id", r.id);
+                              if (error) toast.error("تعذر الحذف");
+                              else { toast.success("تم الحذف"); loadData(); }
+                            }}
+                            className="size-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shrink-0"
+                            title="حذف"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                        <div className="space-y-2">
+                          <h5 className="text-lg font-black text-foreground leading-tight">{r.title}</h5>
+                          {cleanBody && <p className="text-sm font-bold text-muted-foreground/90 whitespace-pre-wrap leading-relaxed">{cleanBody}</p>}
+                        </div>
+                        <div className="pt-3 border-t border-border/40 flex justify-end">
+                          <Link to="/community" className="text-xs font-black text-primary hover:underline">عرض في ركن الأعضاء ←</Link>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </section>
             )}
           </>
