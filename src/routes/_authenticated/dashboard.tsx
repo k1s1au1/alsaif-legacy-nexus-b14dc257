@@ -663,11 +663,11 @@ function Dashboard() {
                         <div className="size-12 md:size-20 rounded-2xl md:rounded-[24px] bg-gold-primary/20 backdrop-blur-md border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-xl">
                           <Newspaper className="size-6 md:size-10" />
                         </div>
-                        <div className="md:hidden flex flex-col"><span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold-primary/80">أخبار العائلة</span></div>
+                        <div className="md:hidden flex flex-col"><span className="text-[9px] font-black uppercase tracking-[0.2em] text-gold-primary/80">{a._label || "أخبار العائلة"}</span></div>
                       </div>
                       <div className="flex-1 min-w-0 space-y-1 md:space-y-2">
                         <div className="hidden md:flex items-center gap-3">
-                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">أخبار السيف</span>
+                          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">{a._label || "أخبار السيف"}</span>
                           <div className="h-px w-12 bg-gold-primary/30" />
                         </div>
                         <div
