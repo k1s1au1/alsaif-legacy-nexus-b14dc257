@@ -424,9 +424,12 @@ function MeetingsPage() {
                 </div>
               </section>
             )}
+
+            <MeetingDiscussions meId={userId} isAdmin={isAdmin} isChairman={isChairman} canManage={canManage} />
           </div>
         )}
       </div>
+
 
       <AnimatePresence>
         {showForm && (
