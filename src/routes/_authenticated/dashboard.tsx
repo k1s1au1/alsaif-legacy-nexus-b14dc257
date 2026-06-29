@@ -200,6 +200,45 @@ function Dashboard() {
   const [bugImage, setBugImage] = useState<File | null>(null);
   const [bugImagePreview, setBugImagePreview] = useState<string | null>(null);
   const [bugSending, setBugSending] = useState(false);
+  const [showInitiativeForm, setShowInitiativeForm] = useState(false);
+  const [initTitle, setInitTitle] = useState("");
+  const [initBody, setInitBody] = useState("");
+  const [initSending, setInitSending] = useState(false);
+
+  const reloadInitiatives = useCallback(async () => {
+    const { data } = await supabase
+      .from("majlis_posts")
+      .select("*")
+      .eq("kind", "discussion")
+      .ilike("title", "[مبادرة]%")
+      .order("created_at", { ascending: false })
+      .limit(6);
+    const rows = (data || []) as any[];
+    if (rows.length === 0) { setInitiatives([]); return; }
+    const ids = Array.from(new Set(rows.map((x) => x.author_id).filter(Boolean)));
+    const { data: profs } = await supabase.from("profiles").select("id, arabic_name, full_name").in("id", ids);
+    const map = new Map((profs || []).map((p: any) => [p.id, p]));
+    setInitiatives(rows.map((row) => ({ ...row, author: map.get(row.author_id) || null })));
+  }, []);
+
+  const submitInitiative = async () => {
+    if (!profile.userId) { toast.error("يجب تسجيل الدخول"); return; }
+    const t = initTitle.trim();
+    const b = initBody.trim();
+    if (t.length < 3) { toast.error("اكتب عنواناً للمبادرة"); return; }
+    setInitSending(true);
+    const { error } = await supabase.from("majlis_posts").insert({
+      kind: "discussion",
+      title: `[مبادرة] ${t}`,
+      body: b,
+      author_id: profile.userId,
+    });
+    setInitSending(false);
+    if (error) { toast.error("تعذر نشر المبادرة"); return; }
+    toast.success("تم نشر مبادرتك");
+    setInitTitle(""); setInitBody(""); setShowInitiativeForm(false);
+    reloadInitiatives();
+  };
   const hasGreeted = useRef(false);
   const dynamicLogo = useSiteLogo();
 
