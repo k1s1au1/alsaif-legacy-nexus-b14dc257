@@ -171,8 +171,8 @@
   .bg-neutral-100,
   .bg-stone-50,
   .bg-stone-100 {
-    background-color: hsl(var(--card)) !important;
-    color: hsl(var(--card-foreground));
+    background-color: var(--card) !important;
+    color: var(--card-foreground);
   }
 
   /* Deep surface backgrounds */
@@ -187,8 +187,8 @@
   .bg-neutral-950,
   .bg-stone-900,
   .bg-stone-950 {
-    background-color: hsl(var(--card)) !important;
-    color: hsl(var(--card-foreground));
+    background-color: var(--card) !important;
+    color: var(--card-foreground);
   }
 
   /* Primary text */
@@ -203,7 +203,7 @@
   .text-neutral-950,
   .text-stone-900,
   .text-stone-950 {
-    color: hsl(var(--foreground)) !important;
+    color: var(--foreground) !important;
   }
 
   /* Secondary / muted text */
@@ -227,7 +227,7 @@
   .text-stone-600,
   .text-stone-700,
   .text-stone-800 {
-    color: hsl(var(--muted-foreground)) !important;
+    color: var(--muted-foreground) !important;
   }
 
   /* Light text only safe over dark / image overlays — leave .text-white intact
@@ -244,7 +244,7 @@
   .border-neutral-200,
   .border-stone-100,
   .border-stone-200 {
-    border-color: hsl(var(--border)) !important;
+    border-color: var(--border) !important;
   }
 }
 
