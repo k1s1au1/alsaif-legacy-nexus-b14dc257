@@ -7,7 +7,7 @@ import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { toast } from "sonner";
 import {
   MessageSquare, Pin, Plus, Send, Trash2, Loader2, X, Users, ChevronLeft,
-  Image as ImageIcon, Vote, BookOpen, HelpCircle, Camera, BarChart3,
+  Image as ImageIcon, Vote, BookOpen, HelpCircle, Camera, BarChart3, ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/community")({
 type Post = {
   id: string;
   author_id: string;
-  kind: "diary" | "photo" | "question" | string;
+  kind: "diary" | "photo" | "question" | "request" | string;
   title: string;
   body: string | null;
   image_urls: string[];
@@ -41,6 +41,7 @@ const KIND_META: Record<string, { label: string; icon: any; color: string }> = {
   diary: { label: "يوميات", icon: BookOpen, color: "bg-emerald-600" },
   photo: { label: "صور", icon: Camera, color: "bg-amber-600" },
   question: { label: "سؤال للعائلة", icon: HelpCircle, color: "bg-sky-600" },
+  request: { label: "طلبات", icon: ShieldAlert, color: "bg-rose-600" },
 };
 
 function CommunityPage() {
@@ -403,7 +404,7 @@ function CommentsSection({ post, meId, isHead, comments, onRefresh }: any) {
 function AddPostDialog({ meId, onClose, onSaved }: any) {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [kind, setKind] = useState<"diary" | "photo" | "question">("diary");
+  const [kind, setKind] = useState<"diary" | "photo" | "question" | "request">("diary");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [images, setImages] = useState<string[]>([]);
@@ -452,7 +453,7 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
           <button onClick={onClose} className="size-10 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"><X size={20} /></button>
         </header>
         <form onSubmit={submit} className="p-6 space-y-5 overflow-y-auto no-scrollbar flex-1 text-foreground">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
             {Object.entries(KIND_META).map(([k, m]) => {
               const I = m.icon; const active = kind === k;
               return (
