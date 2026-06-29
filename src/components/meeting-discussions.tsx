@@ -117,6 +117,8 @@ export function MeetingDiscussions({ meId, isAdmin, isChairman, canManage }: {
           <Plus size={18} strokeWidth={3} /><span>إضافة</span>
         </button>
       </div>
+      <div className="hidden">{/* spacer */}</div>
+      </div>
 
       <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar w-fit">
         <Tab active={activeTab === "all"} onClick={() => setActiveTab("all")} label="الكل" icon={<ListFilter size={16} />} />
