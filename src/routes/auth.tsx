@@ -7,7 +7,6 @@ import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, 
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
-import { paletteToCssVars } from "@/lib/bg-palette";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { sendFcmNotification } from "@/lib/fcm";
@@ -42,8 +41,7 @@ function AuthPage() {
   const [reqPassword, setReqPassword] = useState("");
   const [reqNote, setReqNote] = useState("");
 
-  const { url: authBg, palette: authPalette } = useAppBackground("auth_bg");
-  const paletteVars = authPalette ? paletteToCssVars(authPalette) : undefined;
+  const { url: authBg } = useAppBackground("auth_bg");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -124,7 +122,6 @@ function AuthPage() {
 
       <div
         className="relative w-full max-w-[480px] md:max-w-[540px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border transition-all duration-500"
-        style={paletteVars}
       >
         {authBg && (
           <div
