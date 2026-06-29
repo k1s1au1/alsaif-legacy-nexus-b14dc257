@@ -110,7 +110,7 @@ function MembersPage() {
       supabase.removeChannel(channel);
       window.clearInterval(tickId);
     };
-  }, []);
+  }, [userId, primaryRole]);
 
   const filtered = members.filter((m) => {
     if (!debouncedQ.trim()) return true;
