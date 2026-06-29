@@ -334,7 +334,7 @@ function MeetingsPage() {
         </section>
 
         {/* Tabs */}
-        <div className="flex gap-2 p-1.5 bg-muted/40 rounded-2xl border border-border/40 overflow-x-auto no-scrollbar">
+        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
           {tabs.map(t => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -343,14 +343,14 @@ function MeetingsPage() {
                 key={t.key}
                 onClick={() => setTab(t.key)}
                 className={cn(
-                  "flex-1 min-w-fit px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs md:text-sm font-black transition-all whitespace-nowrap",
+                  "min-w-0 px-2 sm:px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-sm font-black transition-all",
                   active ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-foreground"
                 )}
               >
-                <Icon size={14} />
-                <span>{t.label}</span>
-                {typeof t.count === "number" && (
-                  <span className={cn("text-[10px] font-black px-1.5 py-0.5 rounded-full", active ? "bg-white/20" : "bg-muted-foreground/10")}>
+                <Icon size={14} className="shrink-0" />
+                <span className="truncate">{t.label}</span>
+                {typeof t.count === "number" && t.count > 0 && (
+                  <span className={cn("hidden sm:inline text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0", active ? "bg-white/20" : "bg-muted-foreground/10")}>
                     {t.count}
                   </span>
                 )}
@@ -358,6 +358,7 @@ function MeetingsPage() {
             );
           })}
         </div>
+
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
