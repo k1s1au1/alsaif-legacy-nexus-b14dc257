@@ -214,6 +214,36 @@ export type Database = {
           },
         ]
       }
+      bug_reports: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          image_url: string | null
+          reporter_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          reporter_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          reporter_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           archived_at: string | null
