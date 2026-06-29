@@ -295,71 +295,82 @@ function MeetingsPage() {
     return attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.rsvp ?? null;
   };
 
+  const [tab, setTab] = useState<"upcoming" | "past" | "discussions">("upcoming");
+
+  const tabs: { key: typeof tab; label: string; count?: number; icon: any }[] = [
+    { key: "upcoming", label: "القادمة", count: upcoming.length, icon: Timer },
+    { key: "past", label: "الأرشيف", count: past.length, icon: Clock },
+    { key: "discussions", label: "النقاشات", icon: Users },
+  ];
+
   return (
     <AppShell title="الاجتماعات" user={profile}>
-      <div className="max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-8 pb-24 px-4 md:px-0" dir="rtl">
         <QuickActionsBanner />
 
-        {/* Alsaif Meetings Header — Banner Style */}
+        {/* Compact Header */}
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-primary via-[#1a2b3c] to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
-            {/* Left Decorative Logo */}
-            <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
-              <div
-                className="size-28 md:size-64 logo-alsaif-banner"
-                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
-              />
+          <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] bg-gradient-to-br from-primary via-[#1a2b3c] to-black p-6 md:p-8 text-white shadow-xl border border-white/5">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+              <div className="size-24 md:size-40 logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any} />
             </div>
-
-            <div className="absolute top-0 right-0 size-64 bg-gold-primary/5 rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2" />
-
-            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 md:gap-10">
-              <div className="space-y-3 md:space-y-5 text-center md:text-right">
-                <div className="flex items-center justify-center md:justify-start gap-3">
-                  <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
-                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
-                    ملتقى العائلة
-                  </span>
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-2 text-center md:text-right">
+                <div className="flex items-center justify-center md:justify-start gap-2">
+                  <div className="h-0.5 w-8 bg-gold-primary" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">ملتقى العائلة</span>
                 </div>
-                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
-                  الاجتماعات
-                </h2>
-                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
-                  جدول اللقاءات العائلية القادمة لتعزيز الترابط والتواصل.
-                </p>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight">الاجتماعات</h2>
+                <p className="text-white/60 font-bold text-xs md:text-sm max-w-md">جدول اللقاءات العائلية والنقاشات.</p>
               </div>
-
               {canManage && (
-                <button
-                  onClick={openCreate}
-                  className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
-                >
-                  <Plus className="size-5 md:size-7 group-hover:rotate-90 transition-transform duration-500" strokeWidth={3} />
-                  <span>إضافة مناسبة</span>
+                <button onClick={openCreate} className="btn-gold px-6 py-3 rounded-2xl flex items-center justify-center gap-2 shadow-xl text-sm font-black self-center md:self-auto shrink-0 active:scale-95 transition-all">
+                  <Plus size={18} strokeWidth={3} />
+                  <span>إضافة اجتماع</span>
                 </button>
               )}
             </div>
           </div>
         </section>
 
+        {/* Tabs */}
+        <div className="flex gap-2 p-1.5 bg-muted/40 rounded-2xl border border-border/40 overflow-x-auto no-scrollbar">
+          {tabs.map(t => {
+            const Icon = t.icon;
+            const active = tab === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={cn(
+                  "flex-1 min-w-fit px-4 py-2.5 rounded-xl flex items-center justify-center gap-2 text-xs md:text-sm font-black transition-all whitespace-nowrap",
+                  active ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                <Icon size={14} />
+                <span>{t.label}</span>
+                {typeof t.count === "number" && (
+                  <span className={cn("text-[10px] font-black px-1.5 py-0.5 rounded-full", active ? "bg-white/20" : "bg-muted-foreground/10")}>
+                    {t.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
-             <div className="size-16 rounded-full border-4 border-primary/20 border-t-gold-primary animate-spin" />
-             <p className="font-black text-primary uppercase tracking-widest text-xs">جاري تجهيز المجلس...</p>
+            <div className="size-12 rounded-full border-4 border-primary/20 border-t-gold-primary animate-spin" />
+            <p className="font-black text-primary uppercase tracking-widest text-xs">جاري التحميل...</p>
           </div>
         ) : (
-          <div className="space-y-20">
-            <section className="space-y-8 animate-fade-up">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4 text-primary font-black uppercase tracking-widest text-xs">
-                   <Timer className="size-4 text-gold-primary" /> أهم الاجتماعات القادمة
-                </div>
-              </div>
-
-              {upcoming.length === 0 ? (
-                <div className="card-surface p-24 flex flex-col items-center text-center gap-8 border-dashed border-4 opacity-40 rounded-[56px] bg-muted/20">
-                   <CalendarDays size={64} className="text-muted-foreground opacity-20" />
-                   <p className="text-2xl font-black text-primary">لا توجد اجتماعات مجدولة حالياً</p>
+          <div key={tab} className="animate-fade-up">
+            {tab === "upcoming" && (
+              upcoming.length === 0 ? (
+                <div className="card-surface p-16 flex flex-col items-center text-center gap-4 border-dashed border-2 opacity-60 rounded-[32px] bg-muted/20">
+                  <CalendarDays size={48} className="text-muted-foreground opacity-40" />
+                  <p className="text-lg font-black text-primary">لا توجد اجتماعات مجدولة</p>
                 </div>
               ) : (
                 <Carousel
@@ -367,7 +378,7 @@ function MeetingsPage() {
                   className="w-full touch-pan-y"
                   onMouseEnter={plugin.current.stop}
                   onMouseLeave={plugin.current.reset}
-                  opts={{ direction: 'rtl', loop: true, watchDrag: true }}
+                  opts={{ direction: 'rtl', loop: upcoming.length > 1, watchDrag: true }}
                 >
                   <CarouselContent className="touch-pan-y">
                     {upcoming.map((m) => (
@@ -390,45 +401,51 @@ function MeetingsPage() {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
-                  <div className="hidden md:block">
-                    <CarouselPrevious className="right-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black" />
-                    <CarouselNext className="left-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black" />
-                  </div>
+                  {upcoming.length > 1 && (
+                    <div className="hidden md:block">
+                      <CarouselPrevious className="right-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black" />
+                      <CarouselNext className="left-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black" />
+                    </div>
+                  )}
                 </Carousel>
-              )}
-            </section>
+              )
+            )}
 
-            {past.length > 0 && (
-              <section className="space-y-8 animate-fade-up">
-                <div className="flex items-center gap-4 opacity-50">
-                   <Clock className="size-4" />
-                   <h3 className="text-xs font-black uppercase tracking-[0.4em] whitespace-nowrap text-primary">الأرشيف والسجل</h3>
-                   <div className="h-px flex-1 bg-gradient-to-l from-border to-transparent" />
+            {tab === "past" && (
+              past.length === 0 ? (
+                <div className="card-surface p-16 flex flex-col items-center text-center gap-4 border-dashed border-2 opacity-60 rounded-[32px] bg-muted/20">
+                  <Clock size={48} className="text-muted-foreground opacity-40" />
+                  <p className="text-lg font-black text-primary">لا توجد اجتماعات سابقة</p>
                 </div>
+              ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {past.map((m) => (
-                    <div key={m.id} className="card-surface p-6 flex items-center justify-between opacity-60 hover:opacity-100 transition-all hover:bg-muted group rounded-[32px]">
-                       <div className="flex items-center gap-6">
-                          <div className="size-14 rounded-2xl bg-muted flex flex-col items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                             <span className="text-[10px] font-black uppercase tracking-tighter">{formatDate(m.scheduled_at).month}</span>
-                             <span className="text-2xl font-black tracking-tighter leading-none">{formatDate(m.scheduled_at).day}</span>
-                          </div>
-                          <div>
-                             <h4 className="font-black text-lg text-primary">{m.title}</h4>
-                             <p className="text-xs font-bold text-muted-foreground">{formatDate(m.scheduled_at).year}</p>
-                          </div>
-                       </div>
-                       <ChevronLeft className="opacity-20 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
+                    <div key={m.id} className="card-surface p-5 flex items-center justify-between hover:bg-muted/40 transition-all group rounded-[24px]">
+                      <div className="flex items-center gap-4">
+                        <div className="size-14 rounded-2xl bg-muted flex flex-col items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                          <span className="text-[10px] font-black uppercase tracking-tighter">{formatDate(m.scheduled_at).month}</span>
+                          <span className="text-2xl font-black tracking-tighter leading-none">{formatDate(m.scheduled_at).day}</span>
+                        </div>
+                        <div>
+                          <h4 className="font-black text-base text-foreground">{m.title}</h4>
+                          <p className="text-xs font-bold text-muted-foreground">{formatDate(m.scheduled_at).year}</p>
+                        </div>
+                      </div>
+                      <ChevronLeft className="opacity-20 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
                     </div>
                   ))}
                 </div>
-              </section>
+              )
             )}
 
-            <MeetingDiscussions meId={userId} isAdmin={isAdmin} isChairman={isChairman} canManage={canManage} />
+            {tab === "discussions" && (
+              <MeetingDiscussions meId={userId} isAdmin={isAdmin} isChairman={isChairman} canManage={canManage} />
+            )}
           </div>
         )}
       </div>
+
+
 
 
       <AnimatePresence>
