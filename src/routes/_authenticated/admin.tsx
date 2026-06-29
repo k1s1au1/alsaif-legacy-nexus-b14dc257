@@ -152,7 +152,15 @@ function AdminPage() {
           }
 
           setPendingReqs(reqs || []);
-          setAnnouncements(anns || []);
+          // Enrich member requests with author profile
+          const mreqList = (mreqs as any[]) || [];
+          const aids = Array.from(new Set(mreqList.map(p => p.author_id).filter(Boolean)));
+          const authMap = new Map<string, any>();
+          if (aids.length) {
+            const { data: aps } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", aids);
+            (aps || []).forEach((a: any) => authMap.set(a.id, a));
+          }
+          setMemberRequests(mreqList.map(p => ({ ...p, author: authMap.get(p.author_id) || null })));
 
           // Fetch FCM Token Count (from profiles)
           const { data: tcData } = await supabase.from("profiles").select("fcm_token");
