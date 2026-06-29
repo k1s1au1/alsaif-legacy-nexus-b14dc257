@@ -318,8 +318,8 @@ function AdminPage() {
         body = `---image:${path}\n${body}`;
       } else if (annDraft.id) {
         // Keep existing image if not uploading a new one during edit
-        const existing = announcements.find(a => a.id === annDraft.id);
-        const imgMatch = existing?.body.match(/^---image:.*\n/);
+        const existing = memberRequests.find((a: any) => a.id === annDraft.id);
+        const imgMatch = existing?.body?.match(/^---image:.*\n/);
         if (imgMatch) body = imgMatch[0] + body;
       }
 
