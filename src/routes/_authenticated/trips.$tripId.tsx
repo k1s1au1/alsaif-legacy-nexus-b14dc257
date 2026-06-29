@@ -306,7 +306,7 @@ function TripDetail() {
     const channel = supabase
       .channel(`trip-${tripId}-realtime`)
       .on("postgres_changes", { event: "*", schema: "public", table: "trip_attendees", filter: `trip_id=eq.${tripId}` }, () => loadAttendees(tripId))
-      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => loadChecklist(tripId))
+      .on("postgres_changes", { event: "*", schema: "public", table: "trip_items", filter: `trip_id=eq.${tripId}` }, () => loadChecklist(tripId))
       .subscribe();
 
     return () => {
