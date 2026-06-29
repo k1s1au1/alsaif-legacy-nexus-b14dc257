@@ -467,7 +467,7 @@ function AdminPage() {
                  <Megaphone size={18} /> طلبات
                  {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
                </button>
-            </div>
+             )}
 
             {tab === "requests" && (
               <section className="space-y-8 animate-fade-up">
