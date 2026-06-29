@@ -33,7 +33,7 @@ export function ActivePolls({ userId }: { userId: string | null }) {
     const { data: posts } = await supabase
       .from("majlis_posts")
       .select("id,title,body,author_id,created_at")
-      .like("body", "---poll:%")
+      .like("body", "%---poll:%")
       .order("created_at", { ascending: false })
       .limit(10);
     const list = (posts ?? []) as Post[];
