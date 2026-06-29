@@ -41,7 +41,6 @@ import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carouse
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
-import { ActivePolls } from "@/components/dashboard/active-polls";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
 import { sendFcmNotification } from "@/lib/fcm";
 import { showIsland, hideIsland } from "@/components/dynamic-island";
