@@ -189,12 +189,12 @@ function TripDetail() {
 
     try {
       const { error } = await supabase
-        .from("majlis_posts")
+        .from("trip_items")
         .insert({
-          author_id: userId,
-          kind: "discussion",
-          title: `[TRIP-ITEM:${tripId}] ${newItemName.trim()}`,
-          body: "AVAILABLE", // Initial state
+          trip_id: tripId,
+          name: newItemName.trim(),
+          created_by: userId,
+          assigned_to: null,
         });
 
       if (error) throw error;
@@ -214,7 +214,7 @@ function TripDetail() {
     if (!confirm("حذف الغرض؟")) return;
     try {
       const { error } = await supabase
-        .from("majlis_posts")
+        .from("trip_items")
         .delete()
         .eq("id", id);
 
@@ -230,12 +230,12 @@ function TripDetail() {
     if (!userId) return;
 
     const isMine = item.assigned_to === userId;
-    const newBody = isMine ? "AVAILABLE" : `ASSIGNED:${userId}\n${profile.name}`;
+    const newAssignedTo = isMine ? null : userId;
 
     try {
       const { error } = await supabase
-        .from("majlis_posts")
-        .update({ body: newBody })
+        .from("trip_items")
+        .update({ assigned_to: newAssignedTo })
         .eq("id", item.id);
 
       if (error) throw error;
@@ -246,6 +246,7 @@ function TripDetail() {
       toast.error("فشل تحديث الحالة");
     }
   }
+
 
   useEffect(() => {
     (async () => {
