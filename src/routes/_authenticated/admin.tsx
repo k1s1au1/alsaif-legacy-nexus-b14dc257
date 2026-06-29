@@ -125,7 +125,7 @@ function AdminPage() {
             supabase.from("profiles").select("*").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
             supabase.from("section_heads" as any).select("user_id, section"),
-            supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false })
+            isSiteChairman ? supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
           ]);
 
           if (memErr) {
@@ -185,6 +185,11 @@ function AdminPage() {
   }, [meId, isA, isSystemAdmin, isSiteChairman]);
 
   useEffect(() => { loadData(); }, [loadData]);
+
+  // "Member requests" tab is chairman-only; fall back to requests if not chairman
+  useEffect(() => {
+    if (!isSiteChairman && tab === "member_requests") setTab("requests");
+  }, [isSiteChairman, tab]);
 
   const updateReqStatus = async (id: string, status: "approved" | "pending" | "rejected") => {
     try {
@@ -451,18 +456,20 @@ function AdminPage() {
           </div>
         ) : (
           <>
-            <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar mx-4 md:mx-0">
-               <button onClick={() => setTab("requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                 <UserPlus size={18} /> طلبات العضوية
-               </button>
-               <button onClick={() => setTab("members")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "members" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                 <Users size={18} /> إدارة الأعضاء
-               </button>
-               <button onClick={() => setTab("member_requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "member_requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                 <Megaphone size={18} /> طلبات
-                 {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
-               </button>
-            </div>
+             <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar mx-4 md:mx-0">
+                <button onClick={() => setTab("requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
+                  <UserPlus size={18} /> طلبات العضوية
+                </button>
+                <button onClick={() => setTab("members")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "members" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
+                  <Users size={18} /> إدارة الأعضاء
+                </button>
+                {isSiteChairman && (
+                  <button onClick={() => setTab("member_requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "member_requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
+                    <Megaphone size={18} /> طلبات
+                    {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
+                  </button>
+                )}
+             </div>
 
             {tab === "requests" && (
               <section className="space-y-8 animate-fade-up">
