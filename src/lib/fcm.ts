@@ -80,7 +80,7 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
         const { data: userRoles } = await supabaseAdmin
           .from("user_roles")
           .select("user_id")
-          .in("role", roles);
+          .in("role", roles as any);
         targetUserIds = (userRoles ?? []).map((r: any) => r.user_id);
         if (targetUserIds.length === 0) return { success: true, count: 0 };
       }
