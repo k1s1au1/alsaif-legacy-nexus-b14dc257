@@ -6,7 +6,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { toast } from "sonner";
 import {
-  MessageSquare, Pin, Plus, Send, Trash2, Loader2, X, Newspaper, ChevronLeft,
+  MessageSquare, Pin, Plus, Send, Trash2, Loader2, X, Newspaper, ChevronLeft, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,6 +34,9 @@ type MajlisPost = {
   pinned: boolean;
   created_at: string;
   cleanBody?: string;
+  imagePath?: string | null;
+  imageUrl?: string | null;
+  uiKind?: string;
   author?: { arabic_name: string | null; full_name: string | null; avatar_url: string | null };
 };
 
@@ -46,6 +49,7 @@ function MajlisPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAdd, setShowAdd] = useState(false);
+  const [editingPost, setEditingPost] = useState<MajlisPost | null>(null);
   const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
@@ -173,19 +177,20 @@ function MajlisPage() {
 
         <div className="grid grid-cols-1 gap-8 px-4 md:px-0">
           {loading ? <div className="py-20 text-center"><Loader2 className="animate-spin size-12 mx-auto text-primary opacity-20" /></div> :
-            posts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canManage || p.author_id === meId} onRefresh={loadData} comments={comments} />)}
+            posts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canManage || p.author_id === meId} canEdit={canManage || p.author_id === meId} onEdit={() => setEditingPost(p)} onRefresh={loadData} comments={comments} />)}
           {!loading && posts.length === 0 && <div className="p-20 text-center bg-muted/20 rounded-[48px] border-4 border-dashed italic text-muted-foreground">لا توجد منشورات حالياً.</div>}
         </div>
       </div>
 
       <AnimatePresence>
         {showAdd && <AddPostDialog meId={meId} canManageNews={canManage} onClose={() => setShowAdd(false)} onSaved={loadData} />}
+        {editingPost && <AddPostDialog meId={meId} canManageNews={canManage} editPost={editingPost} onClose={() => setEditingPost(null)} onSaved={loadData} />}
       </AnimatePresence>
     </AppShell>
   );
 }
 
-function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: any) {
+function PostCard({ post, meId, isChairman, canDelete, canEdit, onEdit, onRefresh, comments }: any) {
   const authorName = post.author?.arabic_name || post.author?.full_name || "عضو";
 
   const deletePost = async () => {
@@ -229,10 +234,11 @@ function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: an
             )}
           </div>
         </div>
-        {canDelete && (
+        {(canDelete || canEdit) && (
           <div className="flex flex-row md:flex-col gap-2 md:opacity-0 md:group-hover:opacity-100 transition-all duration-500 self-end md:self-start shrink-0">
             {isChairman && <button onClick={togglePin} className={cn("size-12 rounded-2xl flex items-center justify-center transition-all shadow-lg", post.pinned ? "bg-gold-primary text-white" : "bg-gold-primary/10 text-gold-primary hover:bg-gold-primary hover:text-white")} title="تثبيت"><Pin size={20} /></button>}
-            <button onClick={deletePost} className="size-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="حذف"><Trash2 size={20} /></button>
+            {canEdit && <button onClick={onEdit} className="size-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-all shadow-lg" title="تعديل"><Pencil size={20} /></button>}
+            {canDelete && <button onClick={deletePost} className="size-12 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-lg" title="حذف"><Trash2 size={20} /></button>}
           </div>
         )}
       </div>
@@ -308,19 +314,34 @@ function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
   );
 }
 
-function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
+function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any) {
+  const isEdit = !!editPost;
+  const isAnn = isEdit
+    ? (editPost.kind === "announcement" || editPost.uiKind === "announcement") && canManageNews
+    : canManageNews;
+
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [form, setForm] = useState({ title: "", body: "" });
-  const [kind] = useState<"announcement">("announcement");
+  const [form, setForm] = useState({
+    title: editPost?.title || "",
+    body: editPost?.cleanBody || "",
+  });
   const [image, setImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(editPost?.imageUrl || null);
+  const [existingImagePath, setExistingImagePath] = useState<string | null>(editPost?.imagePath || null);
 
   const pickImage = (e: any) => {
     const f = e.target.files?.[0];
     if (!f) return;
     setImage(f);
     setImagePreview(URL.createObjectURL(f));
+    setExistingImagePath(null);
+  };
+
+  const clearImage = () => {
+    setImage(null);
+    setImagePreview(null);
+    setExistingImagePath(null);
   };
 
   const submit = async (e: any) => {
@@ -329,27 +350,38 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
     if (!title || !body) return toast.error("يرجى إكمال البيانات الأساسية");
     setSaving(true);
     try {
-      let imagePrefix = "";
-      if (image && kind === "announcement") {
+      let imagePath = existingImagePath;
+      if (image && isAnn) {
         setUploading(true);
         const ext = image.name.split(".").pop() || "jpg";
         const path = `anns/${crypto.randomUUID()}.${ext}`;
         const { error: upErr } = await supabase.storage.from("trip-images").upload(path, image);
         setUploading(false);
         if (upErr) { toast.error("تعذر رفع الصورة"); setSaving(false); return; }
-        imagePrefix = `---image:${path}\n`;
+        imagePath = path;
       }
 
-      const isAnn = kind === "announcement" && canManageNews;
+      const imagePrefix = imagePath ? `---image:${imagePath}\n` : "";
       const finalBody = isAnn ? `${imagePrefix}${body}` : `---kind:sharing\n${body}`;
-      const { error } = await supabase.from("majlis_posts").insert({
-        title, body: finalBody, kind: isAnn ? "announcement" : "discussion", author_id: meId,
-      });
-      if (!error) {
-        toast.success(isAnn ? "تم نشر الإعلان" : "تم النشر بنجاح");
-        sendFcmNotification({ data: { title: isAnn ? "📢 إعلان جديد" : "منشور جديد", body: title } }).catch(() => {});
-        onSaved(); onClose();
-      } else toast.error("تعذر النشر: " + error.message);
+
+      if (isEdit) {
+        const { error } = await supabase.from("majlis_posts").update({
+          title, body: finalBody, kind: isAnn ? "announcement" : "discussion",
+        }).eq("id", editPost.id);
+        if (!error) {
+          toast.success("تم تحديث الإعلان");
+          onSaved(); onClose();
+        } else toast.error("تعذر التحديث: " + error.message);
+      } else {
+        const { error } = await supabase.from("majlis_posts").insert({
+          title, body: finalBody, kind: isAnn ? "announcement" : "discussion", author_id: meId,
+        });
+        if (!error) {
+          toast.success(isAnn ? "تم نشر الإعلان" : "تم النشر بنجاح");
+          sendFcmNotification({ data: { title: isAnn ? "📢 إعلان جديد" : "منشور جديد", body: title } }).catch(() => {});
+          onSaved(); onClose();
+        } else toast.error("تعذر النشر: " + error.message);
+      }
     } finally { setSaving(false); }
   };
 
@@ -358,14 +390,14 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
       <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card w-full max-w-2xl rounded-[48px] overflow-hidden shadow-2xl border border-border flex flex-col max-h-[90vh]">
         <header className="p-8 border-b border-border/40 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="size-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg"><Plus size={24} strokeWidth={3} /></div>
-            <h3 className="text-2xl font-black text-primary">{kind === "announcement" ? "إعلان جديد" : "منشور جديد"}</h3>
+            <div className="size-10 rounded-2xl bg-primary flex items-center justify-center text-white shadow-lg">{isEdit ? <Pencil size={24} strokeWidth={3} /> : <Plus size={24} strokeWidth={3} />}</div>
+            <h3 className="text-2xl font-black text-primary">{isEdit ? "تعديل الإعلان" : "إعلان جديد"}</h3>
           </div>
           <button onClick={onClose} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-muted/80"><X size={24} /></button>
         </header>
         <form onSubmit={submit} className="p-8 space-y-6 overflow-y-auto no-scrollbar flex-1 text-foreground">
           <div className="space-y-3">
-            <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان {kind === "announcement" ? "الإعلان" : "المنشور"}</label>
+            <label className="text-[10px] font-black uppercase tracking-widest text-primary/60 px-2">عنوان الإعلان</label>
             <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="العنوان..."
               className="w-full h-16 px-8 rounded-3xl bg-muted/40 border border-border/60 font-black text-xl focus:ring-4 focus:ring-primary/5 focus:border-primary shadow-inner outline-none" required />
           </div>
@@ -375,13 +407,13 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
               className="w-full p-8 rounded-[40px] bg-muted/40 border border-border/60 font-bold text-lg focus:ring-4 focus:ring-primary/5 focus:border-primary resize-none shadow-inner outline-none" required />
           </div>
 
-          {kind === "announcement" && canManageNews && (
+          {isAnn && (
             <div className="space-y-3">
               <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary px-2">صورة الخلفية (تظهر كخلفية في بنر لوحة التحكم)</label>
               {imagePreview ? (
                 <div className="relative rounded-3xl overflow-hidden border-2 border-gold-primary/30 shadow-xl">
                   <img src={imagePreview} alt="" className="w-full max-h-64 object-cover" />
-                  <button type="button" onClick={() => { setImage(null); setImagePreview(null); }}
+                  <button type="button" onClick={clearImage}
                     className="absolute top-3 left-3 size-10 rounded-full bg-black/70 text-white flex items-center justify-center hover:bg-rose-500">
                     <X size={18} />
                   </button>
@@ -393,7 +425,7 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
                   ) : (
                     <div className="space-y-2">
                       <Plus className="size-10 mx-auto text-gold-primary" />
-                      <p className="text-sm font-black text-gold-primary">اختر صورة الخلفية</p>
+                      <p className="text-sm font-black text-gold-primary">{isEdit ? "تغيير صورة الخلفية" : "اختر صورة الخلفية"}</p>
                       <p className="text-[10px] font-bold text-muted-foreground">PNG / JPG حتى 5MB</p>
                     </div>
                   )}
@@ -406,7 +438,7 @@ function AddPostDialog({ meId, canManageNews, onClose, onSaved }: any) {
           <div className="flex gap-4 pt-6">
             <button type="button" onClick={onClose} className="flex-1 py-5 rounded-[28px] font-black text-muted-foreground hover:bg-muted">تراجع</button>
             <button disabled={saving} type="submit" className="flex-[2] btn-gold py-5 rounded-[28px] font-black text-xl shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 active:scale-[0.98]">
-              {saving ? <Loader2 className="animate-spin size-6" /> : <><Send size={24} /> <span>{kind === "announcement" ? "نشر الإعلان" : "نشر الآن"}</span></>}
+              {saving ? <Loader2 className="animate-spin size-6" /> : <><Send size={24} /> <span>{isEdit ? "حفظ التعديلات" : "نشر الإعلان"}</span></>}
             </button>
           </div>
         </form>
