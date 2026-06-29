@@ -512,6 +512,7 @@ function AdminPage() {
                         onDelete={deleteMember}
                         fullName={m.arabic_name || m.full_name || "عضو"}
                         canManageSections={isChair}
+                        canManageRoles={isChair}
                       />
                     ))}
                     {filteredMembers.length === 0 && !loading && (
@@ -585,9 +586,9 @@ function AdminPage() {
   );
 }
 
-function RoleToggleBtn({ active, onClick, icon, label, activeClass }: any) {
+function RoleToggleBtn({ active, onClick, icon, label, activeClass, disabled }: any) {
   return (
-    <button onClick={onClick} disabled={active} className={cn("px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border", active ? cn("border-transparent shadow-lg scale-105", activeClass) : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-primary")}>
+    <button onClick={onClick} disabled={active || disabled} className={cn("px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border", active ? cn("border-transparent shadow-lg scale-105", activeClass) : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-primary", disabled && !active && "opacity-50 cursor-not-allowed hover:bg-card hover:text-muted-foreground")}>
       {icon} <span>{label}</span>
     </button>
   );
@@ -634,8 +635,12 @@ const SECTION_OPTIONS: { key: string; label: string }[] = [
   { key: "community", label: "ركن الأعضاء" },
 ];
 
-function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false }: any) {
+function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false, canManageRoles = false }: any) {
   const isMe = member.id === meId;
+  const handleRole = (uid: string, role: string) => {
+    if (!canManageRoles) { toast.error("هذه الصلاحية متاحة لرئيس المجلس والمسؤول التقني فقط"); return; }
+    onAssignRole(uid, role);
+  };
 
   return (
     <div className="card-surface p-4 md:p-5 hover:bg-primary/5 transition-all group">
@@ -651,13 +656,13 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
              </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-             <div className="flex items-center gap-1.5 flex-wrap">
-               <RoleToggleBtn active={currentRole === "chairman"} onClick={() => onAssignRole(member.id, "chairman")} icon={<ShieldCheck className="size-3.5" />} label="رئيس المجلس" activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary" />
-               <RoleToggleBtn active={currentRole === "admin"} onClick={() => onAssignRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول تقني" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
-               <RoleToggleBtn active={currentRole === "manager"} onClick={() => onAssignRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مسؤول قسم" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
-               <RoleToggleBtn active={currentRole === "member"} onClick={() => onAssignRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
+             <div className={cn("flex items-center gap-1.5 flex-wrap", !canManageRoles && "opacity-60")} title={!canManageRoles ? "تعديل الصلاحيات متاح لرئيس المجلس والمسؤول التقني فقط" : undefined}>
+               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "chairman"} onClick={() => handleRole(member.id, "chairman")} icon={<ShieldCheck className="size-3.5" />} label="رئيس المجلس" activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary" />
+               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "admin"} onClick={() => handleRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول تقني" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
+               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "manager"} onClick={() => handleRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مسؤول قسم" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
+               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "member"} onClick={() => handleRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
              </div>
-             {!isMe && currentRole !== "admin" && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}
+             {!isMe && currentRole !== "admin" && canManageRoles && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}
           </div>
        </div>
        <div className="mt-4 pt-4 border-t border-border/40">
