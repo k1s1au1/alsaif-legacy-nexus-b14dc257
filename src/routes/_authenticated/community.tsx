@@ -49,6 +49,7 @@ function CommunityPage() {
   const isHead = canManage("community");
 
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ع", avatarPath: null as string | null });
+  const [isChair, setIsChair] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [votes, setVotes] = useState<any[]>([]);
