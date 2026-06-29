@@ -6,7 +6,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import { toast } from "sonner";
 import {
-  MessageSquare, Pin, Plus, Send, Trash2, Loader2, X, Newspaper, ChevronLeft,
+  MessageSquare, Pin, Plus, Send, Trash2, Loader2, X, Newspaper, ChevronLeft, Pencil,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
