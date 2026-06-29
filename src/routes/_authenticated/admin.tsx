@@ -586,9 +586,9 @@ function AdminPage() {
   );
 }
 
-function RoleToggleBtn({ active, onClick, icon, label, activeClass }: any) {
+function RoleToggleBtn({ active, onClick, icon, label, activeClass, disabled }: any) {
   return (
-    <button onClick={onClick} disabled={active} className={cn("px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border", active ? cn("border-transparent shadow-lg scale-105", activeClass) : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-primary")}>
+    <button onClick={onClick} disabled={active || disabled} className={cn("px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border", active ? cn("border-transparent shadow-lg scale-105", activeClass) : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-primary", disabled && !active && "opacity-50 cursor-not-allowed hover:bg-card hover:text-muted-foreground")}>
       {icon} <span>{label}</span>
     </button>
   );
