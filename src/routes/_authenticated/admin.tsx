@@ -82,8 +82,9 @@ function AdminPage() {
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<any[]>([]);
   const [memberRequests, setMemberRequests] = useState<any[]>([]);
+  const [bugReports, setBugReports] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"requests" | "members" | "member_requests">("requests");
+  const [tab, setTab] = useState<"requests" | "members" | "member_requests" | "bugs">("requests");
   const [reqCounts, setReqCounts] = useState<Record<string, number>>({ pending: 0, approved: 0, rejected: 0 });
   const [fcmTokenCount, setFcmTokenCount] = useState(0);
   const [memberSearch, setMemberSearch] = useState("");
