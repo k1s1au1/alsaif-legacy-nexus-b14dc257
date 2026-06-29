@@ -80,9 +80,7 @@ function ProfilePage() {
       setEmail(u.user.email ?? "");
       setCreatedAt(u.user.created_at);
       const { data: p } = await supabase
-        .from("profiles")
-        .select("id, arabic_name, full_name, phone, avatar_url, created_at")
-        .eq("id", u.user.id)
+        .rpc("get_my_profile" as any)
         .maybeSingle<ProfileRow>();
       if (p) {
         setArabicName(p.arabic_name ?? "");

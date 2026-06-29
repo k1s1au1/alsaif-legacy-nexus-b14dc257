@@ -174,10 +174,9 @@ function AdminPage() {
           }
           setBugReports(bugList.map(b => ({ ...b, reporter: bMap.get(b.reporter_id) || null })));
 
-          // Fetch FCM Token Count (from profiles)
-          const { data: tcData } = await supabase.from("profiles").select("fcm_token");
-          const count = tcData?.filter(p => p.fcm_token && p.fcm_token.length > 10).length || 0;
-          setFcmTokenCount(count);
+          // Fetch FCM Token Count via security-definer RPC (admin/chairman only)
+          const { data: tcCount } = await supabase.rpc("count_fcm_tokens" as any);
+          setFcmTokenCount((tcCount as number | null) ?? 0);
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
           (reqs || []).forEach(r => {
