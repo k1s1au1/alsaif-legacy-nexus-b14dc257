@@ -177,7 +177,7 @@ function MajlisPage() {
 
         <div className="grid grid-cols-1 gap-8 px-4 md:px-0">
           {loading ? <div className="py-20 text-center"><Loader2 className="animate-spin size-12 mx-auto text-primary opacity-20" /></div> :
-            posts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canManage || p.author_id === meId} onRefresh={loadData} comments={comments} />)}
+            posts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canManage || p.author_id === meId} canEdit={canManage || p.author_id === meId} onEdit={() => setEditingPost(p)} onRefresh={loadData} comments={comments} />)}
           {!loading && posts.length === 0 && <div className="p-20 text-center bg-muted/20 rounded-[48px] border-4 border-dashed italic text-muted-foreground">لا توجد منشورات حالياً.</div>}
         </div>
       </div>
