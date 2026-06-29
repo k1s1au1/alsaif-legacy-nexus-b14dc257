@@ -49,6 +49,7 @@ function CommunityPage() {
   const isHead = canManage("community");
 
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ع", avatarPath: null as string | null });
+  const [isChair, setIsChair] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [votes, setVotes] = useState<any[]>([]);
@@ -65,6 +66,7 @@ function CommunityPage() {
         supabase.from("user_roles").select("role").eq("user_id", meId),
       ]);
       const rs = (roles ?? []).map(r => r.role);
+      setIsChair(rs.includes("chairman") || rs.includes("admin"));
       if (p) {
         setProfile({
           name: p.arabic_name || p.full_name || "عضو",
@@ -118,10 +120,11 @@ function CommunityPage() {
     return () => { supabase.removeChannel(channel); };
   }, [loadData]);
 
-  const filtered = useMemo(
-    () => filter === "all" ? posts : posts.filter(p => p.kind === filter),
-    [posts, filter]
-  );
+  const filtered = useMemo(() => {
+    // الطلبات سرّية: العضو يرى طلباته فقط، ورئيس المجلس/المسؤول التقني يرى الكل.
+    const visible = posts.filter(p => p.kind !== "request" || isChair || p.author_id === meId);
+    return filter === "all" ? visible : visible.filter(p => p.kind === filter);
+  }, [posts, filter, isChair, meId]);
 
   return (
     <AppShell title="ركن الأعضاء" user={profile}>
