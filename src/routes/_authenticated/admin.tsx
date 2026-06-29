@@ -125,7 +125,7 @@ function AdminPage() {
             supabase.from("profiles").select("*").order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
             supabase.from("section_heads" as any).select("user_id, section"),
-            supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false })
+            isSiteChairman ? supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
           ]);
 
           if (memErr) {
