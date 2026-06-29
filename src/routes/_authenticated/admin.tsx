@@ -186,6 +186,11 @@ function AdminPage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
+  // "Member requests" tab is chairman-only; fall back to requests if not chairman
+  useEffect(() => {
+    if (!isSiteChairman && tab === "member_requests") setTab("requests");
+  }, [isSiteChairman, tab]);
+
   const updateReqStatus = async (id: string, status: "approved" | "pending" | "rejected") => {
     try {
       if (status === "approved") {
