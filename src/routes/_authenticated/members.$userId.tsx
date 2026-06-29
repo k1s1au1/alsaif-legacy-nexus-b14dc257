@@ -54,11 +54,11 @@ function MemberProfilePage() {
     (async () => {
       setLoading(true);
       const { data: u } = await supabase.auth.getUser();
-      const [{ data: p }, { data: r }] = await Promise.all([
+      const [{ data: p }, { data: r }, { data: phoneVal }] = await Promise.all([
         supabase
           .from("profiles")
           .select(
-            "id, arabic_name, full_name, first_name, father_name, grandfather_name, phone, avatar_url, created_at",
+            "id, arabic_name, full_name, first_name, father_name, grandfather_name, avatar_url, created_at",
           )
           .eq("id", userId)
           .maybeSingle<ProfileRow>(),
@@ -69,8 +69,9 @@ function MemberProfilePage() {
           .order("role")
           .limit(1)
           .maybeSingle(),
+        supabase.rpc("get_member_phone" as any, { _user: userId }),
       ]);
-      setProfile(p ?? null);
+      setProfile(p ? ({ ...p, phone: (phoneVal as string | null) ?? null } as ProfileRow) : null);
       setRole((r?.role as string | null) ?? null);
 
       if (u.user) {

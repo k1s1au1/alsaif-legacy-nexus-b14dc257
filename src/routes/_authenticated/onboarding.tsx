@@ -48,9 +48,7 @@ function OnboardingPage() {
       }
       setUserId(u.user.id);
       const { data: p } = await supabase
-        .from("profiles")
-        .select("first_name, father_name, grandfather_name, phone")
-        .eq("id", u.user.id)
+        .rpc("get_my_profile" as any)
         .maybeSingle<{ first_name: string | null; father_name: string | null; grandfather_name: string | null; phone: string | null }>();
       if (p?.first_name && p?.father_name && p?.grandfather_name) {
         navigate({ to: "/dashboard", replace: true });

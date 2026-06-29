@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
 async function getGoogleAccessToken(serviceAccount: any) {
@@ -60,19 +61,37 @@ async function getGoogleAccessToken(serviceAccount: any) {
 /**
  * Sends a push notification using Firebase Cloud Messaging HTTP v1 API.
  * Requires FCM_SERVICE_ACCOUNT (JSON string) in environment variables.
+ *
+ * Auth: requires an authenticated caller. Only admins, chairman, or
+ * section managers may dispatch broadcasts.
  */
 export const sendFcmNotification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data) =>
     z.object({
-      title: z.string(),
-      body: z.string(),
-      roles: z.array(z.string()).optional(),
-      data: z.record(z.string()).optional()
+      title: z.string().min(1).max(120),
+      body: z.string().min(1).max(300),
+      roles: z.array(z.string().max(40)).max(10).optional(),
+      data: z.record(z.string().max(500)).optional()
     }).parse(data)
   )
-  .handler(async ({ data: { title, body, roles, data: customData } }) => {
+  .handler(async ({ data: { title, body, roles, data: customData }, context }) => {
     try {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+      // Authorize: caller must be admin / chairman / manager
+      const { data: callerRoles } = await supabaseAdmin
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", context.userId);
+      const callerRoleSet = new Set((callerRoles ?? []).map((r: any) => r.role));
+      const allowed =
+        callerRoleSet.has("admin") ||
+        callerRoleSet.has("chairman") ||
+        callerRoleSet.has("manager");
+      if (!allowed) {
+        return { success: false, error: "غير مصرح بإرسال الإشعارات" };
+      }
 
       // 1. Fetch target user IDs if roles provided
       let targetUserIds: string[] | null = null;
@@ -104,7 +123,7 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
 
       // 2. Load Service Account
       const serviceAccountRaw = process.env.FCM_SERVICE_ACCOUNT;
-      if (!serviceAccountRaw) throw new Error("FCM Configuration missing (FCM_SERVICE_ACCOUNT)");
+      if (!serviceAccountRaw) throw new Error("FCM Configuration missing");
 
       const sa = JSON.parse(serviceAccountRaw);
       const accessToken = await getGoogleAccessToken(sa);
@@ -137,6 +156,6 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
       return { success: true, count: successCount };
     } catch (error: any) {
       console.error("FCM Send Error:", error);
-      return { success: false, error: error.message || "حدث خطأ غير متوقع أثناء الإرسال" };
+      return { success: false, error: "تعذر إرسال الإشعار" };
     }
   });

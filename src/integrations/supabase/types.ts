@@ -1297,7 +1297,34 @@ export type Database = {
         Args: { _conv: string; _user: string }
         Returns: boolean
       }
+      count_fcm_tokens: { Args: never; Returns: number }
       find_or_create_direct: { Args: { _other: string }; Returns: string }
+      get_member_phone: { Args: { _user: string }; Returns: string }
+      get_my_profile: {
+        Args: never
+        Returns: {
+          arabic_name: string | null
+          avatar_url: string | null
+          created_at: string
+          father_name: string | null
+          fcm_token: string | null
+          first_name: string | null
+          full_name: string | null
+          grandfather_name: string | null
+          id: string
+          is_active: boolean
+          parent_id: string | null
+          phone: string | null
+          terms_accepted_at: string | null
+          updated_at: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "profiles"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]

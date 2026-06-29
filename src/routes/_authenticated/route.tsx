@@ -5,7 +5,9 @@ import { AlertCircle, Home, RefreshCcw } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
-  errorComponent: ({ error, reset }) => (
+  errorComponent: ({ error, reset }) => {
+    console.error("Route error:", error);
+    return (
     <div className="min-h-screen flex items-center justify-center p-6 bg-background">
       <div className="card-surface max-w-md w-full p-10 text-center space-y-6 shadow-2xl border-rose-500/20">
          <div className="size-20 rounded-[32px] bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">
@@ -15,8 +17,8 @@ export const Route = createFileRoute("/_authenticated")({
             <h2 className="text-2xl font-black text-primary tracking-tight">حدث خطأ في النظام</h2>
             <p className="text-sm font-bold text-muted-foreground opacity-60 leading-relaxed">أعتذر منك، يبدو أن هناك مشكلة في تحميل البيانات. يمكنك المحاولة مرة أخرى أو العودة للرئيسية.</p>
          </div>
-         <div className="p-4 rounded-2xl bg-muted/50 text-[10px] font-mono text-muted-foreground break-all text-left overflow-hidden max-h-32 overflow-y-auto">
-            {error.message}
+         <div className="p-4 rounded-2xl bg-muted/50 text-xs font-bold text-muted-foreground text-center">
+            حدث خطأ غير متوقع، يرجى المحاولة مجدداً.
          </div>
          <div className="flex gap-3">
             <button onClick={() => reset()} className="flex-1 h-14 rounded-2xl bg-primary text-white font-black text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all">
@@ -28,7 +30,8 @@ export const Route = createFileRoute("/_authenticated")({
          </div>
       </div>
     </div>
-  ),
+    );
+  },
   beforeLoad: async ({ location }) => {
     try {
       const { data, error } = await supabase.auth.getUser();
