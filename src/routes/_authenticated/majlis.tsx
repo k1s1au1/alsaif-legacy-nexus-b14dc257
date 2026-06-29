@@ -84,19 +84,29 @@ function MajlisPage() {
           const uiKind = kindMatch
             ? kindMatch[1]
             : (p.kind === "announcement" ? "announcement" : p.kind === "complaint" ? "complaint" : "sharing");
+          const imageMatch = (p.body || "").match(/---image:([^\n]+)\n?/);
+          const imagePath = imageMatch ? imageMatch[1].trim() : null;
           const cleanBody = (p.body || "")
+            .replace(/^---image:[^\n]+\n?/, "")
             .replace(/---kind:.*?\n?/, "")
             .replace(/---poll:.*?--- \n?/, "")
             .replace(/^---poll:.*?---/s, "")
             .trim();
-          return { ...p, uiKind, cleanBody: cleanBody || p.body, author: profileMap.get(p.author_id) || null };
+          return { ...p, uiKind, imagePath, cleanBody: cleanBody || "", author: profileMap.get(p.author_id) || null };
         }).filter((p: any) => p.uiKind === "sharing" || p.uiKind === "announcement" || p.kind === "announcement");
 
-        processed.sort((a: any, b: any) => {
+        // Sign image URLs in parallel
+        const withImages = await Promise.all(processed.map(async (p: any) => {
+          if (!p.imagePath) return p;
+          const { data } = await supabase.storage.from("trip-images").createSignedUrl(p.imagePath, 60 * 60 * 24);
+          return { ...p, imageUrl: data?.signedUrl || null };
+        }));
+
+        withImages.sort((a: any, b: any) => {
           if (a.pinned !== b.pinned) return a.pinned ? -1 : 1;
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
-        setPosts(processed as any);
+        setPosts(withImages as any);
       }
 
       const { data: coms } = await supabase
@@ -211,7 +221,12 @@ function PostCard({ post, meId, isChairman, canDelete, onRefresh, comments }: an
               </span>
             )}
             <h3 className="text-2xl md:text-3xl font-black text-primary leading-tight">{post.title}</h3>
-            <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.cleanBody}</p>
+            {post.cleanBody && <p className="text-base md:text-lg font-bold text-muted-foreground/80 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.cleanBody}</p>}
+            {post.imageUrl && (
+              <a href={post.imageUrl} target="_blank" rel="noreferrer" className="block rounded-3xl overflow-hidden border border-border/50 bg-muted shadow-lg max-h-[520px]">
+                <img src={post.imageUrl} alt={post.title} className="w-full h-auto object-cover" loading="lazy" />
+              </a>
+            )}
           </div>
         </div>
         {canDelete && (
