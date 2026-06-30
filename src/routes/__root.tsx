@@ -146,6 +146,11 @@ function RootComponent() {
         }
       }
     }
+
+    // Initialize native push notifications (no-op on web)
+    import("@/lib/pushNotifications").then(({ setupPushNotifications }) => {
+      setupPushNotifications();
+    }).catch((e) => console.error("[Push] import failed:", e));
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
