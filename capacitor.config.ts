@@ -1,19 +1,12 @@
-/// <reference types="@capacitor/push-notifications" />
-
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
   appId: 'com.alsaif.familyhub',
   appName: 'Alsaif Family Hub',
-  webDir: 'dist',
+  webDir: 'www',
   server: {
     url: 'https://alsaif-legacy-nexus.lovable.app',
-    cleartext: false
-  },
-  plugins: {
-    PushNotifications: {
-      presentationOptions: ['badge', 'sound', 'alert']
-    }
+    cleartext: true
   }
 };
 

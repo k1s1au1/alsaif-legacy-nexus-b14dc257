@@ -1,13 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User, Quote } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
+
 
 export const Route = createFileRoute("/auth")({
   head: () => ({
@@ -77,6 +79,11 @@ function AuthPage() {
       toast.error("تعذر إرسال الطلب", { description: error.message });
       return;
     }
+
+    // Notification dispatch to admins is intentionally handled server-side
+    // (e.g., via DB triggers / admin polling) — never from this unauthenticated
+    // path. Sending FCM from here would expose the dispatcher to abuse.
+
     toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة الطلب من قبل الإدارة وإشعارك قريباً." });
     setAuthMode("login");
   }
@@ -97,7 +104,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden" dir="rtl">
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden">
 
       {/* Alsaif Background Decoration */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -152,7 +159,7 @@ function AuthPage() {
                 </div>
 
                 <form onSubmit={onLogin} className="space-y-5">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5" dir="rtl">
                     <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
                     <div className="relative">
                       <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
@@ -167,7 +174,7 @@ function AuthPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5" dir="rtl">
                     <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">كلمة المرور</label>
                     <div className="relative">
                       <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
@@ -236,26 +243,26 @@ function AuthPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2" dir="rtl">
                    <h2 className="text-sm font-black text-primary uppercase tracking-widest">طلب انضمام للمجلس</h2>
                    <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
                 </div>
 
-                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[60vh] md:max-h-none overflow-y-auto no-scrollbar px-1">
-                   <div className="grid grid-cols-1 gap-4 text-right">
-                      <ReqField label="الاسم الأول" value={reqFirstName} onChange={setReqFirstName} placeholder="مثال: سعود" />
+                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[60vh] md:max-h-none overflow-y-auto md:overflow-visible no-scrollbar px-1" dir="rtl">
+                   <div className="grid grid-cols-1 gap-4">
+                      <ReqField label="الاسم الأول" icon={<User />} value={reqFirstName} onChange={setReqFirstName} placeholder="مثال: سعود" />
                       <div className="grid grid-cols-2 gap-3">
                          <ReqField label="اسم الأب" value={reqFatherName} onChange={setReqFatherName} placeholder="..." />
                          <ReqField label="اسم الجد" value={reqGrandName} onChange={setReqGrandFatherName} placeholder="..." />
                       </div>
-                      <ReqField label="رقم الجوال" value={reqPhone} onChange={setReqPhone} placeholder="05xxxxxxxx" type="tel" />
-                      <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
-                      <ReqField label="كلمة المرور المقترحة" value={reqPassword} onChange={setReqPassword} placeholder="••••••••" type="password" />
+                      <ReqField label="رقم الجوال" icon={<Phone />} value={reqPhone} onChange={setReqPhone} placeholder="05xxxxxxxx" type="tel" />
+                      <ReqField label="البريد الإلكتروني" icon={<Mail />} value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+                      <ReqField label="كلمة المرور المقترحة" icon={<Lock />} value={reqPassword} onChange={setReqPassword} placeholder="••••••••" type="password" />
                       <div className="space-y-1.5">
-                         <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest text-right block">ملاحظة إضافية</label>
+                         <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">ملاحظة إضافية</label>
                          <textarea
                            value={reqNote} onChange={(e) => setReqNote(e.target.value)}
-                           className="w-full bg-muted/40 border border-border rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none text-foreground"
+                           className="w-full bg-muted/40 border border-border rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none"
                            rows={2} placeholder="صلة القرابة أو أي معلومات إضافية..."
                          />
                       </div>
@@ -283,16 +290,16 @@ function AuthPage() {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2" dir="rtl">
                    <h2 className="text-sm font-black text-primary uppercase tracking-widest">استعادة كلمة المرور</h2>
                    <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
                 </div>
 
-                <form onSubmit={onForgotPassword} className="space-y-6">
-                  <p className="text-xs font-bold text-muted-foreground leading-relaxed text-right">أدخل بريدك الإلكتروني المسجل وسنرسل لك رابطاً لاستعادة الوصول لحسابك.</p>
+                <form onSubmit={onForgotPassword} className="space-y-6" dir="rtl">
+                  <p className="text-xs font-bold text-muted-foreground leading-relaxed">أدخل بريدك الإلكتروني المسجل وسنرسل لك رابطاً لاستعادة الوصول لحسابك.</p>
 
-                  <div className="space-y-1.5 text-right">
-                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest block">البريد الإلكتروني</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
                     <div className="relative">
                       <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
                       <input
@@ -332,18 +339,24 @@ function AuthPage() {
   );
 }
 
-function ReqField({ label, value, onChange, placeholder, type = "text" }: any) {
+function ReqField({ label, icon, value, onChange, placeholder, type = "text" }: any) {
   return (
-    <div className="space-y-1.5 text-right">
+    <div className="space-y-1.5">
        <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">{label}</label>
-       <input
-         type={type}
-         required
-         value={value}
-         onChange={(e) => onChange(e.target.value)}
-         className="w-full h-12 bg-muted/40 border border-border rounded-xl px-4 font-bold text-sm focus:border-primary transition-all text-foreground outline-none"
-         placeholder={placeholder}
-       />
+       <div className="relative">
+          {icon && <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gold-primary/40">{icon}</div>}
+          <input
+            type={type}
+            required
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            className={cn(
+              "w-full h-12 bg-muted/40 border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary transition-all shadow-sm",
+              icon ? "pr-12 pl-4" : "px-4"
+            )}
+            placeholder={placeholder}
+          />
+       </div>
     </div>
   );
 }

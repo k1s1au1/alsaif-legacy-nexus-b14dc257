@@ -17,32 +17,31 @@ function detectPlatform(): "android" | "ios" | "web" {
   return "web";
 }
 
-async function saveToken(tokenValue: string) {
+async function saveToken(token: string, platform: "android" | "ios" | "web") {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      console.log("No authenticated user, push token not saved");
+    const { data: auth } = await supabase.auth.getUser();
+    const userId = auth.user?.id;
+    if (!userId) {
+      // Retry on next sign-in
+      const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED")) {
+          await saveToken(token, platform);
+          sub.subscription.unsubscribe();
+        }
+      });
       return;
     }
-
-    const { error } = await supabase
+    // Multi-device store (UNIQUE on user_id + token → upsert is idempotent)
+    await supabase
       .from("push_tokens")
-      .upsert({
-        user_id: user.id,
-        token: tokenValue,
-        platform: 'android',
-        is_active: true,
-        updated_at: new Date().toISOString()
-      }, { onConflict: 'token' });
-
-    if (error) {
-      console.log("Save push token error:", error);
-    } else {
-      console.log("Push token saved successfully");
-    }
+      .upsert(
+        { user_id: userId, token, platform, is_active: true, updated_at: new Date().toISOString() },
+        { onConflict: "user_id,token" },
+      );
+    // Legacy single-token mirror (kept for back-compat with existing senders)
+    await supabase.from("profiles").update({ fcm_token: token }).eq("id", userId);
   } catch (e) {
-    console.log("Save push token error:", e);
+    console.error("[Push] saveToken failed", e);
   }
 }
 
@@ -76,8 +75,8 @@ export async function setupPushNotifications(): Promise<void> {
     await PushNotifications.register();
 
     await PushNotifications.addListener("registration", async (token: Token) => {
-      console.log("[Push] token obtained");
-      await saveToken(token.value);
+      console.log("[Push] token:", token.value.slice(0, 16) + "…");
+      await saveToken(token.value, platform === "web" ? "android" : platform);
     });
 
     await PushNotifications.addListener("registrationError", (err: unknown) => {
