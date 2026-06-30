@@ -97,16 +97,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#051410] transition-colors duration-700 overflow-hidden" dir="rtl">
-      {/* Background Image Layer */}
-      {authBg && (
-        <div
-          className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
-          style={{ backgroundImage: `url(${authBg})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-[#051410]/95 via-transparent to-[#051410]/95" />
-        </div>
-      )}
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden" dir="rtl">
 
       {/* Alsaif Background Decoration */}
       <div className="absolute inset-0 pointer-events-none opacity-20">
@@ -115,99 +106,244 @@ function AuthPage() {
       </div>
 
       <div
-        className="relative w-full max-w-[480px] md:max-w-[540px] bg-[#064E3B] rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-white/10 transition-all duration-500"
+        className="relative w-full max-w-[480px] md:max-w-[540px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border transition-all duration-500"
       >
-        <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full text-white">
+        {authBg && (
+          <div
+            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
+            style={{ backgroundImage: `url(${authBg})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-card/95 via-card/40 to-card/95" />
+          </div>
+        )}
+
+        <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full">
+          {/* Header Section */}
           <div className="flex flex-col items-center text-center mb-8">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="size-24 mb-6 flex items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-[32px] shadow-lg ring-1 ring-white/20 relative group overflow-hidden"
+              className="size-24 mb-6 flex items-center justify-center p-4 bg-gradient-to-b from-card to-muted rounded-[32px] shadow-lg ring-1 ring-border relative group overflow-hidden"
             >
               <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div
                 className="size-full relative z-10 logo-alsaif"
-                style={{ '--logo-url': `url(${dynamicLogo || logoAsset.url})` } as any}
+                style={{
+                  '--logo-url': `url(${dynamicLogo || logoAsset.url})`
+                } as any}
               />
             </motion.div>
-            <h1 className="text-3xl font-black text-white mb-1 tracking-tight">مجلس السيف</h1>
-            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-80">ALSAIF HUB</p>
+            <h1 className="text-3xl font-black text-primary mb-1 tracking-tight">مجلس السيف</h1>
+            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-60">ALSAIF · PRIVATE ACCESS</p>
           </div>
 
           <AnimatePresence mode="wait">
             {mode === "login" ? (
-              <motion.div key="login" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+              <motion.div
+                key="login"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
                 <div className="flex items-center justify-center gap-4 mb-2">
-                  <div className="h-px w-8 bg-white/20" />
-                  <h2 className="text-sm font-black text-white uppercase tracking-widest">تسجيل الدخول</h2>
-                  <div className="h-px w-8 bg-white/20" />
+                  <div className="h-px w-8 bg-border" />
+                  <h2 className="text-sm font-black text-primary uppercase tracking-widest">تسجيل الدخول</h2>
+                  <div className="h-px w-8 bg-border" />
                 </div>
+
                 <form onSubmit={onLogin} className="space-y-5">
-                  <div className="space-y-1.5" dir="rtl">
-                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest text-right block">البريد الإلكتروني</label>
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
                     <div className="relative">
                       <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
-                      <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-5 font-bold text-sm focus:border-gold-primary transition-all text-white outline-none" placeholder="saud@alsaif.family" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="example@alsaif.family"
+                      />
                     </div>
                   </div>
-                  <div className="space-y-1.5" dir="rtl">
-                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest text-right block">كلمة المرور</label>
+
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest">كلمة المرور</label>
                     <div className="relative">
                       <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
-                      <input type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-14 font-bold text-sm focus:border-gold-primary transition-all text-white outline-none" placeholder="••••••••••••" />
-                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors">{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                      <input
+                        type={showPassword ? "text" : "password"}
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-14 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="••••••••••••"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
                     </div>
                   </div>
+
                   <div className="flex items-center justify-between px-2">
-                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-white/40 select-none"><input type="checkbox" className="size-4 rounded-md border-white/10 bg-white/5 text-gold-primary focus:ring-gold-primary" />تذكرني</label>
-                    <button type="button" onClick={() => setAuthMode("forgot")} className="text-xs font-black text-gold-primary hover:text-white transition-colors">نسيت كلمة المرور؟</button>
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-muted-foreground select-none">
+                      <input type="checkbox" className="size-4 rounded-md border-border text-primary focus:ring-primary" />
+                      تذكرني
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("forgot")}
+                      className="text-xs font-black text-gold-primary hover:text-primary transition-colors"
+                    >
+                      نسيت كلمة المرور؟
+                    </button>
                   </div>
-                  <button type="submit" disabled={loading} className="btn-gold w-full h-14 rounded-2xl shadow-xl font-black text-lg flex items-center justify-center gap-3 active:scale-95 transition-all">
-                    {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>دخول إلى المجلس</span><ArrowLeft className="size-5" /></>}
+
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                  >
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : (
+                      <>
+                        <span>دخول إلى الأخبار</span>
+                        <ArrowLeft className="size-5" />
+                      </>
+                    )}
                   </button>
-                  <div className="text-center pt-4"><button type="button" onClick={() => setAuthMode("request")} className="text-sm font-black text-white/60 hover:text-gold-primary hover:underline flex items-center justify-center gap-2 mx-auto"><UserPlus size={16} />طلب إنشاء حساب جديد</button></div>
+
+                  <div className="text-center pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("request")}
+                      className="text-sm font-black text-primary hover:underline flex items-center justify-center gap-2 mx-auto"
+                    >
+                      <UserPlus size={16} />
+                      طلب إنشاء حساب جديد
+                    </button>
+                  </div>
                 </form>
               </motion.div>
             ) : mode === "request" ? (
-              <motion.div key="request" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <div className="flex items-center justify-between mb-2" dir="rtl"><h2 className="text-sm font-black text-white uppercase tracking-widest">طلب انضمام</h2><button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><X size={16} /></button></div>
-                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar px-1" dir="rtl">
-                   <div className="grid grid-cols-1 gap-4">
-                      <ReqField label="الاسم الأول" value={reqFirstName} onChange={setReqFirstName} />
-                      <div className="grid grid-cols-2 gap-3"><ReqField label="الأب" value={reqFatherName} onChange={setReqFatherName} /><ReqField label="الجد" value={reqGrandName} onChange={setReqGrandFatherName} /></div>
-                      <ReqField label="الجوال" value={reqPhone} onChange={setReqPhone} type="tel" />
-                      <ReqField label="البريد" value={reqEmail} onChange={setReqEmail} type="email" />
-                      <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} type="password" />
+              <motion.div
+                key="request"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between mb-2">
+                   <h2 className="text-sm font-black text-primary uppercase tracking-widest">طلب انضمام للمجلس</h2>
+                   <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
+                </div>
+
+                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[60vh] md:max-h-none overflow-y-auto no-scrollbar px-1">
+                   <div className="grid grid-cols-1 gap-4 text-right">
+                      <ReqField label="الاسم الأول" value={reqFirstName} onChange={setReqFirstName} placeholder="مثال: سعود" />
+                      <div className="grid grid-cols-2 gap-3">
+                         <ReqField label="اسم الأب" value={reqFatherName} onChange={setReqFatherName} placeholder="..." />
+                         <ReqField label="اسم الجد" value={reqGrandName} onChange={setReqGrandFatherName} placeholder="..." />
+                      </div>
+                      <ReqField label="رقم الجوال" value={reqPhone} onChange={setReqPhone} placeholder="05xxxxxxxx" type="tel" />
+                      <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+                      <ReqField label="كلمة المرور المقترحة" value={reqPassword} onChange={setReqPassword} placeholder="••••••••" type="password" />
+                      <div className="space-y-1.5">
+                         <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest text-right block">ملاحظة إضافية</label>
+                         <textarea
+                           value={reqNote} onChange={(e) => setReqNote(e.target.value)}
+                           className="w-full bg-muted/40 border border-border rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none text-foreground"
+                           rows={2} placeholder="صلة القرابة أو أي معلومات إضافية..."
+                         />
+                      </div>
                    </div>
-                   <button type="submit" disabled={loading} className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3">
-                    {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>إرسال الطلب</span><Send className="size-4" /></>}
+
+                   <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3 sticky bottom-0"
+                  >
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : (
+                      <>
+                        <span>إرسال الطلب</span>
+                        <Send className="size-4" />
+                      </>
+                    )}
                   </button>
                 </form>
               </motion.div>
             ) : (
-              <motion.div key="forgot" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <div className="flex items-center justify-between mb-2" dir="rtl"><h2 className="text-sm font-black text-white uppercase tracking-widest">استعادة كلمة المرور</h2><button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all"><X size={16} /></button></div>
-                <form onSubmit={onForgotPassword} className="space-y-6" dir="rtl">
-                  <p className="text-xs font-bold text-white/40 text-right block">أدخل بريدك وسنرسل لك رابط الاستعادة.</p>
-                  <ReqField label="البريد الإلكتروني" value={email} onChange={setEmail} type="email" />
-                  <button type="submit" disabled={loading || !email} className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3">
-                    {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>إرسال الرابط</span><Send className="size-4" /></>}
+              <motion.div
+                key="forgot"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-6"
+              >
+                <div className="flex items-center justify-between mb-2">
+                   <h2 className="text-sm font-black text-primary uppercase tracking-widest">استعادة كلمة المرور</h2>
+                   <button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><X size={16} /></button>
+                </div>
+
+                <form onSubmit={onForgotPassword} className="space-y-6">
+                  <p className="text-xs font-bold text-muted-foreground leading-relaxed text-right">أدخل بريدك الإلكتروني المسجل وسنرسل لك رابطاً لاستعادة الوصول لحسابك.</p>
+
+                  <div className="space-y-1.5 text-right">
+                    <label className="text-[10px] font-black text-muted-foreground mr-4 uppercase tracking-widest block">البريد الإلكتروني</label>
+                    <div className="relative">
+                      <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
+                      <input
+                        type="email"
+                        required
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="your-email@example.com"
+                      />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={loading || !email}
+                    className="w-full h-14 bg-primary text-primary-foreground font-black rounded-2xl shadow-xl shadow-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3"
+                  >
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : (
+                      <>
+                        <span>إرسال رابط الاستعادة</span>
+                        <Send className="size-4" />
+                      </>
+                    )}
                   </button>
                 </form>
               </motion.div>
             )}
           </AnimatePresence>
-          <p className="text-center text-[10px] text-white/20 mt-12 tracking-[0.4em] uppercase font-black">ALSAIF FAMILY HUB</p>
+
+          <p className="text-center text-[10px] text-muted-foreground mt-12 tracking-[0.4em] uppercase font-black opacity-40">
+            ALSAIF FAMILY HUB
+          </p>
         </div>
       </div>
     </div>
   );
 }
 
-function ReqField({ label, value, onChange, type = "text" }: any) {
+function ReqField({ label, value, onChange, placeholder, type = "text" }: any) {
   return (
     <div className="space-y-1.5 text-right">
-       <label className="text-[10px] font-black text-white/40 mr-2 uppercase tracking-widest">{label}</label>
-       <input type={type} required value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 font-bold text-sm focus:border-gold-primary text-white outline-none" />
+       <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">{label}</label>
+       <input
+         type={type}
+         required
+         value={value}
+         onChange={(e) => onChange(e.target.value)}
+         className="w-full h-12 bg-muted/40 border border-border rounded-xl px-4 font-bold text-sm focus:border-primary transition-all text-foreground outline-none"
+         placeholder={placeholder}
+       />
     </div>
   );
 }
