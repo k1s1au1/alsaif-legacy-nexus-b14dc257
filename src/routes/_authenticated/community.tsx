@@ -269,7 +269,7 @@ function PostCard({ post, meId, isHead, canDelete, comments, votes, onRefresh }:
 
           <div className="space-y-3">
             <h3 className="text-xl md:text-2xl font-black text-primary leading-tight">{post.title}</h3>
-            {post.body && <p className="text-sm md:text-base font-bold text-muted-foreground/90 dark:text-white/80 leading-relaxed whitespace-pre-wrap">{post.body}</p>}
+            {post.body && <p className="text-sm md:text-base font-bold text-foreground dark:text-foreground leading-relaxed whitespace-pre-wrap">{post.body}</p>}
           </div>
 
           {post.image_urls?.length > 0 && (
@@ -383,7 +383,7 @@ function CommentsSection({ post, meId, isHead, comments, onRefresh }: any) {
                           {canDel && <button onClick={() => removeComment(c.id)} className="opacity-0 group-hover/c:opacity-100 text-rose-500 hover:text-rose-700"><Trash2 size={12} /></button>}
                         </div>
                       </div>
-                      <p className="text-sm font-bold text-foreground/80 whitespace-pre-wrap leading-relaxed">{c.body}</p>
+                      <p className="text-sm font-bold text-foreground whitespace-pre-wrap leading-relaxed">{c.body}</p>
                     </div>
                   </div>
                 );
