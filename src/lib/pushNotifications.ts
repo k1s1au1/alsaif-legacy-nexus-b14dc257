@@ -5,8 +5,33 @@ import {
   type PushNotificationSchema,
   type ActionPerformed,
 } from "@capacitor/push-notifications";
+import { supabase } from "@/integrations/supabase/client";
 
 let initialized = false;
+
+async function saveTokenToProfile(token: string): Promise<void> {
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth.user) {
+      // Retry once auth state is ready
+      const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (session?.user && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "USER_UPDATED")) {
+          await supabase.from("profiles").update({ fcm_token: token }).eq("id", session.user.id);
+          sub.subscription.unsubscribe();
+        }
+      });
+      return;
+    }
+    const { error } = await supabase
+      .from("profiles")
+      .update({ fcm_token: token })
+      .eq("id", auth.user.id);
+    if (error) console.error("[Push] Failed to save token:", error);
+    else console.log("[Push] Token saved to user profile.");
+  } catch (e) {
+    console.error("[Push] saveTokenToProfile exception:", e);
+  }
+}
 
 export async function setupPushNotifications(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
@@ -22,8 +47,9 @@ export async function setupPushNotifications(): Promise<void> {
 
     await PushNotifications.register();
 
-    await PushNotifications.addListener("registration", (token: Token) => {
+    await PushNotifications.addListener("registration", async (token: Token) => {
       console.log("[Push] Registration token:", token.value);
+      await saveTokenToProfile(token.value);
     });
 
     await PushNotifications.addListener("registrationError", (err: unknown) => {
