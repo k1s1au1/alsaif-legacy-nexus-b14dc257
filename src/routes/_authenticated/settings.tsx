@@ -337,6 +337,10 @@ function SettingsPage() {
           </div>
         </section>
 
+        <NotificationPreferencesSection />
+
+
+
         {canCustomizeBg && (
           <section className="space-y-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
             <div className="flex items-center gap-4">
@@ -454,3 +458,89 @@ function SettingRow({ icon, title, desc }: any) {
     </div>
   );
 }
+
+const NOTIF_OPTIONS: { key: "meetings" | "entertainment" | "tasks" | "chat" | "news"; label: string; desc: string }[] = [
+  { key: "meetings", label: "إشعارات الاجتماعات", desc: "تنبيه عند إنشاء اجتماع جديد." },
+  { key: "entertainment", label: "إشعارات الترفيه", desc: "تنبيه للفعاليات والرحلات والمناسبات." },
+  { key: "tasks", label: "إشعارات المهام", desc: "تنبيه عند إسناد مهمة لك." },
+  { key: "chat", label: "إشعارات المحادثات", desc: "تنبيه عند وصول رسالة جديدة." },
+  { key: "news", label: "إشعارات الأخبار والإعلانات", desc: "تنبيه عند نشر خبر أو إعلان." },
+];
+
+function NotificationPreferencesSection() {
+  const [prefs, setPrefs] = useState<Record<string, boolean>>({
+    meetings: true, entertainment: true, tasks: true, chat: true, news: true,
+  });
+  const [loading, setLoading] = useState(true);
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth.user) { setLoading(false); return; }
+      setUserId(auth.user.id);
+      const { data } = await supabase
+        .from("notification_preferences")
+        .select("meetings,entertainment,tasks,chat,news")
+        .eq("user_id", auth.user.id)
+        .maybeSingle();
+      if (data) setPrefs(data as any);
+      setLoading(false);
+    })();
+  }, []);
+
+  const toggle = async (key: string) => {
+    if (!userId) return;
+    const next = { ...prefs, [key]: !prefs[key] };
+    setPrefs(next);
+    const { error } = await supabase
+      .from("notification_preferences")
+      .upsert({ user_id: userId, ...next }, { onConflict: "user_id" });
+    if (error) {
+      toast.error("تعذّر حفظ الإعداد");
+      setPrefs(prefs);
+    }
+  };
+
+  return (
+    <section className="space-y-6 animate-fade-up" style={{ animationDelay: "250ms" }}>
+      <div className="flex items-center gap-4">
+        <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات الإشعارات</h3>
+        <div className="h-px flex-1 bg-border/60" />
+      </div>
+      <div className="card-surface overflow-hidden divide-y divide-border/40">
+        {NOTIF_OPTIONS.map((o) => (
+          <div key={o.key} className="p-6 md:p-8 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-4 md:gap-6 min-w-0">
+              <div className="size-11 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shrink-0">
+                <Bell className="size-5" />
+              </div>
+              <div className="text-right min-w-0">
+                <p className="font-black text-primary tracking-tight text-sm md:text-base">{o.label}</p>
+                <p className="text-xs font-bold text-muted-foreground opacity-60 truncate">{o.desc}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => toggle(o.key)}
+              disabled={loading}
+              aria-pressed={prefs[o.key]}
+              className={cn(
+                "relative w-14 h-8 rounded-full transition-colors shrink-0",
+                prefs[o.key] ? "bg-primary" : "bg-muted",
+                loading && "opacity-50",
+              )}
+            >
+              <span
+                className={cn(
+                  "absolute top-1 size-6 rounded-full bg-white shadow transition-all",
+                  prefs[o.key] ? "right-1" : "right-7",
+                )}
+              />
+            </button>
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
