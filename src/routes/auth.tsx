@@ -97,7 +97,7 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#051410] overflow-hidden" dir="rtl">
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#051410] transition-colors duration-700 overflow-hidden" dir="rtl">
       {/* Background Image Layer */}
       {authBg && (
         <div
@@ -143,14 +143,14 @@ function AuthPage() {
                 </div>
                 <form onSubmit={onLogin} className="space-y-5">
                   <div className="space-y-1.5" dir="rtl">
-                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest text-right block">البريد الإلكتروني</label>
                     <div className="relative">
                       <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
                       <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-5 font-bold text-sm focus:border-gold-primary transition-all text-white outline-none" placeholder="saud@alsaif.family" />
                     </div>
                   </div>
                   <div className="space-y-1.5" dir="rtl">
-                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest">كلمة المرور</label>
+                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest text-right block">كلمة المرور</label>
                     <div className="relative">
                       <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
                       <input type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-14 font-bold text-sm focus:border-gold-primary transition-all text-white outline-none" placeholder="••••••••••••" />
@@ -185,9 +185,9 @@ function AuthPage() {
               </motion.div>
             ) : (
               <motion.div key="forgot" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <div className="flex items-center justify-between mb-2" dir="rtl"><h2 className="text-sm font-black text-white uppercase tracking-widest">استعادة الوصول</h2><button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><X size={16} /></button></div>
+                <div className="flex items-center justify-between mb-2" dir="rtl"><h2 className="text-sm font-black text-white uppercase tracking-widest">استعادة كلمة المرور</h2><button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all"><X size={16} /></button></div>
                 <form onSubmit={onForgotPassword} className="space-y-6" dir="rtl">
-                  <p className="text-xs font-bold text-white/40">أدخل بريدك وسنرسل لك رابط الاستعادة.</p>
+                  <p className="text-xs font-bold text-white/40 text-right block">أدخل بريدك وسنرسل لك رابط الاستعادة.</p>
                   <ReqField label="البريد الإلكتروني" value={email} onChange={setEmail} type="email" />
                   <button type="submit" disabled={loading || !email} className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3">
                     {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>إرسال الرابط</span><Send className="size-4" /></>}
