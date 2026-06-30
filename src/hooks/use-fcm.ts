@@ -30,8 +30,6 @@ export function useFcm() {
           console.log("Save push token error:", error);
         } else {
           console.log("Push token saved successfully");
-          // Mirror for back-compat
-          await supabase.from("profiles").update({ fcm_token: tokenValue }).eq("id", user.id);
         }
       } catch (e) {
         console.log("Save push token error:", e);
