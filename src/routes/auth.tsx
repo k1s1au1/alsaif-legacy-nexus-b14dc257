@@ -2,21 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Loader2,
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  ArrowLeft,
-  UserPlus,
-  Send,
-  X,
-  Phone,
-  User,
-  ShieldCheck,
-  ChevronLeft
-} from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
@@ -27,8 +13,8 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "مجلس السيف — بوابة العبور" },
-      { name: "description", content: "البوابة الرسمية لأعضاء عائلة السيف." },
+      { title: "مجلس السيف — تسجيل الدخول" },
+      { name: "description", content: "بوابة الدخول الخاصة بأعضاء عائلة السيف." },
     ],
   }),
   component: AuthPage,
@@ -45,7 +31,7 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const dynamicLogo = useSiteLogo();
 
-  // Request fields
+  // Request form fields
   const [reqFirstName, setReqFirstName] = useState("");
   const [reqFatherName, setReqFatherName] = useState("");
   const [reqGrandName, setReqGrandFatherName] = useState("");
@@ -69,7 +55,7 @@ function AuthPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) {
-      toast.error("بيانات الدخول غير صحيحة", { description: "تأكد من البريد وكلمة المرور." });
+      toast.error("تعذّر الدخول", { description: "تأكد من البيانات المعتمدة من الإدارة." });
       return;
     }
     navigate({ to: "/dashboard", replace: true });
@@ -90,253 +76,140 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) {
-      toast.error("فشل إرسال الطلب", { description: error.message });
+      toast.error("تعذر إرسال الطلب", { description: error.message });
       return;
     }
+    toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة الطلب من قبل الإدارة وإشعارك قريباً." });
+    setAuthMode("login");
+  }
 
-    toast.success("تم إرسال طلبك للإدارة", { description: "ستصلك رسالة عند تفعيل حسابك." });
+  async function onForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("حدث خطأ", { description: error.message });
+      return;
+    }
+    toast.success("تم إرسال رابط الاستعادة", { description: "يرجى التحقق من بريدك الإلكتروني." });
     setAuthMode("login");
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center p-4 md:p-10 bg-[#051410] overflow-hidden" dir="rtl">
-
-      {/* Background Image Layer */}
-      {authBg && (
-        <div
-          className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000 opacity-60"
-          style={{ backgroundImage: `url(${authBg})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-b from-[#051410]/95 via-transparent to-[#051410]/95" />
-        </div>
-      )}
-
-      {/* Cinematic Light Leaks */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
-         <motion.div
-           animate={{
-             scale: [1, 1.2, 1],
-             opacity: [0.2, 0.4, 0.2],
-             x: [0, 50, 0],
-             y: [0, -30, 0]
-           }}
-           transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-           className="absolute -top-[20%] -right-[10%] size-[800px] bg-gold-primary/10 rounded-full blur-[120px]"
-         />
-         <motion.div
-           animate={{
-             scale: [1.2, 1, 1.2],
-             opacity: [0.1, 0.3, 0.1],
-             x: [0, -60, 0],
-             y: [0, 40, 0]
-           }}
-           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-           className="absolute -bottom-[30%] -left-[10%] size-[900px] bg-emerald-500/10 rounded-full blur-[150px]"
-         />
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#051410] transition-colors duration-700 overflow-hidden">
+      {/* Alsaif Background Decoration */}
+      <div className="absolute inset-0 pointer-events-none opacity-20">
+        <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-primary/5 blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-gold-primary/5 blur-[120px]" />
       </div>
 
-      <div className="relative z-10 w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-10 items-center">
+      <div
+        className="relative w-full max-w-[480px] md:max-w-[540px] bg-[#064E3B] rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-white/10 transition-all duration-500"
+        style={paletteVars}
+      >
+        {authBg && (
+          <div
+            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
+            style={{ backgroundImage: `url(${authBg})` }}
+          >
+            <div className="absolute inset-0 bg-gradient-to-b from-[#064E3B]/95 via-transparent to-[#064E3B]/95" />
+          </div>
+        )}
 
-         {/* Branding Side (Visible on Desktop) */}
-         <div className="hidden lg:flex flex-col space-y-10 animate-fade-up">
-            <div className="space-y-4">
-               <div className="flex items-center gap-4">
-                  <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
-                  <span className="text-xs font-black uppercase tracking-[0.6em] text-gold-primary">مجلس السيف العريق</span>
-               </div>
-               <h1 className="text-8xl font-black tracking-tighter text-white leading-none">
-                  بوابة<br />
-                  <span className="text-white/20">التواصل</span>
-               </h1>
-            </div>
-            <p className="text-2xl font-bold text-white/40 max-w-md leading-relaxed italic">
-               "نعتز بجذورنا، ونبني مستقبلنا.. مرحباً بكم في المنصة الخاصة بأبناء عائلة السيف."
-            </p>
-         </div>
-
-         {/* Form Side */}
-         <div className="w-full max-w-[500px] mx-auto">
+        <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full text-white">
+          <div className="flex flex-col items-center text-center mb-8">
             <motion.div
-               layout
-               className="relative overflow-hidden bg-[#064E3B]/80 backdrop-blur-3xl border border-white/10 rounded-[48px] md:rounded-[60px] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)]"
-               style={paletteVars}
+              whileHover={{ scale: 1.05 }}
+              className="size-24 mb-6 flex items-center justify-center p-4 bg-white/10 backdrop-blur-md rounded-[32px] shadow-lg ring-1 ring-white/20 relative group overflow-hidden"
             >
-               {/* Top Accent Gradient */}
-               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-l from-transparent via-gold-primary to-transparent opacity-40" />
-
-               <div className="p-10 md:p-14 space-y-10">
-                  {/* Logo Section */}
-                  <div className="flex flex-col items-center gap-6">
-                     <motion.div
-                       whileHover={{ rotate: 5, scale: 1.05 }}
-                       className="size-24 rounded-[32px] bg-gradient-to-br from-white/10 to-transparent border border-white/10 p-5 shadow-2xl flex items-center justify-center relative group"
-                     >
-                        <div className="absolute inset-0 bg-gold-primary/5 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <div className="size-full logo-alsaif" style={{ '--logo-url': `url(${dynamicLogo || logoAsset.url})` } as any} />
-                     </motion.div>
-                     <div className="text-center lg:hidden">
-                        <h2 className="text-3xl font-black text-white tracking-tight">مجلس السيف</h2>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary/60 mt-1">ALSAIF PRIVATE HUB</p>
-                     </div>
-                  </div>
-
-                  <AnimatePresence mode="wait">
-                     {mode === "login" && (
-                        <motion.div key="login" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8">
-                           <div className="space-y-2 text-center md:text-right">
-                              <h3 className="text-2xl font-black text-white">تسجيل الدخول</h3>
-                              <p className="text-sm font-bold text-white/40">يرجى إدخال بياناتك المعتمدة للوصول.</p>
-                           </div>
-
-                           <form onSubmit={onLogin} className="space-y-5">
-                              <div className="space-y-1.5">
-                                 <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary/60 mr-4">البريد الإلكتروني</label>
-                                 <div className="relative group">
-                                    <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-white/20 group-focus-within:text-gold-primary transition-colors" />
-                                    <input type="email" required value={email} onChange={e => setEmail(e.target.value)} className="auth-input-royal" placeholder="saud@alsaif.family" />
-                                 </div>
-                              </div>
-
-                              <div className="space-y-1.5">
-                                 <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary/60 mr-4">كلمة المرور</label>
-                                 <div className="relative group">
-                                    <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-white/20 group-focus-within:text-gold-primary transition-colors" />
-                                    <input type={showPassword ? "text" : "password"} required value={password} onChange={e => setPassword(e.target.value)} className="auth-input-royal" placeholder="••••••••••••" />
-                                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors">{showPassword ? <EyeOff size={18} /> : <Eye size={18} />}</button>
-                                 </div>
-                              </div>
-
-                              <div className="flex items-center justify-between px-2">
-                                 <button type="button" onClick={() => setAuthMode("forgot")} className="text-xs font-black text-white/40 hover:text-gold-primary transition-colors underline underline-offset-4">نسيت كلمة المرور؟</button>
-                                 <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-white/40 hover:text-white transition-colors select-none">
-                                    <input type="checkbox" className="size-4 rounded-lg border-white/10 bg-white/5 text-gold-primary focus:ring-gold-primary transition-all" />
-                                    تذكرني
-                                 </label>
-                              </div>
-
-                              <button disabled={loading} type="submit" className="btn-gold w-full h-16 rounded-3xl font-black text-lg shadow-2xl shadow-gold-primary/10 flex items-center justify-center gap-3 active:scale-95 transition-all">
-                                 {loading ? <Loader2 className="animate-spin size-6" /> : <><ShieldCheck size={20} /> <span>دخول إلى المجلس</span></>}
-                              </button>
-                           </form>
-
-                           <div className="pt-6 border-t border-white/5 text-center">
-                              <button onClick={() => setAuthMode("request")} className="text-sm font-black text-gold-primary/80 hover:text-white transition-all flex items-center justify-center gap-2 mx-auto group">
-                                 <UserPlus size={16} className="group-hover:scale-110 transition-transform" />
-                                 طلب إنشاء حساب جديد
-                              </button>
-                           </div>
-                        </motion.div>
-                     )}
-
-                     {mode === "request" && (
-                        <motion.div key="request" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 text-right">
-                           <div className="flex items-center justify-between">
-                              <div className="space-y-1">
-                                 <h3 className="text-2xl font-black text-white">طلب الانضمام</h3>
-                                 <p className="text-xs font-bold text-white/40">انضم لعائلتك ووثق تاريخك.</p>
-                              </div>
-                              <button onClick={() => setAuthMode("login")} className="size-10 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><X size={20} /></button>
-                           </div>
-
-                           <form onSubmit={onRequestAccount} className="space-y-4 max-h-[50vh] overflow-y-auto no-scrollbar px-1 custom-scrollbar">
-                              <ReqField label="الاسم الأول" icon={<User />} value={reqFirstName} onChange={setReqFirstName} />
-                              <div className="grid grid-cols-2 gap-3">
-                                 <ReqField label="اسم الأب" value={reqFatherName} onChange={setReqFatherName} />
-                                 <ReqField label="اسم الجد" value={reqGrandName} onChange={setReqGrandFatherName} />
-                              </div>
-                              <ReqField label="رقم الجوال" icon={<Phone />} value={reqPhone} onChange={setReqPhone} type="tel" />
-                              <ReqField label="البريد الإلكتروني" icon={<Mail />} value={reqEmail} onChange={setReqEmail} type="email" />
-                              <ReqField label="كلمة المرور" icon={<Lock />} value={reqPassword} onChange={setReqPassword} type="password" />
-                              <div className="space-y-1.5">
-                                 <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary/60 mr-2">ملاحظة للإدارة</label>
-                                 <textarea value={reqNote} onChange={e => setReqNote(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 font-bold text-sm focus:border-gold-primary transition-all resize-none text-white" rows={2} placeholder="..." />
-                              </div>
-
-                              <button disabled={loading} type="submit" className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3 sticky bottom-0">
-                                 {loading ? <Loader2 className="animate-spin size-5" /> : <><Send size={18} /> <span>إرسال الطلب</span></>}
-                              </button>
-                           </form>
-                        </motion.div>
-                     )}
-
-                     {mode === "forgot" && (
-                        <motion.div key="forgot" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-8 text-right">
-                           <div className="flex items-center justify-between">
-                              <h3 className="text-2xl font-black text-white">استعادة الوصول</h3>
-                              <button onClick={() => setAuthMode("login")} className="size-10 rounded-2xl bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><X size={20} /></button>
-                           </div>
-                           <p className="text-sm font-bold text-white/40 leading-relaxed">أدخل بريدك وسنرسل لك مفتاح العبور الجديد.</p>
-                           <form className="space-y-6">
-                              <ReqField label="البريد الإلكتروني" icon={<Mail />} value={email} onChange={setEmail} type="email" />
-                              <button type="submit" className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3">
-                                 <Send size={18} /> <span>إرسال الرابط</span>
-                              </button>
-                           </form>
-                        </motion.div>
-                     )}
-                  </AnimatePresence>
-
-                  <p className="text-center text-[10px] font-black tracking-[0.6em] text-white/10 uppercase">
-                     Heritage · Legacy · Nexus
-                  </p>
-               </div>
+              <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+              <div
+                className="size-full relative z-10 logo-alsaif"
+                style={{ '--logo-url': `url(${dynamicLogo || logoAsset.url})` } as any}
+              />
             </motion.div>
-         </div>
-      </div>
+            <h1 className="text-3xl font-black text-white mb-1 tracking-tight">مجلس السيف</h1>
+            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-80">ALSAIF HUB</p>
+          </div>
 
-      <style>{`
-         .auth-input-royal {
-            width: 100%;
-            height: 3.5rem;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 1.25rem;
-            padding-right: 3.5rem;
-            padding-left: 1.25rem;
-            font-weight: 700;
-            font-size: 0.875rem;
-            color: white;
-            transition: all 0.3s ease;
-            outline: none;
-         }
-         .auth-input-royal:focus {
-            background: rgba(212, 175, 55, 0.03);
-            border-color: #D4AF37;
-            box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
-         }
-         .auth-input-royal::placeholder {
-            color: rgba(255, 255, 255, 0.15);
-         }
-         .custom-scrollbar::-webkit-scrollbar {
-            width: 4px;
-         }
-         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: rgba(212, 175, 55, 0.2);
-            border-radius: 10px;
-         }
-      `}</style>
+          <AnimatePresence mode="wait">
+            {mode === "login" ? (
+              <motion.div key="login" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="flex items-center justify-center gap-4 mb-2">
+                  <div className="h-px w-8 bg-white/20" />
+                  <h2 className="text-sm font-black text-white uppercase tracking-widest">تسجيل الدخول</h2>
+                  <div className="h-px w-8 bg-white/20" />
+                </div>
+                <form onSubmit={onLogin} className="space-y-5">
+                  <div className="space-y-1.5" dir="rtl">
+                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                    <div className="relative">
+                      <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
+                      <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-5 font-bold text-sm focus:border-gold-primary transition-all text-white outline-none" placeholder="saud@alsaif.family" />
+                    </div>
+                  </div>
+                  <div className="space-y-1.5" dir="rtl">
+                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest">كلمة المرور</label>
+                    <div className="relative">
+                      <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
+                      <input type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full h-14 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-14 font-bold text-sm focus:border-gold-primary transition-all text-white outline-none" placeholder="••••••••••••" />
+                      <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white transition-colors">{showPassword ? <EyeOff size={20} /> : <Eye size={20} />}</button>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between px-2">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-white/40 select-none"><input type="checkbox" className="size-4 rounded-md border-white/10 bg-white/5 text-gold-primary focus:ring-gold-primary" />تذكرني</label>
+                    <button type="button" onClick={() => setAuthMode("forgot")} className="text-xs font-black text-gold-primary hover:text-white transition-colors">نسيت كلمة المرور؟</button>
+                  </div>
+                  <button type="submit" disabled={loading} className="btn-gold w-full h-14 rounded-2xl shadow-xl font-black text-lg flex items-center justify-center gap-3 active:scale-95 transition-all">
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>دخول إلى المجلس</span><ArrowLeft className="size-5" /></>}
+                  </button>
+                  <div className="text-center pt-4"><button type="button" onClick={() => setAuthMode("request")} className="text-sm font-black text-white/60 hover:text-gold-primary hover:underline flex items-center justify-center gap-2 mx-auto"><UserPlus size={16} />طلب إنشاء حساب جديد</button></div>
+                </form>
+              </motion.div>
+            ) : mode === "request" ? (
+              <motion.div key="request" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="flex items-center justify-between mb-2" dir="rtl"><h2 className="text-sm font-black text-white uppercase tracking-widest">طلب انضمام</h2><button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><X size={16} /></button></div>
+                <form onSubmit={onRequestAccount} className="space-y-4 max-h-[60vh] overflow-y-auto no-scrollbar px-1" dir="rtl">
+                   <div className="grid grid-cols-1 gap-4">
+                      <ReqField label="الاسم الأول" value={reqFirstName} onChange={setReqFirstName} />
+                      <div className="grid grid-cols-2 gap-3"><ReqField label="الأب" value={reqFatherName} onChange={setReqFatherName} /><ReqField label="الجد" value={reqGrandName} onChange={setReqGrandFatherName} /></div>
+                      <ReqField label="الجوال" value={reqPhone} onChange={setReqPhone} type="tel" />
+                      <ReqField label="البريد" value={reqEmail} onChange={setReqEmail} type="email" />
+                      <ReqField label="كلمة المرور" value={reqPassword} onChange={setReqPassword} type="password" />
+                   </div>
+                   <button type="submit" disabled={loading} className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3">
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>إرسال الطلب</span><Send className="size-4" /></>}
+                  </button>
+                </form>
+              </motion.div>
+            ) : (
+              <motion.div key="forgot" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="flex items-center justify-between mb-2" dir="rtl"><h2 className="text-sm font-black text-white uppercase tracking-widest">استعادة الوصول</h2><button onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:bg-white/10 transition-all"><X size={16} /></button></div>
+                <form onSubmit={onForgotPassword} className="space-y-6" dir="rtl">
+                  <p className="text-xs font-bold text-white/40">أدخل بريدك وسنرسل لك رابط الاستعادة.</p>
+                  <ReqField label="البريد الإلكتروني" value={email} onChange={setEmail} type="email" />
+                  <button type="submit" disabled={loading || !email} className="btn-gold w-full h-14 rounded-2xl font-black flex items-center justify-center gap-3">
+                    {loading ? <Loader2 className="size-5 animate-spin" /> : <><span>إرسال الرابط</span><Send className="size-4" /></>}
+                  </button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <p className="text-center text-[10px] text-white/20 mt-12 tracking-[0.4em] uppercase font-black">ALSAIF FAMILY HUB</p>
+        </div>
+      </div>
     </div>
   );
 }
 
-function ReqField({ label, icon, value, onChange, placeholder, type = "text" }: any) {
+function ReqField({ label, value, onChange, type = "text" }: any) {
   return (
     <div className="space-y-1.5 text-right">
-       <label className="text-[10px] font-black uppercase tracking-widest text-gold-primary/60 mr-2">{label}</label>
-       <div className="relative group">
-          {icon && <div className="absolute right-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-gold-primary transition-all">{icon}</div>}
-          <input
-            type={type}
-            required
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            className={cn(
-              "w-full h-12 bg-white/5 border border-white/10 rounded-2xl font-bold text-sm focus:border-gold-primary transition-all text-white outline-none",
-              icon ? "pr-12 pl-4" : "px-5"
-            )}
-            placeholder={placeholder}
-          />
-       </div>
+       <label className="text-[10px] font-black text-white/40 mr-2 uppercase tracking-widest">{label}</label>
+       <input type={type} required value={value} onChange={(e) => onChange(e.target.value)} className="w-full h-12 bg-white/5 border border-white/10 rounded-xl px-4 font-bold text-sm focus:border-gold-primary text-white outline-none" />
     </div>
   );
 }
