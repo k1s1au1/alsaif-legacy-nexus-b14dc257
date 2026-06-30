@@ -26,7 +26,7 @@ export async function setupPushNotifications(): Promise<void> {
       console.log("[Push] Registration token:", token.value);
     });
 
-    await PushNotifications.addListener("registrationError", (err) => {
+    await PushNotifications.addListener("registrationError", (err: unknown) => {
       console.error("[Push] Registration error:", err);
     });
 
