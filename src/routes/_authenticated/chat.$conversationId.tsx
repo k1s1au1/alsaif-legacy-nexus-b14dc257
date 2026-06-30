@@ -382,6 +382,23 @@ function ConversationRoute() {
     }
     setDraft("");
     setReplyTo(null);
+    // Push notification to other participants (no message content for privacy)
+    try {
+      const others = participants.filter((p) => p.user_id !== meId).map((p) => p.user_id);
+      if (others.length) {
+        import("@/lib/api/push.functions").then(({ sendPushNotification }) =>
+          sendPushNotification({
+            data: {
+              title: "رسالة جديدة",
+              body: "لديك رسالة جديدة في المحادثات.",
+              type: "chat",
+              target_user_ids: others,
+              route: `/chat/${conv.id}`,
+            },
+          }).catch(() => {}),
+        );
+      }
+    } catch {}
   }
 
   function onComposerKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
