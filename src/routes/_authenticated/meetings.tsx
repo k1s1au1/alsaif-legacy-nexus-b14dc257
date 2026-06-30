@@ -203,15 +203,17 @@ function MeetingsPage() {
 
         // Broadcast notification
         try {
-          await sendFcmNotification({
+          const { sendPushNotification } = await import("@/lib/api/push.functions");
+          await sendPushNotification({
             data: {
-              title: "📅 اجتماع عائلي جديد",
-              body: fTitle.trim(),
-            }
+              title: "اجتماع جديد",
+              body: "تم إنشاء اجتماع جديد في مجلس العائلة.",
+              type: "meetings",
+              route: "/meetings",
+            },
           });
-          console.log("FCM notification sent successfully");
         } catch (fcmErr) {
-          console.warn("FCM Broadcast failed, but meeting was created:", fcmErr);
+          console.warn("Push broadcast failed:", fcmErr);
         }
 
         setShowForm(false);

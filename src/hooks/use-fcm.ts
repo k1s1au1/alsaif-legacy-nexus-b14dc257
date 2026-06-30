@@ -11,17 +11,16 @@ export function useFcm() {
       try {
         const { data: auth } = await supabase.auth.getUser();
         if (!auth.user) return;
-
-        const { error } = await supabase
-          .from("profiles")
-          .update({ fcm_token: token })
-          .eq("id", auth.user.id);
-
-        if (error) {
-          console.error("FCM Token Error:", error);
-        } else {
-          console.log("FCM: Token saved.");
-        }
+        const userId = auth.user.id;
+        // Multi-device store
+        await supabase
+          .from("push_tokens")
+          .upsert(
+            { user_id: userId, token, platform: "web", is_active: true, updated_at: new Date().toISOString() },
+            { onConflict: "user_id,token" },
+          );
+        // Back-compat single-token mirror
+        await supabase.from("profiles").update({ fcm_token: token }).eq("id", userId);
       } catch (e) {
         console.error("FCM Save Token Exception:", e);
       }

@@ -999,6 +999,39 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          chat: boolean
+          created_at: string
+          entertainment: boolean
+          meetings: boolean
+          news: boolean
+          tasks: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat?: boolean
+          created_at?: string
+          entertainment?: boolean
+          meetings?: boolean
+          news?: boolean
+          tasks?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat?: boolean
+          created_at?: string
+          entertainment?: boolean
+          meetings?: boolean
+          news?: boolean
+          tasks?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           arabic_name: string | null
@@ -1047,6 +1080,36 @@ export type Database = {
           phone?: string | null
           terms_accepted_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      push_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          platform: string
+          token: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          platform?: string
+          token: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          platform?: string
+          token?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }

@@ -472,14 +472,35 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
       completed_at: form.progress === 100 ? new Date().toISOString() : null,
     };
     let error;
+    let isCreate = false;
     if (task) {
       ({ error } = await supabase.from("tasks").update(payload as any).eq("id", task.id));
     } else {
+      isCreate = true;
       ({ error } = await supabase.from("tasks").insert({ ...payload, created_by: userId } as any));
     }
     setSaving(false);
-    if (!error) { toast.success("تم الحفظ بنجاح"); onSaved(); onClose(); }
-    else { toast.error("فشل الحفظ: " + error.message); }
+    if (!error) {
+      toast.success("تم الحفظ بنجاح");
+      // Push notification to assignee on create or assignee change
+      const assigneeId = payload.assignee_id;
+      const assigneeChanged = task ? task.assignee_id !== assigneeId : true;
+      if (assigneeId && assigneeId !== userId && (isCreate || assigneeChanged)) {
+        import("@/lib/api/push.functions").then(({ sendPushNotification }) =>
+          sendPushNotification({
+            data: {
+              title: "مهمة جديدة",
+              body: "تم تكليفك بمهمة جديدة.",
+              type: "tasks",
+              target_user_ids: [assigneeId],
+              route: "/tasks",
+            },
+          }).catch(() => {}),
+        );
+      }
+      onSaved();
+      onClose();
+    } else { toast.error("فشل الحفظ: " + error.message); }
   };
 
   return (
