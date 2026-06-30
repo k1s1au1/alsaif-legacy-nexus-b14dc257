@@ -7,22 +7,34 @@ export function useFcm() {
   useEffect(() => {
     const win = window as any;
 
-    const saveToken = async (token: string) => {
+    const saveToken = async (tokenValue: string) => {
       try {
-        const { data: auth } = await supabase.auth.getUser();
-        if (!auth.user) return;
-        const userId = auth.user.id;
-        // Multi-device store
-        await supabase
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (!user) {
+          console.log("No authenticated user, push token not saved");
+          return;
+        }
+
+        const { error } = await supabase
           .from("push_tokens")
-          .upsert(
-            { user_id: userId, token, platform: "web", is_active: true, updated_at: new Date().toISOString() },
-            { onConflict: "user_id,token" },
-          );
-        // Back-compat single-token mirror
-        await supabase.from("profiles").update({ fcm_token: token }).eq("id", userId);
+          .upsert({
+            user_id: user.id,
+            token: tokenValue,
+            platform: 'android',
+            is_active: true,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'token' });
+
+        if (error) {
+          console.log("Save push token error:", error);
+        } else {
+          console.log("Push token saved successfully");
+          // Mirror for back-compat
+          await supabase.from("profiles").update({ fcm_token: tokenValue }).eq("id", user.id);
+        }
       } catch (e) {
-        console.error("FCM Save Token Exception:", e);
+        console.log("Save push token error:", e);
       }
     };
 

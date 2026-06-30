@@ -13,9 +13,8 @@
   },
   "dependencies": {
     "@capacitor/android": "^8.4.1",
-    "@capacitor/cli": "^8.4.1",
     "@capacitor/core": "^8.4.1",
-    "@capacitor/push-notifications": "^8",
+    "@capacitor/push-notifications": "^8.1.1",
     "@hookform/resolvers": "^5.4.0",
     "@radix-ui/react-accordion": "^1.2.14",
     "@radix-ui/react-alert-dialog": "^1.1.17",
@@ -75,6 +74,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.4.1",
     "@eslint/js": "^9.39.4",
     "@lovable.dev/vite-tanstack-config": "2.6.2",
     "@types/node": "^22.20.0",
