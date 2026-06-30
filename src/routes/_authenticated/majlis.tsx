@@ -378,7 +378,16 @@ function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any)
         });
         if (!error) {
           toast.success(isAnn ? "تم نشر الإعلان" : "تم النشر بنجاح");
-          sendFcmNotification({ data: { title: isAnn ? "📢 إعلان جديد" : "منشور جديد", body: title } }).catch(() => {});
+          import("@/lib/api/push.functions").then(({ sendPushNotification }) =>
+            sendPushNotification({
+              data: {
+                title: "خبر جديد",
+                body: "تم نشر خبر جديد في مجلس العائلة.",
+                type: "news",
+                route: isAnn ? "/majlis" : "/majlis",
+              },
+            }).catch(() => {}),
+          );
           onSaved(); onClose();
         } else toast.error("تعذر النشر: " + error.message);
       }

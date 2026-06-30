@@ -426,14 +426,17 @@ function TripDialog({ trip, onClose, onSaved }: any) {
       if (!isEdit) {
         // Trigger FCM for new trip
         try {
-          await sendFcmNotification({
+          const { sendPushNotification } = await import("@/lib/api/push.functions");
+          await sendPushNotification({
             data: {
-              title: "🚀 وجهة عائلية جديدة",
-              body: `تم إعلان رحلة جديدة: ${form.title}`,
-            }
+              title: "فعالية جديدة",
+              body: "تمت إضافة فعالية جديدة في قسم الترفيه.",
+              type: "entertainment",
+              route: "/trips",
+            },
           });
         } catch (fcmErr) {
-          console.warn("FCM Broadcast failed:", fcmErr);
+          console.warn("Push broadcast failed:", fcmErr);
         }
       }
 
