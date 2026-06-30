@@ -13,7 +13,8 @@ import {
   Send,
   X,
   Phone,
-  User
+  User,
+  ShieldCheck
 } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -111,7 +112,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#051410] transition-colors duration-700 overflow-hidden" dir="rtl">
 
-      {/* Background Image Layer (Restored) */}
+      {/* Background Image Layer */}
       {authBg && (
         <div
           className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
@@ -140,24 +141,16 @@ function AuthPage() {
               <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <div
                 className="size-full relative z-10 logo-alsaif"
-                style={{
-                  '--logo-url': `url(${dynamicLogo || logoAsset.url})`
-                } as any}
+                style={{ '--logo-url': `url(${dynamicLogo || logoAsset.url})` } as any}
               />
             </motion.div>
             <h1 className="text-3xl font-black text-white mb-1 tracking-tight">مجلس السيف</h1>
-            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-80">ALSAIF · PRIVATE ACCESS</p>
+            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-80">ALSAIF HUB</p>
           </div>
 
           <AnimatePresence mode="wait">
             {mode === "login" ? (
-              <motion.div
-                key="login"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-6"
-              >
+              <motion.div key="login" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
                 <div className="flex items-center justify-center gap-4 mb-2">
                   <div className="h-px w-8 bg-white/20" />
                   <h2 className="text-sm font-black text-white uppercase tracking-widest">تسجيل الدخول</h2>
@@ -165,8 +158,8 @@ function AuthPage() {
                 </div>
 
                 <form onSubmit={onLogin} className="space-y-5">
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                  <div className="space-y-1.5" dir="rtl">
+                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest text-right block">البريد الإلكتروني</label>
                     <div className="relative">
                       <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
                       <input
@@ -180,8 +173,8 @@ function AuthPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest">كلمة المرور</label>
+                  <div className="space-y-1.5" dir="rtl">
+                    <label className="text-[10px] font-black text-white/60 mr-4 uppercase tracking-widest text-right block">كلمة المرور</label>
                     <div className="relative">
                       <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
                       <input
@@ -219,11 +212,11 @@ function AuthPage() {
                   <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-14 bg-gold-primary text-navy-base font-black rounded-2xl shadow-xl shadow-gold-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
+                    className="w-full h-14 bg-gold-primary text-[#051410] font-black rounded-2xl shadow-xl shadow-gold-primary/20 hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-3"
                   >
                     {loading ? <Loader2 className="size-5 animate-spin" /> : (
                       <>
-                        <span>دخول إلى الأخبار</span>
+                        <span>دخول إلى المجلس</span>
                         <ArrowLeft className="size-5" />
                       </>
                     )}
@@ -244,9 +237,9 @@ function AuthPage() {
             ) : mode === "request" ? (
               <motion.div
                 key="request"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between mb-2">
@@ -265,10 +258,10 @@ function AuthPage() {
                       <ReqField label="البريد الإلكتروني" value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
                       <ReqField label="كلمة المرور المقترحة" value={reqPassword} onChange={setReqPassword} placeholder="••••••••" type="password" />
                       <div className="space-y-1.5">
-                         <label className="text-[10px] font-black text-white/40 mr-2 uppercase tracking-widest">ملاحظة إضافية</label>
+                         <label className="text-[10px] font-black text-white/40 mr-2 uppercase tracking-widest text-right block">ملاحظة إضافية</label>
                          <textarea
                            value={reqNote} onChange={(e) => setReqNote(e.target.value)}
-                           className="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-gold-primary transition-all resize-none text-white"
+                           className="w-full bg-white/5 border border-white/10 rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-gold-primary transition-all text-white placeholder:text-white/20"
                            rows={2} placeholder="صلة القرابة أو أي معلومات إضافية..."
                          />
                       </div>
@@ -277,7 +270,7 @@ function AuthPage() {
                    <button
                     type="submit"
                     disabled={loading}
-                    className="w-full h-14 bg-gold-primary text-navy-base font-black rounded-2xl shadow-xl shadow-gold-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3 sticky bottom-0"
+                    className="w-full h-14 bg-gold-primary text-[#051410] font-black rounded-2xl shadow-xl shadow-gold-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3 sticky bottom-0"
                   >
                     {loading ? <Loader2 className="size-5 animate-spin" /> : (
                       <>
@@ -291,9 +284,9 @@ function AuthPage() {
             ) : (
               <motion.div
                 key="forgot"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
                 className="space-y-6"
               >
                 <div className="flex items-center justify-between mb-2">
@@ -305,7 +298,7 @@ function AuthPage() {
                   <p className="text-xs font-bold text-white/40 leading-relaxed text-right">أدخل بريدك الإلكتروني المسجل وسنرسل لك رابطاً لاستعادة الوصول لحسابك.</p>
 
                   <div className="space-y-1.5 text-right">
-                    <label className="text-[10px] font-black text-white/40 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                    <label className="text-[10px] font-black text-white/40 mr-4 uppercase tracking-widest block">البريد الإلكتروني</label>
                     <div className="relative">
                       <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40" />
                       <input
@@ -322,7 +315,7 @@ function AuthPage() {
                   <button
                     type="submit"
                     disabled={loading || !email}
-                    className="w-full h-14 bg-gold-primary text-navy-base font-black rounded-2xl shadow-xl shadow-gold-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3"
+                    className="w-full h-14 bg-gold-primary text-[#051410] font-black rounded-2xl shadow-xl shadow-gold-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3"
                   >
                     {loading ? <Loader2 className="size-5 animate-spin" /> : (
                       <>
@@ -347,8 +340,8 @@ function AuthPage() {
 
 function ReqField({ label, value, onChange, placeholder, type = "text" }: any) {
   return (
-    <div className="space-y-1.5">
-       <label className="text-[10px] font-black text-white/40 mr-2 uppercase tracking-widest">{label}</label>
+    <div className="space-y-1.5 text-right">
+       <label className="text-[10px] font-black text-white/40 mr-2 uppercase tracking-widest block">{label}</label>
        <input
          type={type}
          required
