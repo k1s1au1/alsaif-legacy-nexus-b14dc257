@@ -29,7 +29,7 @@ export async function savePushTokenToSupabase(token: string): Promise<void> {
     }
 
     const platform = detectPlatform();
-    const { error } = await supabase
+    const { error: saveError } = await supabase
       .from("push_tokens")
       .upsert(
         {
@@ -42,8 +42,11 @@ export async function savePushTokenToSupabase(token: string): Promise<void> {
         { onConflict: "token" },
       );
 
-    if (error) {
-      console.error("[Push] save token error", error);
+    if (saveError) {
+      console.error("[Push] Supabase error:", JSON.stringify(saveError, null, 2));
+      console.error("[Push] Supabase error message:", saveError?.message);
+      console.error("[Push] Supabase error code:", saveError?.code);
+      console.error("[Push] Supabase error details:", saveError?.details);
       try { localStorage.setItem(PENDING_KEY, token); } catch {}
       return;
     }
@@ -52,12 +55,24 @@ export async function savePushTokenToSupabase(token: string): Promise<void> {
     try { localStorage.removeItem(PENDING_KEY); } catch {}
     // Back-compat single-token mirror
     try {
-      await supabase.from("profiles").update({ fcm_token: token }).eq("id", user.id);
-    } catch (e) {
-      console.warn("[Push] profile mirror failed", e);
+      const { error: profileError } = await supabase.from("profiles").update({ fcm_token: token }).eq("id", user.id);
+      if (profileError) {
+        console.error("[Push] Supabase error:", JSON.stringify(profileError, null, 2));
+        console.error("[Push] Supabase error message:", profileError?.message);
+        console.error("[Push] Supabase error code:", profileError?.code);
+        console.error("[Push] Supabase error details:", profileError?.details);
+      }
+    } catch (saveError) {
+      console.error("[Push] Supabase error:", JSON.stringify(saveError, null, 2));
+      console.error("[Push] Supabase error message:", (saveError as any)?.message);
+      console.error("[Push] Supabase error code:", (saveError as any)?.code);
+      console.error("[Push] Supabase error details:", (saveError as any)?.details);
     }
-  } catch (e) {
-    console.error("[Push] save token error", e);
+  } catch (error) {
+    console.error("[Push] save token error full:", JSON.stringify(error, null, 2));
+    console.error("[Push] save token error message:", (error as any)?.message);
+    console.error("[Push] save token error code:", (error as any)?.code);
+    console.error("[Push] save token error details:", (error as any)?.details);
     try { localStorage.setItem(PENDING_KEY, token); } catch {}
   }
 }
