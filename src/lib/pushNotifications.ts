@@ -64,15 +64,15 @@ export async function savePushTokenToSupabase(token: string): Promise<void> {
       }
     } catch (saveError) {
       console.error("[Push] Supabase error:", JSON.stringify(saveError, null, 2));
-      console.error("[Push] Supabase error message:", saveError?.message);
-      console.error("[Push] Supabase error code:", saveError?.code);
-      console.error("[Push] Supabase error details:", saveError?.details);
+      console.error("[Push] Supabase error message:", (saveError as any)?.message);
+      console.error("[Push] Supabase error code:", (saveError as any)?.code);
+      console.error("[Push] Supabase error details:", (saveError as any)?.details);
     }
   } catch (error) {
     console.error("[Push] save token error full:", JSON.stringify(error, null, 2));
-    console.error("[Push] save token error message:", error?.message);
-    console.error("[Push] save token error code:", error?.code);
-    console.error("[Push] save token error details:", error?.details);
+    console.error("[Push] save token error message:", (error as any)?.message);
+    console.error("[Push] save token error code:", (error as any)?.code);
+    console.error("[Push] save token error details:", (error as any)?.details);
     try { localStorage.setItem(PENDING_KEY, token); } catch {}
   }
 }
