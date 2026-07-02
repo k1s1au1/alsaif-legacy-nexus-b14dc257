@@ -47,6 +47,24 @@ const THEME_COLORS = [
     mesh: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"]
   },
   {
+    id: "royal-gold",
+    name: "الذهب الملكي",
+    primary: "#D4AF37",
+    secondary: "#064E3B",
+    darkPrimary: "#B8972E",
+    foreground: "#064E3B",
+    mesh: ["rgba(6, 78, 59, 0.1)", "rgba(212, 175, 55, 0.08)"]
+  },
+  {
+    id: "vibrant-emerald",
+    name: "زمردي وهاج",
+    primary: "#059669",
+    secondary: "#F59E0B",
+    darkPrimary: "#065F46",
+    foreground: "#FFFFFF",
+    mesh: ["rgba(245, 158, 11, 0.1)", "rgba(5, 150, 105, 0.08)"]
+  },
+  {
     id: "midnight",
     name: "الكحلي الوقور",
     primary: "#1E293B",
