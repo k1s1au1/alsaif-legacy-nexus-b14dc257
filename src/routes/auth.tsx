@@ -120,23 +120,39 @@ function AuthPage() {
   }
 
   return (
-    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-background transition-colors duration-700 overflow-hidden">
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#fdfcf7] dark:bg-[#05070a] transition-colors duration-700 overflow-hidden">
 
-      {/* Alsaif Background Decoration */}
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="absolute top-[-10%] right-[-5%] size-[600px] rounded-full bg-primary/5 blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-5%] size-[600px] rounded-full bg-gold-primary/5 blur-[120px]" />
+      {/* Dynamic Brand Mesh Background for Glass Effect */}
+      <div className="absolute inset-0 pointer-events-none">
+        <motion.div
+          animate={{
+            scale: [1, 1.2, 1],
+            rotate: [0, 90, 0],
+            x: [0, 50, 0]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-20%] right-[-10%] size-[800px] rounded-full bg-primary/10 blur-[120px]"
+        />
+        <motion.div
+          animate={{
+            scale: [1.2, 1, 1.2],
+            rotate: [0, -90, 0],
+            x: [0, -50, 0]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-20%] left-[-10%] size-[800px] rounded-full bg-gold-primary/10 blur-[140px]"
+        />
       </div>
 
       <div
-        className="relative w-full max-w-[480px] md:max-w-[540px] bg-card rounded-[44px] shadow-2xl animate-fade-up overflow-hidden border border-border transition-all duration-500"
+        className="relative w-full max-w-[480px] md:max-w-[540px] bg-white/40 dark:bg-black/40 backdrop-blur-3xl rounded-[44px] shadow-[0_32px_64px_-12px_rgba(0,0,0,0.15)] animate-fade-up overflow-hidden border border-white/20 dark:border-white/10 transition-all duration-500"
       >
         {authBg && (
           <div
-            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.45] transition-opacity duration-1000"
+            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.2] transition-opacity duration-1000"
             style={{ backgroundImage: `url(${authBg})` }}
           >
-            <div className="absolute inset-0 bg-gradient-to-b from-card/95 via-card/40 to-card/95" />
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-transparent" />
           </div>
         )}
 
@@ -145,7 +161,7 @@ function AuthPage() {
           <div className="flex flex-col items-center text-center mb-8">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="size-24 mb-6 flex items-center justify-center p-4 bg-gradient-to-b from-card to-muted rounded-[32px] shadow-lg ring-1 ring-border relative group overflow-hidden"
+              className="size-24 mb-6 flex items-center justify-center p-4 bg-white/20 dark:bg-white/5 backdrop-blur-md rounded-[32px] shadow-lg border border-white/20 relative group overflow-hidden"
             >
               <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
               <AnimatePresence mode="wait">
@@ -215,7 +231,7 @@ function AuthPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        className="w-full h-14 bg-white/30 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm"
                         placeholder="example@alsaif.family"
                       />
                     </div>
@@ -230,7 +246,7 @@ function AuthPage() {
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-14 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        className="w-full h-14 bg-white/30 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl pr-14 pl-14 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm"
                         placeholder="••••••••••••"
                       />
                       <button
@@ -309,7 +325,7 @@ function AuthPage() {
                          <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">ملاحظة إضافية</label>
                          <textarea
                            value={reqNote} onChange={(e) => setReqNote(e.target.value)}
-                           className="w-full bg-muted/40 border border-border rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none"
+                           className="w-full bg-white/30 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-xl p-4 font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none shadow-sm"
                            rows={2} placeholder="صلة القرابة أو أي معلومات إضافية..."
                          />
                       </div>
@@ -398,7 +414,7 @@ function ReqField({ label, icon, value, onChange, placeholder, type = "text" }: 
             value={value}
             onChange={(e) => onChange(e.target.value)}
             className={cn(
-              "w-full h-12 bg-muted/40 border border-border rounded-xl font-bold text-sm focus:outline-none focus:border-primary transition-all shadow-sm",
+              "w-full h-12 bg-white/30 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-xl font-bold text-sm focus:outline-none focus:border-primary transition-all shadow-sm",
               icon ? "pr-12 pl-4" : "px-4"
             )}
             placeholder={placeholder}
