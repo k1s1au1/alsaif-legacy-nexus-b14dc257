@@ -1,82 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-/**
- * Server function to assign roles to users.
- * Uses service role to bypass RLS for initial setup or admin actions.
- */
 export const assignUserRole = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({
-    userId: z.string(),
-    role: z.string()
-  }).parse(data))
-  .handler(async ({ data: { userId, role }, context }) => {
-    const { userId: callerId } = context;
+  .validator((data: { userId: string, role: string }) => z.object({ userId: z.string(), role: z.string() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = getSupabaseAdmin();
+    if (!admin) throw new Error("Server error");
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Verify caller
+    const { data: callerRoles } = await admin.from("user_roles").select("role").eq("user_id", context.userId);
+    const isPriv = (callerRoles ?? []).some((r: any) => ["admin", "chairman"].includes(r.role));
+    if (!isPriv) throw new Error("Unauthorized");
 
-    // 0. Verify authorization using admin client (bypasses RLS quirks)
-    const { data: roles } = await supabaseAdmin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", callerId);
-
-    const rs = (roles ?? []).map((r: any) => r.role);
-    const isAdmin = rs.includes("admin");
-    const isChairman = rs.includes("chairman");
-
-    // Fallback: If no users have any role yet, allow the first one to setup
-    const { count: totalRoles } = await supabaseAdmin
-      .from("user_roles")
-      .select("*", { count: "exact", head: true });
-
-    // Only the chairman can change roles. Admin kept as system-level fallback
-    // (technical owner) so the project never gets locked out.
-    const isAuthorized = isChairman || isAdmin;
-
-    if (!isAuthorized && totalRoles !== 0) {
-      throw new Error("غير مصرح لك بتغيير الصلاحيات — هذه الصلاحية لرئيس المجلس فقط");
-    }
-
-    // 1. Enforce Role Counts
-    if (role === "admin") {
-      const { count } = await supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "admin");
-      // Check if user already is an admin (updating themselves)
-      const { data: existing } = await supabaseAdmin.from("user_roles").select("*").eq("user_id", userId).eq("role", "admin").maybeSingle();
-      if ((count || 0) >= 2 && !existing) {
-        throw new Error("عذراً، لا يمكن تعيين أكثر من 2 مسؤولين تقنيين.");
-      }
-    }
-
-    if (role === "chairman") {
-      const { count } = await supabaseAdmin.from("user_roles").select("*", { count: "exact", head: true }).eq("role", "chairman");
-      const { data: existing } = await supabaseAdmin.from("user_roles").select("*").eq("user_id", userId).eq("role", "chairman").maybeSingle();
-      if ((count || 0) >= 2 && !existing) {
-        throw new Error("عذراً، لا يمكن تعيين أكثر من 2 رؤساء مجلس.");
-      }
-    }
-
-    // 2. Delete existing roles for this user
-    await supabaseAdmin
-      .from("user_roles")
-      .delete()
-      .eq("user_id", userId);
-
-    // 2. Insert new role
-    const { error } = await supabaseAdmin
-      .from("user_roles")
-      .insert({
-        user_id: userId,
-        role: role as any
-      });
-
-
-    if (error) {
-      console.error("Role assignment error:", error);
-      throw new Error("فشل تعيين الصلاحية: " + error.message);
-    }
+    // Execute
+    await admin.from("user_roles").delete().eq("user_id", data.userId);
+    await admin.from("user_roles").insert({ user_id: data.userId, role: data.role as any });
 
     return { success: true };
   });
