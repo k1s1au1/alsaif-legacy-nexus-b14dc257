@@ -35,7 +35,7 @@ function AuthPage() {
   // Welcome Messages for Idea 1
   const [msgIndex, setMsgIndex] = useState(0);
   const welcomeMessages = [
-    "أهلاً بك في فناء السيف",
+    "أهلاً بك في مجلس السيف",
     "حيث يجتمع التاريخ بالمستقبل",
     "منصة العائلة الرسمية والخاصة",
     "نصل العائلة، نحفظ الإرث، نبني المجتمع"
