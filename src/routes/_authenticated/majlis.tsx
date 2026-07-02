@@ -82,7 +82,7 @@ function MajlisPage() {
           : { data: [] };
         const profileMap = new Map((authorProfiles ?? []).map((p: any) => [p.id, p]));
 
-        // Only "sharing" — meaning no poll and uiKind=sharing (or legacy kind=discussion without kind tag)
+        // Filter out polls from the Majlis feed
         const processed = rawPosts.map((p: any) => {
           const kindMatch = p.body?.match(/---kind:(\w+)/);
           const uiKind = kindMatch
@@ -97,7 +97,10 @@ function MajlisPage() {
             .replace(/^---poll:.*?---/s, "")
             .trim();
           return { ...p, uiKind, imagePath, cleanBody: cleanBody || "", author: profileMap.get(p.author_id) || null };
-        }).filter((p: any) => p.uiKind === "sharing" || p.uiKind === "announcement" || p.kind === "announcement");
+        }).filter((p: any) =>
+          (p.uiKind === "sharing" || p.uiKind === "announcement" || p.kind === "announcement") &&
+          !p.body?.includes("---poll:")
+        );
 
         // Sign image URLs in parallel
         const withImages = await Promise.all(processed.map(async (p: any) => {
