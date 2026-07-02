@@ -265,7 +265,7 @@ function ChatLayout() {
       <div className="flex h-[calc(100vh-10rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10 overflow-hidden bg-background">
         <aside
           className={cn(
-            "flex flex-col w-full lg:w-[400px] shrink-0 border-l border-border bg-card/30 backdrop-blur-xl relative z-20 transition-all duration-500",
+            "flex flex-col w-full lg:w-[320px] xl:w-[380px] shrink-0 border-l border-border bg-card/30 backdrop-blur-xl relative z-20 transition-all duration-500",
             isConvOpen ? "hidden lg:flex" : "flex"
           )}
         >

@@ -810,16 +810,16 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
         </div>
       )}
 
-      <div className={cn("max-w-[85%] sm:max-w-[70%] flex flex-col relative", mine ? "items-end text-left" : "items-start text-right")}>
+      <div className={cn("max-w-[80%] sm:max-w-[65%] flex flex-col relative", mine ? "items-end" : "items-start")}>
         {!mine && (
-           <span className="text-[10px] font-black text-gold-primary/60 mb-1 ml-2 tracking-wide uppercase">{name}</span>
+           <span className="text-[10px] font-black text-gold-primary/60 mb-1 mr-2 tracking-wide uppercase">{name}</span>
         )}
 
         <div className={cn(
           "relative px-4 py-3 rounded-[24px] shadow-xl backdrop-blur-xl border transition-all duration-500",
           mine
-            ? "bg-gold-primary/15 dark:bg-gold-primary/10 border-gold-primary/30 text-foreground rounded-br-none"
-            : "bg-white/10 dark:bg-white/5 border-white/10 text-foreground rounded-bl-none"
+            ? "bg-primary text-primary-foreground border-white/10 rounded-bl-none ml-1"
+            : "bg-white/10 dark:bg-white/5 border-white/10 text-foreground rounded-br-none mr-1"
         )}>
            {replyTo && (
               <div className={cn(
@@ -869,13 +869,13 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
 
       {!m.deleted_at && (
          <div className={cn(
-           "flex items-center self-center transition-all duration-300",
-           "lg:opacity-0 lg:group-hover:opacity-100 opacity-100 px-1",
-           mine ? "flex-row-reverse mr-1" : "ml-1"
+           "flex items-center self-center transition-all duration-300 gap-0.5",
+           "lg:opacity-0 lg:group-hover:opacity-100 opacity-100",
+           mine ? "flex-row mr-2" : "flex-row-reverse ml-2"
          )}>
-            <button onClick={onReact} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125"><Smile size={18} /></button>
-            <button onClick={onReply} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125"><Reply size={18} /></button>
-            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground/50 hover:text-red-500 transition-all active:scale-125"><Trash2 size={18} /></button>}
+            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground/50 hover:text-red-500 transition-all active:scale-125" title="حذف"><Trash2 size={18} /></button>}
+            <button onClick={onReply} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125" title="رد"><Reply size={18} /></button>
+            <button onClick={onReact} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125" title="تفاعل"><Smile size={18} /></button>
          </div>
       )}
     </motion.div>
