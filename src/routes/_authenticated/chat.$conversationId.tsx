@@ -819,19 +819,19 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
 
       <div className={cn("max-w-[80%] sm:max-w-[65%] flex flex-col relative", mine ? "items-end" : "items-start")}>
         {!mine && (
-           <span className="text-[10px] font-black text-gold-primary/60 mb-1 mr-2 tracking-wide uppercase">{name}</span>
+           <span className="text-[10px] font-black text-gold-primary mb-1 mr-2 tracking-wide uppercase">{name}</span>
         )}
 
         <div className={cn(
           "relative px-4 py-3 rounded-[24px] shadow-xl backdrop-blur-xl border transition-all duration-500",
           mine
             ? "bg-primary text-primary-foreground border-white/10 rounded-bl-none ml-1"
-            : "bg-white/10 dark:bg-white/5 border-white/10 text-foreground rounded-br-none mr-1"
+            : "bg-white border-border text-foreground dark:bg-card dark:border-white/10 rounded-br-none mr-1"
         )}>
            {replyTo && (
               <div className={cn(
                 "mb-3 p-3 rounded-xl border-r-4 text-[12px] font-bold backdrop-blur-md",
-                mine ? "bg-black/10 border-gold-primary/40 text-foreground/80" : "bg-white/5 border-white/20 text-foreground/70"
+                mine ? "bg-black/20 border-white/40 text-white/90" : "bg-muted border-border text-foreground/70"
               )}>
                  <p className="text-[9px] uppercase font-black mb-1 opacity-60 tracking-widest">{displayName(profiles[replyTo.sender_id])}</p>
                  <p className="truncate italic">{replyTo.deleted_at ? "رسالة محذوفة" : (replyTo.body || "[مرفق]")}</p>
@@ -839,14 +839,14 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
            )}
 
            {m.deleted_at ? (
-              <p className="text-xs italic opacity-30 py-1">🚫 تم حذف هذه الرسالة</p>
+              <p className="text-sm italic opacity-50 py-1 font-bold">🚫 تم حذف هذه الرسالة</p>
            ) : (
               <div className="text-[15px] md:text-[16px] font-bold leading-relaxed">
                  <AttachmentBody m={m} />
               </div>
            )}
 
-           <div className={cn("flex items-center gap-2 mt-2 text-[9px] font-black uppercase tracking-[0.1em]", mine ? "text-foreground/40 justify-end" : "text-foreground/30")}>
+           <div className={cn("flex items-center gap-2 mt-2 text-[9px] font-black uppercase tracking-[0.1em]", mine ? "text-primary-foreground/60 justify-end" : "text-muted-foreground")}>
               <span className="tabular-nums">{timeLabel(m.created_at)}</span>
               {mine && !m.deleted_at && (
                 <div className="flex">
@@ -868,8 +868,8 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
         )}
 
         {reacting && (
-           <motion.div initial={{ y: 10, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} className={cn("absolute -top-14 z-50 bg-card/90 backdrop-blur-2xl border border-white/10 p-1.5 rounded-[24px] flex gap-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)]", mine ? "right-0" : "left-0")}>
-              {EMOJI_QUICK.map(e => <button key={e} onClick={() => onPickReaction(e)} className="size-11 flex items-center justify-center text-2xl hover:bg-white/10 rounded-2xl transition-all active:scale-125">{e}</button>)}
+           <motion.div initial={{ y: 10, opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} className={cn("absolute -top-14 z-50 bg-card/95 backdrop-blur-2xl border border-border p-1.5 rounded-[24px] flex gap-1 shadow-[0_20px_50px_rgba(0,0,0,0.5)]", mine ? "right-0" : "left-0")}>
+              {EMOJI_QUICK.map(e => <button key={e} onClick={() => onPickReaction(e)} className="size-11 flex items-center justify-center text-2xl hover:bg-muted rounded-2xl transition-all active:scale-125">{e}</button>)}
            </motion.div>
         )}
       </div>
@@ -880,9 +880,29 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
            "lg:opacity-0 lg:group-hover:opacity-100 opacity-100",
            mine ? "flex-row mr-2" : "flex-row-reverse ml-2"
          )}>
-            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground/50 hover:text-red-500 transition-all active:scale-125" title="حذف"><Trash2 size={18} /></button>}
-            <button onClick={onReply} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125" title="رد"><Reply size={18} /></button>
-            <button onClick={onReact} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125" title="تفاعل"><Smile size={18} /></button>
+            {canDelete && (
+              <button
+                onClick={onDelete}
+                className="p-2.5 rounded-full text-muted-foreground/60 hover:text-red-500 hover:bg-red-500/10 transition-all active:scale-125 bg-muted/20 lg:bg-transparent"
+                title="حذف"
+              >
+                <Trash2 size={16} />
+              </button>
+            )}
+            <button
+              onClick={onReply}
+              className="p-2.5 rounded-full text-muted-foreground/60 hover:text-gold-primary hover:bg-gold-primary/10 transition-all active:scale-125 bg-muted/20 lg:bg-transparent"
+              title="رد"
+            >
+              <Reply size={16} />
+            </button>
+            <button
+              onClick={onReact}
+              className="p-2.5 rounded-full text-muted-foreground/60 hover:text-gold-primary hover:bg-gold-primary/10 transition-all active:scale-125 bg-muted/20 lg:bg-transparent"
+              title="تفاعل"
+            >
+              <Smile size={16} />
+            </button>
          </div>
       )}
     </motion.div>
