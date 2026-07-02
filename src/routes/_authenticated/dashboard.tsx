@@ -30,10 +30,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole } from "@/hooks/use-user-role";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
-import { ActivePolls } from "@/components/dashboard/active-polls";
 import { showIsland } from "@/components/dynamic-island";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
-import { NewsTicker } from "@/components/news-ticker";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -134,7 +132,7 @@ function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const ch = supabase.channel('dash-rt-final-restore-v2')
+    const ch = supabase.channel('dash-rt-cleanup-final')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_comments' }, () => loadData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_posts' }, () => loadData())
       .subscribe();
@@ -170,11 +168,10 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={{ name: profile?.arabic_name || "عضو", role: "عضو المجلس", initial: "ع" } as any}>
-      <div className="max-w-6xl mx-auto space-y-8 pb-24" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-10 pb-24 px-4 md:px-0" dir="rtl">
 
-        <NewsTicker />
-
-        <section className="animate-fade-up px-4 md:px-0">
+        {/* CLEAN ORIGINAL HERO SECTION */}
+        <section className="animate-fade-up">
            <div className="relative overflow-hidden rounded-[44px] glass-surface p-8 md:p-14 shadow-2xl border border-white/10">
               <div className="absolute left-0 top-0 bottom-0 w-1/3 opacity-[0.04] pointer-events-none overflow-hidden">
                 <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom" />
@@ -187,7 +184,7 @@ function Dashboard() {
                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-primary leading-tight">
                           {profile?.arabic_name || "عضو عائلة السيف"}
                        </h2>
-                       <p className="text-muted-foreground font-bold text-base md:text-lg opacity-70 leading-relaxed">
+                       <p className="text-muted-foreground font-bold text-base md:text-lg opacity-70">
                           نفخر بمبادراتك وعطاؤك المستمر للعائلة.
                        </p>
                     </div>
@@ -211,80 +208,79 @@ function Dashboard() {
            </div>
         </section>
 
-        <div className="px-4 md:px-0 space-y-12">
-          <QuickActionsBanner />
-          <PollsPopup userId={meId ?? null} />
-          <ActivePolls userId={meId ?? null} />
+        <QuickActionsBanner />
 
-          {announcements.length > 0 && (
-            <section className="animate-fade-up">
-               <Link to="/majlis" className="block group">
-                  <div className="relative overflow-hidden rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-emerald-950 to-black shadow-2xl min-h-[140px] md:min-h-[180px] flex items-center p-8 md:p-14">
-                     {announcements[annIndex].imageUrl && (
-                        <div className="absolute inset-0 z-0">
-                           <img src={announcements[annIndex].imageUrl} className="size-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-[2000ms]" alt="" />
-                           <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
-                        </div>
-                     )}
-                     <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 w-full">
-                        <div className="flex flex-col md:flex-row items-center gap-8">
-                           <div className="size-16 md:size-24 rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-12 transition-transform duration-500">
-                              <Newspaper size={40} />
-                           </div>
-                           <div className="text-center md:text-right space-y-2">
-                              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary shadow-sm">إعلان المجلس</span>
-                              <h3 className="text-2xl md:text-5xl font-black text-white leading-tight drop-shadow-lg">{announcements[annIndex].title}</h3>
-                              <p className="text-white/70 font-bold text-sm md:text-xl line-clamp-2 max-w-3xl">{announcements[annIndex].cleanBody}</p>
-                           </div>
-                        </div>
-                        <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
-                     </div>
-                  </div>
-               </Link>
-            </section>
-          )}
+        {/* Removed ActivePolls from here to declutter the dashboard */}
+        <PollsPopup userId={meId ?? null} />
 
-          <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={counts.tasks} />
-
-          <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
-             <StatCard label="رصيد الصندوق" value={counts.balance} suffix="ر.س" color="from-emerald-700 to-emerald-950" icon={<Wallet className="size-16" />} link="/finance" />
-             <StatCard label="أفراد العائلة" value={counts.members} suffix="عضو" color="from-primary to-[#032d22]" icon={<Users className="size-16" />} link="/members" />
-             <StatCard label="ترفيه عائلي" value={counts.trips} suffix="وجهة" color="from-[#8E7745] to-[#453a22]" icon={<Plane className="size-16" />} link="/trips" />
-             <StatCard label="مهام معلقة" value={counts.tasks} suffix="مهمة" color="from-rose-800 to-rose-950" icon={<ListChecks className="size-16" />} link="/tasks" />
-          </section>
-
-          {heritageSnippet && (
-            <Link to="/heritage" className="block group animate-fade-up">
-               <div className="card-surface p-10 flex flex-col md:flex-row md:items-center justify-between gap-10 hover:scale-[1.01] transition-all duration-500">
-                  <div className="flex items-center gap-8">
-                     <div className="size-20 rounded-3xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-2xl ring-1 ring-gold-primary/20"><Scroll size={40} /></div>
-                     <div className="space-y-1">
-                        <span className="text-[10px] font-black text-gold-primary uppercase tracking-[0.4em]">قبس من التاريخ</span>
-                        <h3 className="text-2xl md:text-3xl font-black text-primary">{heritageSnippet.title}</h3>
-                        <p className="text-base md:text-xl font-bold text-muted-foreground line-clamp-1 opacity-70 italic leading-relaxed">"{heritageSnippet.body}"</p>
-                     </div>
-                  </div>
-                  <ChevronLeft className="text-gold-primary opacity-20 group-hover:opacity-100 group-hover:-translate-x-4 transition-all duration-500 size-8" />
-               </div>
-            </Link>
-          )}
-
-          <section className="pb-24 animate-fade-up">
-             <div className="glass-surface p-12 md:p-20 border-dashed border-2 border-primary/20 rounded-[50px] flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-right">
-                <div className="space-y-4">
-                   <div className="flex items-center justify-center md:justify-start gap-4 text-rose-500">
-                      <ShieldAlert className="size-8" />
-                      <span className="text-[10px] font-black uppercase tracking-[0.4em]">فريق الدعم التقني</span>
+        {announcements.length > 0 && (
+          <section className="animate-fade-up">
+             <Link to="/majlis" className="block group">
+                <div className="relative overflow-hidden rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-emerald-950 to-black shadow-2xl min-h-[140px] md:min-h-[180px] flex items-center p-8 md:p-14">
+                   {announcements[annIndex].imageUrl && (
+                      <div className="absolute inset-0 z-0">
+                         <img src={announcements[annIndex].imageUrl} className="size-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-[2000ms]" alt="" />
+                         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
+                      </div>
+                   )}
+                   <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 w-full">
+                      <div className="flex flex-col md:flex-row items-center gap-8">
+                         <div className="size-16 md:size-24 rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-12 transition-transform duration-500">
+                            <Newspaper size={40} />
+                         </div>
+                         <div className="text-center md:text-right space-y-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary shadow-sm">إعلان المجلس</span>
+                            <h3 className="text-2xl md:text-5xl font-black text-white leading-tight drop-shadow-lg">{announcements[annIndex].title}</h3>
+                            <p className="text-white/70 font-bold text-sm md:text-xl line-clamp-2 max-w-3xl">{announcements[annIndex].cleanBody}</p>
+                         </div>
+                      </div>
+                      <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
                    </div>
-                   <h3 className="text-3xl md:text-5xl font-black text-primary tracking-tighter">واجهت مشكلة في النظام؟</h3>
-                   <p className="text-lg md:text-2xl font-bold text-muted-foreground opacity-60 max-w-2xl">نحن هنا لخدمتكم. أبلغ عن أي عائق برمجي لمساعدتنا في تحسين تجربتكم الرقمية.</p>
                 </div>
-                <button onClick={() => setShowBugReport(true)} className="px-14 py-6 rounded-[30px] bg-rose-500/10 text-rose-600 font-black text-lg border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-2xl flex items-center gap-4 hover:scale-105 active:scale-95">
-                   <ShieldAlert size={28} /> إرسال بلاغ فوري
-                </button>
-             </div>
+             </Link>
           </section>
-        </div>
+        )}
+
+        <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={counts.tasks} />
+
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+           <StatCard label="رصيد الصندوق" value={counts.balance} suffix="ر.س" color="from-emerald-700 to-emerald-950" icon={<Wallet className="size-16" />} link="/finance" />
+           <StatCard label="أفراد العائلة" value={counts.members} suffix="عضو" color="from-primary to-[#032d22]" icon={<Users className="size-16" />} link="/members" />
+           <StatCard label="ترفيه عائلي" value={counts.trips} suffix="وجهة" color="from-[#8E7745] to-[#453a22]" icon={<Plane className="size-16" />} link="/trips" />
+           <StatCard label="مهام معلقة" value={counts.tasks} suffix="مهمة" color="from-rose-800 to-rose-950" icon={<ListChecks className="size-16" />} link="/tasks" />
+        </section>
+
+        {heritageSnippet && (
+          <Link to="/heritage" className="block group animate-fade-up">
+             <div className="card-surface p-10 flex flex-col md:flex-row md:items-center justify-between gap-10 hover:scale-[1.01] transition-all duration-500">
+                <div className="flex items-center gap-8">
+                   <div className="size-20 rounded-3xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-2xl ring-1 ring-gold-primary/20"><Scroll size={40} /></div>
+                   <div className="space-y-1">
+                      <span className="text-[10px] font-black text-gold-primary uppercase tracking-[0.4em]">قبس من التاريخ</span>
+                      <h3 className="text-2xl md:text-3xl font-black text-primary">{heritageSnippet.title}</h3>
+                      <p className="text-base md:text-xl font-bold text-muted-foreground line-clamp-1 opacity-70 italic leading-relaxed">"{heritageSnippet.body}"</p>
+                   </div>
+                </div>
+                <ChevronLeft className="text-gold-primary opacity-20 group-hover:opacity-100 group-hover:-translate-x-4 transition-all duration-500 size-8" />
+             </div>
+          </Link>
+        )}
+
+        <section className="pb-24 animate-fade-up">
+           <div className="glass-surface p-12 md:p-20 border-dashed border-2 border-primary/20 rounded-[50px] flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-right">
+              <div className="space-y-4">
+                 <div className="flex items-center justify-center md:justify-start gap-4 text-rose-500">
+                    <ShieldAlert className="size-8" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">فريق الدعم التقني</span>
+                 </div>
+                 <h3 className="text-3xl md:text-5xl font-black text-primary tracking-tighter">واجهت مشكلة في النظام؟</h3>
+                 <p className="text-lg md:text-2xl font-bold text-muted-foreground opacity-60 max-w-2xl">نحن هنا لخدمتكم. أبلغ عن أي عائق برمجي لمساعدتنا في تحسين تجربتكم الرقمية.</p>
+              </div>
+              <button onClick={() => setShowBugReport(true)} className="px-14 py-6 rounded-[30px] bg-rose-500/10 text-rose-600 font-black text-lg border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-2xl flex items-center gap-4 hover:scale-105 active:scale-95">
+                 <ShieldAlert size={28} /> إرسال بلاغ فوري
+              </button>
+           </div>
+        </section>
       </div>
 
       <AnimatePresence>
