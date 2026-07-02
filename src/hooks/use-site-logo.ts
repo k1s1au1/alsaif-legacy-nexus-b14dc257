@@ -15,15 +15,17 @@ let globalCheckDone = false;
  * Prevents the "flash" of the old logo by waiting for the check to complete.
  */
 export function useSiteLogo() {
-  // Start with the global cached URL if we have one, otherwise start with null to prevent flash
+  // Start with the global cached URL if we have one
   const [logoUrl, setLogoUrl] = useState<string | null>(globalLogoUrl);
-  const [isReady, setIsReady] = useState(globalCheckDone);
+  const [isLoading, setIsLoading] = useState(!globalCheckDone);
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
 
     const fetchLogo = async () => {
+      if (globalCheckDone && !version) return; // Already have it
+
       try {
         const { data } = await supabase
           .from("app_settings")
@@ -34,10 +36,11 @@ export function useSiteLogo() {
         const path = data?.value;
         if (!path) {
           if (!cancelled) {
-            globalLogoUrl = alsaifMark.url;
+            const final = alsaifMark.url;
+            globalLogoUrl = final;
             globalCheckDone = true;
-            setLogoUrl(alsaifMark.url);
-            setIsReady(true);
+            setLogoUrl(final);
+            setIsLoading(false);
           }
           return;
         }
@@ -51,7 +54,7 @@ export function useSiteLogo() {
           globalLogoUrl = finalUrl;
           globalCheckDone = true;
           setLogoUrl(finalUrl);
-          setIsReady(true);
+          setIsLoading(false);
         }
       } catch (err) {
         console.error("Error fetching site logo:", err);
@@ -59,7 +62,7 @@ export function useSiteLogo() {
           globalLogoUrl = alsaifMark.url;
           globalCheckDone = true;
           setLogoUrl(alsaifMark.url);
-          setIsReady(true);
+          setIsLoading(false);
         }
       }
     };

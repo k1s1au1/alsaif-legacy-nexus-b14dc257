@@ -148,12 +148,27 @@ function AuthPage() {
               className="size-24 mb-6 flex items-center justify-center p-4 bg-gradient-to-b from-card to-muted rounded-[32px] shadow-lg ring-1 ring-border relative group overflow-hidden"
             >
               <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-              <div
-                className="size-full relative z-10 logo-alsaif"
-                style={{
-                  '--logo-url': `url(${dynamicLogo || logoAsset.url})`
-                } as any}
-              />
+              <AnimatePresence mode="wait">
+                {dynamicLogo ? (
+                  <motion.div
+                    key={dynamicLogo}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="size-full relative z-10 logo-alsaif"
+                    style={{
+                      '--logo-url': `url(${dynamicLogo})`
+                    } as any}
+                  />
+                ) : (
+                  <motion.div
+                    key="loader"
+                    exit={{ opacity: 0 }}
+                    className="size-full flex items-center justify-center"
+                  >
+                    <Loader2 className="size-6 animate-spin text-gold-primary/20" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
             <h1 className="text-3xl font-black text-primary mb-1 tracking-tight">مجلس السيف</h1>
             <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-60">ALSAIF · PRIVATE ACCESS</p>
