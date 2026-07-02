@@ -4,37 +4,102 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const approveAccountRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
+  .inputValidator((data) => z.object({ id: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
-    const { userId } = context;
-    const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
-    if (!admin) throw new Error("Server error");
+    const { supabase, userId } = context;
 
-    // 1. Verify privilege
-    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userId);
-    const isPriv = (roles ?? []).some((r: any) => ["admin", "chairman"].includes(r.role));
-    if (!isPriv) throw new Error("Unauthorized");
+    // Verify caller is admin or manager
+    const { data: roles } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId);
+    const isPriv = (roles ?? []).some(
+      (r: { role: string }) => r.role === "admin" || r.role === "manager" || r.role === "chairman",
+    );
+    if (!isPriv) throw new Error("غير مصرح");
 
-    // 2. Get Request Details
-    const { data: req } = await admin.from("account_requests").select("*").eq("id", data.id).single();
-    if (!req) throw new Error("Request not found");
+    // Load the request
+    const { data: req, error: reqErr } = await supabase
+      .from("account_requests")
+      .select("*")
+      .eq("id", data.id)
+      .maybeSingle();
+    if (reqErr || !req) throw new Error("الطلب غير موجود");
+    // Note: do NOT early-return on already-approved. We re-run creation so that
+    // requests that were marked approved but whose auth user creation failed
+    // (silently) can still be activated by re-approving from the admin panel.
+    if (!req.email || !req.desired_password)
+      throw new Error("الطلب يفتقد البريد أو كلمة المرور");
 
-    // 3. Create Auth User
-    const fullName = `${req.first_name} ${req.father_name}`;
-    const { data: authUser, error: authErr } = await admin.auth.admin.createUser({
-      email: req.email,
-      password: req.desired_password,
-      email_confirm: true,
-      user_metadata: { full_name: fullName, arabic_name: fullName }
-    });
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
 
-    if (authErr) throw authErr;
+    const fullName = [req.first_name, req.father_name, req.grandfather_name]
+      .filter(Boolean)
+      .join(" ");
 
-    // 4. Update Tables
-    await admin.from("profiles").upsert({ id: authUser.user.id, arabic_name: fullName, full_name: fullName, phone: req.phone });
-    await admin.from("user_roles").insert({ user_id: authUser.user.id, role: "member" });
-    await admin.from("account_requests").update({ status: "approved" }).eq("id", data.id);
+    // Create the auth user (handle_new_user trigger creates profile + member role)
+    let newUserId: string | null = null;
+    const { data: created, error: createErr } =
+      await supabaseAdmin.auth.admin.createUser({
+        email: req.email,
+        password: req.desired_password,
+        email_confirm: true,
+        user_metadata: { full_name: fullName, arabic_name: fullName },
+      });
 
-    return { ok: true };
+    if (createErr) {
+      // If user already exists, try to find them by email
+      const msg = createErr.message?.toLowerCase() ?? "";
+      if (msg.includes("already") || msg.includes("registered")) {
+        const { data: list } = await supabaseAdmin.auth.admin.listUsers();
+        const existing = list?.users.find(
+          (u) => u.email?.toLowerCase() === req.email!.toLowerCase(),
+        );
+        if (!existing) throw new Error("المستخدم موجود لكن تعذر تحديده");
+        newUserId = existing.id;
+      } else {
+        throw new Error(createErr.message || "تعذر إنشاء المستخدم");
+      }
+    } else {
+      newUserId = created.user?.id ?? null;
+    }
+    if (!newUserId) throw new Error("تعذر إنشاء المستخدم");
+
+    // Upsert profile with three-part name and phone
+    await supabaseAdmin
+      .from("profiles")
+      .upsert(
+        {
+          id: newUserId,
+          first_name: req.first_name,
+          father_name: req.father_name,
+          grandfather_name: req.grandfather_name,
+          phone: req.phone,
+          full_name: fullName,
+          arabic_name: fullName,
+        },
+        { onConflict: "id" },
+      );
+
+    // Ensure at least a member role exists
+    await supabaseAdmin
+      .from("user_roles")
+      .upsert(
+        { user_id: newUserId, role: "member" },
+        { onConflict: "user_id,role", ignoreDuplicates: true },
+      );
+
+    // Mark the request approved
+    await supabaseAdmin
+      .from("account_requests")
+      .update({
+        status: "approved",
+        reviewed_by: userId,
+        reviewed_at: new Date().toISOString(),
+      })
+      .eq("id", data.id);
+
+    return { ok: true, userId: newUserId };
   });
