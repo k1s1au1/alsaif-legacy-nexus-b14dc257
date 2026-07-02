@@ -132,7 +132,7 @@ function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const ch = supabase.channel('dash-rt-cleanup-final')
+    const ch = supabase.channel('dash-rt-final-cleanup')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_comments' }, () => loadData())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_posts' }, () => loadData())
       .subscribe();
@@ -170,7 +170,7 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={{ name: profile?.arabic_name || "عضو", role: "عضو المجلس", initial: "ع" } as any}>
       <div className="max-w-6xl mx-auto space-y-10 pb-24 px-4 md:px-0" dir="rtl">
 
-        {/* CLEAN ORIGINAL HERO SECTION */}
+        {/* HERO SECTION - REVERTED TO CLEAN ORIGINAL UI */}
         <section className="animate-fade-up">
            <div className="relative overflow-hidden rounded-[44px] glass-surface p-8 md:p-14 shadow-2xl border border-white/10">
               <div className="absolute left-0 top-0 bottom-0 w-1/3 opacity-[0.04] pointer-events-none overflow-hidden">
@@ -180,7 +180,7 @@ function Dashboard() {
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-10">
                  <div className="flex-1 text-center md:text-right space-y-6">
                     <div className="space-y-1">
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">طاب مساؤك،</p>
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">طاب يومك،</p>
                        <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-primary leading-tight">
                           {profile?.arabic_name || "عضو عائلة السيف"}
                        </h2>
@@ -209,8 +209,6 @@ function Dashboard() {
         </section>
 
         <QuickActionsBanner />
-
-        {/* Removed ActivePolls from here to declutter the dashboard */}
         <PollsPopup userId={meId ?? null} />
 
         {announcements.length > 0 && (
