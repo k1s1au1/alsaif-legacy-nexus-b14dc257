@@ -94,15 +94,15 @@ function AuthPage() {
           <div className="size-[800px] logo-alsaif grayscale brightness-200" style={{ '--logo-url': `url(${dynamicLogo || logoAsset.url})` } as any} />
       </div>
 
-      {/* 5. Main Card: Frosted Metallic Glass */}
+      {/* 5. Main Card: Classic Ivory Royal Style */}
       <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 1, ease: "easeOut" }}
-        className="relative z-10 w-full max-w-[480px] md:max-w-[580px] bg-white/5 backdrop-blur-[40px] rounded-[48px] shadow-[0_48px_120px_-24px_rgba(0,0,0,0.8)] border border-white/10 overflow-hidden"
+        className="relative z-10 w-full max-w-[480px] md:max-w-[580px] bg-[#fdfcf7] rounded-[48px] shadow-[0_48px_120px_-24px_rgba(0,0,0,0.5)] border-4 border-gold-primary/20 overflow-hidden"
       >
-        {/* Subtle Inner Glow/Border */}
-        <div className="absolute inset-0 border-[0.5px] border-gold-primary/20 rounded-[48px] pointer-events-none" />
+        {/* Decorative Corner Ornament */}
+        <div className="absolute top-0 left-0 size-32 bg-primary/5 rounded-br-full blur-2xl" />
 
         <div className="relative z-10 p-8 sm:p-12 lg:p-16 flex flex-col h-full">
 
@@ -110,20 +110,20 @@ function AuthPage() {
           <div className="flex flex-col items-center text-center mb-10">
             <motion.div
               whileHover={{ scale: 1.05, rotate: 2 }}
-              className="size-28 mb-8 flex items-center justify-center p-5 bg-white/5 backdrop-blur-2xl rounded-[36px] shadow-2xl border border-white/10 relative group"
+              className="size-28 mb-8 flex items-center justify-center p-5 bg-white rounded-[36px] shadow-xl border border-border relative group"
             >
-              <div className="absolute inset-0 bg-gold-primary/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="absolute inset-0 bg-gold-primary/10 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               <AnimatePresence mode="wait">
                 {dynamicLogo ? (
                   <motion.div key={dynamicLogo} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="size-full relative z-10 logo-alsaif" style={{ '--logo-url': `url(${dynamicLogo})` } as any} />
                 ) : (
-                  <Loader2 className="size-8 animate-spin text-gold-primary/20" />
+                  <Loader2 className="size-8 animate-spin text-primary/20" />
                 )}
               </AnimatePresence>
             </motion.div>
 
-            <h1 className="text-4xl md:text-5xl font-black text-white mb-3 tracking-tighter drop-shadow-lg">مجلس السيف</h1>
-            <p className="text-[10px] md:text-xs font-black tracking-[0.6em] text-gold-primary uppercase opacity-60">عائلة السيف · بوابة خاصة</p>
+            <h1 className="text-4xl md:text-5xl font-black text-primary mb-3 tracking-tighter">مجلس السيف</h1>
+            <p className="text-[10px] md:text-xs font-black tracking-[0.6em] text-gold-primary uppercase">عائلة السيف · بوابة خاصة</p>
 
             {/* Ahlan - Signature Greeting (Amiri Font) */}
             <div className="h-12 mt-8 flex items-center justify-center">
@@ -133,7 +133,7 @@ function AuthPage() {
                     initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -15 }}
-                    className="text-xl md:text-2xl text-gold-primary/90 font-royal-mode italic"
+                    className="text-xl md:text-2xl text-primary font-royal-mode italic"
                     style={{ fontFamily: "'Amiri', serif" }}
                   >
                     {welcomeMessages[msgIndex]}
@@ -147,27 +147,27 @@ function AuthPage() {
             {mode === "login" && (
               <motion.form key="login" initial={{ opacity: 0 }} animate={{ opacity: 1 }} onSubmit={onLogin} className="space-y-6">
                 <div className="space-y-2" dir="rtl">
-                  <label className="text-xs font-black text-white/40 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                  <label className="text-xs font-black text-primary/40 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
                   <div className="relative group">
-                    <Mail className="absolute right-6 top-1/2 -translate-y-1/2 size-5 text-gold-primary/60 group-focus-within:text-gold-primary transition-colors" />
+                    <Mail className="absolute right-6 top-1/2 -translate-y-1/2 size-5 text-gold-primary/60 group-focus-within:text-primary transition-colors" />
                     <input
                       type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
-                      className="w-full h-16 bg-white/[0.03] border border-white/10 rounded-2xl pr-16 pl-6 font-bold text-white placeholder:text-white/10 focus:outline-none focus:bg-white/[0.07] focus:border-gold-primary/40 transition-all shadow-inner"
+                      className="w-full h-16 bg-white border-2 border-border rounded-2xl pr-16 pl-6 font-bold text-primary placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary transition-all shadow-sm"
                       placeholder="البريد الإلكتروني..."
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2" dir="rtl">
-                  <label className="text-xs font-black text-white/40 mr-4 uppercase tracking-widest">كلمة المرور</label>
+                  <label className="text-xs font-black text-primary/40 mr-4 uppercase tracking-widest">كلمة المرور</label>
                   <div className="relative group">
-                    <Lock className="absolute right-6 top-1/2 -translate-y-1/2 size-5 text-gold-primary/60 group-focus-within:text-gold-primary transition-colors" />
+                    <Lock className="absolute right-6 top-1/2 -translate-y-1/2 size-5 text-gold-primary/60 group-focus-within:text-primary transition-colors" />
                     <input
                       type={showPassword ? "text" : "password"} required value={password} onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-16 bg-white/[0.03] border border-white/10 rounded-2xl pr-16 pl-16 font-bold text-white placeholder:text-white/10 focus:outline-none focus:bg-white/[0.07] focus:border-gold-primary/40 transition-all shadow-inner"
+                      className="w-full h-16 bg-white border-2 border-border rounded-2xl pr-16 pl-16 font-bold text-primary placeholder:text-muted-foreground/30 focus:outline-none focus:border-primary transition-all shadow-sm"
                       placeholder="••••••••••••"
                     />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-6 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors">
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute left-6 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors">
                       {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                     </button>
                   </div>
@@ -175,7 +175,7 @@ function AuthPage() {
 
                 <button
                   type="submit" disabled={loading}
-                  className="w-full h-16 bg-gradient-to-r from-[#064e3b] to-[#042f26] text-white font-black text-lg rounded-2xl shadow-2xl hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-4 border border-white/10"
+                  className="w-full h-16 bg-primary text-white font-black text-lg rounded-2xl shadow-[0_20px_40px_-10px_rgba(0,0,0,0.3)] hover:brightness-110 active:scale-[0.98] transition-all flex items-center justify-center gap-4 border border-white/10"
                 >
                   {loading ? <Loader2 className="size-6 animate-spin" /> : <><span>دخول إلى المجلس</span><ArrowLeft className="size-6" /></>}
                 </button>
@@ -188,9 +188,9 @@ function AuthPage() {
           </AnimatePresence>
 
           {/* Footer Logo/Mark */}
-          <div className="mt-16 pt-8 border-t border-white/5 flex flex-col items-center gap-2 opacity-20">
+          <div className="mt-16 pt-8 border-t border-border flex flex-col items-center gap-2 opacity-30">
              <div className="size-8 logo-alsaif grayscale" style={{ '--logo-url': `url(${dynamicLogo || logoAsset.url})` } as any} />
-             <p className="text-[10px] font-black tracking-[0.5em] text-white uppercase">Alsaif Legacy Hub</p>
+             <p className="text-[10px] font-black tracking-[0.5em] text-primary uppercase">Alsaif Legacy Hub</p>
           </div>
         </div>
       </motion.div>
