@@ -23,14 +23,14 @@ async function getGoogleAccessToken(serviceAccount: any) {
     .replace("-----END PRIVATE KEY-----", "")
     .replace(/\s/g, "");
   const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
-  const key = await crypto.subtle.importKey(
+  const key = await (globalThis as any).crypto.subtle.importKey(
     "pkcs8",
     der,
     { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign(
+  const sig = await (globalThis as any).crypto.subtle.sign(
     "RSASSA-PKCS1-v1_5",
     key,
     new TextEncoder().encode(unsigned),
@@ -52,13 +52,10 @@ async function getGoogleAccessToken(serviceAccount: any) {
 
 /**
  * Sends a push notification via FCM HTTP v1 to user devices.
- * - Filters recipients by their notification_preferences[type] (if type is provided).
- * - Reads tokens from push_tokens (multi-device) and legacy profiles.fcm_token.
- * - Skips the caller (no self-notifications).
  */
 export const sendPushNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) =>
+  .validator((data: { title: string; body: string; type?: string; target_user_ids?: string[]; route?: string }) =>
     z
       .object({
         title: z.string().min(1).max(150),
@@ -71,7 +68,10 @@ export const sendPushNotification = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     try {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const supabaseAdmin = getSupabaseAdmin();
+      if (!supabaseAdmin) throw new Error("Server not ready");
+
       const callerId = context.userId;
 
       // 1) Resolve target users
@@ -126,7 +126,7 @@ export const sendPushNotification = createServerFn({ method: "POST" })
 
       const dataPayload: Record<string, string> = {};
       if (data.route) dataPayload.route = data.route;
-      if (data.type) dataPayload.type = data.type;
+      if (data.type) dataPayload.type = data.type as string;
 
       const results = await Promise.all(
         tokenList.map(async (token) => {

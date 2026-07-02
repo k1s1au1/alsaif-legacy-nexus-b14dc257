@@ -9,7 +9,9 @@ export function getSupabaseAdmin() {
   const URL = process.env.SUPABASE_URL;
   const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-  if (!URL || !KEY) return null;
+  if (!URL || !KEY) {
+    throw new Error('Missing Supabase environment variables');
+  }
 
   _supabaseAdmin = createClient<Database>(URL, KEY, {
     auth: {
@@ -20,5 +22,3 @@ export function getSupabaseAdmin() {
 
   return _supabaseAdmin;
 }
-
-export const supabaseAdmin = typeof process !== 'undefined' ? getSupabaseAdmin() : (null as any);

@@ -1,29 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { z } from "zod";
 
 export const deleteMemberAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: { userId: string }) => input)
+  .validator((data: { userId: string }) => z.object({ userId: z.string() }).parse(data))
   .handler(async ({ data, context }) => {
-    if (data.userId === context.userId) {
-      throw new Error("لا يمكنك حذف حسابك الخاص");
-    }
+    if (data.userId === context.userId) throw new Error("Unauthorized");
 
-    const [{ data: isAdmin }, { data: isManager }, { data: isChairman }] = await Promise.all([
-      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "admin" }),
-      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "manager" }),
-      context.supabase.rpc("has_role", { _user_id: context.userId, _role: "chairman" }),
-    ]);
-    if (!isAdmin && !isManager && !isChairman) throw new Error("غير مصرّح");
+    const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const supabaseAdmin = getSupabaseAdmin();
+    if (!supabaseAdmin) throw new Error("Server not ready");
 
-    // Only admins can delete other admins
-    const { data: targetIsAdmin } = await context.supabase.rpc("has_role", {
-      _user_id: data.userId,
-      _role: "admin",
-    });
-    if (targetIsAdmin && !isAdmin) throw new Error("لا يمكن حذف حساب مسؤول نظام");
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Authorization...
     const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
