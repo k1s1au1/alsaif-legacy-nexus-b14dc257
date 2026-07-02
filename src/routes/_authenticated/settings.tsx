@@ -357,14 +357,10 @@ function SettingsPage() {
                   <p className="text-xs font-bold text-muted-foreground opacity-60">متاح للمسؤولين التقنيين ورئيس المجلس فقط.</p>
                 </div>
               </div>
-              <div className="grid gap-6 md:grid-cols-2">
+              <div className="grid gap-6 md:grid-cols-1">
                 <div className="space-y-3">
                   <p className="text-[10px] font-black uppercase tracking-widest opacity-50">شعار المنصة</p>
                   <BackgroundUploader inline settingKey="site_logo" label="تحديث الشعار الرسمي" />
-                </div>
-                <div className="space-y-3">
-                  <p className="text-[10px] font-black uppercase tracking-widest opacity-50">صفحة الدخول</p>
-                  <BackgroundUploader inline settingKey="auth_bg" label="خلفية تسجيل الدخول" />
                 </div>
               </div>
             </div>

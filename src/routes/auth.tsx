@@ -5,13 +5,12 @@ import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import { useAppBackground } from "@/hooks/use-app-background";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/auth")({
-  // T-Notify: Triggering latest brand enhancements
+  // T-Notify: Final Brand Cleanup - No dynamic background
   head: () => ({
     meta: [
       { title: "مجلس السيف — تسجيل الدخول" },
@@ -56,8 +55,6 @@ function AuthPage() {
   const [reqEmail, setReqEmail] = useState("");
   const [reqPassword, setReqPassword] = useState("");
   const [reqNote, setReqNote] = useState("");
-
-  const { url: authBg } = useAppBackground("auth_bg");
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -116,17 +113,6 @@ function AuthPage() {
 
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#fdfcf7] dark:bg-[#05070a] transition-colors duration-700 overflow-hidden">
-
-      {/* Full-Screen Background Image (Immersive for Laptop) */}
-      {authBg && (
-        <div
-          className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000"
-          style={{ backgroundImage: `url(${authBg})` }}
-        >
-          <div className="absolute inset-0 bg-white/30 dark:bg-black/50 backdrop-blur-[1px]" />
-          <div className="absolute inset-0 bg-gradient-to-tr from-[#fdfcf7] via-transparent to-[#fdfcf7] dark:from-[#05070a] dark:via-transparent dark:to-[#05070a] opacity-90" />
-        </div>
-      )}
 
       {/* Stronger Brand Aura for visibility on Laptops */}
       <div className="absolute inset-0 pointer-events-none z-1">
