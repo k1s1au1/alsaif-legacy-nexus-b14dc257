@@ -695,11 +695,18 @@ function ConversationRoute() {
 
                <div className="shrink-0">
                   {draft.trim() ? (
-                     <button type="submit" className="size-[56px] md:size-[64px] rounded-2xl md:rounded-[28px] bg-primary text-white flex items-center justify-center shadow-[0_15px_35px_-5px_rgba(var(--primary-rgb),0.4)] hover:scale-105 active:scale-95 transition-all">
+                     <button
+                       type="submit"
+                       className="size-[52px] md:size-[64px] rounded-2xl md:rounded-[28px] bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all"
+                     >
                         <Send className="size-6 md:size-7" strokeWidth={2.5} />
                      </button>
                   ) : (
-                     <button type="button" onClick={startRecording} className="size-[56px] md:size-[64px] rounded-2xl md:rounded-[28px] bg-gold-primary text-white flex items-center justify-center shadow-[0_15px_35px_-5px_rgba(139,107,35,0.4)] hover:scale-105 active:scale-95 transition-all">
+                     <button
+                       type="button"
+                       onClick={startRecording}
+                       className="size-[52px] md:size-[64px] rounded-2xl md:rounded-[28px] bg-gold-primary text-white flex items-center justify-center shadow-lg shadow-gold-primary/20 hover:scale-105 active:scale-95 transition-all"
+                     >
                         <Mic className="size-6 md:size-7" strokeWidth={2.5} />
                      </button>
                   )}
@@ -982,8 +989,12 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
         initial={{ x: "100%" }}
         animate={{ x: 0 }}
         exit={{ x: "100%" }}
+        drag="x"
+        dragConstraints={{ left: 0, right: 300 }}
+        dragElastic={0.1}
+        onDragEnd={(_, info) => { if (info.offset.x > 100) onClose(); }}
         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-        className="relative w-full max-w-[320px] sm:max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border"
+        className="relative w-[85vw] max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border"
       >
         <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-6 bg-muted/10">
            <h3 className="text-lg font-black text-foreground tracking-tight">معلومات المجلس</h3>
