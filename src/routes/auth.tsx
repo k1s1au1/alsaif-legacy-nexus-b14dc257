@@ -249,7 +249,7 @@ function AuthPage() {
                   >
                     {loading ? <Loader2 className="size-5 animate-spin" /> : (
                       <>
-                        <span>دخول إلى الأخبار</span>
+                        <span>دخول إلى المجلس</span>
                         <ArrowLeft className="size-5" />
                       </>
                     )}
