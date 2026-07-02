@@ -308,9 +308,9 @@ function FinancePage() {
                     setShowTransferForm(true);
                     setTimeout(() => window.scrollTo({ top: 400, behavior: "smooth" }), 50);
                   }}
-                  className="group/btn flex-1 min-w-[120px] bg-white text-emerald-800 py-3 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-50 transition-all active:scale-95 shadow-xl shadow-emerald-950/30"
+                  className="group/btn flex-1 min-w-[120px] bg-white text-emerald-950 py-3 rounded-2xl font-black text-sm flex items-center justify-center gap-2 hover:bg-emerald-50 transition-all active:scale-95 shadow-xl shadow-emerald-950/30"
                 >
-                  <Plus className="size-4 transition-transform group-hover/btn:rotate-90" strokeWidth={2.5} />
+                  <Plus className="size-4 transition-transform group-hover/btn:rotate-90 text-emerald-900" strokeWidth={3} />
                   إيداع / تحويل
                 </button>
                 {canManage && (
