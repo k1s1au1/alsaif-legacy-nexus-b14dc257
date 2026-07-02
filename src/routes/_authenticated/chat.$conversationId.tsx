@@ -969,12 +969,30 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
   const otherUser = useMemo(() => participants.find((p: Participant) => p.user_id !== meId), [participants, meId]);
 
   return (
-    <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-[100] flex justify-end">
-      <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30 }} className="w-full max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border">
+    <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+      />
 
-        <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-8 bg-muted/10">
-           <h3 className="text-xl font-black text-foreground tracking-tight">معلومات المجلس</h3>
-           <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all"><X size={24} /></button>
+      <motion.div
+        initial={{ x: "100%" }}
+        animate={{ x: 0 }}
+        exit={{ x: "100%" }}
+        transition={{ type: "spring", damping: 25, stiffness: 200 }}
+        className="relative w-full max-w-[320px] sm:max-w-md bg-card h-full shadow-2xl flex flex-col border-r border-border"
+      >
+        <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-6 bg-muted/10">
+           <h3 className="text-lg font-black text-foreground tracking-tight">معلومات المجلس</h3>
+           <button
+             onClick={onClose}
+             className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all active:scale-90"
+           >
+             <X size={24} />
+           </button>
         </header>
 
         <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-10">
