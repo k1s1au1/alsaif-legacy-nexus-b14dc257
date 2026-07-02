@@ -41,7 +41,8 @@ const THEME_COLORS = [
     name: "أخضر السيف (الأصلي)",
     primary: "#064E3B",
     secondary: "#D4AF37",
-    darkPrimary: "#064E3B",
+    darkPrimary: "#10b981", // More vibrant emerald for dark mode
+    darkSecondary: "#fbbf24", // Brighter gold for dark mode
     foreground: "#FFFFFF",
     isPrimary: true,
     mesh: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"]
@@ -51,7 +52,8 @@ const THEME_COLORS = [
     name: "الذهب الملكي",
     primary: "#D4AF37",
     secondary: "#064E3B",
-    darkPrimary: "#B8972E",
+    darkPrimary: "#fbbf24",
+    darkSecondary: "#34d399",
     foreground: "#064E3B",
     mesh: ["rgba(6, 78, 59, 0.1)", "rgba(212, 175, 55, 0.08)"]
   },
@@ -60,7 +62,8 @@ const THEME_COLORS = [
     name: "زمردي وهاج",
     primary: "#059669",
     secondary: "#F59E0B",
-    darkPrimary: "#065F46",
+    darkPrimary: "#34d399",
+    darkSecondary: "#fbbf24",
     foreground: "#FFFFFF",
     mesh: ["rgba(245, 158, 11, 0.1)", "rgba(5, 150, 105, 0.08)"]
   },
@@ -69,7 +72,8 @@ const THEME_COLORS = [
     name: "الكحلي الوقور",
     primary: "#1E293B",
     secondary: "#94A3B8",
-    darkPrimary: "#334155",
+    darkPrimary: "#60a5fa", // Lighter blue for dark mode
+    darkSecondary: "#94a3b8",
     foreground: "#FFFFFF",
     mesh: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"]
   },
@@ -78,7 +82,8 @@ const THEME_COLORS = [
     name: "العنابي الفاخر",
     primary: "#4C0519",
     secondary: "#D4AF37",
-    darkPrimary: "#800000",
+    darkPrimary: "#f43f5e", // Lighter rose for dark mode
+    darkSecondary: "#fbbf24",
     foreground: "#FFFFFF",
     mesh: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"]
   },
@@ -87,7 +92,8 @@ const THEME_COLORS = [
     name: "الأبيض العاجي",
     primary: "#FDFCF7",
     secondary: "#8E7745",
-    darkPrimary: "#F1F5F9",
+    darkPrimary: "#f8fafc",
+    darkSecondary: "#d4af37",
     foreground: "#8E7745",
     mesh: ["rgba(142, 119, 69, 0.1)", "rgba(253, 252, 247, 0.1)"]
   },
@@ -96,7 +102,8 @@ const THEME_COLORS = [
     name: "رمل نجد (تراثي)",
     primary: "#C2B280",
     secondary: "#451A03",
-    darkPrimary: "#D2B48C",
+    darkPrimary: "#e2e8f0",
+    darkSecondary: "#fbbf24",
     foreground: "#451A03",
     mesh: ["rgba(69, 26, 3, 0.1)", "rgba(194, 178, 128, 0.1)"]
   },
@@ -112,7 +119,7 @@ function SettingsPage() {
   const [font, setFont] = useState("Tajawal");
   const [fontStyle, setFontStyle] = useState<"modern" | "royal">("modern");
   const [themeColor, setThemeColor] = useState("emerald");
-  const [appVersion, setAppVersion] = useState("1.1.8 (Web)");
+  const [appVersion, setAppVersion] = useState("1.1.9 (Web)");
   const [isNative, setIsNative] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
@@ -132,7 +139,6 @@ function SettingsPage() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // Load saved theme
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) {
       setDarkMode(savedTheme);
@@ -141,7 +147,6 @@ function SettingsPage() {
       setDarkMode("system");
     }
 
-    // Load saved font
     const savedFont = localStorage.getItem("app-font-id");
     if (savedFont) {
       setFont(savedFont);
@@ -149,14 +154,12 @@ function SettingsPage() {
       if (fontObj) applyFont(fontObj.family);
     }
 
-    // Load saved font style
     const savedStyle = localStorage.getItem("font-style") as "modern" | "royal" | null;
     if (savedStyle) {
       setFontStyle(savedStyle);
       applyFontStyle(savedStyle);
     }
 
-    // Load saved theme color
     const savedColor = localStorage.getItem("app-theme-color-id");
     if (savedColor) {
       setThemeColor(savedColor);
@@ -164,7 +167,6 @@ function SettingsPage() {
       if (colorObj) applyThemeColors(colorObj);
     }
 
-    // Safe Capacitor detection
     const win = window as any;
     if (win.Capacitor?.isNativePlatform()) {
       setIsNative(true);
@@ -177,14 +179,13 @@ function SettingsPage() {
 
   const applyTheme = (theme: "light" | "dark" | "system") => {
     const root = document.documentElement;
-    if (theme === "dark") {
-      root.classList.add("dark");
-    } else if (theme === "light") {
-      root.classList.remove("dark");
-    } else {
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      root.classList.toggle("dark", prefersDark);
-    }
+    const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    root.classList.toggle("dark", isDark);
+
+    // Refresh theme colors when dark mode changes
+    const savedColor = localStorage.getItem("app-theme-color-id") || "emerald";
+    const colorObj = THEME_COLORS.find(c => c.id === savedColor);
+    if (colorObj) applyThemeColors(colorObj);
   };
 
   const applyFont = (fontFamily: string) => {
@@ -218,19 +219,15 @@ function SettingsPage() {
 
   const applyThemeColors = (colors: typeof THEME_COLORS[0]) => {
     const root = document.documentElement;
-    root.style.setProperty("--primary", colors.primary);
-    root.style.setProperty("--primary-foreground", colors.foreground);
-    root.style.setProperty("--gold-primary", colors.secondary);
+    const isDark = root.classList.contains("dark");
 
-    // Apply Mesh colors
+    root.style.setProperty("--primary", isDark ? colors.darkPrimary : colors.primary);
+    root.style.setProperty("--gold-primary", isDark ? (colors.darkSecondary || colors.secondary) : colors.secondary);
+    root.style.setProperty("--primary-foreground", colors.foreground);
+
     if (colors.mesh) {
       root.style.setProperty("--mesh-color-1", colors.mesh[0]);
       root.style.setProperty("--mesh-color-2", colors.mesh[1]);
-    }
-
-    if (root.classList.contains("dark")) {
-      root.style.setProperty("--primary", colors.darkPrimary);
-      root.style.setProperty("--primary-foreground", colors.foreground === "#FFFFFF" ? "#FFFFFF" : "#0A0C10");
     }
   };
 
@@ -357,8 +354,6 @@ function SettingsPage() {
 
         <NotificationPreferencesSection />
 
-
-
         {canCustomizeBg && (
           <section className="space-y-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
             <div className="flex items-center gap-4">
@@ -388,35 +383,36 @@ function SettingsPage() {
 
       <AnimatePresence>
         {showColorPicker && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-8 space-y-8 shadow-2xl rounded-[48px]">
                <div className="flex items-center justify-between">
                   <h3 className="text-2xl font-black text-primary tracking-tight">ألوان الهوية الفاخرة</h3>
-                  <button onClick={() => setShowColorPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button>
+                  <button onClick={() => setShowColorPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center transition-transform hover:rotate-90"><X size={20} /></button>
                </div>
-               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
                   {THEME_COLORS.map(c => (
                     <button
                       key={c.id}
                       onClick={() => handleThemeColorChange(c.id)}
                       className={cn(
                         "p-5 rounded-[32px] border-2 transition-all text-right flex items-center gap-4 group relative",
-                        themeColor === c.id ? "border-primary bg-primary/5" : "border-transparent bg-muted/30 hover:bg-muted/50"
+                        themeColor === c.id ? "border-primary bg-primary/5 shadow-inner" : "border-transparent bg-muted/30 hover:bg-muted/50"
                       )}
                     >
                        <div className="size-12 rounded-2xl shadow-lg shrink-0 group-hover:scale-110 transition-transform" style={{ background: `linear-gradient(135deg, ${c.primary}, ${c.secondary})` }} />
                        <div className="flex-1">
-                          <span className="font-black text-sm block">{c.name}</span>
+                          <span className="font-black text-sm block text-primary">{c.name}</span>
                           {c.isPrimary && <span className="text-[9px] font-black text-gold-primary uppercase tracking-widest mt-0.5">الهوية الأساسية</span>}
                        </div>
                        {c.isPrimary && <Star className="absolute top-4 left-4 size-4 text-gold-primary fill-gold-primary" />}
+                       {themeColor === c.id && <div className="absolute top-1/2 left-4 -translate-y-1/2 size-6 rounded-full bg-primary flex items-center justify-center text-white"><Check size={14} strokeWidth={4} /></div>}
                     </button>
                   ))}
                </div>
             </motion.div>
           </div>
         )}
-      </AnimatePresence>
+      </AnPresence>
 
       <AnimatePresence>
         {showFontPicker && (
@@ -496,7 +492,7 @@ function NotificationPreferencesSection() {
       const { data } = await supabase
         .from("notification_preferences")
         .select("meetings,entertainment,tasks,chat,news")
-        .eq("user_id", auth.user.id)
+        .eq(auth.user.id)
         .maybeSingle();
       if (data) setPrefs(data as any);
       setLoading(false);
@@ -557,4 +553,3 @@ function NotificationPreferencesSection() {
     </section>
   );
 }
-
