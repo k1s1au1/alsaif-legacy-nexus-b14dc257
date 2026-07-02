@@ -117,16 +117,27 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#fdfcf7] dark:bg-[#05070a] transition-colors duration-700 overflow-hidden">
 
+      {/* Full-Screen Background Image (Immersive for Laptop) */}
+      {authBg && (
+        <div
+          className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat transition-opacity duration-1000"
+          style={{ backgroundImage: `url(${authBg})` }}
+        >
+          <div className="absolute inset-0 bg-white/30 dark:bg-black/50 backdrop-blur-[1px]" />
+          <div className="absolute inset-0 bg-gradient-to-tr from-[#fdfcf7] via-transparent to-[#fdfcf7] dark:from-[#05070a] dark:via-transparent dark:to-[#05070a] opacity-90" />
+        </div>
+      )}
+
       {/* Stronger Brand Aura for visibility on Laptops */}
-      <div className="absolute inset-0 pointer-events-none">
+      <div className="absolute inset-0 pointer-events-none z-1">
         <motion.div
           animate={{
             scale: [1, 1.4, 1],
             x: [0, 100, 0],
             y: [0, 50, 0]
           }}
-          transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-[-10%] right-[-10%] size-[1000px] rounded-full bg-primary/20 blur-[150px] dark:bg-primary/10"
+          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute top-[-10%] right-[-10%] size-[1200px] rounded-full bg-primary/25 blur-[180px] dark:bg-primary/15"
         />
         <motion.div
           animate={{
@@ -134,23 +145,23 @@ function AuthPage() {
             x: [0, -100, 0],
             y: [0, -50, 0]
           }}
-          transition={{ duration: 18, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-[-10%] left-[-10%] size-[1000px] rounded-full bg-gold-primary/25 blur-[180px] dark:bg-gold-primary/15"
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+          className="absolute bottom-[-10%] left-[-10%] size-[1200px] rounded-full bg-gold-primary/30 blur-[200px] dark:bg-gold-primary/20"
         />
       </div>
 
       {/* Heritage Pattern Layer - Increased Visibility */}
       <div
-        className="absolute inset-0 opacity-[0.08] dark:opacity-[0.12] pointer-events-none"
+        className="absolute inset-0 opacity-[0.06] dark:opacity-[0.1] pointer-events-none z-1"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M60 0 L120 60 L60 120 L0 60 Z' fill='none' stroke='%238e7745' stroke-width='1'/%3E%3C/svg%3E")`,
-          backgroundSize: '120px 120px'
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='140' height='140' viewBox='0 0 140 140' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M70 0 L140 70 L70 140 L0 70 Z' fill='none' stroke='%238e7745' stroke-width='1'/%3E%3C/svg%3E")`,
+          backgroundSize: '140px 140px'
         }}
       />
 
       {/* Floating Gold Dust Effect - Larger and More Opaque */}
-      <div className="absolute inset-0 pointer-events-none">
-        {[...Array(40)].map((_, i) => (
+      <div className="absolute inset-0 pointer-events-none z-1">
+        {[...Array(50)].map((_, i) => (
           <motion.div
             key={i}
             initial={{
@@ -160,11 +171,11 @@ function AuthPage() {
             }}
             animate={{
               y: [null, "-120%"],
-              x: [null, (Math.random() - 0.5) * 40 + "%"],
-              opacity: [0, 0.6, 0]
+              x: [null, (Math.random() - 0.5) * 50 + "%"],
+              opacity: [0, 0.7, 0]
             }}
             transition={{
-              duration: 12 + Math.random() * 25,
+              duration: 15 + Math.random() * 30,
               repeat: Infinity,
               ease: "linear",
               delay: Math.random() * -30
@@ -176,16 +187,9 @@ function AuthPage() {
       </div>
 
       <div
-        className="relative w-full max-w-[480px] md:max-w-[540px] bg-white/60 dark:bg-black/60 backdrop-blur-3xl rounded-[44px] shadow-[0_48px_100px_-24px_rgba(0,0,0,0.3)] animate-fade-up overflow-hidden border border-white/40 dark:border-white/20 transition-all duration-500"
+        className="relative z-10 w-full max-w-[480px] md:max-w-[560px] lg:max-w-[620px] bg-white/40 dark:bg-black/50 backdrop-blur-3xl rounded-[48px] shadow-[0_48px_120px_-24px_rgba(0,0,0,0.4)] animate-fade-up overflow-hidden border border-white/40 dark:border-white/10 transition-all duration-700"
       >
-        {authBg && (
-          <div
-            className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.3] transition-opacity duration-1000"
-            style={{ backgroundImage: `url(${authBg})` }}
-          />
-        )}
-
-        <div className="relative z-10 p-8 sm:p-12 flex flex-col h-full">
+        <div className="relative z-10 p-8 sm:p-12 lg:p-16 flex flex-col h-full">
           {/* Header Section */}
           <div className="flex flex-col items-center text-center mb-10">
             <motion.div
