@@ -66,7 +66,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  // T-Notify: Stable Restore Point
+  // T-Notify: Full Feature Restoration
   head: () => ({
     meta: [
       { charSet: "utf-8" },
