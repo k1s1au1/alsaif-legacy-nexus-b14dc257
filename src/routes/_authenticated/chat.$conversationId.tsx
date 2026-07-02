@@ -868,10 +868,14 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, deliveries, tota
       </div>
 
       {!m.deleted_at && (
-         <div className={cn("opacity-0 group-hover:opacity-100 transition-all flex items-center self-center", mine ? "flex-row-reverse" : "")}>
-            <button onClick={onReact} className="p-2 text-muted-foreground/40 hover:text-gold-primary transition-all"><Smile size={16} /></button>
-            <button onClick={onReply} className="p-2 text-muted-foreground/40 hover:text-gold-primary transition-all"><Reply size={16} /></button>
-            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground/40 hover:text-red-500 transition-all"><Trash2 size={16} /></button>}
+         <div className={cn(
+           "flex items-center self-center transition-all duration-300",
+           "lg:opacity-0 lg:group-hover:opacity-100 opacity-100 px-1",
+           mine ? "flex-row-reverse mr-1" : "ml-1"
+         )}>
+            <button onClick={onReact} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125"><Smile size={18} /></button>
+            <button onClick={onReply} className="p-2 text-muted-foreground/50 hover:text-gold-primary transition-all active:scale-125"><Reply size={18} /></button>
+            {canDelete && <button onClick={onDelete} className="p-2 text-muted-foreground/50 hover:text-red-500 transition-all active:scale-125"><Trash2 size={18} /></button>}
          </div>
       )}
     </motion.div>
