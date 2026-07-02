@@ -36,13 +36,11 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import Autoplay from "embla-carousel-autoplay";
-import { Carousel, CarouselContent, CarouselItem } from "@/components/ui/carousel";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
-import { sendFcmNotification } from "@/lib/fcm";
-import { showIsland, hideIsland } from "@/components/dynamic-island";
+import { showIsland } from "@/components/dynamic-island";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -57,40 +55,15 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 
 function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | 'news', data: any }, onClose: () => void }) {
   const { type, data } = item;
-
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="fixed inset-0 z-[110] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-xl p-0 md:p-10"
-      dir="rtl"
-    >
-      <motion.div
-        layoutId={`immersive-${type}-${data.id}`}
-        initial={{ y: "100%", opacity: 0, scale: 0.9 }}
-        animate={{ y: 0, opacity: 1, scale: 1 }}
-        exit={{ y: "100%", opacity: 0, scale: 0.9 }}
-        transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        className="bg-[#051410] w-full max-w-6xl h-full md:h-[90vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col relative border border-white/10"
-      >
-        <button
-          onClick={onClose}
-          className="absolute top-6 left-6 z-30 size-12 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-500 transition-all border border-white/10 group"
-        >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[110] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-xl p-0 md:p-10" dir="rtl">
+      <motion.div initial={{ y: "100%", opacity: 0, scale: 0.9 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: "100%", opacity: 0, scale: 0.9 }} transition={{ type: "spring", damping: 30, stiffness: 200 }} className="bg-[#051410] w-full max-w-6xl h-full md:h-[90vh] rounded-t-[40px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.6)] flex flex-col relative border border-white/10">
+        <button onClick={onClose} className="absolute top-6 left-6 z-30 size-12 rounded-full bg-black/40 backdrop-blur-md text-white flex items-center justify-center hover:bg-red-500 transition-all border border-white/10 group">
           <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
         </button>
-
         <div className="flex-1 overflow-y-auto no-scrollbar pb-10">
            <div className="relative h-[300px] md:h-[450px] shrink-0">
-              {type === 'trip' ? (
-                <TripImage path={data.image_url} alt={data.title} className="size-full object-cover" />
-              ) : (
-                <div className="size-full bg-gradient-to-br from-[#064E3B] via-[#051410] to-black flex items-center justify-center">
-                   {type === 'meeting' ? <CalendarDays className="size-32 text-gold-primary opacity-10" /> : <Newspaper className="size-32 text-gold-primary opacity-10" />}
-                </div>
-              )}
+              {type === 'trip' ? <TripImage path={data.image_url} alt={data.title} className="size-full object-cover" /> : <div className="size-full bg-gradient-to-br from-[#064E3B] via-[#051410] to-black flex items-center justify-center">{type === 'meeting' ? <CalendarDays className="size-32 text-gold-primary opacity-10" /> : <Newspaper className="size-32 text-gold-primary opacity-10" />}</div>}
               <div className="absolute inset-0 bg-gradient-to-t from-[#051410] via-[#051410]/20 to-transparent" />
               <div className="absolute bottom-8 right-8 left-8 space-y-3">
                  <div className="flex items-center gap-2 text-gold-primary bg-black/40 backdrop-blur-md w-fit px-4 py-1.5 rounded-full border border-white/10">
@@ -100,7 +73,6 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
                  <h2 className="text-4xl md:text-7xl font-black text-white leading-tight tracking-tighter drop-shadow-2xl">{data.title}</h2>
               </div>
            </div>
-
            <div className="p-8 md:p-16 space-y-10">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                  <div className="flex items-center gap-5 bg-white/5 p-6 rounded-[28px] border border-white/5">
@@ -110,36 +82,13 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
                        <p className="text-base md:text-xl font-black text-white">{new Date(data.start_date || data.scheduled_at || data.created_at).toLocaleDateString("ar-SA", { weekday: 'long', day: 'numeric', month: 'long' })}</p>
                     </div>
                  </div>
-                 {data.location && (
-                   <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[20px] border border-white/5">
-                      <div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><MapPin size={20} /></div>
-                      <div>
-                         <p className="text-[8px] font-black uppercase opacity-60 mb-0.5">الموقع / المكان</p>
-                         <p className="text-sm md:text-base font-black text-white">{data.location}</p>
-                      </div>
-                   </div>
-                 )}
+                 {data.location && <div className="flex items-center gap-4 bg-white/5 p-4 rounded-[20px] border border-white/5"><div className="size-10 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shadow-xl"><MapPin size={20} /></div><div><p className="text-[8px] font-black uppercase opacity-60 mb-0.5">الموقع / المكان</p><p className="text-sm md:text-base font-black text-white">{data.location}</p></div></div>}
               </div>
-              <div className="space-y-6">
-                 <div className="flex items-center gap-3">
-                    <div className="h-px flex-1 bg-white/10" />
-                    <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">تفاصيل الحدث</h4>
-                    <div className="h-px flex-1 bg-white/10" />
-                 </div>
-                 <p className="text-lg md:text-2xl font-bold text-white/70 leading-relaxed text-right md:text-justify whitespace-pre-wrap">
-                    {data.description || data.cleanBody || data.body || "لا توجد تفاصيل إضافية لهذا الحدث حالياً."}
-                 </p>
-              </div>
+              <div className="space-y-6"><div className="flex items-center gap-3"><div className="h-px flex-1 bg-white/10" /><h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">تفاصيل الحدث</h4><div className="h-px flex-1 bg-white/10" /></div><p className="text-lg md:text-2xl font-bold text-white/70 leading-relaxed text-right md:text-justify whitespace-pre-wrap">{data.description || data.cleanBody || data.body || "لا توجد تفاصيل إضافية لهذا الحدث حالياً."}</p></div>
               <div className="pt-10 flex flex-col md:flex-row gap-4">
-                 {type === 'trip' && (
-                    <Link to="/trips/$tripId" params={{ tripId: data.id }} className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح صفحة الترفيه</Link>
-                 )}
-                 {type === 'meeting' && (
-                    <Link to="/meetings" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>
-                 )}
-                 {type === 'news' && (
-                    <Link to="/majlis" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في الأخبار</Link>
-                 )}
+                 {type === 'trip' && <Link to="/trips/$tripId" params={{ tripId: data.id }} className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح صفحة الترفيه</Link>}
+                 {type === 'meeting' && <Link to="/meetings" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">تأكيد الحضور</Link>}
+                 {type === 'news' && <Link to="/majlis" className="btn-gold py-6 px-12 rounded-full font-black text-xl text-center flex-1 shadow-[0_15px_40px_-5px_rgba(139,107,35,0.4)] hover:scale-[1.02] transition-transform">فتح في الأخبار</Link>}
                  <button onClick={onClose} className="py-6 px-12 rounded-full bg-white/5 text-white font-black text-xl hover:bg-white/10 transition-all border border-white/10">إغلاق العرض</button>
               </div>
            </div>
@@ -156,11 +105,7 @@ function Dashboard() {
   const [upcomingTrips, setUpcomingTrips] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [annIndex, setAnnIndex] = useState(0);
-  const [tripsCount, setTripsCount] = useState(0);
-  const [membersCount, setMembersCount] = useState(0);
-  const [tasksCount, setTasksCount] = useState(0);
-  const [myTasksCount, setMyTasksCount] = useState(0);
-  const [newNewsCount, setNewNewsCount] = useState(0);
+  const [counts, setCounts] = useState({ trips: 0, members: 0, tasks: 0, myTasks: 0, newNews: 0 });
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
@@ -178,91 +123,69 @@ function Dashboard() {
       if (!authData?.user) return;
       const u = authData.user;
 
-      const [{ data: p }, { data: r }] = await Promise.all([
-        supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u.id)
-      ]);
-
-      const rs = (r ?? []).map(x => x.role);
-      const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
-
-      setProfile({
-        name,
-        role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "عضو الأخبار",
-        initial: (name ? name[0] : "ع").toUpperCase(),
-        avatarPath: p?.avatar_url ?? null,
-        userId: u.id,
-      });
-
-      // Shura Check
-      const { data: pollPosts } = await supabase.from("majlis_posts").select("id").like("body", "%---poll:%");
-      let pendingPolls = 0;
-      if (pollPosts && pollPosts.length > 0) {
-        const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", u.id).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
-        const votedIds = new Set((myVotes || []).map(v => v.post_id));
-        pendingPolls = pollPosts.filter(p => !votedIds.has(p.id)).length;
-      }
-
-      if (!hasGreeted.current) {
-        if (pendingPolls > 0) {
-          showIsland(`لديك ${pendingPolls} اقتراح بانتظار تصويتك`, "info", 8000, () => window.dispatchEvent(new CustomEvent("polls:open")));
-        } else {
-          showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
-        }
-        hasGreeted.current = true;
-      }
-
       const now = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      supabase.from("trips").select("*", { count: "exact", head: true }).then(r => setTripsCount(r.count || 0));
-      supabase.from("profiles").select("id", { count: "exact", head: true }).then(r => setMembersCount(r.count || 0));
-      supabase.from("tasks").select("*", { count: "exact", head: true }).neq("status", "done").then(r => setTasksCount(r.count || 0));
-      supabase.from("tasks").select("*", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done").then(r => setMyTasksCount(r.count || 0));
-      supabase.from("majlis_posts").select("*", { count: "exact", head: true }).gt("created_at", yesterday).then(r => setNewNewsCount(r.count || 0));
-
-      const [{ data: meetings }, { data: tData }, { data: annData }, { data: newsData }, { data: transactions }] = await Promise.all([
+      const [{ data: p }, { data: r }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
+        supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
+        supabase.from("user_roles").select("role").eq("user_id", u.id),
+        supabase.from("profiles").select("id", { count: "exact", head: true }),
+        supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "done"),
+        supabase.from("tasks").select("id", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done"),
+        supabase.from("majlis_posts").select("id", { count: "exact", head: true }).gt("created_at", yesterday),
         supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5),
         supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
-        supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "announcement").order("pinned", { ascending: false }).order("created_at", { ascending: false }).limit(5),
-        supabase.from("majlis_posts").select("id, title, body, created_at, pinned").eq("kind", "discussion").order("created_at", { ascending: false }).limit(15),
+        supabase.from("majlis_posts").select("*").order("created_at", { ascending: false }).limit(30),
         supabase.from("fund_transactions").select("amount, type")
       ]);
 
+      const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
+      const rs = (r ?? []).map(x => x.role);
+      setProfile({ name, role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "عضو الأخبار", initial: (name[0] || "ع").toUpperCase(), avatarPath: p?.avatar_url ?? null, userId: u.id });
+      setCounts({ trips: trips?.length || 0, members: mCount?.count || 0, tasks: tCount?.count || 0, myTasks: myTCount?.count || 0, newNews: newsCount?.count || 0 });
       setUpcomingMeetings(meetings || []);
-      setUpcomingTrips(tData || []);
-      if (transactions) {
-        setFundBalance(transactions.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
+      setUpcomingTrips(trips || []);
+      if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
+
+      // 1. Shura Integration
+      const pollPosts = posts?.filter(p => p.body?.includes("---poll:"));
+      if (pollPosts?.length && !hasGreeted.current) {
+        const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", u.id).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
+        const pendingCount = pollPosts.filter(p => !(myVotes || []).some(v => v.post_id === p.id)).length;
+        if (pendingCount > 0) showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () => window.dispatchEvent(new CustomEvent("polls:open")));
+        else showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
+        hasGreeted.current = true;
+      } else if (!hasGreeted.current) {
+        showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
+        hasGreeted.current = true;
       }
 
-      const merged = [
-        ...((annData || []) as any[]).map((p: any) => ({ ...p, _label: "إعلان المجلس" })),
-        ...((newsData || []) as any[]).filter(p => (p.body?.match(/---kind:(\w+)/)?.[1] || "sharing") === "sharing").slice(0, 5).map(p => ({ ...p, _label: "أخبار العائلة" }))
-      ];
+      // 2. Announcements Filter (STRICT: NO POLLS)
+      if (posts) {
+        const annList = posts.filter(p =>
+          (p.kind === 'announcement' || p.body?.includes('---kind:announcement')) &&
+          !p.body?.includes('---poll:')
+        ).slice(0, 5);
 
-      if (merged.length > 0) {
-        const withImages = await Promise.all(merged.map(async (a: any) => {
+        const processedAnns = await Promise.all(annList.map(async (a) => {
           const imgMatch = a.body.match(/^---image:(.*)\n/);
           let url = null;
           if (imgMatch) {
             const { data } = await supabase.storage.from("trip-images").createSignedUrl(imgMatch[1].trim(), 3600);
             url = data?.signedUrl;
           }
-          return { ...a, imageUrl: url, cleanBody: a.body.replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, "") };
+          return { ...a, imageUrl: url, cleanBody: a.body.replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, "").trim(), _label: a.kind === 'announcement' ? "إعلان المجلس" : "أخبار السيف" };
         }));
-        setAnnouncements(withImages);
+        setAnnouncements(processedAnns);
+
+        const heritage = posts.find(p => p.title?.includes("[إرث]"));
+        if (heritage) setHeritageSnippet({ ...heritage, title: heritage.title.replace("[إرث]", "").trim(), cleanBody: heritage.body.replace(/---kind:.*\n/, "").replace(/---image:.*\n/, "").trim() });
       }
 
-      supabase.from("majlis_posts").select("*").eq("kind", "discussion").ilike("title", "[إرث]%").limit(10).then(r => {
-        if (r.data?.length) {
-          const random = r.data[Math.floor(Math.random() * r.data.length)];
-          setHeritageSnippet({ ...random, title: random.title.replace("[إرث]", "").trim(), cleanBody: random.body.replace(/---kind:.*\n/, "").replace(/---image:.*\n/, "").trim() });
-        }
-      });
-
+      // 3. Family Projects
       supabase.from("family_projects").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(5).then(async r => {
         const pj = r.data || [];
-        if (!pj.length) { setActiveProjects([]); return; }
+        if (!pj.length) return setActiveProjects([]);
         const { data: cs } = await supabase.from("family_project_contributions").select("project_id, amount").in("project_id", pj.map(p => p.id));
         const sums: Record<string, number> = {};
         (cs || []).forEach(c => sums[c.project_id] = (sums[c.project_id] || 0) + Number(c.amount));
@@ -284,9 +207,9 @@ function Dashboard() {
 
   const stats = [
     { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
-    { label: "أفراد العائلة", value: membersCount, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
-    { label: "ترفيه عائلي", value: tripsCount, suffix: "وجهة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
-    { label: "مهام قيد التنفيذ", value: tasksCount, suffix: "مهمة", color: "bg-gradient-to-br from-rose-700 to-rose-950", icon: <ListChecks className="size-16" />, link: "/tasks" },
+    { label: "أفراد العائلة", value: counts.members, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
+    { label: "ترفيه عائلي", value: counts.trips, suffix: "وجهة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
+    { label: "مهام قيد التنفيذ", value: counts.tasks, suffix: "مهمة", color: "bg-gradient-to-br from-rose-700 to-rose-950", icon: <ListChecks className="size-16" />, link: "/tasks" },
   ];
 
   const getGreeting = () => {
@@ -298,8 +221,8 @@ function Dashboard() {
   };
 
   const getStatusSummary = () => {
-    if (myTasksCount > 0) return `لديك ${myTasksCount} مسؤوليات بانتظار إنجازك.`;
-    if (newNewsCount > 0) return `هناك ${newNewsCount} أخبار جديدة في مركز الأخبار.`;
+    if (counts.myTasks > 0) return `لديك ${counts.myTasks} مسؤوليات بانتظار إنجازك.`;
+    if (counts.newNews > 0) return `هناك ${counts.newNews} أخبار جديدة في مركز الأخبار.`;
     return "نصل العائلة، نحفظ الإرث، ونبني المستقبل.";
   };
 
@@ -326,9 +249,7 @@ function Dashboard() {
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[44px] glass-surface shadow-2xl">
-            <div className="absolute left-0 top-0 bottom-0 w-1/4 opacity-[0.05] pointer-events-none overflow-hidden">
-              <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom" />
-            </div>
+            <div className="absolute left-0 top-0 bottom-0 w-1/4 opacity-[0.05] pointer-events-none overflow-hidden"><img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom" /></div>
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-10 p-8 md:p-14">
               <div className="size-32 md:size-52 rounded-full bg-white/5 backdrop-blur-3xl border-2 border-gold-primary/20 flex items-center justify-center p-6 shadow-2xl shrink-0">
                 <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
@@ -351,7 +272,7 @@ function Dashboard() {
 
         <QuickActionsBanner />
         <PollsPopup userId={profile.userId ?? null} />
-        <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={tasksCount} onViewTrip={t => setImmersiveItem({ type: 'trip', data: t })} onViewMeeting={m => setImmersiveItem({ type: 'meeting', data: m })} />
+        <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={counts.tasks} onViewTrip={t => setImmersiveItem({ type: 'trip', data: t })} onViewMeeting={m => setImmersiveItem({ type: 'meeting', data: m })} />
 
         {heritageSnippet && (
           <section className="animate-fade-up px-4 md:px-0">
@@ -398,6 +319,33 @@ function Dashboard() {
             );
         })()}
 
+        {activeProjects.length > 0 && (
+          <section className="px-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
+            <Link to="/finance" className="block group">
+              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] border border-gold-primary/30 bg-gradient-to-br from-emerald-900 via-[#0d2620] to-black shadow-2xl p-6 md:p-10">
+                <div className="relative z-10 space-y-6">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className="size-12 md:size-16 rounded-2xl bg-gold-primary/20 border border-gold-primary/30 flex items-center justify-center text-gold-primary shadow-xl"><Lightbulb className="size-6 md:size-8" /></div>
+                      <div><span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">مشاريع العائلة المعتمدة</span><h3 className="text-xl md:text-3xl font-black text-white tracking-tight mt-1">ادعم مشاريعنا</h3></div>
+                    </div>
+                    <ArrowRight className="size-5 text-gold-primary opacity-60 group-hover:-translate-x-1 transition" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {activeProjects.slice(0, 4).map((p) => (
+                      <div key={p.id} className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 space-y-2">
+                        <div className="flex items-start justify-between gap-2"><h4 className="text-sm md:text-base font-bold text-white line-clamp-1">{p.title}</h4><span className="text-[10px] font-black text-gold-primary shrink-0">{p.pct}%</span></div>
+                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden"><div className={cn("h-full transition-all duration-700", p.pct >= 100 ? "bg-emerald-400" : "bg-gradient-to-l from-gold-primary to-emerald-400")} style={{ width: `${p.pct}%` }} /></div>
+                        <div className="flex items-center justify-between text-[10px] md:text-xs"><span className="text-white/60">المتبقي</span><span className="font-bold text-white">{new Intl.NumberFormat("ar-SA").format(p.remaining)} <span className="text-gold-primary">ر.س</span></span></div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </section>
+        )}
+
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-0">
            {stats.map((s, i) => (
              <Link key={i} to={s.link} className="block group">
@@ -412,16 +360,11 @@ function Dashboard() {
         <section className="pb-20 px-4 md:px-0 animate-fade-up">
            <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right relative overflow-hidden group">
               <div className="space-y-4 relative z-10">
-                 <div className="flex items-center justify-center md:justify-start gap-3 text-rose-500">
-                    <ShieldAlert className="size-6" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">الدعم الفني والتقني</span>
-                 </div>
+                 <div className="flex items-center justify-center md:justify-start gap-3 text-rose-500"><ShieldAlert className="size-6" /><span className="text-[10px] font-black uppercase tracking-[0.3em]">الدعم الفني والتقني</span></div>
                  <h3 className="text-3xl font-black text-primary tracking-tight">هل واجهت عائقاً في النظام؟</h3>
                  <p className="text-base md:text-lg font-bold text-muted-foreground opacity-80 max-w-xl">أبلغ فريق الإشراف عن أي ملاحظة برمجية لمساعدتنا في تطوير تجربة تليق بعائلة السيف.</p>
               </div>
-              <button onClick={() => setShowBugReport(true)} className="px-12 py-5 rounded-[22px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-xl flex items-center gap-3 relative z-10">
-                 <ShieldAlert size={20} /> إرسال بلاغ فوري
-              </button>
+              <button onClick={() => setShowBugReport(true)} className="px-12 py-5 rounded-[22px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-xl flex items-center gap-3 relative z-10"><ShieldAlert size={20} /> إرسال بلاغ فوري</button>
            </div>
         </section>
       </div>
