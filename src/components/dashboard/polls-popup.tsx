@@ -83,6 +83,7 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     });
     if (error) return toast.error("تعذر تسجيل الصوت");
     toast.success("تم تسجيل صوتك");
+    await load(); // Refresh data to show results or hide
   };
 
   const handleClose = (o: boolean) => {
@@ -134,15 +135,15 @@ export function PollsPopup({ userId }: { userId: string | null }) {
             </div>
           </DialogHeader>
 
-          {polls.length === 0 ? (
+          {pending.length === 0 ? (
             <div className="py-10 text-center space-y-3">
-              <Sparkles className="mx-auto text-primary/40" size={32} />
-              <p className="text-sm font-bold text-muted-foreground">لا توجد اقتراحات حالياً</p>
+              <CheckCircle2 className="mx-auto text-emerald-500/40" size={32} />
+              <p className="text-sm font-bold text-muted-foreground">لقد شاركت في جميع التصويتات الحالية. شكراً لك!</p>
             </div>
           ) : (
             <div className="grid gap-4 mt-2">
               <AnimatePresence mode="popLayout">
-                {polls.map(({ post, poll, votes, myVoteIndex }) => {
+                {pending.map(({ post, poll, votes, myVoteIndex }) => {
                   const counts = new Array(poll.options.length).fill(0);
                   votes.forEach(v => {
                     const i = parseInt(v.body.split(":")[1]);
@@ -168,34 +169,25 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                           <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-full">
                             {total} صوت
                           </span>
-                          {voted && (
-                            <span className="text-[10px] font-black bg-emerald-500/15 text-emerald-600 px-2 py-1 rounded-full inline-flex items-center gap-1">
-                              <CheckCircle2 size={10} /> صوّتت
-                            </span>
-                          )}
                         </div>
                       </div>
                       <div className="grid gap-2">
                         {poll.options.map((opt, i) => {
                           const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
-                          const isMine = myVoteIndex === i;
                           return (
                             <button
                               key={i}
                               onClick={() => vote(post.id, i)}
                               disabled={voted}
-                              className={cn(
-                                "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all",
-                                isMine ? "bg-primary text-white border-primary" : "bg-card border-border/40 text-primary hover:border-primary disabled:hover:border-border/40",
-                              )}
+                              className="relative p-3 rounded-xl text-right font-black overflow-hidden border-2 border-border/40 text-primary hover:border-primary transition-all bg-card"
                             >
                               <div
-                                className={cn("absolute inset-y-0 right-0 transition-all duration-700", isMine ? "bg-white/10" : "bg-primary/5")}
+                                className="absolute inset-y-0 right-0 transition-all duration-700 bg-primary/5"
                                 style={{ width: `${pct}%` }}
                               />
                               <div className="relative z-10 flex justify-between items-center text-sm">
                                 <div className="flex items-center gap-2">
-                                  {isMine ? <CheckCircle2 size={16} /> : <div className="size-3.5 rounded-full border-2 border-current opacity-30" />}
+                                  <div className="size-3.5 rounded-full border-2 border-current opacity-30" />
                                   <span>{opt}</span>
                                 </div>
                                 <span className="opacity-60 text-xs">{pct}%</span>

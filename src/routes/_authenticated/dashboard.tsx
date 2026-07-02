@@ -126,7 +126,18 @@ function Dashboard() {
     } catch (e) { console.error(e); }
   }, [meId]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+    const ch = supabase.channel('dash-rt')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_comments' }, () => {
+        // If a vote happens, we might want to hide the island or update count
+        // But we don't want to show greeting again if already greeted.
+        // For now, let's just refresh counts silently.
+        loadData();
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [loadData]);
 
   useEffect(() => {
     if (announcements.length < 2) return;
