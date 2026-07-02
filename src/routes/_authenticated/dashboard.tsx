@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { UserAvatar } from "@/components/user-avatar";
 import {
   Clock,
   MapPin,
@@ -21,7 +22,6 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { LiveClock } from "@/components/dashboard/live-clock";
@@ -30,7 +30,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole } from "@/hooks/use-user-role";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
-import { showIsland, hideIsland } from "@/components/dynamic-island";
+import { ActivePolls } from "@/components/dashboard/active-polls";
+import { showIsland } from "@/components/dynamic-island";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
@@ -67,7 +68,7 @@ function Dashboard() {
         supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "done"),
         supabase.from("meetings").select("*").gte("scheduled_at", now).order("scheduled_at").limit(5),
         supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
-        supabase.from("majlis_posts").select("*").eq("kind", "announcement").order("created_at", { ascending: false }).limit(5)
+        supabase.from("majlis_posts").select("*").order("created_at", { ascending: false }).limit(20)
       ]);
 
       if (p) setProfile(p);
@@ -77,28 +78,35 @@ function Dashboard() {
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
 
+      // Filter and process announcements
       if (news) {
+        const filtered = news.filter((n: any) =>
+          n.kind === 'announcement' || n.body?.includes('---kind:announcement')
+        );
+
         const withImages = await Promise.all(
-          news.map(async (a: any) => {
+          filtered.map(async (a: any) => {
             const imgMatch = a.body.match(/^---image:(.*)\n/);
             let url = null;
             if (imgMatch) {
-              const path = imgMatch[1].trim();
-              const { data } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60);
-              url = data?.signedUrl;
+              try {
+                const path = imgMatch[1].trim();
+                const { data } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60);
+                url = data?.signedUrl;
+              } catch {}
             }
             return {
               ...a,
               imageUrl: url,
-              cleanBody: a.body.replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, ""),
+              cleanBody: (a.body || "").replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, "").replace(/---poll:.*?---/s, "").trim(),
             };
           }),
         );
-        setAnnouncements(withImages);
+        setAnnouncements(withImages.filter(a => a.cleanBody));
       }
 
       // Dynamic Island Greeting and Polls Check
-      const { data: pollPosts } = await supabase.from("majlis_posts").select("id").like("body", "%---poll:%");
+      const pollPosts = news?.filter((p: any) => p.body?.includes("---poll:"));
       let pendingPolls = 0;
       if (pollPosts && pollPosts.length > 0) {
         const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", meId).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
@@ -116,7 +124,7 @@ function Dashboard() {
       }
 
       // Heritage Snippet
-      const { data: heritage } = await supabase.from("majlis_posts").select("*").ilike("title", "[إرث]%").limit(1).maybeSingle();
+      const heritage = news?.find((p: any) => p.title?.includes("[إرث]"));
       if (heritage) {
         setHeritageSnippet({
           title: heritage.title.replace("[إرث]", "").trim(),
@@ -128,27 +136,22 @@ function Dashboard() {
 
   useEffect(() => {
     loadData();
-    const ch = supabase.channel('dash-rt')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_comments' }, () => {
-        // If a vote happens, we might want to hide the island or update count
-        // But we don't want to show greeting again if already greeted.
-        // For now, let's just refresh counts silently.
-        loadData();
-      })
+    const ch = supabase.channel('dash-rt-all')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_comments' }, () => loadData())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'majlis_posts' }, () => loadData())
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [loadData]);
 
   useEffect(() => {
     if (announcements.length < 2) return;
-    const t = setInterval(() => setAnnIndex((p) => (p + 1) % announcements.length), 8000);
+    const t = setInterval(() => setAnnIndex((p) => (p + 1) % announcements.length), 10000);
     return () => clearInterval(t);
   }, [announcements.length]);
 
   const sendBugReport = async () => {
     if (!bugBody.trim() || !meId) return;
     setBugSending(true);
-    showIsland("جاري إرسال البلاغ...", "loading");
     try {
       let imageUrl = null;
       if (bugImage) {
@@ -159,9 +162,9 @@ function Dashboard() {
         imageUrl = sign?.signedUrl;
       }
       await supabase.from("bug_reports" as any).insert({ reporter_id: meId, body: bugBody.trim(), image_url: imageUrl });
-      showIsland("تم إرسال البلاغ بنجاح", "success");
+      toast.success("تم إرسال البلاغ بنجاح");
       setBugBody(""); setBugImage(null); setBugImagePreview(null); setShowBugReport(false);
-    } catch { showIsland("تعذر الإرسال", "error"); }
+    } catch { toast.error("تعذر الإرسال"); }
     finally { setBugSending(false); }
   };
 
@@ -169,28 +172,46 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={{ name: profile?.arabic_name || "عضو", role: "عضو المجلس", initial: "ع" } as any}>
-      <div className="max-w-6xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
+      <div className="max-w-6xl mx-auto space-y-10 pb-24 px-4 md:px-0" dir="rtl">
 
-        {/* Main Hero Card */}
+        {/* Personalized Hero Section */}
         <section className="animate-fade-up">
-           <div className="relative overflow-hidden rounded-[44px] glass-surface p-8 md:p-14 shadow-2xl border border-white/10">
-              <div className="absolute left-0 top-0 bottom-0 w-1/4 opacity-[0.05] pointer-events-none overflow-hidden">
+           <div className="relative overflow-hidden rounded-[44px] glass-surface p-8 md:p-14 shadow-2xl border border-white/10 flex flex-col md:flex-row items-center justify-between gap-10">
+              <div className="absolute left-0 top-0 bottom-0 w-1/3 opacity-[0.03] pointer-events-none overflow-hidden">
                 <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom" />
               </div>
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-10">
-                 <div className="size-32 md:size-48 rounded-full bg-white/5 backdrop-blur-3xl border-2 border-gold-primary/20 flex items-center justify-center p-6 shadow-2xl">
-                    <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
+
+              <div className="relative z-10 flex-1 text-center md:text-right space-y-8">
+                 <div className="space-y-3">
+                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">طاب يومك،</p>
+                    <h2 className="text-5xl md:text-8xl font-black tracking-tighter text-primary leading-tight">
+                       {profile?.arabic_name?.split(' ').slice(0, 3).join(' ') || "عضو عائلة السيف"}
+                    </h2>
+                    <p className="text-muted-foreground font-bold text-lg md:text-2xl opacity-60">نصل العائلة، نحفظ الإرث، ونبني المجتمع.</p>
                  </div>
-                 <div className="flex-1 text-center md:text-right space-y-6">
-                    <div className="space-y-2">
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">طاب مساؤك،</p>
-                       <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-primary">{profile?.arabic_name || "عضو عائلة السيف"}</h2>
-                       <p className="text-muted-foreground font-bold text-base md:text-xl opacity-70">نصل العائلة، نحفظ الإرث، ونبني المجتمع.</p>
+
+                 <div className="flex flex-wrap items-center justify-center md:justify-start gap-4">
+                    <div className="inline-flex items-center gap-4 rounded-full bg-white/5 border border-white/10 pl-6 pr-4 py-3 shadow-xl backdrop-blur-xl">
+                       <Calendar className="size-5 text-gold-primary" />
+                       <span className="font-black text-sm text-foreground"><LiveClock variant="date" /></span>
                     </div>
-                    <div className="inline-flex items-center gap-6 rounded-3xl bg-white/5 border border-white/10 px-8 py-4 shadow-xl backdrop-blur-xl">
-                       <div className="flex items-center gap-3 text-gold-primary"><Calendar className="size-5" /> <span className="font-black text-foreground"><LiveClock variant="date" /></span></div>
-                       <div className="w-px h-6 bg-white/10" />
-                       <div className="flex items-center gap-3 text-gold-primary"><Clock className="size-5" /> <span className="font-black text-foreground"><LiveClock variant="time" /></span></div>
+                    <div className="inline-flex items-center gap-4 rounded-full bg-white/5 border border-white/10 pl-6 pr-4 py-3 shadow-xl backdrop-blur-xl">
+                       <Clock className="size-5 text-gold-primary" />
+                       <span className="font-black text-sm text-foreground"><LiveClock variant="time" /></span>
+                    </div>
+                 </div>
+              </div>
+
+              <div className="relative shrink-0 group">
+                 <div className="absolute inset-0 bg-primary/10 rounded-full blur-3xl group-hover:bg-primary/20 transition-all duration-1000" />
+                 <div className="size-48 md:size-72 rounded-full p-2 bg-gradient-to-br from-gold-primary/30 via-transparent to-primary/30 relative z-10">
+                    <div className="size-full rounded-full bg-card p-1 shadow-2xl ring-4 ring-white/5 overflow-hidden">
+                       <UserAvatar
+                          path={profile?.avatar_url}
+                          name={profile?.arabic_name}
+                          className="size-full object-cover scale-110 group-hover:scale-125 transition-transform duration-1000"
+                          userId={meId}
+                       />
                     </div>
                  </div>
               </div>
@@ -199,64 +220,76 @@ function Dashboard() {
 
         <QuickActionsBanner />
         <PollsPopup userId={meId ?? null} />
+        <ActivePolls userId={meId ?? null} />
 
-        <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={counts.tasks} />
-
-        {heritageSnippet && (
-          <Link to="/heritage" className="block group animate-fade-up">
-             <div className="card-surface p-8 flex items-center justify-between hover:scale-[1.01] transition-all">
-                <div className="flex items-center gap-6">
-                   <div className="size-14 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-lg"><Scroll size={28} /></div>
-                   <div>
-                      <span className="text-[10px] font-black text-gold-primary uppercase tracking-[0.3em]">قبس من التاريخ</span>
-                      <h3 className="text-xl font-black text-primary mt-1">{heritageSnippet.title}</h3>
-                      <p className="text-sm font-bold text-muted-foreground line-clamp-1 opacity-70 italic">"{heritageSnippet.body}"</p>
-                   </div>
-                </div>
-                <ChevronLeft className="text-gold-primary opacity-30 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
-             </div>
-          </Link>
-        )}
-
+        {/* Announcements Banner Section */}
         {announcements.length > 0 && (
-          <section className="animate-fade-up">
+          <section className="animate-fade-up px-2">
              <Link to="/majlis" className="block group">
-                <div className="relative overflow-hidden rounded-[44px] border border-gold-primary/30 bg-gradient-to-br from-primary to-emerald-950 shadow-2xl min-h-[160px] flex items-center p-8 md:p-12">
-                   <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 w-full">
-                      <div className="size-16 md:size-24 rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0"><Newspaper size={40} /></div>
-                      <div className="flex-1 text-center md:text-right">
-                         <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary/80">إعلان المجلس</span>
-                         <h3 className="text-2xl md:text-4xl font-black text-white mt-1">{announcements[annIndex].title}</h3>
-                         <p className="text-sm md:text-lg text-white/70 font-bold line-clamp-2 mt-2">{announcements[annIndex].cleanBody}</p>
+                <div className="relative overflow-hidden rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-emerald-950 to-black shadow-2xl min-h-[140px] md:min-h-[180px] flex items-center p-8 md:p-14">
+                   {announcements[annIndex].imageUrl && (
+                      <div className="absolute inset-0 z-0">
+                         <img src={announcements[annIndex].imageUrl} className="size-full object-cover opacity-20 group-hover:scale-105 transition-transform duration-[2000ms]" alt="" />
+                         <div className="absolute inset-0 bg-gradient-to-r from-primary via-primary/80 to-transparent" />
                       </div>
-                      <ChevronLeft className="size-10 text-gold-primary group-hover:-translate-x-2 transition-transform" />
+                   )}
+                   <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 w-full">
+                      <div className="flex flex-col md:flex-row items-center gap-8">
+                         <div className="size-16 md:size-24 rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-12 transition-transform duration-500">
+                            <Newspaper size={40} />
+                         </div>
+                         <div className="text-center md:text-right space-y-2">
+                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary shadow-sm">إعلان المجلس</span>
+                            <h3 className="text-2xl md:text-5xl font-black text-white leading-tight drop-shadow-lg">{announcements[annIndex].title}</h3>
+                            <p className="text-white/70 font-bold text-sm md:text-xl line-clamp-2 max-w-3xl">{announcements[annIndex].cleanBody}</p>
+                         </div>
+                      </div>
+                      <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
                    </div>
                 </div>
              </Link>
           </section>
         )}
 
+        <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={counts.tasks} />
+
         {/* Stats Grid */}
-        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-           <StatCard label="رصيد الصندوق" value={counts.balance} suffix="ر.س" color="from-emerald-600 to-emerald-900" icon={<Wallet className="size-16" />} link="/finance" />
-           <StatCard label="أفراد العائلة" value={counts.members} suffix="عضو" color="from-primary to-emerald-950" icon={<Users className="size-16" />} link="/members" />
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-8">
+           <StatCard label="رصيد الصندوق" value={counts.balance} suffix="ر.س" color="from-emerald-700 to-emerald-950" icon={<Wallet className="size-16" />} link="/finance" />
+           <StatCard label="أفراد العائلة" value={counts.members} suffix="عضو" color="from-primary to-[#032d22]" icon={<Users className="size-16" />} link="/members" />
            <StatCard label="ترفيه عائلي" value={counts.trips} suffix="وجهة" color="from-[#8E7745] to-[#453a22]" icon={<Plane className="size-16" />} link="/trips" />
-           <StatCard label="مهام معلقة" value={counts.tasks} suffix="مهمة" color="from-rose-700 to-rose-950" icon={<ListChecks className="size-16" />} link="/tasks" />
+           <StatCard label="مهام معلقة" value={counts.tasks} suffix="مهمة" color="from-rose-800 to-rose-950" icon={<ListChecks className="size-16" />} link="/tasks" />
         </section>
 
-        {/* Bug Report Section */}
-        <section className="pb-20 animate-fade-up">
-           <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right">
+        {heritageSnippet && (
+          <Link to="/heritage" className="block group animate-fade-up">
+             <div className="card-surface p-10 flex flex-col md:flex-row md:items-center justify-between gap-10 hover:scale-[1.01] transition-all duration-500">
+                <div className="flex items-center gap-8">
+                   <div className="size-20 rounded-3xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-2xl ring-1 ring-gold-primary/20"><Scroll size={40} /></div>
+                   <div className="space-y-1">
+                      <span className="text-[10px] font-black text-gold-primary uppercase tracking-[0.4em]">قبس من التاريخ</span>
+                      <h3 className="text-2xl md:text-3xl font-black text-primary">{heritageSnippet.title}</h3>
+                      <p className="text-base md:text-xl font-bold text-muted-foreground line-clamp-1 opacity-70 italic leading-relaxed">"{heritageSnippet.body}"</p>
+                   </div>
+                </div>
+                <ChevronLeft className="text-gold-primary opacity-20 group-hover:opacity-100 group-hover:-translate-x-4 transition-all duration-500 size-8" />
+             </div>
+          </Link>
+        )}
+
+        {/* Technical Support Section */}
+        <section className="pb-24 animate-fade-up">
+           <div className="glass-surface p-12 md:p-20 border-dashed border-2 border-primary/20 rounded-[50px] flex flex-col md:flex-row items-center justify-between gap-12 text-center md:text-right">
               <div className="space-y-4">
-                 <div className="flex items-center justify-center md:justify-start gap-3 text-rose-500">
-                    <ShieldAlert className="size-6" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">الدعم التقني</span>
+                 <div className="flex items-center justify-center md:justify-start gap-4 text-rose-500">
+                    <ShieldAlert className="size-8" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em]">فريق الدعم التقني</span>
                  </div>
-                 <h3 className="text-3xl font-black text-primary tracking-tight">واجهت مشكلة في النظام؟</h3>
-                 <p className="text-lg font-bold text-muted-foreground opacity-70 max-w-xl">أبلغ فريق الإشراف فوراً عن أي عائق برمجي لمساعدتنا في تحسين تجربتك.</p>
+                 <h3 className="text-3xl md:text-5xl font-black text-primary tracking-tighter">واجهت مشكلة في النظام؟</h3>
+                 <p className="text-lg md:text-2xl font-bold text-muted-foreground opacity-60 max-w-2xl">نحن هنا لخدمتكم. أبلغ عن أي عائق برمجي لمساعدتنا في تحسين تجربتكم الرقمية.</p>
               </div>
-              <button onClick={() => setShowBugReport(true)} className="px-10 py-5 rounded-3xl bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-xl flex items-center gap-3">
-                 <ShieldAlert size={20} /> إرسال بلاغ فوري
+              <button onClick={() => setShowBugReport(true)} className="px-14 py-6 rounded-[30px] bg-rose-500/10 text-rose-600 font-black text-lg border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-2xl flex items-center gap-4 hover:scale-105 active:scale-95">
+                 <ShieldAlert size={28} /> إرسال بلاغ فوري
               </button>
            </div>
         </section>
@@ -264,17 +297,17 @@ function Dashboard() {
 
       <AnimatePresence>
         {showBugReport && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card border border-border rounded-[40px] w-full max-w-lg p-8 space-y-6 shadow-2xl">
-              <div className="flex items-center justify-between"><h3 className="text-xl font-black text-primary">بلاغ عن خطأ تقني</h3><button onClick={() => setShowBugReport(false)} className="size-10 rounded-full bg-muted flex items-center justify-center"><X size={20} /></button></div>
-              <div className="space-y-4">
-                <textarea value={bugBody} onChange={(e) => setBugBody(e.target.value)} placeholder="صف المشكلة هنا..." rows={5} className="w-full p-6 rounded-3xl bg-muted/40 border border-border font-bold text-sm focus:outline-none focus:border-primary transition-all resize-none shadow-inner" />
-                <label className="flex flex-col items-center justify-center gap-3 p-8 border-2 border-dashed border-border/60 rounded-3xl cursor-pointer hover:bg-primary/5 transition-all bg-muted/20">
-                  {bugImagePreview ? <img src={bugImagePreview} className="h-32 object-contain" alt="Preview" /> : <><ImageIcon className="size-8 text-muted-foreground opacity-30" /><span className="text-xs font-bold text-muted-foreground">إرفاق لقطة شاشة</span></>}
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-2xl" dir="rtl">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="bg-card border border-white/10 rounded-[50px] w-full max-w-2xl p-10 md:p-14 space-y-8 shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+              <div className="flex items-center justify-between"><h3 className="text-3xl font-black text-primary">بلاغ فني</h3><button onClick={() => setShowBugReport(false)} className="size-14 rounded-full bg-muted flex items-center justify-center hover:rotate-90 transition-transform"><X size={28} /></button></div>
+              <div className="space-y-6">
+                <textarea value={bugBody} onChange={(e) => setBugBody(e.target.value)} placeholder="صف المشكلة هنا..." rows={6} className="w-full p-8 rounded-[35px] bg-muted/40 border border-border/60 font-bold text-lg focus:outline-none focus:border-primary transition-all resize-none shadow-inner" />
+                <label className="flex flex-col items-center justify-center gap-4 p-12 border-2 border-dashed border-border/60 rounded-[35px] cursor-pointer hover:bg-primary/5 transition-all bg-muted/20">
+                  {bugImagePreview ? <img src={bugImagePreview} className="h-48 object-contain rounded-2xl" alt="Preview" /> : <><ImageIcon className="size-12 text-muted-foreground opacity-30" /><span className="text-sm font-bold text-muted-foreground">إرفاق لقطة شاشة للخطأ</span></>}
                   <input type="file" hidden accept="image/*" onChange={(e) => { const f = e.target.files?.[0]; if (f) { setBugImage(f); setBugImagePreview(URL.createObjectURL(f)); } }} />
                 </label>
               </div>
-              <div className="flex gap-3"><button onClick={() => setShowBugReport(false)} className="flex-1 py-4 rounded-2xl font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button><button onClick={sendBugReport} disabled={bugSending || !bugBody.trim()} className="flex-[2] btn-gold py-4 rounded-2xl font-black flex items-center justify-center gap-2">{bugSending ? <Loader2 className="animate-spin size-4" /> : <Send size={16} />} إرسال البلاغ</button></div>
+              <div className="flex gap-4"><button onClick={() => setShowBugReport(false)} className="flex-1 py-5 rounded-[25px] font-black text-muted-foreground hover:bg-muted transition-all">تراجع</button><button onClick={sendBugReport} disabled={bugSending || !bugBody.trim()} className="flex-[2] btn-gold py-5 rounded-[25px] font-black flex items-center justify-center gap-4 text-lg">{bugSending ? <Loader2 className="animate-spin size-6" /> : <Send size={24} />} إرسال البلاغ</button></div>
             </motion.div>
           </div>
         )}
@@ -286,13 +319,13 @@ function Dashboard() {
 function StatCard({ label, value, suffix, color, icon, link }: any) {
   return (
     <Link to={link} className="block group">
-       <div className={cn("relative overflow-hidden rounded-[32px] p-6 md:p-8 text-white shadow-xl transition-all duration-500 hover:scale-[1.03] bg-gradient-to-br", color)}>
-          <div className="absolute top-4 right-4 opacity-10 group-hover:opacity-20 transition-all">{icon}</div>
-          <div className="relative z-10 space-y-4">
-             <p className="text-[10px] md:text-xs font-black uppercase tracking-widest opacity-70">{label}</p>
-             <div className="flex items-baseline gap-2">
-                <span className="text-2xl md:text-4xl font-black tabular-nums">{new Intl.NumberFormat("ar-SA").format(value)}</span>
-                <span className="text-[9px] md:text-[10px] font-bold opacity-60">{suffix}</span>
+       <div className={cn("relative overflow-hidden rounded-[36px] p-8 md:p-10 text-white shadow-2xl transition-all duration-700 hover:scale-[1.04] bg-gradient-to-br", color)}>
+          <div className="absolute -top-4 -right-4 opacity-10 group-hover:opacity-20 group-hover:rotate-12 transition-all duration-700">{icon}</div>
+          <div className="relative z-10 space-y-5">
+             <p className="text-xs md:text-sm font-black uppercase tracking-[0.2em] opacity-70">{label}</p>
+             <div className="flex items-baseline gap-3">
+                <span className="text-4xl md:text-6xl font-black tabular-nums tracking-tighter">{new Intl.NumberFormat("ar-SA").format(value)}</span>
+                <span className="text-[10px] md:text-xs font-black opacity-50 uppercase">{suffix}</span>
              </div>
           </div>
        </div>
