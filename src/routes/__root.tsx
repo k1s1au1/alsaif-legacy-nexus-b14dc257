@@ -128,7 +128,7 @@ function RootComponent() {
         // For simplicity, we can fetch from a static list or just wait for the user to visit settings.
         // Better: store the colors themselves or use a mapping.
         const themes: Record<string, any> = {
-          "emerald": { p: "#064E3B", s: "#D4AF37", dp: "#059669", m: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"] },
+          "emerald": { p: "#064E3B", s: "#D4AF37", dp: "#064E3B", m: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"] },
           "midnight": { p: "#1E293B", s: "#94A3B8", dp: "#334155", m: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"] },
           "burgundy": { p: "#4C0519", s: "#D4AF37", dp: "#800000", m: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"] },
           "pure-white": { p: "#FDFCF7", s: "#8E7745", dp: "#F1F5F9", m: ["rgba(142, 119, 69, 0.1)", "rgba(253, 252, 247, 0.1)"] },

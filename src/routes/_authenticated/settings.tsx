@@ -41,7 +41,7 @@ const THEME_COLORS = [
     name: "أخضر السيف (الأصلي)",
     primary: "#064E3B",
     secondary: "#D4AF37",
-    darkPrimary: "#059669",
+    darkPrimary: "#064E3B",
     foreground: "#FFFFFF",
     isPrimary: true,
     mesh: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"]
