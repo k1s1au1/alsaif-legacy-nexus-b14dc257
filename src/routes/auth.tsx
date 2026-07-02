@@ -246,36 +246,36 @@ function AuthPage() {
               >
                 <form onSubmit={onLogin} className="space-y-6">
                   <div className="space-y-2" dir="rtl">
-                    <label className="text-xs font-black text-primary/60 mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
+                    <label className="text-xs font-black text-white mr-4 uppercase tracking-widest">البريد الإلكتروني</label>
                     <div className="relative group">
-                      <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40 group-focus-within:text-primary transition-colors" />
+                      <Mail className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary group-focus-within:text-white transition-colors" />
                       <input
                         type="email"
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full h-16 bg-white/40 dark:bg-black/30 border border-white/40 dark:border-white/20 rounded-2xl pr-14 pl-5 font-bold text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-inner"
+                        className="w-full h-16 bg-white/10 dark:bg-black/40 border-2 border-white/30 dark:border-white/20 rounded-2xl pr-14 pl-5 font-bold text-base text-white placeholder:text-white/40 focus:outline-none focus:ring-4 focus:ring-gold-primary/20 focus:border-gold-primary transition-all shadow-xl backdrop-blur-md"
                         placeholder="البريد الإلكتروني..."
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2" dir="rtl">
-                    <label className="text-xs font-black text-primary/60 mr-4 uppercase tracking-widest">كلمة المرور</label>
+                    <label className="text-xs font-black text-white mr-4 uppercase tracking-widest">كلمة المرور</label>
                     <div className="relative group">
-                      <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary/40 group-focus-within:text-primary transition-colors" />
+                      <Lock className="absolute right-5 top-1/2 -translate-y-1/2 size-5 text-gold-primary group-focus-within:text-white transition-colors" />
                       <input
                         type={showPassword ? "text" : "password"}
                         required
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
-                        className="w-full h-16 bg-white/40 dark:bg-black/30 border border-white/40 dark:border-white/20 rounded-2xl pr-14 pl-14 font-bold text-base focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-inner"
+                        className="w-full h-16 bg-white/10 dark:bg-black/40 border-2 border-white/30 dark:border-white/20 rounded-2xl pr-14 pl-14 font-bold text-base text-white placeholder:text-white/40 focus:outline-none focus:ring-4 focus:ring-gold-primary/20 focus:border-gold-primary transition-all shadow-xl backdrop-blur-md"
                         placeholder="••••••••••••"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute left-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-primary transition-colors"
+                        className="absolute left-5 top-1/2 -translate-y-1/2 text-white/60 hover:text-white transition-colors"
                       >
                         {showPassword ? <EyeOff size={22} /> : <Eye size={22} />}
                       </button>
