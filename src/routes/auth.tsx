@@ -32,6 +32,22 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const dynamicLogo = useSiteLogo();
 
+  // Welcome Messages for Idea 1
+  const [msgIndex, setMsgIndex] = useState(0);
+  const welcomeMessages = [
+    "أهلاً بك في فناء السيف",
+    "حيث يجتمع التاريخ بالمستقبل",
+    "منصة العائلة الرسمية والخاصة",
+    "نصل العائلة، نحفظ الإرث، نبني المجتمع"
+  ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMsgIndex((prev) => (prev + 1) % welcomeMessages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
+
   // Request form fields
   const [reqFirstName, setReqFirstName] = useState("");
   const [reqFatherName, setReqFatherName] = useState("");
@@ -141,6 +157,22 @@ function AuthPage() {
             </motion.div>
             <h1 className="text-3xl font-black text-primary mb-1 tracking-tight">مجلس السيف</h1>
             <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-60">ALSAIF · PRIVATE ACCESS</p>
+
+            {/* Dynamic Welcome Message */}
+            <div className="h-8 mt-4 flex items-center justify-center overflow-hidden">
+               <AnimatePresence mode="wait">
+                  <motion.p
+                    key={msgIndex}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    exit={{ y: -20, opacity: 0 }}
+                    transition={{ duration: 0.5, ease: "easeOut" }}
+                    className="text-sm font-bold text-primary/70 italic"
+                  >
+                    {welcomeMessages[msgIndex]}
+                  </motion.p>
+               </AnimatePresence>
+            </div>
           </div>
 
           <AnimatePresence mode="wait">
