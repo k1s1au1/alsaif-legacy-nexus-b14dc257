@@ -1,9 +1,8 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User, Quote } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, UserPlus, Send, X, Phone, User } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
@@ -32,7 +31,7 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const dynamicLogo = useSiteLogo();
 
-  // Welcome Messages for Idea 1
+  // Welcome Messages
   const [msgIndex, setMsgIndex] = useState(0);
   const welcomeMessages = [
     "أهلاً بك في مجلس السيف",
@@ -95,11 +94,6 @@ function AuthPage() {
       toast.error("تعذر إرسال الطلب", { description: error.message });
       return;
     }
-
-    // Notification dispatch to admins is intentionally handled server-side
-    // (e.g., via DB triggers / admin polling) — never from this unauthenticated
-    // path. Sending FCM from here would expose the dispatcher to abuse.
-
     toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة الطلب من قبل الإدارة وإشعارك قريباً." });
     setAuthMode("login");
   }
@@ -122,7 +116,37 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex items-center justify-center px-4 py-10 bg-[#fdfcf7] dark:bg-[#05070a] transition-colors duration-700 overflow-hidden">
 
-      {/* Dynamic Brand Mesh Background for Glass Effect */}
+      {/* Heritage Pattern Layer */}
+      <div className="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0 L100 50 L50 100 L0 50 Z' fill='none' stroke='%238e7745' stroke-width='0.5'/%3E%3C/svg%3E")`, backgroundSize: '100px 100px' }} />
+
+      {/* Floating Gold Dust Effect */}
+      <div className="absolute inset-0 pointer-events-none">
+        {[...Array(30)].map((_, i) => (
+          <motion.div
+            key={i}
+            initial={{
+              opacity: 0.1 + Math.random() * 0.4,
+              x: Math.random() * 100 + "%",
+              y: Math.random() * 100 + "%"
+            }}
+            animate={{
+              y: [null, "-100%"],
+              x: [null, (Math.random() - 0.5) * 30 + "%"],
+              rotate: [0, 360]
+            }}
+            transition={{
+              duration: 15 + Math.random() * 30,
+              repeat: Infinity,
+              ease: "linear",
+              delay: Math.random() * -30
+            }}
+            className="absolute size-[2px] bg-[#d4af37] rounded-full blur-[1px]"
+            style={{ boxShadow: '0 0 10px #d4af37' }}
+          />
+        ))}
+      </div>
+
+      {/* Dynamic Brand Mesh Background */}
       <div className="absolute inset-0 pointer-events-none">
         <motion.div
           animate={{
@@ -151,9 +175,7 @@ function AuthPage() {
           <div
             className="absolute inset-0 z-0 bg-center bg-cover bg-no-repeat opacity-[0.2] transition-opacity duration-1000"
             style={{ backgroundImage: `url(${authBg})` }}
-          >
-            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-transparent" />
-          </div>
+          />
         )}
 
         <div className="relative z-10 p-8 sm:p-10 flex flex-col h-full">
@@ -187,7 +209,7 @@ function AuthPage() {
               </AnimatePresence>
             </motion.div>
             <h1 className="text-3xl font-black text-primary mb-1 tracking-tight">مجلس السيف</h1>
-            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-60">ALSAIF · PRIVATE ACCESS</p>
+            <p className="text-[10px] font-black tracking-[0.4em] text-gold-primary uppercase mt-1 opacity-60">عائلة السيف · بوابة خاصة</p>
 
             {/* Dynamic Welcome Message */}
             <div className="h-8 mt-4 flex items-center justify-center overflow-hidden">
@@ -232,7 +254,7 @@ function AuthPage() {
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full h-14 bg-white/30 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/10 focus:border-primary transition-all shadow-sm"
-                        placeholder="example@alsaif.family"
+                        placeholder="البريد الإلكتروني..."
                       />
                     </div>
                   </div>
@@ -319,7 +341,7 @@ function AuthPage() {
                          <ReqField label="اسم الجد" value={reqGrandName} onChange={setReqGrandFatherName} placeholder="..." />
                       </div>
                       <ReqField label="رقم الجوال" icon={<Phone />} value={reqPhone} onChange={setReqPhone} placeholder="05xxxxxxxx" type="tel" />
-                      <ReqField label="البريد الإلكتروني" icon={<Mail />} value={reqEmail} onChange={setReqEmail} placeholder="name@example.com" type="email" />
+                      <ReqField label="البريد الإلكتروني" icon={<Mail />} value={reqEmail} onChange={setReqEmail} placeholder="البريد الإلكتروني..." type="email" />
                       <ReqField label="كلمة المرور المقترحة" icon={<Lock />} value={reqPassword} onChange={setReqPassword} placeholder="••••••••" type="password" />
                       <div className="space-y-1.5">
                          <label className="text-[10px] font-black text-muted-foreground mr-2 uppercase tracking-widest">ملاحظة إضافية</label>
@@ -370,8 +392,8 @@ function AuthPage() {
                         required
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
-                        className="w-full h-14 bg-muted/40 border border-border rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
-                        placeholder="your-email@example.com"
+                        className="w-full h-14 bg-white/30 dark:bg-black/20 border border-white/20 dark:border-white/10 rounded-2xl pr-14 pl-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        placeholder="البريد الإلكتروني..."
                       />
                     </div>
                   </div>
@@ -394,7 +416,7 @@ function AuthPage() {
           </AnimatePresence>
 
           <p className="text-center text-[10px] text-muted-foreground mt-12 tracking-[0.4em] uppercase font-black opacity-40">
-            ALSAIF FAMILY HUB
+            مجلس عائلة السيف
           </p>
         </div>
       </div>
