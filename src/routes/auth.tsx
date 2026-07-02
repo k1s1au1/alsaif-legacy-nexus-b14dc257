@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 
 
 export const Route = createFileRoute("/auth")({
+  // T-Notify: Triggering latest brand enhancements
   head: () => ({
     meta: [
       { title: "مجلس السيف — تسجيل الدخول" },
