@@ -142,7 +142,7 @@ function Dashboard() {
       const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
       const rs = (r ?? []).map(x => x.role);
       setProfile({ name, role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "عضو الأخبار", initial: (name[0] || "ع").toUpperCase(), avatarPath: p?.avatar_url ?? null, userId: u.id });
-      setCounts({ trips: trips?.length || 0, members: mCount?.count || 0, tasks: tCount?.count || 0, myTasks: myTCount?.count || 0, newNews: newsCount?.count || 0 });
+      setCounts({ trips: trips?.length || 0, members: mCount || 0, tasks: tCount || 0, myTasks: myTCount || 0, newNews: newsCount || 0 });
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
       if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
