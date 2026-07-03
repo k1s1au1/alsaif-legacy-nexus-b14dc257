@@ -126,7 +126,7 @@ function Dashboard() {
       const now = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [{ data: p }, { data: r }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
+      const [{ data: p }, { data: r }, { count: mCount }, { count: tCount }, { count: myTCount }, { count: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
         supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.id),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
