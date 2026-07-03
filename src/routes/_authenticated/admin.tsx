@@ -421,12 +421,12 @@ function AdminPage() {
             <div className="mt-8 flex justify-center md:justify-end">
                <button
                  onClick={async () => {
-                   const { success, error } = await sendFcmNotification({
+                   const { success, error } = (await sendFcmNotification({
                      data: {
                        title: "🔔 تجربة إشعارات الأخبار",
                        body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
                      }
-                   });
+                    })) as any;
                    if (success) toast.success("جاري إرسال الإشعار التجريبي...");
                    else toast.error("فشل الإرسال: " + error);
                  }}
@@ -447,12 +447,12 @@ function AdminPage() {
              <button
                onClick={async () => {
                  toast.loading("جاري إرسال الإشعار...");
-                 const res = await sendFcmNotification({
-                   data: {
-                     title: "🔔 تجربة إشعارات الأخبار",
-                     body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                   }
-                 });
+                  const res = (await sendFcmNotification({
+                    data: {
+                      title: "🔔 تجربة إشعارات الأخبار",
+                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                    }
+                  })) as any;
                  toast.dismiss();
                  if (res.success) toast.success(`تم الإرسال لـ ${res.count || 0} جهاز`);
                  else toast.error(res.error || "فشل الإرسال");

@@ -147,7 +147,7 @@ function Dashboard() {
       setUpcomingTrips(trips || []);
       if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
 
-      // 1. Shura Integration
+      // Shura Integration
       const pollPosts = posts?.filter(p => p.body?.includes("---poll:"));
       if (pollPosts?.length && !hasGreeted.current) {
         const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", u.id).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
@@ -160,13 +160,9 @@ function Dashboard() {
         hasGreeted.current = true;
       }
 
-      // 2. Announcements Filter (STRICT: NO POLLS)
+      // Announcements Filter
       if (posts) {
-        const annList = posts.filter(p =>
-          (p.kind === 'announcement' || p.body?.includes('---kind:announcement')) &&
-          !p.body?.includes('---poll:')
-        ).slice(0, 5);
-
+        const annList = posts.filter(p => (p.kind === 'announcement' || p.body?.includes('---kind:announcement')) && !p.body?.includes('---poll:')).slice(0, 5);
         const processedAnns = await Promise.all(annList.map(async (a) => {
           const imgMatch = a.body.match(/^---image:(.*)\n/);
           let url = null;
@@ -182,7 +178,6 @@ function Dashboard() {
         if (heritage) setHeritageSnippet({ ...heritage, title: heritage.title.replace("[إرث]", "").trim(), cleanBody: heritage.body.replace(/---kind:.*\n/, "").replace(/---image:.*\n/, "").trim() });
       }
 
-      // 3. Family Projects
       supabase.from("family_projects").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(5).then(async r => {
         const pj = r.data || [];
         if (!pj.length) return setActiveProjects([]);
@@ -229,7 +224,7 @@ function Dashboard() {
   const sendBugReport = async () => {
     if (!bugBody.trim()) return;
     setBugSending(true);
-    showIsland("جاري الإرسال...", "loading");
+    showIsland("جاري إرسال البلاغ...", "loading");
     try {
       let url = null;
       if (bugImage) {
@@ -238,7 +233,7 @@ function Dashboard() {
         url = (await supabase.storage.from("trip-images").createSignedUrl(path, 31536000)).data?.signedUrl;
       }
       await supabase.from("bug_reports" as any).insert({ reporter_id: profile.userId, body: bugBody.trim(), image_url: url });
-      showIsland("تم الإرسال بنجاح", "success");
+      showIsland("تم إرسال البلاغ بنجاح", "success");
       setShowBugReport(false); setBugBody(""); setBugImage(null); setBugImagePreview(null);
     } catch { showIsland("فشل الإرسال", "error"); }
     finally { setBugSending(false); }
@@ -247,26 +242,53 @@ function Dashboard() {
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
+
+        {/* NEW ROYAL HERO SECTION (OPTION 2 REPLICATION) */}
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[44px] glass-surface shadow-2xl">
-            <div className="absolute left-0 top-0 bottom-0 w-1/4 opacity-[0.05] pointer-events-none overflow-hidden"><img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom" /></div>
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-10 p-8 md:p-14">
-              <div className="size-32 md:size-52 rounded-full bg-white/5 backdrop-blur-3xl border-2 border-gold-primary/20 flex items-center justify-center p-6 shadow-2xl shrink-0">
-                <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
-              </div>
-              <div className="flex-1 text-center md:text-right space-y-6">
-                <div className="space-y-3">
-                  <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">{getGreeting()}،</p>
-                  <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-primary">{profile.name}</h2>
-                  <p className="text-muted-foreground font-bold text-base md:text-xl opacity-70">{getStatusSummary()}</p>
-                </div>
-                <div className="inline-flex items-center gap-6 rounded-3xl bg-white/5 border border-white/10 px-8 py-4 shadow-xl backdrop-blur-xl">
-                  <div className="flex items-center gap-3 text-gold-primary"><Calendar className="size-5" /> <span className="font-black text-foreground"><LiveClock variant="date" /></span></div>
-                  <div className="w-px h-6 bg-white/10" />
-                  <div className="flex items-center gap-3 text-gold-primary"><Clock className="size-5" /> <span className="font-black text-foreground"><LiveClock variant="time" /></span></div>
-                </div>
-              </div>
+          <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
+            {/* Background Texture/Pattern */}
+            <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '16px 12px' }} />
+            <div className="absolute left-0 top-0 bottom-0 w-1/2 opacity-[0.03] pointer-events-none overflow-hidden">
+               <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom scale-125 saturate-0 brightness-200" />
             </div>
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-14 p-8 md:p-14">
+              {/* Left Side: Logo in Gold Circle */}
+              <div className="shrink-0 flex items-center justify-center">
+                 <div className="relative">
+                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
+                    <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary p-2 bg-gradient-to-br from-gold-primary/30 to-transparent">
+                       <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
+                          <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Middle/Center: Large Elegant Name */}
+              <div className="flex-1 text-center md:text-right space-y-4">
+                 <div className="space-y-2">
+                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-md">
+                       {getGreeting()}،
+                    </p>
+                    <h2 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tighter text-white drop-shadow-2xl" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
+                       {profile.name}
+                    </h2>
+                    <div className="flex items-center justify-center md:justify-start gap-3 text-white/40 font-bold text-sm md:text-xl">
+                       <div className="h-px w-8 bg-gold-primary/40" />
+                       <p>{getStatusSummary()}</p>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Right Side: Metadata (Date/Time) */}
+              <div className="hidden lg:flex flex-col gap-4 shrink-0">
+                 <div className="bg-white/5 border border-white/10 rounded-[28px] p-6 text-center backdrop-blur-xl shadow-2xl space-y-1">
+                    <span className="block text-2xl font-black text-gold-primary tracking-widest"><LiveClock variant="time" /></span>
+                    <span className="block text-[9px] font-black text-white/30 uppercase tracking-[0.2em]"><LiveClock variant="date" /></span>
+                 </div>
+              </div>
+           </div>
           </div>
         </section>
 
@@ -318,33 +340,6 @@ function Dashboard() {
               </section>
             );
         })()}
-
-        {activeProjects.length > 0 && (
-          <section className="px-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
-            <Link to="/finance" className="block group">
-              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] border border-gold-primary/30 bg-gradient-to-br from-emerald-900 via-[#0d2620] to-black shadow-2xl p-6 md:p-10">
-                <div className="relative z-10 space-y-6">
-                  <div className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className="size-12 md:size-16 rounded-2xl bg-gold-primary/20 border border-gold-primary/30 flex items-center justify-center text-gold-primary shadow-xl"><Lightbulb className="size-6 md:size-8" /></div>
-                      <div><span className="text-[10px] md:text-xs font-black uppercase tracking-[0.3em] text-gold-primary">مشاريع العائلة المعتمدة</span><h3 className="text-xl md:text-3xl font-black text-white tracking-tight mt-1">ادعم مشاريعنا</h3></div>
-                    </div>
-                    <ArrowRight className="size-5 text-gold-primary opacity-60 group-hover:-translate-x-1 transition" />
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {activeProjects.slice(0, 4).map((p) => (
-                      <div key={p.id} className="bg-black/30 backdrop-blur-md border border-white/10 rounded-2xl p-4 space-y-2">
-                        <div className="flex items-start justify-between gap-2"><h4 className="text-sm md:text-base font-bold text-white line-clamp-1">{p.title}</h4><span className="text-[10px] font-black text-gold-primary shrink-0">{p.pct}%</span></div>
-                        <div className="h-1.5 rounded-full bg-white/10 overflow-hidden"><div className={cn("h-full transition-all duration-700", p.pct >= 100 ? "bg-emerald-400" : "bg-gradient-to-l from-gold-primary to-emerald-400")} style={{ width: `${p.pct}%` }} /></div>
-                        <div className="flex items-center justify-between text-[10px] md:text-xs"><span className="text-white/60">المتبقي</span><span className="font-bold text-white">{new Intl.NumberFormat("ar-SA").format(p.remaining)} <span className="text-gold-primary">ر.س</span></span></div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </section>
-        )}
 
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-0">
            {stats.map((s, i) => (
