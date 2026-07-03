@@ -412,7 +412,7 @@ function SettingsPage() {
             </motion.div>
           </div>
         )}
-      </AnPresence>
+      </AnimatePresence>
 
       <AnimatePresence>
         {showFontPicker && (
