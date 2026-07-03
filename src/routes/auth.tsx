@@ -74,6 +74,25 @@ function AuthPage() {
     navigate({ to: "/dashboard", replace: true });
   }
 
+  async function onForgot(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email) {
+      toast.error("أدخل بريدك الإلكتروني أولاً");
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast.error("تعذّر إرسال الرابط", { description: error.message });
+      return;
+    }
+    toast.success("تم إرسال رابط استعادة كلمة المرور إلى بريدك");
+    setAuthMode("login");
+  }
+
   async function onRequest(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
