@@ -492,7 +492,7 @@ function NotificationPreferencesSection() {
       const { data } = await supabase
         .from("notification_preferences")
         .select("meetings,entertainment,tasks,chat,news")
-        .eq(auth.user.id)
+        .eq("user_id", auth.user.id)
         .maybeSingle();
       if (data) setPrefs(data as any);
       setLoading(false);
