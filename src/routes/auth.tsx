@@ -229,6 +229,12 @@ function AuthPage() {
                   </div>
                 </div>
 
+                <div className="flex justify-end">
+                  <button type="button" onClick={() => setAuthMode("forgot")} className="text-xs font-bold text-primary hover:underline">
+                    نسيت كلمة المرور؟
+                  </button>
+                </div>
+
                 <button
                   type="submit" disabled={loading}
                   className="w-full h-16 bg-primary text-white font-black text-lg rounded-2xl shadow-xl hover:shadow-primary/20 hover:scale-[1.01] active:scale-[0.98] transition-all flex items-center justify-center gap-4"
