@@ -447,12 +447,12 @@ function AdminPage() {
              <button
                onClick={async () => {
                  toast.loading("جاري إرسال الإشعار...");
-                 const res = await sendFcmNotification({
-                   data: {
-                     title: "🔔 تجربة إشعارات الأخبار",
-                     body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                   }
-                 });
+                  const res = (await sendFcmNotification({
+                    data: {
+                      title: "🔔 تجربة إشعارات الأخبار",
+                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                    }
+                  })) as any;
                  toast.dismiss();
                  if (res.success) toast.success(`تم الإرسال لـ ${res.count || 0} جهاز`);
                  else toast.error(res.error || "فشل الإرسال");
