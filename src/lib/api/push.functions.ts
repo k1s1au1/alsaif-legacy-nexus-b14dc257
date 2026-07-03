@@ -80,7 +80,7 @@ export const sendPushNotification = createServerFn({ method: "POST" })
         userIds = data.target_user_ids.filter((id) => id !== callerId);
       } else {
         const { data: members } = await supabaseAdmin.from("profiles").select("id");
-        userIds = (members ?? []).map((m: any) => m.id).filter((id) => id !== callerId);
+        userIds = (members ?? []).map((m: any) => m.id).filter((id: string) => id !== callerId);
       }
       if (userIds.length === 0) return { success: true, count: 0 };
 

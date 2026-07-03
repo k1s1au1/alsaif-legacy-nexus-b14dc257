@@ -126,7 +126,7 @@ function Dashboard() {
       const now = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [{ data: p }, { data: r }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
+      const [{ data: p }, { data: r }, { count: mCount }, { count: tCount }, { count: myTCount }, { count: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
         supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.id),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -142,7 +142,7 @@ function Dashboard() {
       const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
       const rs = (r ?? []).map(x => x.role);
       setProfile({ name, role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "عضو الأخبار", initial: (name[0] || "ع").toUpperCase(), avatarPath: p?.avatar_url ?? null, userId: u.id });
-      setCounts({ trips: trips?.length || 0, members: mCount?.count || 0, tasks: tCount?.count || 0, myTasks: myTCount?.count || 0, newNews: newsCount?.count || 0 });
+      setCounts({ trips: trips?.length || 0, members: mCount || 0, tasks: tCount || 0, myTasks: myTCount || 0, newNews: newsCount || 0 });
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
       if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
@@ -152,7 +152,7 @@ function Dashboard() {
       if (pollPosts?.length && !hasGreeted.current) {
         const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", u.id).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
         const pendingCount = pollPosts.filter(p => !(myVotes || []).some(v => v.post_id === p.id)).length;
-        if (pendingCount > 0) showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () => window.dispatchEvent(new CustomEvent("polls:open")));
+        if (pendingCount > 0) showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000);
         else showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
         hasGreeted.current = true;
       } else if (!hasGreeted.current) {

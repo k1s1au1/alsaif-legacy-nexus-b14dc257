@@ -236,14 +236,14 @@ function AuthPage() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-4">
-                  <AuthField label="الاسم الأول" value={reqForm.firstName} onChange={v => setReqForm({...reqForm, firstName: v})} placeholder="الاسم كما في الهوية" icon={<User size={18} />} />
+                  <AuthField label="الاسم الأول" value={reqForm.firstName} onChange={(v: string) => setReqForm({...reqForm, firstName: v})} placeholder="الاسم كما في الهوية" icon={<User size={18} />} />
                   <div className="grid grid-cols-2 gap-4">
-                    <AuthField label="اسم الأب" value={reqForm.fatherName} onChange={v => setReqForm({...reqForm, fatherName: v})} placeholder="الأب" />
-                    <AuthField label="اسم الجد" value={reqForm.grandFatherName} onChange={v => setReqForm({...reqForm, grandFatherName: v})} placeholder="الجد" />
+                    <AuthField label="اسم الأب" value={reqForm.fatherName} onChange={(v: string) => setReqForm({...reqForm, fatherName: v})} placeholder="الأب" />
+                    <AuthField label="اسم الجد" value={reqForm.grandFatherName} onChange={(v: string) => setReqForm({...reqForm, grandFatherName: v})} placeholder="الجد" />
                   </div>
-                  <AuthField label="رقم الجوال" value={reqForm.phone} onChange={v => setReqForm({...reqForm, phone: v})} placeholder="05xxxxxxxx" icon={<Phone size={18} />} />
-                  <AuthField label="البريد الإلكتروني" type="email" value={reqForm.email} onChange={v => setReqForm({...reqForm, email: v})} placeholder="mail@example.com" icon={<Mail size={18} />} />
-                  <AuthField label="كلمة المرور المطلوبة" type="password" value={reqForm.password} onChange={v => setReqForm({...reqForm, password: v})} placeholder="••••••••" icon={<Lock size={18} />} />
+                  <AuthField label="رقم الجوال" value={reqForm.phone} onChange={(v: string) => setReqForm({...reqForm, phone: v})} placeholder="05xxxxxxxx" icon={<Phone size={18} />} />
+                  <AuthField label="البريد الإلكتروني" type="email" value={reqForm.email} onChange={(v: string) => setReqForm({...reqForm, email: v})} placeholder="mail@example.com" icon={<Mail size={18} />} />
+                  <AuthField label="كلمة المرور المطلوبة" type="password" value={reqForm.password} onChange={(v: string) => setReqForm({...reqForm, password: v})} placeholder="••••••••" icon={<Lock size={18} />} />
                 </div>
 
                 <button
