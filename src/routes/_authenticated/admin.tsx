@@ -426,7 +426,7 @@ function AdminPage() {
                        title: "🔔 تجربة إشعارات الأخبار",
                        body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
                      }
-                   });
+                    })) as any;
                    if (success) toast.success("جاري إرسال الإشعار التجريبي...");
                    else toast.error("فشل الإرسال: " + error);
                  }}
