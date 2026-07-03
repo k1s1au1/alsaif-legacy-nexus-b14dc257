@@ -421,7 +421,7 @@ function AdminPage() {
             <div className="mt-8 flex justify-center md:justify-end">
                <button
                  onClick={async () => {
-                   const { success, error } = await sendFcmNotification({
+                   const { success, error } = (await sendFcmNotification({
                      data: {
                        title: "🔔 تجربة إشعارات الأخبار",
                        body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
