@@ -152,7 +152,7 @@ function Dashboard() {
       if (pollPosts?.length && !hasGreeted.current) {
         const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", u.id).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
         const pendingCount = pollPosts.filter(p => !(myVotes || []).some(v => v.post_id === p.id)).length;
-        if (pendingCount > 0) showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () => window.dispatchEvent(new CustomEvent("polls:open")));
+        if (pendingCount > 0) showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000);
         else showIsland(`طاب يومك يا ${name.split(' ')[0]}`, "info", 3000);
         hasGreeted.current = true;
       } else if (!hasGreeted.current) {
