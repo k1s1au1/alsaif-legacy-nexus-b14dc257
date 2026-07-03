@@ -253,6 +253,21 @@ function AuthPage() {
                    </button>
                 </div>
               </motion.form>
+            ) : mode === "forgot" ? (
+              <motion.form key="forgot" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={onForgot} className="space-y-5" dir="rtl">
+                <div className="flex justify-between items-center mb-2">
+                   <h3 className="text-xl font-black text-primary">استعادة كلمة المرور</h3>
+                   <button type="button" onClick={() => setAuthMode("login")} className="size-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all"><X size={18} /></button>
+                </div>
+                <p className="text-sm text-muted-foreground">أدخل بريدك الإلكتروني وسنرسل لك رابطًا لإعادة تعيين كلمة المرور.</p>
+                <AuthField label="البريد الإلكتروني" type="email" value={email} onChange={setEmail} placeholder="mail@example.com" icon={<Mail size={18} />} />
+                <button
+                  type="submit" disabled={loading}
+                  className="w-full h-14 bg-primary text-white font-black rounded-xl shadow-lg mt-4 flex items-center justify-center gap-3"
+                >
+                  {loading ? <Loader2 className="size-5 animate-spin" /> : <><Send size={18} /> <span>إرسال رابط الاستعادة</span></>}
+                </button>
+              </motion.form>
             ) : (
               <motion.form key="request" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} onSubmit={onRequest} className="space-y-5 h-[400px] overflow-y-auto pr-2 no-scrollbar" dir="rtl">
                 <div className="flex justify-between items-center mb-4 sticky top-0 bg-[#fdfcf7] z-10 py-2">
