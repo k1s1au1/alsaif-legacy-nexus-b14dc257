@@ -277,18 +277,22 @@ function Dashboard() {
                     </div>
                  </div>
 
-                 <div className="flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start gap-4 pt-4 border-t border-white/5">
-                    <div className="flex items-center gap-2 text-gold-primary/90">
-                       <Clock className="size-4" />
-                       <span className="text-lg md:text-2xl font-black tabular-nums tracking-widest leading-none">
-                          <LiveClock variant="time" />
-                       </span>
-                    </div>
-                    <div className="flex items-center gap-2 opacity-40">
-                       <Calendar className="size-3" />
-                       <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.1em]">
-                          <LiveClock variant="date" />
-                       </span>
+                 {/* New Unified Royal Date/Time Widget */}
+                 <div className="flex items-center justify-center md:justify-start pt-8">
+                    <div className="inline-flex items-center bg-black/40 backdrop-blur-2xl rounded-[28px] border border-white/10 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all hover:scale-[1.02]">
+                       <div className="flex items-center gap-3 px-6 py-2.5 bg-gold-primary/10 rounded-[22px] border border-gold-primary/20">
+                          <Clock className="size-4 text-gold-primary animate-pulse" />
+                          <span className="text-xl md:text-3xl font-black tabular-nums tracking-tighter text-white drop-shadow-md">
+                             <LiveClock variant="time" />
+                          </span>
+                       </div>
+                       <div className="h-8 w-px bg-white/10 mx-2" />
+                       <div className="flex items-center gap-3 px-6 py-2.5">
+                          <Calendar className="size-4 text-white/30" />
+                          <span className="text-[10px] md:text-sm font-black text-white/50 uppercase tracking-[0.2em] leading-none">
+                             <LiveClock variant="date" />
+                          </span>
+                       </div>
                     </div>
                  </div>
               </div>
