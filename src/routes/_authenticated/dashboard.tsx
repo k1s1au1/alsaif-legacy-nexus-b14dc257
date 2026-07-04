@@ -263,56 +263,42 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* REARRANGED ROYAL PRESTIGE HERO SECTION */}
+        {/* REFINED ROYAL HERO CARD — PRESTIGE EDITION */}
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[48px] bg-gradient-to-br from-[#064E3B] via-[#053a2b] to-[#04281d] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] border border-white/10 group">
+          <div className="relative overflow-hidden rounded-[48px] bg-gradient-to-br from-[#064E3B] via-[#053a2b] to-[#04281d] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.6)] border border-white/10 group">
 
-            {/* 1. Islamic Geometric Background (Refined) */}
-            <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
+            {/* 1. Background Visual Depth (Islamic Pattern) */}
+            <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay"
                  style={{
                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
                    backgroundSize: '60px 60px'
                  }}
             />
+            <div className="absolute top-0 right-0 size-96 bg-gold-primary/10 rounded-full blur-[120px] -translate-y-1/2 translate-x-1/2 pointer-events-none" />
 
-            {/* 2. Traditional Corner Accents */}
-            <div className="absolute top-0 right-0 size-48 md:size-72 opacity-[0.1] pointer-events-none">
-               <svg viewBox="0 0 200 200" className="size-full fill-gold-primary">
-                  <path d="M200,0 L200,60 Q200,0 140,0 L200,0 Z M200,100 L200,110 Q200,90 190,90 L180,90 Q200,90 200,70 L200,100 Z" />
-               </svg>
-            </div>
-            <div className="absolute bottom-0 left-0 size-48 md:size-72 opacity-[0.1] pointer-events-none rotate-180">
-               <svg viewBox="0 0 200 200" className="size-full fill-gold-primary">
-                  <path d="M200,0 L200,60 Q200,0 140,0 L200,0 Z M200,100 L200,110 Q200,90 190,90 L180,90 Q200,90 200,70 L200,100 Z" />
-               </svg>
-            </div>
-
-            {/* 3. Subtle Inner Glow Frame */}
-            <div className="absolute inset-[10px] rounded-[38px] border border-gold-primary/15 pointer-events-none" />
+            {/* 2. Premium Inner Frame */}
+            <div className="absolute inset-[10px] rounded-[38px] border border-gold-primary/20 pointer-events-none" />
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-12 md:gap-20 p-10 md:p-16">
-              {/* Profile/Logo Medallion - Now on the left in LTR, so right in RTL */}
+
+              {/* Profile/Logo Medallion - LEFT in LTR, so LEFT here for prestige feel */}
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative group/avatar">
-                    <div className="absolute inset-0 rounded-full bg-gold-primary/10 blur-3xl animate-pulse" />
-                    <div className="relative size-40 md:size-60 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-1000 group-hover/avatar:scale-[1.03]">
-                       <div className="size-full rounded-full bg-[#fdfcf7] p-5 flex items-center justify-center shadow-inner overflow-hidden border-[6px] border-emerald-950/5">
+                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
+                    <div className="relative size-36 md:size-60 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
+                       <div className="size-full rounded-full bg-[#fdfcf7] p-5 flex items-center justify-center shadow-inner overflow-hidden border-[4px] border-emerald-950/5">
                           <div
                             className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]"
                             style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : "none" }}
                           />
                        </div>
-                       {/* Role Tag */}
-                       <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gold-primary text-emerald-950 px-6 py-2 rounded-full shadow-2xl border-2 border-[#064E3B] whitespace-nowrap">
-                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">{profile.role}</span>
-                       </div>
                     </div>
                  </div>
               </div>
 
-              {/* Text Information - Balanced Spacing */}
-              <div className="flex-1 text-center md:text-right space-y-10 min-w-0">
-                 <div className="space-y-6">
+              {/* Information Side - NAME IS HERO */}
+              <div className="flex-1 text-center md:text-right space-y-8 min-w-0">
+                 <div className="space-y-4">
                     <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                        <Sparkles className="size-3.5 text-gold-primary animate-bounce" />
                        <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">
@@ -320,7 +306,7 @@ function Dashboard() {
                        </p>
                     </div>
 
-                    <h2 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)] truncate">
+                    <h2 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                        {profile.name}
                     </h2>
 
@@ -342,18 +328,18 @@ function Dashboard() {
                     </div>
                  </div>
 
-                 {/* Premium Integrated Date/Time Panel */}
-                 <div className="flex items-center justify-center md:justify-start pt-4">
-                    <div className="inline-flex items-center gap-3 p-2 bg-black/40 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)]">
-                       <div className="flex items-center gap-4 px-8 py-4 bg-white/5 rounded-[26px] border border-white/5">
-                          <Clock className="size-5 text-gold-primary" />
-                          <span className="text-3xl md:text-4xl font-black tabular-nums tracking-tighter text-white">
+                 {/* Premium Integrated Date/Time Panel — Mobile Responsive */}
+                 <div className="flex items-center justify-center md:justify-start pt-6">
+                    <div className="flex flex-col sm:flex-row items-center gap-2 p-1.5 bg-black/40 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-2xl w-full sm:w-auto">
+                       <div className="flex items-center gap-4 px-8 py-4 bg-white/5 rounded-2xl sm:rounded-[26px] border border-white/5 w-full sm:w-auto justify-center">
+                          <Clock className="size-4 sm:size-5 text-gold-primary" />
+                          <span className="text-xl sm:text-3xl font-black tabular-nums tracking-tighter text-white">
                              <LiveClock variant="time" />
                           </span>
                        </div>
-                       <div className="flex items-center gap-4 px-8 py-4">
-                          <Calendar className="size-5 text-white/20" />
-                          <span className="text-[11px] md:text-sm font-black text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">
+                       <div className="flex items-center gap-4 px-8 py-4 w-full sm:w-auto justify-center">
+                          <Calendar className="size-4 sm:size-5 text-white/20" />
+                          <span className="text-[10px] sm:text-xs font-black text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">
                              <LiveClock variant="date" />
                           </span>
                        </div>
@@ -361,6 +347,15 @@ function Dashboard() {
                  </div>
               </div>
            </div>
+
+           {/* Corner Ornament Decoration */}
+           <div className="absolute top-0 right-0 size-40 md:size-64 opacity-[0.1] pointer-events-none">
+              <svg viewBox="0 0 100 100" className="size-full fill-gold-primary">
+                 <path d="M100,0 L100,30 Q100,0 70,0 L100,0 Z" />
+              </svg>
+           </div>
+          </div>
+        </section>
           </div>
         </section>
 
