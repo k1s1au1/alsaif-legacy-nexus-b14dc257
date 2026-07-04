@@ -266,7 +266,7 @@ function MemberProfilePage() {
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <ProfileField label="البريد الإلكتروني" value={credential.email} icon={<Mail />} />
                     <div className="space-y-2">
-                       <label className="text-[10px] font-black text-primary/40 uppercase tracking-widest">كلمة المرور المؤقتة</dt>
+                       <label className="text-[10px] font-black text-primary/40 uppercase tracking-widest">كلمة المرور المؤقتة</label>
                        <div className="relative group">
                           <KeyRound className="absolute right-5 top-1/2 -translate-y-1/2 text-gold-primary size-5" />
                           <div className="w-full h-14 bg-muted/40 border-2 border-border rounded-2xl flex items-center pr-14 pl-6 font-bold text-primary">
