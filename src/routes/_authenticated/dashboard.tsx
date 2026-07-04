@@ -296,7 +296,10 @@ function Dashboard() {
                     <div className="absolute inset-0 rounded-full bg-gold-primary/10 blur-3xl animate-pulse group-hover/avatar:bg-gold-primary/20 transition-all duration-700" />
                     <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary/40 p-2 bg-gradient-to-br from-gold-primary/20 to-transparent shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.02]">
                        <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
-                          <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
+                          <div
+                            className="size-full bg-contain bg-no-repeat bg-center"
+                            style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : "none" }}
+                          />
                        </div>
                     </div>
                  </div>

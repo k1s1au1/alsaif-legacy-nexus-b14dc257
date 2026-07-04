@@ -147,9 +147,11 @@ function AuthPage() {
 
           {/* Logo Section */}
           <div className="mb-10 text-center flex flex-col items-center">
-             <div className="size-24 bg-white rounded-[32px] shadow-2xl border border-gold-primary/10 p-5 mb-8 relative group overflow-hidden !bg-[#ffffff]">
-                <div className="absolute inset-0 bg-gold-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="size-full logo-alsaif !mix-blend-normal" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})` } as any} />
+             <div className="size-24 bg-white rounded-[32px] shadow-2xl border border-gold-primary/10 p-5 mb-8 relative overflow-hidden">
+                <div
+                  className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-700 hover:scale-110"
+                  style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})` }}
+                />
              </div>
 
              <h1 className="text-4xl md:text-5xl font-black text-primary dark:text-gold-primary tracking-tight" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>مجلس السيف</h1>
