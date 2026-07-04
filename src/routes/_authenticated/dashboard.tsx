@@ -258,20 +258,33 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* REFINED ROYAL HERO SECTION */}
+        {/* DECORATED ROYAL HERO SECTION */}
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
 
-            {/* 1. Traditional Corner Ornament (More Visible) */}
-            <div className="absolute top-0 right-0 size-32 md:size-48 opacity-[0.08] pointer-events-none">
+            {/* 1. Full-Background Islamic Geometric Pattern Overlay */}
+            <div className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-overlay"
+                 style={{
+                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l15 30H15zM30 60L15 30h30zM0 30l30-15v30zM60 30L30 45V15z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+                   backgroundSize: '30px 30px'
+                 }}
+            />
+
+            {/* 2. Traditional Corner Ornaments (Top-Right & Bottom-Left) */}
+            <div className="absolute top-0 right-0 size-32 md:size-48 opacity-[0.15] pointer-events-none">
                <svg viewBox="0 0 100 100" className="size-full fill-gold-primary">
-                  <path d="M100,0 L100,20 Q100,0 80,0 L100,0 Z M100,40 L100,45 Q100,35 95,35 L90,35 Q100,35 100,25 L100,40 Z" />
-                  <circle cx="95" cy="5" r="2" />
+                  <path d="M100,0 L100,25 Q100,0 75,0 L100,0 Z M100,45 L100,50 Q100,40 95,40 L90,40 Q100,40 100,30 L100,45 Z" />
+                  <circle cx="96" cy="4" r="1.5" />
+               </svg>
+            </div>
+            <div className="absolute bottom-0 left-0 size-32 md:size-48 opacity-[0.15] pointer-events-none rotate-180">
+               <svg viewBox="0 0 100 100" className="size-full fill-gold-primary">
+                  <path d="M100,0 L100,25 Q100,0 75,0 L100,0 Z M100,45 L100,50 Q100,40 95,40 L90,40 Q100,40 100,30 L100,45 Z" />
                </svg>
             </div>
 
-            {/* 2. Premium Inner Gold Frame */}
-            <div className="absolute inset-[4px] rounded-[36px] border-2 border-gold-primary/20 pointer-events-none" />
+            {/* 3. Premium Inner Embossed Frame */}
+            <div className="absolute inset-[6px] rounded-[34px] border-2 border-gold-primary/20 pointer-events-none shadow-[inset_0_0_30px_rgba(212,175,55,0.05)]" />
 
             {/* Background Texture/Pattern */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '24px 20px' }} />
