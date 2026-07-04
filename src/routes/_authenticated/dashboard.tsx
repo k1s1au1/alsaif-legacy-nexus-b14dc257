@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useCallback, useEffect, useState, useRef, useMemo } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { getSupabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import {
@@ -25,6 +25,7 @@ import {
   Scroll,
   Lightbulb,
   ArrowRight,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -119,6 +120,8 @@ function Dashboard() {
   const dynamicLogo = useSiteLogo();
 
   const loadData = useCallback(async () => {
+    const supabase = getSupabase();
+    if (!supabase) return;
     try {
       const { data: authData } = await supabase.auth.getUser();
       if (!authData?.user) return;
@@ -230,13 +233,9 @@ function Dashboard() {
     return "طاب مساؤك";
   };
 
-  const getStatusSummary = () => {
-    if (counts.myTasks > 0) return `لديك ${counts.myTasks} مسؤوليات بانتظار إنجازك.`;
-    if (counts.newNews > 0) return `هناك ${counts.newNews} أخبار جديدة في مركز الأخبار.`;
-    return "نصل العائلة، نحفظ الإرث، ونبني المستقبل.";
-  };
-
   const sendBugReport = async () => {
+    const supabase = getSupabase();
+    if (!supabase) return;
     if (!bugBody.trim()) return;
     setBugSending(true);
     showIsland("جاري إرسال البلاغ...", "loading");
@@ -258,75 +257,77 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* DECORATED ROYAL HERO SECTION */}
+        {/* REARRANGED ROYAL PRESTIGE HERO SECTION */}
         <section className="animate-fade-up">
-          <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
+          <div className="relative overflow-hidden rounded-[48px] bg-gradient-to-br from-[#064E3B] via-[#053a2b] to-[#04281d] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.6)] border border-white/10 group">
 
-            {/* 1. Full-Background Islamic Geometric Pattern Overlay */}
-            <div className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-overlay"
+            {/* 1. Islamic Geometric Background (Refined) */}
+            <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-overlay"
                  style={{
-                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l15 30H15zM30 60L15 30h30zM0 30l30-15v30zM60 30L30 45V15z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                   backgroundSize: '30px 30px'
+                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
+                   backgroundSize: '60px 60px'
                  }}
             />
 
-            {/* 2. Traditional Corner Ornaments (Top-Right & Bottom-Left) */}
-            <div className="absolute top-0 right-0 size-32 md:size-48 opacity-[0.15] pointer-events-none">
-               <svg viewBox="0 0 100 100" className="size-full fill-gold-primary">
-                  <path d="M100,0 L100,25 Q100,0 75,0 L100,0 Z M100,45 L100,50 Q100,40 95,40 L90,40 Q100,40 100,30 L100,45 Z" />
-                  <circle cx="96" cy="4" r="1.5" />
+            {/* 2. Traditional Corner Accents */}
+            <div className="absolute top-0 right-0 size-48 md:size-72 opacity-[0.1] pointer-events-none">
+               <svg viewBox="0 0 200 200" className="size-full fill-gold-primary">
+                  <path d="M200,0 L200,60 Q200,0 140,0 L200,0 Z M200,100 L200,110 Q200,90 190,90 L180,90 Q200,90 200,70 L200,100 Z" />
                </svg>
             </div>
-            <div className="absolute bottom-0 left-0 size-32 md:size-48 opacity-[0.15] pointer-events-none rotate-180">
-               <svg viewBox="0 0 100 100" className="size-full fill-gold-primary">
-                  <path d="M100,0 L100,25 Q100,0 75,0 L100,0 Z M100,45 L100,50 Q100,40 95,40 L90,40 Q100,40 100,30 L100,45 Z" />
+            <div className="absolute bottom-0 left-0 size-48 md:size-72 opacity-[0.1] pointer-events-none rotate-180">
+               <svg viewBox="0 0 200 200" className="size-full fill-gold-primary">
+                  <path d="M200,0 L200,60 Q200,0 140,0 L200,0 Z M200,100 L200,110 Q200,90 190,90 L180,90 Q200,90 200,70 L200,100 Z" />
                </svg>
             </div>
 
-            {/* 3. Premium Inner Embossed Frame */}
-            <div className="absolute inset-[6px] rounded-[34px] border-2 border-gold-primary/20 pointer-events-none shadow-[inset_0_0_30px_rgba(212,175,55,0.05)]" />
+            {/* 3. Subtle Inner Glow Frame */}
+            <div className="absolute inset-[10px] rounded-[38px] border border-gold-primary/15 pointer-events-none" />
 
-            {/* Background Texture/Pattern */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '24px 20px' }} />
-
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-14 p-8 md:p-14">
-              {/* Left Side: Logo in Gold Circle */}
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-12 md:gap-20 p-10 md:p-16">
+              {/* Profile/Logo Medallion - Now on the left in LTR, so right in RTL */}
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative group/avatar">
-                    <div className="absolute inset-0 rounded-full bg-gold-primary/10 blur-3xl animate-pulse group-hover/avatar:bg-gold-primary/20 transition-all duration-700" />
-                    <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary/40 p-2 bg-gradient-to-br from-gold-primary/20 to-transparent shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.02]">
-                       <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
+                    <div className="absolute inset-0 rounded-full bg-gold-primary/10 blur-3xl animate-pulse" />
+                    <div className="relative size-40 md:size-60 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-1000 group-hover/avatar:scale-[1.03]">
+                       <div className="size-full rounded-full bg-[#fdfcf7] p-5 flex items-center justify-center shadow-inner overflow-hidden border-[6px] border-emerald-950/5">
                           <div
-                            className="size-full bg-contain bg-no-repeat bg-center"
+                            className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]"
                             style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : "none" }}
                           />
+                       </div>
+                       {/* Role Tag */}
+                       <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-gold-primary text-emerald-950 px-6 py-2 rounded-full shadow-2xl border-2 border-[#064E3B] whitespace-nowrap">
+                          <span className="text-[10px] font-black uppercase tracking-[0.2em]">{profile.role}</span>
                        </div>
                     </div>
                  </div>
               </div>
 
-              {/* Middle/Center: Large Elegant Name */}
-              <div className="flex-1 text-center md:text-right space-y-6">
-                 <div className="space-y-3">
-                    <div className="flex items-center justify-center md:justify-start gap-2">
-                       <div className="size-1 w-6 bg-gold-primary rounded-full opacity-60" />
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs">
-                          {getGreeting()}،
+              {/* Text Information - Balanced Spacing */}
+              <div className="flex-1 text-center md:text-right space-y-10 min-w-0">
+                 <div className="space-y-6">
+                    <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                       <Sparkles className="size-3.5 text-gold-primary animate-bounce" />
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">
+                          {getGreeting()}، يا أهل الوفاء
                        </p>
                     </div>
-                    <h2 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter text-white drop-shadow-2xl">
+
+                    <h2 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-[0_15px_40px_rgba(0,0,0,0.6)] truncate">
                        {profile.name}
                     </h2>
-                    <div className="flex items-center justify-center md:justify-start gap-3 text-white/50 font-bold text-sm md:text-xl">
-                       <div className="h-px w-8 bg-gold-primary/30 hidden md:block" />
-                       <div className="h-8 overflow-hidden relative w-full md:w-auto">
+
+                    <div className="flex items-center justify-center md:justify-start gap-5">
+                       <div className="hidden md:block w-1.5 h-14 bg-gradient-to-b from-gold-primary/70 via-gold-primary/30 to-transparent rounded-full" />
+                       <div className="h-10 overflow-hidden relative w-full md:w-auto">
                           <AnimatePresence mode="wait">
                             <motion.p
                               key={statusIndex}
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              exit={{ opacity: 0, y: -10 }}
-                              className="leading-relaxed italic"
+                              initial={{ opacity: 0, x: -25 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 25 }}
+                              className="text-white/60 font-bold text-xl md:text-2xl italic leading-none"
                             >
                                {statusMessages[statusIndex]}
                             </motion.p>
@@ -335,19 +336,18 @@ function Dashboard() {
                     </div>
                  </div>
 
-                 {/* New Unified Royal Date/Time Widget */}
-                 <div className="flex items-center justify-center md:justify-start pt-8">
-                    <div className="inline-flex items-center bg-black/40 backdrop-blur-2xl rounded-[28px] border border-white/10 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all hover:bg-black/50">
-                       <div className="flex items-center gap-3 px-6 py-2.5 bg-gold-primary/10 rounded-[22px] border border-gold-primary/20">
-                          <Clock className="size-4 text-gold-primary animate-pulse" />
-                          <span className="text-xl md:text-3xl font-black tabular-nums tracking-tighter text-white drop-shadow-md">
+                 {/* Premium Integrated Date/Time Panel */}
+                 <div className="flex items-center justify-center md:justify-start pt-4">
+                    <div className="inline-flex items-center gap-3 p-2 bg-black/40 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.5)]">
+                       <div className="flex items-center gap-4 px-8 py-4 bg-white/5 rounded-[26px] border border-white/5">
+                          <Clock className="size-5 text-gold-primary" />
+                          <span className="text-3xl md:text-4xl font-black tabular-nums tracking-tighter text-white">
                              <LiveClock variant="time" />
                           </span>
                        </div>
-                       <div className="h-8 w-px bg-white/10 mx-2" />
-                       <div className="flex items-center gap-3 px-6 py-2.5">
-                          <Calendar className="size-4 text-white/30" />
-                          <span className="text-[10px] md:text-sm font-black text-white/50 uppercase tracking-[0.2em] leading-none">
+                       <div className="flex items-center gap-4 px-8 py-4">
+                          <Calendar className="size-5 text-white/20" />
+                          <span className="text-[11px] md:text-sm font-black text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">
                              <LiveClock variant="date" />
                           </span>
                        </div>
