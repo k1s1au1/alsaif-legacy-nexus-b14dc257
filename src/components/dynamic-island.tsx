@@ -16,7 +16,6 @@ interface IslandState {
   message: string;
   status: IslandStatus;
   id: string;
-  onClick?: () => void;
 }
 
 let islandTimer: ReturnType<typeof setTimeout>;
@@ -24,9 +23,9 @@ let islandTimer: ReturnType<typeof setTimeout>;
 /**
  * Global trigger for the Dynamic Island
  */
-export const showIsland = (message: string, status: IslandStatus = "info", duration = 4000, onClick?: () => void) => {
+export const showIsland = (message: string, status: IslandStatus = "info", duration = 4000) => {
   const event = new CustomEvent("island:show", {
-    detail: { message, status, id: Math.random().toString(36).substr(2, 9), onClick }
+    detail: { message, status, id: Math.random().toString(36).substr(2, 9) }
   });
   window.dispatchEvent(event);
 
@@ -66,11 +65,9 @@ export function DynamicIsland() {
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.9, opacity: 0, y: -20 }}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
-            onClick={state.onClick}
             className={cn(
               "pointer-events-auto h-12 min-w-[120px] max-w-[90vw] bg-black text-white rounded-full flex items-center px-4 gap-3 shadow-2xl border border-white/10 backdrop-blur-xl",
-              "ring-1 ring-gold-primary/20",
-              state.onClick && "cursor-pointer"
+              "ring-1 ring-gold-primary/20"
             )}
           >
              <div className="shrink-0">
