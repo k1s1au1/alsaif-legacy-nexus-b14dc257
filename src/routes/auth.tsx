@@ -173,7 +173,7 @@ function AuthPage() {
               </AnimatePresence>
             </motion.div>
 
-            <h1 className="text-4xl md:text-5xl font-bold text-primary mb-4" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>مجلس السيف</h1>
+            <h1 className="text-4xl md:text-5xl font-black text-primary mb-4">مجلس السيف</h1>
 
             <div className="flex items-center gap-3 opacity-60">
               <div className="h-px w-8 bg-gold-primary" />
