@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
@@ -105,6 +105,7 @@ function Dashboard() {
   const [upcomingTrips, setUpcomingTrips] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [annIndex, setAnnIndex] = useState(0);
+  const [statusIndex, setStatusIndex] = useState(0);
   const [counts, setCounts] = useState({ trips: 0, members: 0, tasks: 0, myTasks: 0, newNews: 0 });
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
@@ -200,6 +201,20 @@ function Dashboard() {
     return () => clearInterval(t);
   }, [announcements.length]);
 
+  const statusMessages = useMemo(() => {
+    const msgs = ["نصل العائلة، نحفظ الإرث، ونبني المستقبل."];
+    if (counts.myTasks > 0) msgs.push(`لديك ${counts.myTasks} مسؤوليات بانتظار إنجازك.`);
+    if (counts.newNews > 0) msgs.push(`هناك ${counts.newNews} أخبار جديدة في مركز الأخبار.`);
+    msgs.push("المجلس يرحب بكم دائماً يا أهل الوفاء.");
+    msgs.push("كل خطوة تخطونها تبني مجداً لعائلة السيف.");
+    return msgs;
+  }, [counts]);
+
+  useEffect(() => {
+    const t = setInterval(() => setStatusIndex(p => (p + 1) % statusMessages.length), 6000);
+    return () => clearInterval(t);
+  }, [statusMessages.length]);
+
   const stats = [
     { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
     { label: "أفراد العائلة", value: counts.members, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
@@ -273,7 +288,19 @@ function Dashboard() {
                     </h2>
                     <div className="flex items-center justify-center md:justify-start gap-3 text-white/40 font-bold text-sm md:text-xl">
                        <div className="h-px w-8 bg-gold-primary/40 hidden md:block" />
-                       <p className="leading-relaxed">{getStatusSummary()}</p>
+                       <div className="h-8 overflow-hidden relative w-full md:w-auto">
+                          <AnimatePresence mode="wait">
+                            <motion.p
+                              key={statusIndex}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              className="leading-relaxed whitespace-nowrap"
+                            >
+                               {statusMessages[statusIndex]}
+                            </motion.p>
+                          </AnimatePresence>
+                       </div>
                     </div>
                  </div>
 
