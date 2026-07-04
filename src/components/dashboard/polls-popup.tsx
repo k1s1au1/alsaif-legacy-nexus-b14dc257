@@ -1,15 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, CheckCircle2, ArrowLeft, Sparkles } from "lucide-react";
+import { BarChart3, CheckCircle2, ArrowLeft, Sparkles, Crown, Loader2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { useServerFn } from "@tanstack/react-start";
+import { executeLeadershipTransition } from "@/lib/api/shura.functions";
 
 type Post = { id: string; title: string; body: string | null; author_id: string; created_at: string };
 type Comment = { id: string; post_id: string; author_id: string; body: string };
-type PollData = { question: string; options: string[] };
+type PollData = {
+  question: string;
+  options: string[];
+  type?: string;
+  target_uid?: string;
+  target_name?: string;
+  threshold?: number;
+  status?: string;
+};
 type EnrichedPoll = { post: Post; poll: PollData; votes: Comment[]; myVoteIndex: number };
 
 const SNOOZE_KEY = "polls-popup-snoozed-until";
@@ -19,7 +29,9 @@ const SNOOZE_MS = 6 * 60 * 60 * 1000; // 6 hours
 export function PollsPopup({ userId }: { userId: string | null }) {
   const [polls, setPolls] = useState<EnrichedPoll[]>([]);
   const [open, setOpen] = useState(false);
+  const [executingId, setExecutingId] = useState<string | null>(null);
   const autoOpenedRef = useRef(false);
+  const runTransition = useServerFn(executeLeadershipTransition);
 
   const load = async () => {
     const { data: posts } = await supabase
@@ -98,6 +110,21 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     setOpen(true);
   };
 
+  const handleExecuteTransition = async (postId: string) => {
+    setExecutingId(postId);
+    try {
+      const res = await runTransition({ data: { postId } });
+      if (res.success) {
+        toast.success(`تم بنجاح! ${res.newChairman} هو رئيس المجلس الجديد الآن.`);
+        await load();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "فشل تنفيذ الانتقال");
+    } finally {
+      setExecutingId(null);
+    }
+  };
+
   // Only render the floating button if there are pending polls and dialog closed
   if (polls.length === 0 && !open) return null;
 
@@ -141,9 +168,8 @@ export function PollsPopup({ userId }: { userId: string | null }) {
               <p className="text-sm font-bold text-muted-foreground">لقد شاركت في جميع التصويتات الحالية. شكراً لك!</p>
             </div>
           ) : (
-            <div className="grid gap-4 mt-2">
               <AnimatePresence mode="popLayout">
-                {pending.map(({ post, poll, votes, myVoteIndex }) => {
+                {polls.map(({ post, poll, votes, myVoteIndex }) => {
                   const counts = new Array(poll.options.length).fill(0);
                   votes.forEach(v => {
                     const i = parseInt(v.body.split(":")[1]);
@@ -151,6 +177,13 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                   });
                   const total = counts.reduce((a, b) => a + b, 0);
                   const voted = myVoteIndex !== -1;
+                  const isLeadership = poll.type === "leadership_shura";
+                  const yesPct = total > 0 ? Math.round((counts[0] / total) * 100) : 0;
+                  const canExecute = isLeadership && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
+                  const alreadyExecuted = poll.status === "executed";
+
+                  if (alreadyExecuted && !open) return null; // Don't show finished in bubble button
+
                   return (
                     <motion.div
                       key={post.id}
@@ -158,62 +191,109 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.95 }}
-                      className="rounded-2xl border-2 border-border/40 bg-card p-5 space-y-4"
+                      className={cn(
+                        "rounded-2xl border-2 p-5 space-y-4 relative overflow-hidden",
+                        isLeadership ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]" : "border-border/40 bg-card"
+                      )}
                     >
-                      <div className="flex items-start justify-between gap-3">
+                      {isLeadership && (
+                        <div className="absolute -top-6 -left-6 size-20 bg-gold-primary/10 rounded-full blur-xl" />
+                      )}
+
+                      <div className="flex items-start justify-between gap-3 relative z-10">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-black text-primary line-clamp-1">{post.title}</h4>
-                          <p className="text-sm font-bold text-primary/80 mt-1">{poll.question}</p>
+                          <div className="flex items-center gap-2 mb-1">
+                             {isLeadership && <Crown className="size-4 text-gold-primary" />}
+                             <h4 className="font-black text-primary line-clamp-1">{post.title}</h4>
+                          </div>
+                          <p className="text-sm font-bold text-primary/80">{poll.question}</p>
                         </div>
                         <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className="text-[10px] font-black bg-primary/10 text-primary px-2 py-1 rounded-full">
+                          <span className={cn(
+                            "text-[10px] font-black px-2 py-1 rounded-full",
+                            isLeadership ? "bg-gold-primary text-emerald-950" : "bg-primary/10 text-primary"
+                          )}>
                             {total} صوت
                           </span>
                         </div>
                       </div>
-                      <div className="grid gap-2">
+
+                      <div className="grid gap-2 relative z-10">
                         {poll.options.map((opt, i) => {
                           const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+                          const isMyVote = myVoteIndex === i;
                           return (
                             <button
                               key={i}
                               onClick={() => vote(post.id, i)}
-                              disabled={voted}
-                              className="relative p-3 rounded-xl text-right font-black overflow-hidden border-2 border-border/40 text-primary hover:border-primary transition-all bg-card"
+                              disabled={voted || alreadyExecuted}
+                              className={cn(
+                                "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all active:scale-[0.98]",
+                                isMyVote ? "border-primary bg-primary/5" : "border-border/40 bg-card hover:border-primary/40",
+                                alreadyExecuted && "opacity-80 cursor-default"
+                              )}
                             >
                               <div
-                                className="absolute inset-y-0 right-0 transition-all duration-700 bg-primary/5"
+                                className={cn("absolute inset-y-0 right-0 transition-all duration-700", isLeadership && i === 0 ? "bg-gold-primary/10" : "bg-primary/5")}
                                 style={{ width: `${pct}%` }}
                               />
                               <div className="relative z-10 flex justify-between items-center text-sm">
                                 <div className="flex items-center gap-2">
-                                  <div className="size-3.5 rounded-full border-2 border-current opacity-30" />
-                                  <span>{opt}</span>
+                                  {isMyVote ? <CheckCircle2 className="size-3.5 text-primary" /> : <div className="size-3.5 rounded-full border-2 border-current opacity-30" />}
+                                  <span className={cn(isMyVote && "text-primary")}>{opt}</span>
                                 </div>
-                                <span className="opacity-60 text-xs">{pct}%</span>
+                                <span className="opacity-60 text-xs tabular-nums">{pct}%</span>
                               </div>
                             </button>
                           );
                         })}
                       </div>
+
+                      {isLeadership && !alreadyExecuted && (
+                        <div className="pt-2">
+                           <div className="flex items-center justify-between mb-2">
+                              <span className="text-[10px] font-black uppercase text-gold-primary tracking-widest">مستوى التأييد الحالي</span>
+                              <span className="text-xs font-black text-primary tabular-nums">{yesPct}% / {poll.threshold || 70}%</span>
+                           </div>
+                           <div className="h-1.5 bg-gold-primary/10 rounded-full overflow-hidden">
+                              <motion.div
+                                initial={{ width: 0 }}
+                                animate={{ width: `${Math.min(100, (yesPct / (poll.threshold || 70)) * 100)}%` }}
+                                className={cn("h-full transition-colors", yesPct >= (poll.threshold || 70) ? "bg-emerald-500" : "bg-gold-primary")}
+                              />
+                           </div>
+
+                           {canExecute && (
+                              <motion.button
+                                initial={{ y: 10, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                onClick={() => handleExecuteTransition(post.id)}
+                                disabled={executingId === post.id}
+                                className="w-full mt-4 btn-gold py-3 rounded-xl flex items-center justify-center gap-2 shadow-2xl shadow-gold-primary/30"
+                              >
+                                {executingId === post.id ? <Loader2 className="animate-spin size-4" /> : <ShieldCheck size={18} />}
+                                <span className="text-sm font-black text-emerald-950">تنفيذ قرار الشورى (تغيير الرئيس)</span>
+                              </motion.button>
+                           )}
+                        </div>
+                      )}
+
+                      {alreadyExecuted && (
+                        <div className="flex items-center gap-2 justify-center py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                           <ShieldCheck className="size-4 text-emerald-600" />
+                           <span className="text-xs font-black text-emerald-600">تم تنفيذ القرار وتحديث رئاسة المجلس</span>
+                        </div>
+                      )}
                     </motion.div>
                   );
                 })}
               </AnimatePresence>
-            </div>
           )}
 
-          <div className="flex items-center justify-between pt-2 border-t border-border/30">
-            <button onClick={() => handleClose(false)} className="text-xs font-bold text-muted-foreground hover:text-primary">
-              إغلاق
+          <div className="flex items-center justify-center pt-2 border-t border-border/30">
+            <button onClick={() => handleClose(false)} className="text-xs font-black text-muted-foreground hover:text-primary transition-colors">
+              إغلاق النافذة
             </button>
-            <Link
-              to="/meetings"
-              onClick={() => handleClose(false)}
-              className="text-xs font-black text-primary inline-flex items-center gap-1 hover:gap-2 transition-all"
-            >
-              عرض الكل في الاجتماعات <ArrowLeft size={14} />
-            </Link>
           </div>
         </DialogContent>
       </Dialog>
