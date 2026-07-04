@@ -25,8 +25,6 @@ import {
   Scroll,
   Lightbulb,
   ArrowRight,
-  ShieldCheck,
-  Award
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -54,26 +52,6 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   }),
   component: Dashboard,
 });
-
-const SECTION_ICONS: Record<string, any> = {
-  meetings: CalendarDays,
-  events: ListChecks,
-  trips: Plane,
-  finance: Wallet,
-  heritage: Scroll,
-  majlis: Newspaper,
-  community: Users,
-};
-
-const SECTION_NAMES: Record<string, string> = {
-  meetings: "الاجتماعات",
-  events: "المهام",
-  trips: "الترفيه",
-  finance: "المالية",
-  heritage: "الإرث",
-  majlis: "الأخبار",
-  community: "ركن الأعضاء",
-};
 
 function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | 'news', data: any }, onClose: () => void }) {
   const { type, data } = item;
@@ -130,7 +108,6 @@ function Dashboard() {
   const [counts, setCounts] = useState({ trips: 0, members: 0, tasks: 0, myTasks: 0, newNews: 0 });
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
-  const [userSections, setUserSections] = useState<string[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [immersiveItem, setImmersiveItem] = useState<{ type: 'trip' | 'meeting' | 'news', data: any } | null>(null);
   const [bugBody, setBugBody] = useState("");
@@ -149,10 +126,9 @@ function Dashboard() {
       const now = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [{ data: p }, { data: r }, { data: sections }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
+      const [{ data: p }, { data: r }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
         supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.id),
-        supabase.from("section_heads" as any).select("section").eq("user_id", u.id),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "done"),
         supabase.from("tasks").select("id", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done"),
@@ -169,7 +145,6 @@ function Dashboard() {
       setCounts({ trips: trips?.length || 0, members: mCount?.count || 0, tasks: tCount?.count || 0, myTasks: myTCount?.count || 0, newNews: newsCount?.count || 0 });
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
-      setUserSections((sections as any[])?.map(s => s.section) || []);
 
       if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
 
@@ -268,7 +243,7 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* ROYAL HERO SECTION WITH DEPARTMENT CRESTS */}
+        {/* ROYAL HERO SECTION - REVERTED TO CLEAN VERSION WITHOUT CRESTS */}
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
             <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '16px 12px' }} />
@@ -278,41 +253,21 @@ function Dashboard() {
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-14 p-8 md:p-14">
               <div className="shrink-0 flex items-center justify-center">
-                 <div className="relative">
+                 <div className="relative group">
                     <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
                     <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary p-2 bg-gradient-to-br from-gold-primary/30 to-transparent shadow-2xl">
                        <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
                           <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                        </div>
                     </div>
-
-                    {/* Role Overlay Badge */}
-                    <div className="absolute -bottom-2 -right-2 bg-gold-primary text-emerald-950 px-4 py-1.5 rounded-full shadow-2xl border-2 border-[#064E3B] flex items-center gap-2">
-                       {profile.role === 'رئيس المجلس' ? <Crown size={12} className="fill-current" /> : <ShieldCheck size={12} />}
-                       <span className="text-[10px] font-black uppercase tracking-widest">{profile.role}</span>
-                    </div>
                  </div>
               </div>
 
-              <div className="flex-1 text-center md:text-right space-y-4">
-                 <div className="space-y-2">
-                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
-                          {getGreeting()}،
-                       </p>
-                       {/* Department Crests/Icons */}
-                       <div className="flex items-center gap-2 mr-2">
-                          {userSections.map(s => {
-                             const Icon = SECTION_ICONS[s];
-                             if (!Icon) return null;
-                             return (
-                               <div key={s} className="size-6 rounded-lg bg-gold-primary/20 flex items-center justify-center text-gold-primary border border-gold-primary/30" title={`مسؤول قسم ${SECTION_NAMES[s]}`}>
-                                  <Icon size={12} strokeWidth={2.5} />
-                               </div>
-                             );
-                          })}
-                       </div>
-                    </div>
+              <div className="flex-1 text-center md:text-right space-y-6">
+                 <div className="space-y-3">
+                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
+                       {getGreeting()}،
+                    </p>
                     <h2 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tighter text-white drop-shadow-2xl" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
                        {profile.name}
                     </h2>
@@ -368,7 +323,7 @@ function Dashboard() {
                 <Link to="/majlis" className="block group relative overflow-hidden rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[160px] flex items-center p-8 md:p-12">
                    {a.imageUrl && (
                       <div className="absolute inset-0 z-0">
-                         <img src={a.imageUrl} className="size-full object-cover opacity-20 group-hover:scale-105 transition-transform" alt="" />
+                         <img src={a.imageUrl} className="size-full object-cover opacity-20 group-hover:scale-110 transition-transform" alt="" />
                          <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-transparent to-transparent" />
                       </div>
                    )}
@@ -405,7 +360,7 @@ function Dashboard() {
            <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right relative overflow-hidden group">
               <div className="space-y-4 relative z-10">
                  <div className="flex items-center justify-center md:justify-start gap-3 text-rose-500"><ShieldAlert className="size-6" /><span className="text-[10px] font-black uppercase tracking-[0.3em]">الدعم الفني والتقني</span></div>
-                 <h3 className="text-3xl font-black text-primary tracking-tight">هل واجهت عائقاً في النظام؟</h3>
+                 <h3 className="text-3xl font-black text-primary tracking-tight">هل واجهت عائقاً في النظام?</h3>
                  <p className="text-base md:text-lg font-bold text-muted-foreground opacity-80 max-w-xl">أبلغ فريق الإشراف عن أي ملاحظة برمجية لمساعدتنا في تطوير تجربة تليق بعائلة السيف.</p>
               </div>
               <button onClick={() => setShowBugReport(true)} className="px-12 py-5 rounded-[22px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-xl flex items-center gap-3 relative z-10"><ShieldAlert size={20} /> إرسال بلاغ فوري</button>
