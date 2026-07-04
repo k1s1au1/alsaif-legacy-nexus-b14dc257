@@ -258,36 +258,56 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* ROYAL HERO SECTION - REVERTED TO CLEAN VERSION WITHOUT CRESTS */}
+        {/* REFINED ROYAL HERO SECTION */}
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
-            <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '16px 12px' }} />
-            <div className="absolute left-0 top-0 bottom-0 w-1/2 opacity-[0.03] pointer-events-none overflow-hidden">
+
+            {/* 1. Traditional Zakhrafa Watermark (Subtle Corner) */}
+            <div className="absolute -top-20 -right-20 size-80 opacity-[0.04] pointer-events-none rotate-12">
+               <img src={palmWatermark} alt="" className="size-full object-contain brightness-0 invert" />
+            </div>
+
+            {/* 2. Premium Inner Border Glow */}
+            <div className="absolute inset-[3px] rounded-[37px] border border-gold-primary/10 pointer-events-none" />
+
+            {/* Background Texture/Pattern */}
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '24px 20px' }} />
+            <div className="absolute left-0 top-0 bottom-0 w-1/2 opacity-[0.02] pointer-events-none overflow-hidden">
                <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom scale-125 saturate-0 brightness-200" />
             </div>
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-14 p-8 md:p-14">
+              {/* Left Side: Logo in Gold Circle with Role Badge */}
               <div className="shrink-0 flex items-center justify-center">
-                 <div className="relative group">
-                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
-                    <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary p-2 bg-gradient-to-br from-gold-primary/30 to-transparent shadow-2xl">
+                 <div className="relative group/avatar">
+                    <div className="absolute inset-0 rounded-full bg-gold-primary/10 blur-3xl animate-pulse group-hover/avatar:bg-gold-primary/20 transition-all duration-700" />
+                    <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary/40 p-2 bg-gradient-to-br from-gold-primary/20 to-transparent shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.02]">
                        <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
                           <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
+                       </div>
+
+                       {/* Subtle Floating Badge */}
+                       <div className="absolute -bottom-1 right-4 md:right-8 bg-gold-primary text-emerald-950 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-xl border border-white/20">
+                          {profile.role}
                        </div>
                     </div>
                  </div>
               </div>
 
+              {/* Middle/Center: Large Elegant Name */}
               <div className="flex-1 text-center md:text-right space-y-6">
                  <div className="space-y-3">
-                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
-                       {getGreeting()}،
-                    </p>
+                    <div className="flex items-center justify-center md:justify-start gap-2">
+                       <div className="size-1 w-6 bg-gold-primary rounded-full opacity-40" />
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs opacity-70">
+                          {getGreeting()}،
+                       </p>
+                    </div>
                     <h2 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter text-white drop-shadow-2xl">
                        {profile.name}
                     </h2>
-                    <div className="flex items-center justify-center md:justify-start gap-3 text-white/40 font-bold text-sm md:text-xl">
-                       <div className="h-px w-8 bg-gold-primary/40 hidden md:block" />
+                    <div className="flex items-center justify-center md:justify-start gap-3 text-white/50 font-bold text-sm md:text-xl">
+                       <div className="h-px w-8 bg-gold-primary/30 hidden md:block" />
                        <div className="h-8 overflow-hidden relative w-full md:w-auto">
                           <AnimatePresence mode="wait">
                             <motion.p
@@ -295,7 +315,7 @@ function Dashboard() {
                               initial={{ opacity: 0, y: 10 }}
                               animate={{ opacity: 1, y: 0 }}
                               exit={{ opacity: 0, y: -10 }}
-                              className="leading-relaxed whitespace-nowrap"
+                              className="leading-relaxed italic"
                             >
                                {statusMessages[statusIndex]}
                             </motion.p>
@@ -306,7 +326,7 @@ function Dashboard() {
 
                  {/* New Unified Royal Date/Time Widget */}
                  <div className="flex items-center justify-center md:justify-start pt-8">
-                    <div className="inline-flex items-center bg-black/40 backdrop-blur-2xl rounded-[28px] border border-white/10 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all hover:scale-[1.02]">
+                    <div className="inline-flex items-center bg-black/40 backdrop-blur-2xl rounded-[28px] border border-white/10 p-1.5 shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all hover:bg-black/50">
                        <div className="flex items-center gap-3 px-6 py-2.5 bg-gold-primary/10 rounded-[22px] border border-gold-primary/20">
                           <Clock className="size-4 text-gold-primary animate-pulse" />
                           <span className="text-xl md:text-3xl font-black tabular-nums tracking-tighter text-white drop-shadow-md">
