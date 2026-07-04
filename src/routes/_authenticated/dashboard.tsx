@@ -257,7 +257,7 @@ function Dashboard() {
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative">
                     <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
-                    <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary p-2 bg-gradient-to-br from-gold-primary/30 to-transparent">
+                    <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary p-2 bg-gradient-to-br from-gold-primary/30 to-transparent shadow-2xl">
                        <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
                           <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                        </div>
@@ -266,34 +266,34 @@ function Dashboard() {
               </div>
 
               {/* Middle/Center: Large Elegant Name */}
-              <div className="flex-1 text-center md:text-right space-y-4">
-                 <div className="space-y-2">
-                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-md">
+              <div className="flex-1 text-center md:text-right space-y-6">
+                 <div className="space-y-3">
+                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
                        {getGreeting()}،
                     </p>
                     <h2 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tighter text-white drop-shadow-2xl" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
                        {profile.name}
                     </h2>
                     <div className="flex items-center justify-center md:justify-start gap-3 text-white/40 font-bold text-sm md:text-xl">
-                       <div className="h-px w-8 bg-gold-primary/40" />
-                       <p>{getStatusSummary()}</p>
+                       <div className="h-px w-8 bg-gold-primary/40 hidden md:block" />
+                       <p className="leading-relaxed">{getStatusSummary()}</p>
                     </div>
                  </div>
-              </div>
 
-              {/* Bottom Left: Live Date & Time (Replicated from Option 2) */}
-              <div className="absolute bottom-6 md:bottom-10 left-6 md:left-14 flex flex-col items-start gap-1 text-white/40 font-bold">
-                 <div className="flex items-center gap-2 text-gold-primary/80">
-                    <Clock className="size-4" />
-                    <span className="text-lg md:text-2xl font-black tabular-nums tracking-widest leading-none">
-                       <LiveClock variant="time" />
-                    </span>
-                 </div>
-                 <div className="flex items-center gap-2 opacity-60">
-                    <Calendar className="size-3" />
-                    <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.1em]">
-                       <LiveClock variant="date" />
-                    </span>
+                 {/* Mobile-Friendly Date/Time integrated into flex flow */}
+                 <div className="flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start gap-4 pt-4 border-t border-white/5">
+                    <div className="flex items-center gap-2 text-gold-primary/90">
+                       <Clock className="size-4" />
+                       <span className="text-lg md:text-2xl font-black tabular-nums tracking-widest leading-none">
+                          <LiveClock variant="time" />
+                       </span>
+                    </div>
+                    <div className="flex items-center gap-2 opacity-40">
+                       <Calendar className="size-3" />
+                       <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.1em]">
+                          <LiveClock variant="date" />
+                       </span>
+                    </div>
                  </div>
               </div>
            </div>
