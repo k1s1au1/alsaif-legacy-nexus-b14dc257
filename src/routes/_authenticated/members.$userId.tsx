@@ -64,8 +64,9 @@ function MemberProfilePage() {
   const [lastSeen, setLastSeen] = useState<string | null>(null);
   const fetchCredential = useServerFn(getMemberCredential);
 
-  const [me, setMe] = useState<{ name: string; initial: string; avatarPath: string | null }>({
+  const [me, setMe] = useState<{ name: string; role: string; initial: string; avatarPath: string | null }>({
     name: "...",
+    role: "عضو",
     initial: "س",
     avatarPath: null,
   });
@@ -90,7 +91,7 @@ function MemberProfilePage() {
           supabase.from("user_roles").select("role").eq("user_id", auth.user.id).eq("role", "admin").maybeSingle(),
         ]);
         const name = mine?.arabic_name || mine?.full_name || "عضو";
-        setMe({ name, initial: name[0], avatarPath: mine?.avatar_url ?? null });
+        setMe({ name, role: adminCheck ? "مسؤول تقني" : "عضو", initial: name[0], avatarPath: mine?.avatar_url ?? null });
         setIsAdmin(!!adminCheck);
       }
       setLoading(false);
