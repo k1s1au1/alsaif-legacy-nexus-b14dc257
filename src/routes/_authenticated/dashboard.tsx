@@ -262,33 +262,28 @@ function Dashboard() {
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
 
-            {/* 1. Traditional Zakhrafa Watermark (Subtle Corner) */}
-            <div className="absolute -top-20 -right-20 size-80 opacity-[0.04] pointer-events-none rotate-12">
-               <img src={palmWatermark} alt="" className="size-full object-contain brightness-0 invert" />
+            {/* 1. Traditional Corner Ornament (More Visible) */}
+            <div className="absolute top-0 right-0 size-32 md:size-48 opacity-[0.08] pointer-events-none">
+               <svg viewBox="0 0 100 100" className="size-full fill-gold-primary">
+                  <path d="M100,0 L100,20 Q100,0 80,0 L100,0 Z M100,40 L100,45 Q100,35 95,35 L90,35 Q100,35 100,25 L100,40 Z" />
+                  <circle cx="95" cy="5" r="2" />
+               </svg>
             </div>
 
-            {/* 2. Premium Inner Border Glow */}
-            <div className="absolute inset-[3px] rounded-[37px] border border-gold-primary/10 pointer-events-none" />
+            {/* 2. Premium Inner Gold Frame */}
+            <div className="absolute inset-[4px] rounded-[36px] border-2 border-gold-primary/20 pointer-events-none" />
 
             {/* Background Texture/Pattern */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '24px 20px' }} />
-            <div className="absolute left-0 top-0 bottom-0 w-1/2 opacity-[0.02] pointer-events-none overflow-hidden">
-               <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom scale-125 saturate-0 brightness-200" />
-            </div>
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-14 p-8 md:p-14">
-              {/* Left Side: Logo in Gold Circle with Role Badge */}
+              {/* Left Side: Logo in Gold Circle */}
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative group/avatar">
                     <div className="absolute inset-0 rounded-full bg-gold-primary/10 blur-3xl animate-pulse group-hover/avatar:bg-gold-primary/20 transition-all duration-700" />
                     <div className="relative size-32 md:size-52 rounded-full border-[3px] border-gold-primary/40 p-2 bg-gradient-to-br from-gold-primary/20 to-transparent shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.02]">
                        <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden">
                           <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
-                       </div>
-
-                       {/* Subtle Floating Badge */}
-                       <div className="absolute -bottom-1 right-4 md:right-8 bg-gold-primary text-emerald-950 px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-xl border border-white/20">
-                          {profile.role}
                        </div>
                     </div>
                  </div>
@@ -298,8 +293,8 @@ function Dashboard() {
               <div className="flex-1 text-center md:text-right space-y-6">
                  <div className="space-y-3">
                     <div className="flex items-center justify-center md:justify-start gap-2">
-                       <div className="size-1 w-6 bg-gold-primary rounded-full opacity-40" />
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs opacity-70">
+                       <div className="size-1 w-6 bg-gold-primary rounded-full opacity-60" />
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs">
                           {getGreeting()}،
                        </p>
                     </div>
