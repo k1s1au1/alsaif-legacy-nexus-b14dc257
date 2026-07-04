@@ -25,6 +25,8 @@ import {
   Scroll,
   Lightbulb,
   ArrowRight,
+  ShieldCheck,
+  Award
 } from "lucide-react";
 import { toast } from "sonner";
 import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
@@ -40,7 +42,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
-import { showIsland } from "@/components/dynamic-island";
+import { showIsland, hideIsland } from "@/components/dynamic-island";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -52,6 +54,26 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
   }),
   component: Dashboard,
 });
+
+const SECTION_ICONS: Record<string, any> = {
+  meetings: CalendarDays,
+  events: ListChecks,
+  trips: Plane,
+  finance: Wallet,
+  heritage: Scroll,
+  majlis: Newspaper,
+  community: Users,
+};
+
+const SECTION_NAMES: Record<string, string> = {
+  meetings: "الاجتماعات",
+  events: "المهام",
+  trips: "الترفيه",
+  finance: "المالية",
+  heritage: "الإرث",
+  majlis: "الأخبار",
+  community: "ركن الأعضاء",
+};
 
 function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | 'news', data: any }, onClose: () => void }) {
   const { type, data } = item;
@@ -108,6 +130,7 @@ function Dashboard() {
   const [counts, setCounts] = useState({ trips: 0, members: 0, tasks: 0, myTasks: 0, newNews: 0 });
   const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
   const [activeProjects, setActiveProjects] = useState<any[]>([]);
+  const [userSections, setUserSections] = useState<string[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [immersiveItem, setImmersiveItem] = useState<{ type: 'trip' | 'meeting' | 'news', data: any } | null>(null);
   const [bugBody, setBugBody] = useState("");
@@ -126,9 +149,10 @@ function Dashboard() {
       const now = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [{ data: p }, { data: r }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
+      const [{ data: p }, { data: r }, { data: sections }, { data: mCount }, { data: tCount }, { data: myTCount }, { data: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
         supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.id),
+        supabase.from("section_heads" as any).select("section").eq("user_id", u.id),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
         supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "done"),
         supabase.from("tasks").select("id", { count: "exact", head: true }).eq("assignee_id", u.id).neq("status", "done"),
@@ -145,6 +169,8 @@ function Dashboard() {
       setCounts({ trips: trips?.length || 0, members: mCount?.count || 0, tasks: tCount?.count || 0, myTasks: myTCount?.count || 0, newNews: newsCount?.count || 0 });
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
+      setUserSections((sections as any[])?.map(s => s.section) || []);
+
       if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
 
       // Shura Integration
@@ -160,7 +186,6 @@ function Dashboard() {
         hasGreeted.current = true;
       }
 
-      // Announcements Filter
       if (posts) {
         const annList = posts.filter(p => (p.kind === 'announcement' || p.body?.includes('---kind:announcement')) && !p.body?.includes('---poll:')).slice(0, 5);
         const processedAnns = await Promise.all(annList.map(async (a) => {
@@ -243,17 +268,15 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* NEW ROYAL HERO SECTION (OPTION 2 REPLICATION) */}
+        {/* ROYAL HERO SECTION WITH DEPARTMENT CRESTS */}
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[40px] bg-[#064E3B] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.5)] border border-white/10 group">
-            {/* Background Texture/Pattern */}
             <div className="absolute inset-0 opacity-[0.05] pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, #D4AF37 1px, transparent 0)', backgroundSize: '16px 12px' }} />
             <div className="absolute left-0 top-0 bottom-0 w-1/2 opacity-[0.03] pointer-events-none overflow-hidden">
                <img src={palmWatermark} alt="" className="h-full object-contain object-left-bottom scale-125 saturate-0 brightness-200" />
             </div>
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-14 p-8 md:p-14">
-              {/* Left Side: Logo in Gold Circle */}
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative">
                     <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
@@ -262,15 +285,34 @@ function Dashboard() {
                           <div className="size-full logo-alsaif" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                        </div>
                     </div>
+
+                    {/* Role Overlay Badge */}
+                    <div className="absolute -bottom-2 -right-2 bg-gold-primary text-emerald-950 px-4 py-1.5 rounded-full shadow-2xl border-2 border-[#064E3B] flex items-center gap-2">
+                       {profile.role === 'رئيس المجلس' ? <Crown size={12} className="fill-current" /> : <ShieldCheck size={12} />}
+                       <span className="text-[10px] font-black uppercase tracking-widest">{profile.role}</span>
+                    </div>
                  </div>
               </div>
 
-              {/* Middle/Center: Large Elegant Name */}
-              <div className="flex-1 text-center md:text-right space-y-6">
-                 <div className="space-y-3">
-                    <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
-                       {getGreeting()}،
-                    </p>
+              <div className="flex-1 text-center md:text-right space-y-4">
+                 <div className="space-y-2">
+                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-1">
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
+                          {getGreeting()}،
+                       </p>
+                       {/* Department Crests/Icons */}
+                       <div className="flex items-center gap-2 mr-2">
+                          {userSections.map(s => {
+                             const Icon = SECTION_ICONS[s];
+                             if (!Icon) return null;
+                             return (
+                               <div key={s} className="size-6 rounded-lg bg-gold-primary/20 flex items-center justify-center text-gold-primary border border-gold-primary/30" title={`مسؤول قسم ${SECTION_NAMES[s]}`}>
+                                  <Icon size={12} strokeWidth={2.5} />
+                               </div>
+                             );
+                          })}
+                       </div>
+                    </div>
                     <h2 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tighter text-white drop-shadow-2xl" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
                        {profile.name}
                     </h2>
@@ -280,7 +322,6 @@ function Dashboard() {
                     </div>
                  </div>
 
-                 {/* Mobile-Friendly Date/Time integrated into flex flow */}
                  <div className="flex flex-col md:flex-row items-center md:items-end justify-center md:justify-start gap-4 pt-4 border-t border-white/5">
                     <div className="flex items-center gap-2 text-gold-primary/90">
                        <Clock className="size-4" />
