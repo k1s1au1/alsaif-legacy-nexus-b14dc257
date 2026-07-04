@@ -236,6 +236,41 @@ function MemberProfilePage() {
                           <p className="text-[9px] font-bold text-muted-foreground uppercase">عضوية رسمية مفعلة</p>
                        </div>
                     </div>
+
+                    {/* Shura Nomination Button - Leadership Change Option 2 */}
+                    {role !== 'chairman' && (
+                      <button
+                        onClick={async () => {
+                          if (!confirm(`هل تود بدء "شورى قيادية" لترشيح ${displayName} لرئاسة المجلس؟ يتطلب نجاح هذا القرار موافقة 70% من أفراد العائلة.`)) return;
+
+                          const pollData = {
+                            question: `هل تؤيد اختيار العضو ${displayName} ليكون رئيساً جديداً لمجلس عائلة السيف؟`,
+                            options: ["نعم، أؤيد التغيير", "لا، أفضل استمرار الحالي"],
+                            type: "leadership_shura",
+                            target_uid: userId,
+                            target_name: displayName,
+                            threshold: 70
+                          };
+
+                          const { error } = await supabase.from("majlis_posts").insert({
+                            title: `شورى انتخابية: ${displayName}`,
+                            body: `---poll:${JSON.stringify(pollData)}---`,
+                            kind: "announcement",
+                            author_id: (await supabase.auth.getUser()).data.user?.id
+                          });
+
+                          if (error) toast.error("تعذر فتح باب الترشيح");
+                          else {
+                            toast.success("تم فتح باب الشورى بنجاح، القرار الآن بيد العائلة");
+                            window.dispatchEvent(new CustomEvent("island:show", { detail: { message: "بدأت شورى رئاسة المجلس", status: "success" }}));
+                          }
+                        }}
+                        className="w-full py-4 rounded-2xl bg-gold-primary/10 border-2 border-gold-primary/30 text-gold-primary text-[11px] font-black uppercase tracking-widest hover:bg-gold-primary/20 transition-all flex items-center justify-center gap-3 group"
+                      >
+                         <Crown size={14} className="group-hover:scale-125 transition-transform" />
+                         ترشيح لرئاسة المجلس (شورى)
+                      </button>
+                    )}
                  </div>
 
                  <div className="space-y-4">
