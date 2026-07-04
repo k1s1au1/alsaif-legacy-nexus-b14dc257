@@ -268,7 +268,7 @@ function Dashboard() {
                     <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs opacity-80 drop-shadow-sm">
                        {getGreeting()}،
                     </p>
-                    <h2 className="text-4xl sm:text-5xl md:text-8xl font-bold tracking-tighter text-white drop-shadow-2xl" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
+                    <h2 className="text-4xl sm:text-5xl md:text-8xl font-black tracking-tighter text-white drop-shadow-2xl">
                        {profile.name}
                     </h2>
                     <div className="flex items-center justify-center md:justify-start gap-3 text-white/40 font-bold text-sm md:text-xl">
