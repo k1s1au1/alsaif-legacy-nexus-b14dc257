@@ -226,7 +226,7 @@ function MemberProfilePage() {
                     <p className="text-[10px] font-black uppercase tracking-widest text-primary/40">الرتبة في المجلس</p>
                     <div className="flex items-center gap-4 bg-muted/30 p-4 rounded-2xl border border-border/40">
                        <div className={cn(
-                          "size-12 rounded-xl flex items-center justify-center shadow-lg",
+                          "size-12 rounded-full flex items-center justify-center shadow-lg",
                           role === 'chairman' ? "bg-emerald-950 text-gold-primary" : "bg-primary text-white"
                        )}>
                           {role === 'chairman' ? <Crown size={24} /> : <Award size={24} />}
@@ -237,39 +237,48 @@ function MemberProfilePage() {
                        </div>
                     </div>
 
-                    {/* Shura Nomination Button - Leadership Change Option 2 */}
+                    {/* NEW NOMINATION BUTTON - HIGH VISIBILITY */}
                     {role !== 'chairman' && (
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
                         onClick={async () => {
-                          if (!confirm(`هل تود بدء "شورى قيادية" لترشيح ${displayName} لرئاسة المجلس؟ يتطلب نجاح هذا القرار موافقة 70% من أفراد العائلة.`)) return;
+                          const confirmMsg = `هل تود فتح باب "الشورى الكبرى" لترشيح ${displayName} رئيساً للمجلس؟`;
+                          if (!confirm(confirmMsg)) return;
 
                           const pollData = {
-                            question: `هل تؤيد اختيار العضو ${displayName} ليكون رئيساً جديداً لمجلس عائلة السيف؟`,
-                            options: ["نعم، أؤيد التغيير", "لا، أفضل استمرار الحالي"],
+                            question: `هل تؤيد انتقال رئاسة المجلس إلى ${displayName}؟`,
+                            options: ["نعم، أؤيد بشدة", "لا، أفضّل الوضع الحالي"],
                             type: "leadership_shura",
                             target_uid: userId,
                             target_name: displayName,
                             threshold: 70
                           };
 
+                          const { data: userData } = await supabase.auth.getUser();
+
                           const { error } = await supabase.from("majlis_posts").insert({
-                            title: `شورى انتخابية: ${displayName}`,
+                            title: `شورى عاجلة: ترشيح ${displayName}`,
                             body: `---poll:${JSON.stringify(pollData)}---`,
                             kind: "announcement",
-                            author_id: (await supabase.auth.getUser()).data.user?.id
+                            author_id: userData.user?.id
                           });
 
-                          if (error) toast.error("تعذر فتح باب الترشيح");
-                          else {
-                            toast.success("تم فتح باب الشورى بنجاح، القرار الآن بيد العائلة");
-                            window.dispatchEvent(new CustomEvent("island:show", { detail: { message: "بدأت شورى رئاسة المجلس", status: "success" }}));
+                          if (error) {
+                            toast.error("حدث خطأ أثناء فتح باب الشورى");
+                          } else {
+                            toast.success("تم إرسال طلب الترشيح للعائلة بنجاح");
+                            if (typeof window !== 'undefined') {
+                               window.dispatchEvent(new CustomEvent("island:show", {
+                                  detail: { message: "بدأت شورى الرئاسة الآن", status: "success" }
+                               }));
+                            }
                           }
                         }}
-                        className="w-full py-4 rounded-2xl bg-gold-primary/10 border-2 border-gold-primary/30 text-gold-primary text-[11px] font-black uppercase tracking-widest hover:bg-gold-primary/20 transition-all flex items-center justify-center gap-3 group"
+                        className="w-full py-4 rounded-2xl bg-gold-primary text-emerald-950 font-black text-xs uppercase tracking-widest shadow-xl shadow-gold-primary/20 hover:brightness-110 transition-all flex items-center justify-center gap-3 border-2 border-white/20"
                       >
-                         <Crown size={14} className="group-hover:scale-125 transition-transform" />
-                         ترشيح لرئاسة المجلس (شورى)
-                      </button>
+                         <Crown size={16} /> ترشيح لرئاسة المجلس
+                      </motion.button>
                     )}
                  </div>
 
