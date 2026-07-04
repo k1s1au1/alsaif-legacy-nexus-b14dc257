@@ -1,18 +1,25 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Standard client for browser use
-export const supabase = createClient<Database>(
-  import.meta.env.VITE_SUPABASE_URL || '',
-  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '',
-  {
+let _supabase: any;
+
+export function getSupabase() {
+  if (_supabase) return _supabase;
+
+  const URL = import.meta.env.VITE_SUPABASE_URL || (globalThis as any).process?.env?.SUPABASE_URL;
+  const KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || (globalThis as any).process?.env?.SUPABASE_PUBLISHABLE_KEY;
+
+  if (!URL || !KEY) return null;
+
+  _supabase = createClient<Database>(URL, KEY, {
     auth: {
       storage: typeof window !== 'undefined' ? localStorage : undefined,
       persistSession: true,
       autoRefreshToken: true,
     }
-  }
-);
+  });
 
-// Getter for files that need a reliable instance
-export const getSupabase = () => supabase;
+  return _supabase;
+}
+
+export const supabase = typeof window !== 'undefined' ? getSupabase() : (null as any);

@@ -4,16 +4,13 @@ import { z } from "zod";
 
 export const deleteMemberAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: { userId: string }) => z.object({ userId: z.string() }).parse(data))
+  .validator(z.object({ userId: z.string() }))
   .handler(async ({ data, context }) => {
     if (data.userId === context.userId) throw new Error("Unauthorized");
-
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const supabaseAdmin = getSupabaseAdmin();
-    if (!supabaseAdmin) throw new Error("Server not ready");
+    const admin = getSupabaseAdmin();
+    if (!admin) throw new Error("Server error");
 
-    // Authorization...
-    const { error } = await supabaseAdmin.auth.admin.deleteUser(data.userId);
-    if (error) throw new Error(error.message);
+    await admin.auth.admin.deleteUser(data.userId);
     return { ok: true };
   });

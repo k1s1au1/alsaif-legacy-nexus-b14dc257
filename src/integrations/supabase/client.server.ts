@@ -1,16 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-// Server-side initialization
-export const supabaseAdmin = createClient<Database>(
-  process.env.SUPABASE_URL || '',
-  process.env.SUPABASE_SERVICE_ROLE_KEY || '',
-  {
+let _supabaseAdmin: any;
+
+export function getSupabaseAdmin() {
+  if (_supabaseAdmin) return _supabaseAdmin;
+
+  const URL = process.env.SUPABASE_URL;
+  const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  if (!URL || !KEY) return null;
+
+  _supabaseAdmin = createClient<Database>(URL, KEY, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
-    },
-  }
-);
+    }
+  });
 
-export const getSupabaseAdmin = () => supabaseAdmin;
+  return _supabaseAdmin;
+}
+
+export const supabaseAdmin = typeof process !== 'undefined' ? getSupabaseAdmin() : (null as any);
