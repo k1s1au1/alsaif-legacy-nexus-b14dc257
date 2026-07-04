@@ -130,7 +130,7 @@ function Dashboard() {
       const now = new Date().toISOString();
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-      const [{ data: p }, { data: r }, { count: mCount }, { count: tCount }, { count: myTCount }, { count: newsCount }, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
+      const [{ data: p }, { data: r }, mCount, tCount, myTCount, newsCount, { data: meetings }, { data: trips }, { data: posts }, { data: tx }] = await Promise.all([
         supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", u.id).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", u.id),
         supabase.from("profiles").select("id", { count: "exact", head: true }),
@@ -146,7 +146,13 @@ function Dashboard() {
       const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
       const rs = (r ?? []).map(x => x.role);
       setProfile({ name, role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : "عضو الأخبار", initial: (name[0] || "ع").toUpperCase(), avatarPath: p?.avatar_url ?? null, userId: u.id });
-      setCounts({ trips: trips?.length || 0, members: mCount || 0, tasks: tCount || 0, myTasks: myTCount || 0, newNews: newsCount || 0 });
+      setCounts({
+        trips: trips?.length || 0,
+        members: mCount.count || 0,
+        tasks: tCount.count || 0,
+        myTasks: myTCount.count || 0,
+        newNews: newsCount.count || 0
+      });
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
 
