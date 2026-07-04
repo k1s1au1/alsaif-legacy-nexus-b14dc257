@@ -281,11 +281,19 @@ function Dashboard() {
                  </div>
               </div>
 
-              {/* Right Side: Metadata (Date/Time) */}
-              <div className="hidden lg:flex flex-col gap-4 shrink-0">
-                 <div className="bg-white/5 border border-white/10 rounded-[28px] p-6 text-center backdrop-blur-xl shadow-2xl space-y-1">
-                    <span className="block text-2xl font-black text-gold-primary tracking-widest"><LiveClock variant="time" /></span>
-                    <span className="block text-[9px] font-black text-white/30 uppercase tracking-[0.2em]"><LiveClock variant="date" /></span>
+              {/* Bottom Left: Live Date & Time (Replicated from Option 2) */}
+              <div className="absolute bottom-6 md:bottom-10 left-6 md:left-14 flex flex-col items-start gap-1 text-white/40 font-bold">
+                 <div className="flex items-center gap-2 text-gold-primary/80">
+                    <Clock className="size-4" />
+                    <span className="text-lg md:text-2xl font-black tabular-nums tracking-widest leading-none">
+                       <LiveClock variant="time" />
+                    </span>
+                 </div>
+                 <div className="flex items-center gap-2 opacity-60">
+                    <Calendar className="size-3" />
+                    <span className="text-[10px] md:text-xs font-black uppercase tracking-[0.1em]">
+                       <LiveClock variant="date" />
+                    </span>
                  </div>
               </div>
            </div>
