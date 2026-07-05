@@ -120,7 +120,7 @@ export function NotificationsBell() {
       setOpen(false);
       setItems(prev => prev.filter(item => item.id !== notif.id));
 
-      let dismissed = [];
+      let dismissed: string[] = [];
       try {
         const raw = localStorage.getItem("dismissed_notifs");
         dismissed = raw ? JSON.parse(raw) : [];
