@@ -28,7 +28,6 @@ import {
   Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
@@ -279,47 +278,51 @@ function Dashboard() {
             {/* 2. Premium Inner Frame */}
             <div className="absolute inset-[10px] rounded-[38px] border border-gold-primary/20 pointer-events-none" />
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-12 md:gap-20 p-10 md:p-16">
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-16 p-8 md:p-12">
 
               {/* Profile/Logo Medallion - LEFT in LTR, so LEFT here for prestige feel */}
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative group/avatar">
-                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
-                    <div className="relative size-36 md:size-60 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
-                       <div className="size-full rounded-full bg-[#fdfcf7] p-5 flex items-center justify-center shadow-inner overflow-hidden border-[4px] border-emerald-950/5">
-                          <div
-                            className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]"
-                            style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : "none" }}
-                          />
+                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-2xl animate-pulse" />
+                    <div className="relative size-32 md:size-48 rounded-full p-1.5 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
+                       <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-emerald-950/5">
+                          {dynamicLogo ? (
+                            <div
+                              className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]"
+                              style={{ backgroundImage: `url(${dynamicLogo})` }}
+                            />
+                          ) : (
+                            <Sparkles className="size-16 text-gold-primary animate-pulse" />
+                          )}
                        </div>
                     </div>
                  </div>
               </div>
 
               {/* Information Side - NAME IS HERO */}
-              <div className="flex-1 text-center md:text-right space-y-8 min-w-0">
-                 <div className="space-y-4">
-                    <div className="inline-flex items-center gap-3 px-5 py-2 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                       <Sparkles className="size-3.5 text-gold-primary animate-bounce" />
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px] md:text-xs">
+              <div className="flex-1 text-center md:text-right space-y-6 min-w-0">
+                 <div className="space-y-3">
+                    <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
+                       <Sparkles className="size-3 text-gold-primary animate-bounce" />
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs">
                           {getGreeting()}، يا أهل الوفاء
                        </p>
                     </div>
 
-                    <h2 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                    <h2 className="text-4xl sm:text-5xl md:text-6xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                        {profile.name}
                     </h2>
 
-                    <div className="flex items-center justify-center md:justify-start gap-5">
-                       <div className="hidden md:block w-1.5 h-14 bg-gradient-to-b from-gold-primary/70 via-gold-primary/30 to-transparent rounded-full" />
-                       <div className="h-10 overflow-hidden relative w-full md:w-auto">
+                    <div className="flex items-center justify-center md:justify-start gap-4">
+                       <div className="hidden md:block w-1 h-10 bg-gradient-to-b from-gold-primary/70 via-gold-primary/30 to-transparent rounded-full" />
+                       <div className="h-8 overflow-hidden relative w-full md:w-auto">
                           <AnimatePresence mode="wait">
                             <motion.p
                               key={statusIndex}
-                              initial={{ opacity: 0, x: -25 }}
+                              initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 25 }}
-                              className="text-white/60 font-bold text-xl md:text-2xl italic leading-none"
+                              exit={{ opacity: 0, x: 20 }}
+                              className="text-white/60 font-bold text-lg md:text-xl italic leading-none"
                             >
                                {statusMessages[statusIndex]}
                             </motion.p>
@@ -329,17 +332,17 @@ function Dashboard() {
                  </div>
 
                  {/* Premium Integrated Date/Time Panel — Mobile Responsive */}
-                 <div className="flex items-center justify-center md:justify-start pt-6">
-                    <div className="flex flex-col sm:flex-row items-center gap-2 p-1.5 bg-black/40 backdrop-blur-2xl rounded-[32px] border border-white/10 shadow-2xl w-full sm:w-auto">
-                       <div className="flex items-center gap-4 px-8 py-4 bg-white/5 rounded-2xl sm:rounded-[26px] border border-white/5 w-full sm:w-auto justify-center">
-                          <Clock className="size-4 sm:size-5 text-gold-primary" />
-                          <span className="text-xl sm:text-3xl font-black tabular-nums tracking-tighter text-white">
+                 <div className="flex items-center justify-center md:justify-start pt-4">
+                    <div className="flex flex-col sm:flex-row items-center gap-1.5 p-1 bg-black/40 backdrop-blur-2xl rounded-[28px] border border-white/10 shadow-2xl w-full sm:w-auto">
+                       <div className="flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl border border-white/5 w-full sm:w-auto justify-center">
+                          <Clock className="size-4 text-gold-primary" />
+                          <span className="text-lg sm:text-2xl font-black tabular-nums tracking-tighter text-white">
                              <LiveClock variant="time" />
                           </span>
                        </div>
-                       <div className="flex items-center gap-4 px-8 py-4 w-full sm:w-auto justify-center">
-                          <Calendar className="size-4 sm:size-5 text-white/20" />
-                          <span className="text-[10px] sm:text-xs font-black text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">
+                       <div className="flex items-center gap-3 px-6 py-3 w-full sm:w-auto justify-center">
+                          <Calendar className="size-4 text-white/20" />
+                          <span className="text-[9px] sm:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">
                              <LiveClock variant="date" />
                           </span>
                        </div>
