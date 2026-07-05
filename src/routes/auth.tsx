@@ -287,21 +287,6 @@ function AuthPage() {
         <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#064e3b] via-transparent to-transparent opacity-60" />
         <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/50 to-transparent" />
 
-        {/* Animated Heritage Texture Overlay (The Emerald Pattern) */}
-        <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-2 mix-blend-overlay scale-150"
-             style={{
-               backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-               backgroundSize: '100px 100px'
-             }}
-        />
-
-        {/* Gold Dust Particles */}
-        <div className="absolute inset-0 pointer-events-none z-3">
-          {[...Array(20)].map((_, i) => (
-            <motion.div key={i} initial={{ opacity: 0, x: Math.random() * 100 + "%", y: "110%" }} animate={{ y: "-10%", opacity: [0, 0.4, 0] }} transition={{ duration: 15 + Math.random() * 20, repeat: Infinity, ease: "linear", delay: Math.random() * -20 }} className="absolute size-1.5 bg-gold-primary rounded-full blur-[1px]" />
-          ))}
-        </div>
-
         <div className="relative z-10 space-y-12 w-full max-w-4xl">
            <div className="space-y-6 text-right">
               <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }} className="flex items-center gap-4">
@@ -339,26 +324,6 @@ function AuthPage() {
               <HeritageStat label="الأعضاء المسجلين" value={`${counts.members}`} delay={0.4} />
               <HeritageStat label="مبادرات مكتملة" value={`${counts.completedTasks}`} delay={0.6} />
            </div>
-
-           {/* Floating Decorative Logo (Subtle Background element) */}
-           <motion.div
-             animate={{ rotate: [0, 360], scale: [1, 1.05, 1] }}
-             transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
-             className="pt-20 opacity-10 pointer-events-none flex justify-center w-full"
-           >
-              <div className="size-[450px] border-[2px] border-dashed border-gold-primary/30 rounded-full flex items-center justify-center relative">
-                 <div className="size-[350px] border-[1px] border-gold-primary/10 rounded-full" />
-                 <div className="absolute size-56"
-                      style={{
-                        backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})`,
-                        backgroundSize: 'contain',
-                        backgroundRepeat: 'no-repeat',
-                        backgroundPosition: 'center',
-                        filter: 'brightness(0) invert(1) opacity(0.5)'
-                      }}
-                 />
-              </div>
-           </motion.div>
         </div>
 
         {/* Change Background Button (Visible for admins) */}
