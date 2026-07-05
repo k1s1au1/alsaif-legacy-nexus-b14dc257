@@ -270,27 +270,27 @@ function AuthPage() {
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
       <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
 
-        {/* Dynamic Background Image with Advanced Gradient Mask */}
-        <div className="absolute inset-0 z-0">
+        {/* Heritage Backdrop Image with Optimized Fitting */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
            <motion.div
              key={customBg}
              initial={{ scale: 1.15, opacity: 0 }}
-             animate={{ scale: 1, opacity: 0.35 }}
+             animate={{ scale: 1, opacity: 0.5 }}
              transition={{ duration: 3, ease: "easeOut" }}
-             className="size-full bg-cover bg-center bg-no-repeat transition-all duration-1000"
+             className="size-full bg-cover bg-left bg-no-repeat transition-all duration-1000"
              style={{ backgroundImage: customBg ? `url(${customBg})` : 'none' }}
            />
         </div>
 
-        {/* Multi-layered Seamless Blend - Always visible to ensure text legibility */}
-        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
-        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#064e3b] via-transparent to-transparent opacity-60" />
-        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/50 to-transparent" />
+        {/* Refined Seamless Blend - More transparent on the left to show details */}
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/70 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#064e3b]/40 via-transparent to-transparent opacity-40" />
+        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/20 to-transparent" />
 
-        <div className="relative z-10 space-y-12 w-full max-w-4xl">
+        <div className="relative z-10 space-y-10 w-full max-w-4xl pr-4">
            <div className="space-y-6 text-right">
               <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }} className="flex items-center gap-4">
-                 <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
+                 <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
                  <span className="text-xs font-black uppercase tracking-[0.5em] text-gold-primary">إرث يمتد.. ومستقبل يُبنى</span>
               </motion.div>
 
@@ -298,10 +298,10 @@ function AuthPage() {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 1, delay: 0.2 }}
-                className="text-7xl xl:text-[10rem] font-black text-white tracking-tighter leading-tight drop-shadow-2xl"
+                className="text-6xl xl:text-8xl font-black text-white tracking-tighter leading-[0.95] drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
               >
                  عائلة<br />
-                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary to-[#8E7745] animate-pulse">السيف</span>
+                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary via-white/80 to-[#8E7745] animate-pulse">السيف</span>
               </motion.h1>
 
               <div className="h-16 overflow-hidden relative">
