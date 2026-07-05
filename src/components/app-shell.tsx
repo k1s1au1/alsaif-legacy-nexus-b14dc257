@@ -22,7 +22,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat } from "@/lib/presence";
 import { toast } from "sonner";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
 import { DynamicIsland } from "@/components/dynamic-island";
 import {
@@ -57,6 +57,21 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Header Visibility Control
+  const [headerVisible, setHeaderVisible] = useState(true);
+  const { scrollY } = useScroll();
+
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    // Hide on scroll down (threshold 100px), show on scroll up
+    if (latest > previous && latest > 100) {
+      setHeaderVisible(false);
+    } else if (latest < previous) {
+      setHeaderVisible(true);
+    }
+  });
+
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
   useFcm();
@@ -217,12 +232,32 @@ export function AppShell({
       </motion.aside>
 
       <main className="relative min-h-screen pb-20">
-        {/* RESPONSIVE HEADER SYSTEM: Floating on Mobile, Classic on Desktop */}
-        <div className={cn(
-          "z-[80] transition-all duration-500",
-          "fixed top-4 inset-x-0 px-4", // Mobile: Floating
-          "md:sticky md:top-0 md:inset-x-0 md:px-0" // Desktop: Fixed at top
-        )}>
+        {/* RESPONSIVE HEADER SYSTEM: Floating on Mobile with Gesture Support, Classic on Desktop */}
+        <motion.div
+          initial={false}
+          // Only enable drag hiding for mobile
+          drag={typeof window !== 'undefined' && window.innerWidth < 768 ? "y" : false}
+          dragConstraints={{ top: 0, bottom: 0 }}
+          dragElastic={0.2}
+          onDragEnd={(_, info) => {
+            if (info.offset.y < -30) setHeaderVisible(false);
+            if (info.offset.y > 30) setHeaderVisible(true);
+          }}
+          animate={{
+            y: (typeof window !== 'undefined' && window.innerWidth < 768)
+               ? (headerVisible ? 0 : -100)
+               : 0,
+            opacity: (typeof window !== 'undefined' && window.innerWidth < 768)
+               ? (headerVisible ? 1 : 0)
+               : 1
+          }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          className={cn(
+            "z-[80] transition-[padding] duration-500",
+            "fixed top-4 inset-x-0 px-4 touch-none", // Mobile: Floating
+            "md:sticky md:top-0 md:inset-x-0 md:px-0 md:!translate-y-0 md:!opacity-100" // Desktop: Fixed at top (Force stable)
+          )}
+        >
            <header className={cn(
              "mx-auto flex items-center justify-between transition-all duration-500 relative overflow-hidden group",
              "h-16 bg-white/40 backdrop-blur-3xl border border-white/60 rounded-full shadow-[0_15px_40px_-10px_rgba(0,0,0,0.1)] px-3", // Mobile Island
