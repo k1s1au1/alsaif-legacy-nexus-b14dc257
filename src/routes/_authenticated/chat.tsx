@@ -148,7 +148,7 @@ function ChatLayout() {
 
   return (
     <AppShell title="المحادثات" user={shellUser}>
-      <div className="flex h-[calc(100vh-14rem)] rounded-[32px] overflow-hidden border border-border shadow-2xl bg-card animate-fade-up">
+      <div className="flex h-[calc(100vh-8.5rem)] lg:h-[calc(100vh-14rem)] md:rounded-[32px] overflow-hidden md:border border-border md:shadow-2xl bg-card animate-fade-up -mx-4 md:mx-0">
 
         {/* INTEGRATED SIDEBAR */}
         <aside className={cn(

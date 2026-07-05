@@ -166,43 +166,43 @@ function ConversationRoute() {
   );
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden">
+    <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden" dir="rtl">
 
       {/* INTEGRATED HEADER */}
-      <header className="h-20 shrink-0 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-6 z-30 shadow-sm">
-        <div className="flex items-center gap-4 min-w-0">
-          <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-2 -mr-2 text-muted-foreground hover:text-primary transition-all">
-            <ChevronLeft className="size-6 rotate-180" strokeWidth={3} />
+      <header className="h-16 lg:h-20 shrink-0 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 z-30 shadow-sm">
+        <div className="flex items-center gap-3 min-w-0">
+          <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-1 -mr-1 text-muted-foreground hover:text-primary transition-all">
+            <ChevronLeft className="size-6" />
           </button>
 
-          <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setShowInfo(true)}>
-             <div className="relative">
-                <div className="size-12 rounded-2xl bg-muted border border-border overflow-hidden">
+          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setShowInfo(true)}>
+             <div className="relative shrink-0">
+                <div className="size-10 lg:size-12 rounded-xl lg:rounded-2xl bg-muted border border-border overflow-hidden">
                    {conv?.kind === "group" ? (
-                     <div className="size-full flex items-center justify-center bg-primary/5"><Users className="size-6 text-primary" /></div>
+                     <div className="size-full flex items-center justify-center bg-primary/5"><Users className="size-5 lg:size-6 text-primary" /></div>
                    ) : (
                      <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full object-cover" />
                    )}
                 </div>
                 {conv?.kind === "direct" && otherInDirect && (
-                  <PresenceDot state={otherPresenceState} className="absolute -bottom-1 -left-1 size-3 ring-2 ring-card shadow-lg z-20" />
+                  <PresenceDot state={otherPresenceState} className="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-card shadow-lg z-20" />
                 )}
              </div>
              <div className="min-w-0">
-                <h2 className="text-base font-black tracking-tight text-foreground group-hover:text-primary transition-colors truncate">{title}</h2>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">{statusLabel}</p>
+                <h2 className="text-sm lg:text-base font-black tracking-tight text-foreground group-hover:text-primary transition-colors truncate">{title}</h2>
+                <p className="text-[9px] lg:text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-50">{statusLabel}</p>
              </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-           <button onClick={() => setShowSearch(!showSearch)} className={cn("size-10 rounded-xl flex items-center justify-center transition-all", showSearch ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted")}><Search className="size-4.5" strokeWidth={2.5} /></button>
-           <button onClick={() => setShowInfo(true)} className="size-10 rounded-xl bg-muted/40 text-muted-foreground hover:bg-muted flex items-center justify-center transition-all"><MoreHorizontal className="size-5" strokeWidth={2.5} /></button>
+        <div className="flex items-center gap-1 lg:gap-2">
+           <button onClick={() => setShowSearch(!showSearch)} className={cn("size-9 lg:size-10 rounded-xl flex items-center justify-center transition-all", showSearch ? "bg-primary text-white" : "text-muted-foreground hover:bg-muted")}><Search className="size-4" strokeWidth={2.5} /></button>
+           <button onClick={() => setShowInfo(true)} className="size-9 lg:size-10 rounded-xl bg-muted/40 text-muted-foreground hover:bg-muted flex items-center justify-center transition-all"><MoreHorizontal className="size-4.5" strokeWidth={2.5} /></button>
         </div>
       </header>
 
       {/* MESSAGES AREA */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-6 md:px-10 py-10 space-y-6 relative">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-4 lg:px-10 py-6 lg:py-10 space-y-4 lg:space-y-6 relative">
         <AnimatePresence initial={false}>
           {renderGroupedMessages({
             messages, meId, profiles, participants, reactions, deliveries,
@@ -216,27 +216,27 @@ function ConversationRoute() {
       </div>
 
       {/* INPUT AREA */}
-      <div className="px-6 pb-6 shrink-0 relative z-20 bg-background">
+      <div className="px-3 lg:px-6 pb-3 lg:pb-6 shrink-0 relative z-20 bg-background">
          <AnimatePresence>
            {replyTo && (
-              <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 10, opacity: 0 }} className="mb-2 bg-muted/50 backdrop-blur-xl border border-border rounded-2xl p-4 flex items-center gap-4 shadow-sm border-r-4 border-r-gold-primary">
-                 <div className="flex-1 min-w-0"><p className="text-[9px] font-black uppercase text-gold-primary tracking-widest mb-1">الرد على {displayName(profiles[replyTo.sender_id])}</p><p className="text-xs font-bold text-muted-foreground truncate">{replyTo.body || `[مرفق]`}</p></div>
-                 <button onClick={() => setReplyTo(null)} className="size-8 rounded-full hover:bg-muted text-muted-foreground flex items-center justify-center transition-all"><X size={16} /></button>
+              <motion.div initial={{ y: 10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 10, opacity: 0 }} className="mb-2 bg-muted/50 backdrop-blur-xl border border-border rounded-xl lg:rounded-2xl p-3 lg:p-4 flex items-center gap-3 shadow-sm border-r-4 border-r-gold-primary">
+                 <div className="flex-1 min-w-0"><p className="text-[8px] lg:text-[9px] font-black uppercase text-gold-primary tracking-widest mb-0.5 lg:mb-1">الرد على {displayName(profiles[replyTo.sender_id])}</p><p className="text-[11px] lg:text-xs font-bold text-muted-foreground truncate">{replyTo.body || `[مرفق]`}</p></div>
+                 <button onClick={() => setReplyTo(null)} className="size-7 rounded-full hover:bg-muted text-muted-foreground flex items-center justify-center transition-all"><X size={14} /></button>
               </motion.div>
            )}
          </AnimatePresence>
 
-         <form onSubmit={sendText} className="flex items-end gap-3 max-w-6xl mx-auto">
-            <div className="flex-1 bg-muted/30 border border-border rounded-[24px] p-2 flex items-end shadow-inner focus-within:border-primary/30 transition-all">
-               <button type="button" onClick={() => fileInputRef.current?.click()} className="size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><Paperclip className="size-5" strokeWidth={2.5} /></button>
-               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="اكتب رسالتك..." rows={1} className="flex-1 bg-transparent border-none focus:outline-none px-2 py-3 font-bold text-sm text-foreground resize-none max-h-32 no-scrollbar min-h-[44px]" />
+         <form onSubmit={sendText} className="flex items-end gap-2 lg:gap-3 max-w-6xl mx-auto">
+            <div className="flex-1 bg-muted/30 border border-border rounded-[20px] lg:rounded-[24px] p-1.5 lg:p-2 flex items-end shadow-inner focus-within:border-primary/30 transition-all">
+               <button type="button" onClick={() => fileInputRef.current?.click()} className="size-9 lg:size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-all"><Paperclip className="size-4 lg:size-5" strokeWidth={2.5} /></button>
+               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="اكتب..." rows={1} className="flex-1 bg-transparent border-none focus:outline-none px-2 py-2.5 font-bold text-sm text-foreground resize-none max-h-24 lg:max-h-32 no-scrollbar min-h-[40px] lg:min-h-[44px]" />
                <div className="flex items-center gap-0.5">
-                  <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-11 rounded-full text-muted-foreground hover:text-primary transition-all"><Smile className="size-5.5" strokeWidth={2.5} /></button>
-                  <button type="button" onClick={() => imageInputRef.current?.click()} className="size-11 rounded-full text-muted-foreground hover:text-primary transition-all"><ImageIcon className="size-5.5" strokeWidth={2.5} /></button>
+                  <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-9 lg:size-11 rounded-full text-muted-foreground hover:text-primary transition-all"><Smile className="size-5 lg:size-5.5" strokeWidth={2.5} /></button>
+                  <button type="button" onClick={() => imageInputRef.current?.click()} className="size-9 lg:size-11 rounded-full text-muted-foreground hover:text-primary transition-all"><ImageIcon className="size-5 lg:size-5.5" strokeWidth={2.5} /></button>
                </div>
             </div>
-            <button type="submit" disabled={!draft.trim() || sending} className="size-[52px] shrink-0 rounded-[20px] bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 disabled:opacity-30 disabled:scale-100 transition-all">
-               {sending ? <div className="size-5 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : <Send className="size-6" strokeWidth={2.5} />}
+            <button type="submit" disabled={!draft.trim() || sending} className="size-[48px] lg:size-[52px] shrink-0 rounded-[16px] lg:rounded-[20px] bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 disabled:opacity-30 disabled:scale-100 transition-all">
+               {sending ? <div className="size-4 rounded-full border-2 border-white/20 border-t-white animate-spin" /> : <Send className="size-5 lg:size-6" strokeWidth={2.5} />}
             </button>
          </form>
       </div>
