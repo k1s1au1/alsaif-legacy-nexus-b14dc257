@@ -23,8 +23,8 @@ export function TermsGate({ children }: { children: React.ReactNode }) {
         .from("profiles")
         .select("terms_accepted_at")
         .eq("id", u.user.id)
-        .maybeSingle<{ terms_accepted_at: string | null }>();
-      setNeedsAccept(!p?.terms_accepted_at);
+        .maybeSingle();
+      setNeedsAccept(!(p as any)?.terms_accepted_at);
       setChecked(true);
     })();
   }, []);
