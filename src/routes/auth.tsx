@@ -274,15 +274,8 @@ function AuthPage() {
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
       <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
 
-        {/* Heritage Image with Gradient Mask */}
-        <motion.div
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.3 }}
-          transition={{ duration: 2 }}
-          className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${authBg.url})` }}
-        />
-        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
+        {/* Heritage Backdrop Glow */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
 
         {/* Animated Heritage Texture Overlay */}
         <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-2 mix-blend-overlay scale-150"
@@ -294,7 +287,7 @@ function AuthPage() {
 
         {/* Gold Dust Particles */}
         <div className="absolute inset-0 pointer-events-none z-3">
-          {[...Array(15)].map((_, i) => (
+          {[...Array(20)].map((_, i) => (
             <motion.div key={i} initial={{ opacity: 0, x: Math.random() * 100 + "%", y: "110%" }} animate={{ y: "-10%", opacity: [0, 0.4, 0] }} transition={{ duration: 20 + Math.random() * 10, repeat: Infinity, ease: "linear", delay: Math.random() * -20 }} className="absolute size-1.5 bg-gold-primary rounded-full blur-[1px]" />
           ))}
         </div>
@@ -337,15 +330,23 @@ function AuthPage() {
               <HeritageStat label="مبادرات مكتملة" value={`${counts.completedTasks}`} delay={0.6} />
            </div>
 
-           {/* Floating Decorative Logo */}
+           {/* Floating Decorative Logo (NEW OFFICIAL LOGO) */}
            <motion.div
              animate={{ rotate: [0, 360], scale: [1, 1.05, 1] }}
-             transition={{ duration: 40, repeat: Infinity, ease: "linear" }}
+             transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
              className="pt-20 opacity-10 pointer-events-none flex justify-center w-full"
            >
-              <div className="size-[400px] border-[2px] border-dashed border-gold-primary rounded-full flex items-center justify-center">
-                 <div className="size-[300px] border-[1px] border-gold-primary/30 rounded-full" />
-                 <div className="absolute size-48 logo-alsaif grayscale brightness-200" style={{ '--logo-url': `url(${logoAsset.url})` } as any} />
+              <div className="size-[450px] border-[2px] border-dashed border-gold-primary/30 rounded-full flex items-center justify-center relative">
+                 <div className="size-[350px] border-[1px] border-gold-primary/10 rounded-full" />
+                 <div className="absolute size-56"
+                      style={{
+                        backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})`,
+                        backgroundSize: 'contain',
+                        backgroundRepeat: 'no-repeat',
+                        backgroundPosition: 'center',
+                        filter: 'brightness(0) invert(1) opacity(0.5)'
+                      }}
+                 />
               </div>
            </motion.div>
         </div>
