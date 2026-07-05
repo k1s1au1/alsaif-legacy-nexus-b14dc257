@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
+import { PresenceDot, usePresenceFor } from "@/lib/presence";
 import {
   chatTimeLabel,
   conversationAvatarInitial,
