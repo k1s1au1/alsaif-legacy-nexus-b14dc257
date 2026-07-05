@@ -1,20 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder.supabase.co';
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || 'placeholder';
 
-// bulletproof lazy initialization for build tools
-export const supabase: any = (typeof window !== 'undefined' && supabaseUrl && supabaseAnonKey)
+// Simplest possible export to avoid [Getter/Setter] serialization errors during static analysis.
+// The real client is only created in the browser.
+export const supabase = (typeof window !== 'undefined')
   ? createClient(supabaseUrl, supabaseAnonKey)
-  : new Proxy({}, {
-      get: () => {
-        // Return a dummy function to prevent crashes during static analysis
-        return () => ({
-          select: () => ({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: null }) }) }),
-          getUser: () => Promise.resolve({ data: { user: null } }),
-          onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
-        });
-      }
-    });
+  : {} as any;
 
 export const getSupabase = () => supabase;
