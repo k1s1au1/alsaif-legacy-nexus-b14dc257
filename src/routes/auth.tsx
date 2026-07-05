@@ -157,14 +157,14 @@ function AuthPage() {
         >
           {/* Logo Section */}
           <div className="mb-12 text-center flex flex-col items-center w-full">
-             <div className="size-24 bg-white rounded-[32px] shadow-2xl p-5 mb-8 relative overflow-hidden group/logo">
+             <div className="size-36 lg:size-48 bg-white rounded-[40px] lg:rounded-[56px] shadow-2xl p-6 lg:p-10 mb-8 relative overflow-hidden group/logo border-4 border-gold-primary/10">
                 <div
-                  className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg]"
+                  className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg] scale-110"
                   style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})` }}
                 />
              </div>
 
-             <h3 className="text-3xl font-black text-gold-primary tracking-tight">مجلس السيف</h3>
+             <h3 className="text-4xl lg:text-5xl font-black text-gold-primary tracking-tight">مجلس السيف</h3>
              <div className="flex items-center gap-3 mt-3 opacity-30">
                 <div className="h-px w-8 bg-gold-primary" />
                 <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">الهوية الرقمية</span>
