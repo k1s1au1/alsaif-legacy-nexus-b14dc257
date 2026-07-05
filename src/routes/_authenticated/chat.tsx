@@ -148,11 +148,11 @@ function ChatLayout() {
 
   return (
     <AppShell title="المحادثات" user={shellUser}>
-      <div className="flex h-[calc(100vh-8.5rem)] lg:h-[calc(100vh-14rem)] md:rounded-[32px] overflow-hidden md:border border-border md:shadow-2xl bg-card animate-fade-up -mx-4 md:mx-0">
+      <div className="flex h-[calc(100vh-6rem)] -m-6 lg:-m-10 overflow-hidden bg-card animate-fade-up relative z-10">
 
         {/* INTEGRATED SIDEBAR */}
         <aside className={cn(
-            "flex flex-col w-full lg:w-[320px] xl:w-[380px] shrink-0 border-l border-border bg-muted/30 relative z-20 transition-all duration-500",
+            "flex flex-col w-full lg:w-[350px] xl:w-[420px] shrink-0 border-l border-border bg-muted/20 relative z-20 transition-all duration-500",
             isConvOpen ? "hidden lg:flex" : "flex"
           )}>
 

@@ -169,7 +169,7 @@ function ConversationRoute() {
     <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden" dir="rtl">
 
       {/* INTEGRATED HEADER */}
-      <header className="h-16 lg:h-20 shrink-0 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 lg:px-6 z-30 shadow-sm">
+      <header className="h-20 lg:h-24 shrink-0 border-b border-border bg-card/60 backdrop-blur-xl flex items-center justify-between px-4 lg:px-10 z-30 shadow-sm">
         <div className="flex items-center gap-3 min-w-0">
           <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-1 -mr-1 text-muted-foreground hover:text-primary transition-all">
             <ChevronLeft className="size-6" />
