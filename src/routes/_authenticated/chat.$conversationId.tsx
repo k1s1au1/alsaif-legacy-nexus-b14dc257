@@ -574,7 +574,7 @@ function ConversationRoute() {
                    )}
                 </div>
                 {conv.kind === "direct" && otherInDirect && (
-                  <PresenceDot state={usePresenceFor(otherInDirect.user_id)} className="absolute -bottom-0.5 -right-0.5 z-10" />
+                  <PresenceDot state={otherPresenceState} className="absolute -bottom-0.5 -right-0.5 z-10" />
                 )}
              </div>
              <div className="min-w-0">
