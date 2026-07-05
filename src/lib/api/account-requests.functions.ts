@@ -6,12 +6,12 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { userId } = context;
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
 
-    const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
+    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userId);
     const isPriv = (roles ?? []).some((r: any) => ["admin", "chairman"].includes(r.role));
     if (!isPriv) throw new Error("Unauthorized");
 
