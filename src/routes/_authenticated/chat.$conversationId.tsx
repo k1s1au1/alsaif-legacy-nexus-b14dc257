@@ -574,7 +574,7 @@ function ConversationRoute() {
                    )}
                 </div>
                 {conv.kind === "direct" && otherInDirect && (
-                  <PresenceDot state={otherPresenceState} className="absolute -bottom-0.5 -right-0.5 z-10" />
+                  <PresenceDot state={otherPresenceState} className="absolute -bottom-1 -right-1 size-3.5 ring-4 ring-card shadow-lg z-20" />
                 )}
              </div>
              <div className="min-w-0">
@@ -1037,7 +1037,7 @@ function InfoDrawer({ conversation, participants, profiles, presence, meId, isAd
                    <Users className="size-12 text-primary" />
                  ) : (
                    <UserAvatar
-                     path={otherUser ? profiles[otherUser.user_id]?.avatar_url : null}
+                     path={otherUser?.user_id ? profiles[otherUser.user_id]?.avatar_url : null}
                      name={conversationTitle(conversation, participants, profiles, meId)}
                      className="size-full"
                      userId={otherUser?.user_id}

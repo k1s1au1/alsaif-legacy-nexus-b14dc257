@@ -150,14 +150,14 @@ function MemberProfilePage() {
                  {/* Large Royal Avatar */}
                  <div className="relative group shrink-0">
                     <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl group-hover:bg-gold-primary/30 transition-all duration-1000" />
-                    <div className="relative size-40 md:size-60 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl overflow-hidden ring-4 ring-white/5">
+                    <div className="relative size-40 md:size-60 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
                        <div className="size-full rounded-full bg-[#fdfcf7] p-1 overflow-hidden relative">
                           <UserAvatar
                             path={profile.avatar_url}
                             name={displayName}
                             className="size-full object-cover rounded-full"
                             userId={profile.id}
-                            presenceDotClassName="absolute bottom-2 left-2 size-10 ring-8 ring-[#fdfcf7] shadow-2xl"
+                            presenceDotClassName="absolute -bottom-2 -left-2 size-10 ring-8 ring-[#fdfcf7] shadow-2xl z-20"
                           />
                        </div>
                     </div>

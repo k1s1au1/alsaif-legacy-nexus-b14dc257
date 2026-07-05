@@ -159,8 +159,8 @@ function Dashboard() {
       if (tx) setFundBalance(tx.reduce((acc, t) => t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount), 0));
 
       // Shura Integration
-      const pollPosts = posts?.filter(p => p.body?.includes("---poll:"));
-      if (pollPosts?.length && !hasGreeted.current) {
+      const pollPosts = (posts ?? []).filter(p => p.body?.includes("---poll:"));
+      if (pollPosts.length && !hasGreeted.current) {
         const { data: myVotes } = await supabase.from("majlis_comments").select("post_id").eq("author_id", u.id).in("post_id", pollPosts.map(p => p.id)).like("body", "[VOTE]:%");
         const pendingCount = pollPosts.filter(p => !(myVotes || []).some(v => v.post_id === p.id)).length;
         if (pendingCount > 0) showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () => window.dispatchEvent(new CustomEvent("polls:open")));
@@ -172,20 +172,20 @@ function Dashboard() {
       }
 
       if (posts) {
-        const annList = posts.filter(p => (p.kind === 'announcement' || p.body?.includes('---kind:announcement')) && !p.body?.includes('---poll:')).slice(0, 5);
+        const annList = (posts ?? []).filter(p => (p.kind === 'announcement' || p.body?.includes('---kind:announcement')) && !p.body?.includes('---poll:')).slice(0, 5);
         const processedAnns = await Promise.all(annList.map(async (a) => {
-          const imgMatch = a.body.match(/^---image:(.*)\n/);
+          const imgMatch = (a.body || "").match(/^---image:(.*)\n/);
           let url = null;
           if (imgMatch) {
             const { data } = await supabase.storage.from("trip-images").createSignedUrl(imgMatch[1].trim(), 3600);
             url = data?.signedUrl;
           }
-          return { ...a, imageUrl: url, cleanBody: a.body.replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, "").trim(), _label: a.kind === 'announcement' ? "إعلان المجلس" : "أخبار السيف" };
+          return { ...a, imageUrl: url, cleanBody: (a.body || "").replace(/^---image:.*\n/, "").replace(/^---kind:.*\n/, "").trim(), _label: a.kind === 'announcement' ? "إعلان المجلس" : "أخبار السيف" };
         }));
         setAnnouncements(processedAnns);
 
-        const heritage = posts.find(p => p.title?.includes("[إرث]"));
-        if (heritage) setHeritageSnippet({ ...heritage, title: heritage.title.replace("[إرث]", "").trim(), cleanBody: heritage.body.replace(/---kind:.*\n/, "").replace(/---image:.*\n/, "").trim() });
+        const heritage = (posts ?? []).find(p => p.title?.includes("[إرث]"));
+        if (heritage) setHeritageSnippet({ ...heritage, title: heritage.title.replace("[إرث]", "").trim(), cleanBody: (heritage.body || "").replace(/---kind:.*\n/, "").replace(/---image:.*\n/, "").trim() });
       }
 
       supabase.from("family_projects").select("*").eq("status", "approved").order("created_at", { ascending: false }).limit(5).then(async r => {
