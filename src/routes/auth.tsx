@@ -2,10 +2,12 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, Send, X, Phone, User, Sparkles } from "lucide-react";
+import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, Send, X, Phone, User, Sparkles, ImagePlus } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
+import { useAppBackground } from "@/hooks/use-app-background";
+import { BackgroundUploader } from "@/components/background-uploader";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getPublicStats } from "@/lib/api/stats.functions";
@@ -31,7 +33,9 @@ function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState({ members: 0, completedTasks: 0 });
+  const [isAdmin, setIsAdmin] = useState(false);
   const dynamicLogo = useSiteLogo();
+  const { url: customBg } = useAppBackground("auth_bg");
 
   const [reqForm, setReqForm] = useState({
     firstName: "",
@@ -59,20 +63,19 @@ function AuthPage() {
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) navigate({ to: "/dashboard", replace: true });
+      if (data.user) {
+        navigate({ to: "/dashboard", replace: true });
+        // Also check if admin for the uploader button
+        supabase.from("user_roles").select("role").eq("user_id", data.user.id).then(({ data: roles }) => {
+          const r = (roles ?? []).map(x => x.role);
+          setIsAdmin(r.includes("admin") || r.includes("chairman"));
+        });
+      }
     });
 
-    const fetchStats = async () => {
-      try {
-        const data = await getPublicStats();
-        if (data && typeof data.members === 'number') {
-           setCounts(data);
-        }
-      } catch (err) {
-        console.error("Stats error", err);
-      }
-    };
-    fetchStats();
+    getPublicStats().then(data => {
+      if (data) setCounts(data);
+    });
   }, [navigate]);
 
   async function onLogin(e: React.FormEvent) {
@@ -131,7 +134,7 @@ function AuthPage() {
     <div className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-hidden" dir="rtl">
 
       {/* 1. Full-Height Login Pane (Right Side in RTL) */}
-      <div className="w-full lg:w-[500px] xl:w-[650px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-8 sm:p-24 border-l border-white/5 shadow-[-50px_0_100px_rgba(0,0,0,0.6)]">
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-8 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0">
 
         {/* Mobile Backdrop Glow */}
         <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#064e3b] to-[#0d0f17] -z-1 opacity-20" />
@@ -145,7 +148,7 @@ function AuthPage() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, type: "spring", damping: 25 }}
-          className="w-full max-md flex flex-col items-center"
+          className="w-full max-w-md flex flex-col items-center"
         >
           {/* Logo Section */}
           <div className="mb-12 text-center flex flex-col items-center w-full">
@@ -267,8 +270,23 @@ function AuthPage() {
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
       <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
 
+        {/* Dynamic Background Image with Advanced Gradient Mask */}
+        <motion.div
+          key={customBg}
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.4 }}
+          transition={{ duration: 2.5, ease: "easeOut" }}
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: customBg ? `url(${customBg})` : 'none' }}
+        />
+
+        {/* Multi-layered Seamless Blend - Always visible to ensure text legibility */}
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#064e3b] via-transparent to-transparent opacity-60" />
+        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/50 to-transparent" />
+
         {/* Animated Heritage Texture Overlay (The Emerald Pattern) */}
-        <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-1 mix-blend-overlay scale-150"
+        <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-2 mix-blend-overlay scale-150"
              style={{
                backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
                backgroundSize: '100px 100px'
@@ -276,7 +294,7 @@ function AuthPage() {
         />
 
         {/* Gold Dust Particles */}
-        <div className="absolute inset-0 pointer-events-none z-2">
+        <div className="absolute inset-0 pointer-events-none z-3">
           {[...Array(20)].map((_, i) => (
             <motion.div key={i} initial={{ opacity: 0, x: Math.random() * 100 + "%", y: "110%" }} animate={{ y: "-10%", opacity: [0, 0.4, 0] }} transition={{ duration: 15 + Math.random() * 20, repeat: Infinity, ease: "linear", delay: Math.random() * -20 }} className="absolute size-1.5 bg-gold-primary rounded-full blur-[1px]" />
           ))}
@@ -320,7 +338,7 @@ function AuthPage() {
               <HeritageStat label="مبادرات مكتملة" value={`${counts.completedTasks}`} delay={0.6} />
            </div>
 
-           {/* Floating Decorative Logo (NEW OFFICIAL LOGO) */}
+           {/* Floating Decorative Logo (Subtle Background element) */}
            <motion.div
              animate={{ rotate: [0, 360], scale: [1, 1.05, 1] }}
              transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
@@ -340,6 +358,13 @@ function AuthPage() {
               </div>
            </motion.div>
         </div>
+
+        {/* Change Background Button (Visible for admins) */}
+        {isAdmin && (
+          <div className="absolute bottom-10 left-10 z-50">
+             <BackgroundUploader settingKey="auth_bg" label="تغيير الخلفية" className="bg-white/5 text-white/40 border border-white/10 hover:bg-gold-primary hover:text-emerald-950 transition-all shadow-none" />
+          </div>
+        )}
       </div>
 
     </div>
