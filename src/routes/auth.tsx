@@ -271,14 +271,16 @@ function AuthPage() {
       <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
 
         {/* Dynamic Background Image with Advanced Gradient Mask */}
-        <motion.div
-          key={customBg}
-          initial={{ scale: 1.1, opacity: 0 }}
-          animate={{ scale: 1, opacity: 0.4 }}
-          transition={{ duration: 2.5, ease: "easeOut" }}
-          className="absolute inset-0 z-0 bg-cover bg-center"
-          style={{ backgroundImage: customBg ? `url(${customBg})` : 'none' }}
-        />
+        <div className="absolute inset-0 z-0">
+           <motion.div
+             key={customBg}
+             initial={{ scale: 1.15, opacity: 0 }}
+             animate={{ scale: 1, opacity: 0.35 }}
+             transition={{ duration: 3, ease: "easeOut" }}
+             className="size-full bg-cover bg-center bg-no-repeat transition-all duration-1000"
+             style={{ backgroundImage: customBg ? `url(${customBg})` : 'none' }}
+           />
+        </div>
 
         {/* Multi-layered Seamless Blend - Always visible to ensure text legibility */}
         <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
