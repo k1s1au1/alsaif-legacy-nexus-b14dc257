@@ -146,6 +146,54 @@ function ChatLayout() {
       });
   }, [items, profiles, meId, search, showArchive]);
 
+  const handleToggleArchive = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isArchiving = !item.myParticipant.archived_at;
+    const now = new Date().toISOString();
+
+    setItems(prev => prev.map(it =>
+      it.conversation.id === item.conversation.id
+        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
+        : it
+    ));
+
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ archived_at: isArchiving ? now : null })
+      .eq("id", item.myParticipant.id);
+
+    if (error) {
+      toast.error("حدث خطأ");
+      load();
+    } else {
+      toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة");
+    }
+  };
+
+  const handleDeleteOrLeave = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isOwner = item.myParticipant.role === "owner";
+    const isGroup = item.conversation.kind === "group";
+    const msg = isOwner && isGroup ? "هل تود حذف هذه المجموعة نهائياً؟" : isGroup ? "هل تود مغادرة هذه المجموعة؟" : "هل تود حذف هذه المحادثة؟";
+    if (!confirm(msg)) return;
+
+    let error;
+    if (isOwner && isGroup) {
+      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
+      error = err;
+    }
+
+    if (error) {
+      toast.error("فشل الإجراء");
+    } else {
+      toast.success("تم الحذف");
+      load();
+    }
+  };
+
   return (
     <AppShell title="المحادثات" user={shellUser}>
       <div className="flex h-[calc(100vh-6rem)] -m-6 lg:-m-10 overflow-hidden bg-card animate-fade-up relative z-10">
@@ -243,6 +291,54 @@ function ConversationRow({ item, meId, profiles, active, onArchive, onDelete }: 
   const lastMine = item.lastMessage?.sender_id === meId;
   const isArchived = !!item.myParticipant?.archived_at;
 
+  const handleToggleArchive = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isArchiving = !item.myParticipant.archived_at;
+    const now = new Date().toISOString();
+
+    setItems(prev => prev.map(it =>
+      it.conversation.id === item.conversation.id
+        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
+        : it
+    ));
+
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ archived_at: isArchiving ? now : null })
+      .eq("id", item.myParticipant.id);
+
+    if (error) {
+      toast.error("حدث خطأ");
+      load();
+    } else {
+      toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة");
+    }
+  };
+
+  const handleDeleteOrLeave = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isOwner = item.myParticipant.role === "owner";
+    const isGroup = item.conversation.kind === "group";
+    const msg = isOwner && isGroup ? "هل تود حذف هذه المجموعة نهائياً؟" : isGroup ? "هل تود مغادرة هذه المجموعة؟" : "هل تود حذف هذه المحادثة؟";
+    if (!confirm(msg)) return;
+
+    let error;
+    if (isOwner && isGroup) {
+      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
+      error = err;
+    }
+
+    if (error) {
+      toast.error("فشل الإجراء");
+    } else {
+      toast.success("تم الحذف");
+      load();
+    }
+  };
+
   return (
     <div className="relative overflow-hidden rounded-[28px] group/row">
       <div className="absolute inset-0 flex items-center justify-between px-6 z-0">
@@ -336,6 +432,54 @@ function NewConversationDialog({ mode, meId, profiles, onClose }: { mode: "chat"
       }
     } catch (err: any) { toast.error("تعذّر إنشاء المحادثة"); } finally { setBusy(false); }
   }
+
+  const handleToggleArchive = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isArchiving = !item.myParticipant.archived_at;
+    const now = new Date().toISOString();
+
+    setItems(prev => prev.map(it =>
+      it.conversation.id === item.conversation.id
+        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
+        : it
+    ));
+
+    const { error } = await supabase
+      .from("conversation_participants")
+      .update({ archived_at: isArchiving ? now : null })
+      .eq("id", item.myParticipant.id);
+
+    if (error) {
+      toast.error("حدث خطأ");
+      load();
+    } else {
+      toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة");
+    }
+  };
+
+  const handleDeleteOrLeave = async (item: ConversationListItem) => {
+    if (!item.myParticipant) return;
+    const isOwner = item.myParticipant.role === "owner";
+    const isGroup = item.conversation.kind === "group";
+    const msg = isOwner && isGroup ? "هل تود حذف هذه المجموعة نهائياً؟" : isGroup ? "هل تود مغادرة هذه المجموعة؟" : "هل تود حذف هذه المحادثة؟";
+    if (!confirm(msg)) return;
+
+    let error;
+    if (isOwner && isGroup) {
+      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
+      error = err;
+    } else {
+      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
+      error = err;
+    }
+
+    if (error) {
+      toast.error("فشل الإجراء");
+    } else {
+      toast.success("تم الحذف");
+      load();
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
