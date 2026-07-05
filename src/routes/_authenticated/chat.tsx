@@ -183,7 +183,7 @@ function ChatLayout() {
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto no-scrollbar p-3 space-y-1 bg-muted/10">
+          <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-muted/10 min-h-0 custom-scrollbar">
             {loading ? (
               <div className="py-20 text-center opacity-30"><Clock className="size-8 mx-auto animate-spin mb-2" /></div>
             ) : filtered.length === 0 ? (

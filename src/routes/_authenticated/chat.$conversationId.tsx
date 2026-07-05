@@ -202,7 +202,7 @@ function ConversationRoute() {
       </header>
 
       {/* MESSAGES AREA */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-4 lg:px-10 py-6 lg:py-10 space-y-4 lg:space-y-6 relative">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 lg:px-10 py-6 lg:py-10 space-y-4 lg:space-y-6 relative min-h-0 custom-scrollbar">
         <AnimatePresence initial={false}>
           {renderGroupedMessages({
             messages, meId, profiles, participants, reactions, deliveries,
