@@ -156,16 +156,16 @@ function ChatLayout() {
 
   return (
     <AppShell title="المحادثات" user={shellUser}>
-      <div className="flex h-[calc(100vh-10rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10 overflow-hidden bg-[#051410]">
+      <div className="flex h-[calc(100vh-6rem)] lg:h-[calc(100vh-8rem)] -m-6 lg:-m-10 -mt-6 lg:-mt-10 overflow-hidden bg-[#051410]">
 
         {/* RADICAL PRESTIGE SIDEBAR */}
         <aside className={cn(
-            "flex flex-col w-full lg:w-[360px] xl:w-[420px] shrink-0 border-l border-white/5 bg-gradient-to-b from-[#064E3B]/20 to-[#051410] relative z-20 transition-all duration-500",
+            "flex flex-col w-full lg:w-[320px] xl:w-[380px] shrink-0 border-l border-white/5 bg-gradient-to-b from-[#064E3B]/20 to-[#051410] relative z-20 transition-all duration-500",
             isConvOpen ? "hidden lg:flex" : "flex"
           )}>
 
           {/* Header Area */}
-          <div className="p-8 space-y-8 relative overflow-hidden">
+          <div className="p-6 lg:p-8 space-y-6 lg:space-y-8 relative overflow-hidden shrink-0">
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
                  style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l15 30H15zM30 60L15 30h30zM0 30l30-15v30zM60 30L30 45V15z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")` }} />
 

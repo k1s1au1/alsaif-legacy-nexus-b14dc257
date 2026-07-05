@@ -209,45 +209,45 @@ function ConversationRoute() {
     <div className="flex-1 flex flex-col h-full bg-[#051410] relative overflow-hidden">
 
       {/* RADICAL PRESTIGE HEADER */}
-      <header className="h-24 shrink-0 border-b border-white/5 bg-black/40 backdrop-blur-3xl flex items-center justify-between px-8 z-30 shadow-2xl">
-        <div className="flex items-center gap-6 min-w-0">
-          <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-3 -mr-3 text-white/40 hover:text-gold-primary transition-all">
-            <ChevronLeft className="size-8 rotate-180" strokeWidth={3} />
+      <header className="h-20 lg:h-24 shrink-0 border-b border-white/5 bg-black/40 backdrop-blur-3xl flex items-center justify-between px-4 lg:px-8 z-30 shadow-2xl">
+        <div className="flex items-center gap-3 lg:gap-6 min-w-0">
+          <button onClick={() => navigate({ to: "/chat" })} className="lg:hidden p-2 -mr-2 text-white/40 hover:text-gold-primary transition-all">
+            <ChevronLeft className="size-7 rotate-180" strokeWidth={3} />
           </button>
 
-          <div className="flex items-center gap-5 cursor-pointer group" onClick={() => setShowInfo(true)}>
+          <div className="flex items-center gap-3 lg:gap-5 cursor-pointer group" onClick={() => setShowInfo(true)}>
              <div className="relative">
-                <div className="size-14 rounded-[22px] bg-gradient-to-br from-gold-primary via-gold-primary to-[#8E7745] p-0.5 shadow-xl transition-transform group-hover:scale-105">
-                   <div className="size-full rounded-[20px] bg-[#051410] overflow-hidden">
+                <div className="size-11 lg:size-14 rounded-[18px] lg:rounded-[22px] bg-gradient-to-br from-gold-primary via-gold-primary to-[#8E7745] p-0.5 shadow-xl transition-transform group-hover:scale-105">
+                   <div className="size-full rounded-[16px] lg:rounded-[20px] bg-[#051410] overflow-hidden">
                       {conv?.kind === "group" ? (
-                        <div className="size-full flex items-center justify-center bg-white/5"><Users className="size-7 text-gold-primary" /></div>
+                        <div className="size-full flex items-center justify-center bg-white/5"><Users className="size-5 lg:size-7 text-gold-primary" /></div>
                       ) : (
                         <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full object-cover" />
                       )}
                    </div>
                 </div>
                 {conv?.kind === "direct" && otherInDirect && (
-                  <PresenceDot state={otherPresenceState} className="absolute -bottom-1 -left-1 size-4 ring-4 ring-[#051410] shadow-2xl z-20" />
+                  <PresenceDot state={otherPresenceState} className="absolute -bottom-1 -left-1 size-3.5 ring-4 ring-[#051410] shadow-2xl z-20" />
                 )}
              </div>
              <div className="min-w-0 space-y-0.5">
-                <h2 className="text-xl font-black tracking-tighter text-white group-hover:text-gold-primary transition-colors truncate">{title}</h2>
+                <h2 className="text-[17px] lg:text-xl font-black tracking-tighter text-white group-hover:text-gold-primary transition-colors truncate">{title}</h2>
                 <div className="flex items-center gap-2">
                    <div className={cn("size-1.5 rounded-full animate-pulse", otherPresenceState === 'online' ? "bg-emerald-500" : "bg-white/20")} />
-                   <p className="text-[11px] font-black uppercase tracking-widest text-white/40">{statusLabel}</p>
+                   <p className="text-[10px] font-black uppercase tracking-widest text-white/40">{statusLabel}</p>
                 </div>
              </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-           <button onClick={() => setShowSearch(!showSearch)} className={cn("size-12 rounded-2xl flex items-center justify-center transition-all shadow-lg", showSearch ? "bg-gold-primary text-emerald-950" : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white")}><Search className="size-5" strokeWidth={2.5} /></button>
-           <button onClick={() => setShowInfo(true)} className="size-12 rounded-2xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white flex items-center justify-center transition-all shadow-lg"><MoreHorizontal className="size-6" strokeWidth={2.5} /></button>
+        <div className="flex items-center gap-2 lg:gap-3">
+           <button onClick={() => setShowSearch(!showSearch)} className={cn("size-10 lg:size-12 rounded-[14px] lg:rounded-2xl flex items-center justify-center transition-all shadow-lg", showSearch ? "bg-gold-primary text-emerald-950" : "bg-white/5 text-white/40 hover:bg-white/10 hover:text-white")}><Search className="size-4 lg:size-5" strokeWidth={2.5} /></button>
+           <button onClick={() => setShowInfo(true)} className="size-10 lg:size-12 rounded-[14px] lg:rounded-2xl bg-white/5 text-white/40 hover:bg-white/10 hover:text-white flex items-center justify-center transition-all shadow-lg"><MoreHorizontal className="size-5 lg:size-6" strokeWidth={2.5} /></button>
         </div>
       </header>
 
       {/* MESSAGES AREA */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-6 md:px-12 py-10 space-y-8 relative">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto no-scrollbar px-4 lg:px-12 py-8 lg:py-10 space-y-6 lg:space-y-8 relative">
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M50 0l15 35H35zM50 100L35 65h30zM0 50l35-15v30zM100 50L65 65V35z' fill='%23D4AF37'/%3E%3C/svg%3E")`, backgroundSize: '100px 100px' }} />
 
         <AnimatePresence initial={false}>
@@ -274,17 +274,17 @@ function ConversationRoute() {
            )}
          </AnimatePresence>
 
-         <form onSubmit={sendText} className="flex items-end gap-4 max-w-6xl mx-auto">
-            <div className="flex-1 bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[35px] p-3 flex items-end shadow-[0_30px_70px_rgba(0,0,0,0.5)] focus-within:border-gold-primary/40 transition-all ring-1 ring-white/5">
-               <button type="button" onClick={() => fileInputRef.current?.click()} className="size-12 md:size-14 rounded-full flex items-center justify-center text-white/30 hover:text-gold-primary hover:bg-white/5 transition-all"><Paperclip className="size-6" strokeWidth={2.5} /></button>
-               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="ارتقِ بحديثك في أروقة السيف..." rows={1} className="flex-1 bg-transparent border-none focus:outline-none px-4 py-4 font-bold text-lg text-white placeholder:text-white/20 resize-none max-h-48 no-scrollbar min-h-[56px]" />
-               <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-12 md:size-14 rounded-full text-white/30 hover:text-gold-primary hover:bg-white/5 transition-all"><Smile className="size-7" strokeWidth={2.5} /></button>
-                  <button type="button" onClick={() => imageInputRef.current?.click()} className="size-12 md:size-14 rounded-full bg-white/5 text-gold-primary flex items-center justify-center hover:bg-gold-primary hover:text-emerald-950 transition-all shadow-inner"><ImageIcon className="size-7" strokeWidth={2.5} /></button>
+         <form onSubmit={sendText} className="flex items-end gap-3 lg:gap-4 max-w-6xl mx-auto">
+            <div className="flex-1 bg-black/40 backdrop-blur-3xl border border-white/10 rounded-[28px] lg:rounded-[35px] p-2 lg:p-3 flex items-end shadow-2xl focus-within:border-gold-primary/40 transition-all ring-1 ring-white/5">
+               <button type="button" onClick={() => fileInputRef.current?.click()} className="size-10 lg:size-14 rounded-full flex items-center justify-center text-white/30 hover:text-gold-primary transition-all"><Paperclip className="size-5 lg:size-6" strokeWidth={2.5} /></button>
+               <textarea value={draft} onChange={(e) => setDraft(e.target.value)} placeholder="ارتقِ بحديثك..." rows={1} className="flex-1 bg-transparent border-none focus:outline-none px-2 lg:px-4 py-3 lg:py-4 font-bold text-base lg:text-lg text-white placeholder:text-white/20 resize-none max-h-32 lg:max-h-48 no-scrollbar min-h-[48px] lg:min-h-[56px]" />
+               <div className="flex items-center gap-0.5 lg:gap-1">
+                  <button type="button" onClick={() => setShowEmoji(!showEmoji)} className="size-10 lg:size-14 rounded-full text-white/30 hover:text-gold-primary transition-all"><Smile className="size-6 lg:size-7" strokeWidth={2.5} /></button>
+                  <button type="button" onClick={() => imageInputRef.current?.click()} className="size-10 lg:size-14 rounded-full bg-white/5 text-gold-primary flex items-center justify-center hover:bg-gold-primary hover:text-emerald-950 transition-all shadow-inner"><ImageIcon className="size-6 lg:size-7" strokeWidth={2.5} /></button>
                </div>
             </div>
-            <button type="submit" disabled={!draft.trim() || sending} className="size-[64px] md:size-[80px] rounded-[30px] bg-gradient-to-br from-gold-primary to-[#8E7745] text-emerald-950 flex items-center justify-center shadow-[0_20px_40px_rgba(212,175,55,0.3)] hover:scale-105 active:scale-95 disabled:opacity-30 disabled:scale-100 transition-all">
-               {sending ? <div className="size-8 rounded-full border-4 border-emerald-950/20 border-t-emerald-950 animate-spin" /> : <Send className="size-8 md:size-10" strokeWidth={3} />}
+            <button type="submit" disabled={!draft.trim() || sending} className="size-[56px] lg:size-[80px] shrink-0 rounded-[24px] lg:rounded-[30px] bg-gradient-to-br from-gold-primary to-[#8E7745] text-emerald-950 flex items-center justify-center shadow-xl hover:scale-105 active:scale-95 disabled:opacity-30 disabled:scale-100 transition-all">
+               {sending ? <div className="size-6 lg:size-8 rounded-full border-4 border-emerald-950/20 border-t-emerald-950 animate-spin" /> : <Send className="size-6 lg:size-10" strokeWidth={3} />}
             </button>
             <input ref={fileInputRef} type="file" hidden onChange={e => { const f = e.target.files?.[0]; if (f) toast.info("جاري المعالجة..."); }} />
             <input ref={imageInputRef} type="file" accept="image/*" hidden onChange={e => { const f = e.target.files?.[0]; if (f) toast.info("جاري المعالجة..."); }} />
