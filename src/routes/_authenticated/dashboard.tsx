@@ -356,8 +356,8 @@ function Dashboard() {
            </div>
           </div>
         </section>
-          </div>
-        </section>
+
+
 
         <QuickActionsBanner />
         <PollsPopup userId={profile.userId ?? null} />
