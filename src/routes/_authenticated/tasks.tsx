@@ -284,6 +284,7 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
   const assignee = members.find((m: any) => m.id === task.assignee_id);
   const isAssignee = task.assignee_id === userId;
   const isDone = task.progress === 100;
+  const [expanded, setExpanded] = useState(false);
 
   return (
     <motion.article
@@ -320,7 +321,24 @@ function ModernTaskCard({ task, index, userId, members, onProgressChange, onDele
 
           <div className="space-y-3">
              <h4 className={cn("text-2xl md:text-3xl font-black text-foreground leading-[1.1] tracking-tight transition-colors", isDone && "text-emerald-500 dark:text-emerald-400")}>{task.title}</h4>
-             {task.description && <p className="text-sm md:text-base font-bold text-muted-foreground leading-relaxed whitespace-pre-wrap">{task.description}</p>}
+             {task.description && (
+                <div className="space-y-2">
+                   <p className={cn(
+                     "text-sm md:text-base font-bold text-muted-foreground leading-relaxed whitespace-pre-wrap transition-all duration-300",
+                     !expanded && "line-clamp-3"
+                   )}>
+                      {task.description}
+                   </p>
+                   {task.description.length > 100 && (
+                      <button
+                        onClick={() => setExpanded(!expanded)}
+                        className="text-[10px] font-black text-gold-primary uppercase tracking-widest hover:underline"
+                      >
+                         {expanded ? "عرض أقل" : "المزيد..."}
+                      </button>
+                   )}
+                </div>
+             )}
           </div>
 
           <div className="space-y-6">
