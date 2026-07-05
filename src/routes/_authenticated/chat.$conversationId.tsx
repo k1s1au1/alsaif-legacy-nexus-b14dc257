@@ -361,15 +361,15 @@ function InfoDrawer({ conversation, participants, profiles, meId, onClose }: any
   return (
     <div className="fixed inset-0 z-[100] flex justify-end overflow-hidden">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 200 }} className="relative w-[85vw] max-w-sm bg-card h-full shadow-2xl flex flex-col border-r border-border">
+      <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", damping: 30, stiffness: 200 }} className="relative w-[80vw] sm:w-[320px] bg-card h-full shadow-2xl flex flex-col border-r border-border">
         <header className="h-20 shrink-0 border-b border-border flex items-center justify-between px-8">
            <h3 className="text-lg font-black text-primary">تفاصيل المجلس</h3>
            <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all text-muted-foreground"><X size={24} /></button>
         </header>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar p-8 space-y-10">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 space-y-8 lg:space-y-10">
            <div className="flex flex-col items-center text-center space-y-6">
-              <div className="size-32 rounded-[32px] bg-muted border border-border flex items-center justify-center relative overflow-hidden group">
+              <div className="size-24 lg:size-32 rounded-[28px] lg:rounded-[32px] bg-muted border border-border flex items-center justify-center relative overflow-hidden group">
                  {conversation.kind === "group" ? (
                    <Users className="size-12 text-primary/20" />
                  ) : (

@@ -152,7 +152,7 @@ function ChatLayout() {
 
         {/* INTEGRATED SIDEBAR */}
         <aside className={cn(
-            "flex flex-col w-full lg:w-[350px] xl:w-[420px] shrink-0 border-l border-border bg-muted/20 relative z-20 transition-all duration-500",
+            "flex flex-col w-full lg:w-[280px] xl:w-[320px] shrink-0 border-l border-border bg-muted/20 relative z-20 transition-all duration-500",
             isConvOpen ? "hidden lg:flex" : "flex"
           )}>
 
