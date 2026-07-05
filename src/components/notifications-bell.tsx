@@ -64,7 +64,7 @@ export function NotificationsBell() {
       // 1) Unread messages
       const { data: parts } = await supabase.from("conversation_participants").select("conversation_id,last_read_at").eq("user_id", uid);
       if (parts?.length) {
-        const readMap = new Map(parts.map(p => [p.conversation_id, p.last_read_at ? new Date(p.last_read_at).getTime() : 0]));
+        const readMap = new Map<string, number>(parts.map((p: any) => [p.conversation_id, p.last_read_at ? new Date(p.last_read_at).getTime() : 0]));
         const { data: msgs } = await supabase.from("messages").select("id,conversation_id,body,created_at,sender_id").in("conversation_id", [...readMap.keys()]).neq("sender_id", uid).order("created_at", { ascending: false }).limit(50);
 
         const unreadConvs = new Set<string>();
