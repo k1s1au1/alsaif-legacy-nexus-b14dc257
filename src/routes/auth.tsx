@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, Send, X, Phone, User, Sparkles, ImagePlus } from "lucide-react";
 import palmWatermark from "@/assets/palm-watermark.png";
+import authBgAsset from "@/assets/alsaif-auth-bg.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
 import { BackgroundUploader } from "@/components/background-uploader";
@@ -52,6 +53,14 @@ function AuthPage() {
     "حيث يُحفظ الإرث وتُبنى الروابط",
     "منصة التواصل الرسمية والخاصة"
   ];
+
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return "صباح الخير";
+    if (hr >= 12 && hr < 17) return "مساء النور";
+    if (hr >= 17 && hr < 21) return "مساء الخير";
+    return "طاب مساؤك";
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
