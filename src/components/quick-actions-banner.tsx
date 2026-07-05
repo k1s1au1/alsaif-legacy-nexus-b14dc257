@@ -24,17 +24,16 @@ interface QuickActionProps {
 
 function QuickAction({ to, label, icon, color }: QuickActionProps) {
   return (
-    <Link to={to} className="group flex flex-col items-center gap-2 shrink-0 focus:outline-none w-full sm:w-auto">
-       {/* Solid Colored Icon Container - Balanced for Grid */}
+    <Link to={to} className="group flex flex-col items-center gap-2 shrink-0 focus:outline-none">
+       {/* Slick Responsive Icon Container */}
        <div className={cn(
-         "size-14 md:size-16 rounded-[22px] flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1.5",
-         "shadow-lg group-hover:shadow-2xl relative overflow-hidden",
+         "size-12 md:size-15 rounded-[18px] md:rounded-[22px] flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110",
+         "shadow-md group-hover:shadow-xl relative overflow-hidden",
          color
        )}>
-          <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-          {React.cloneElement(icon, { size: 28, strokeWidth: 1.5 })}
+          {React.cloneElement(icon, { size: 24, strokeWidth: 2 })}
        </div>
-       <span className="text-[10px] md:text-[12px] font-black text-primary/80 group-hover:text-primary transition-colors whitespace-nowrap tracking-tight text-center">{label}</span>
+       <span className="text-[10px] md:text-[11px] font-black text-primary/60 group-hover:text-primary transition-colors whitespace-nowrap tracking-tight">{label}</span>
     </Link>
   );
 }
@@ -42,28 +41,28 @@ function QuickAction({ to, label, icon, color }: QuickActionProps) {
 export function QuickActionsBanner() {
   return (
     <section className="animate-fade-up w-full px-4 md:px-0 py-2">
-       {/* Adaptive Container: Grid on Mobile, Flex on Desktop */}
-       <div className="bg-white/60 backdrop-blur-2xl rounded-[40px] md:rounded-[48px] p-6 md:p-10 border border-white/60 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden">
+       {/* Clean, Non-Intrusive Container - No bulky background */}
+       <div className="bg-white/30 backdrop-blur-xl rounded-[32px] md:rounded-[44px] p-6 md:p-10 border border-white/40 shadow-sm relative">
 
-          <div className="flex items-center justify-center gap-4 mb-8 opacity-40">
-            <div className="h-[1px] w-8 bg-gradient-to-r from-transparent to-primary/40" />
-            <h3 className="text-[9px] font-black text-primary uppercase tracking-[0.3em] whitespace-nowrap">بوابة الوصول السريع</h3>
-            <div className="h-[1px] w-8 bg-gradient-to-l from-transparent to-primary/40" />
+          <div className="flex items-center justify-center gap-4 mb-8 opacity-30">
+            <div className="h-[1px] w-8 bg-primary" />
+            <h3 className="text-[9px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع</h3>
+            <div className="h-[1px] w-8 bg-primary" />
           </div>
 
-          {/* THE GRID LOGIC: 3 columns on mobile, auto-flex on desktop */}
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:flex md:flex-row md:overflow-x-auto no-scrollbar gap-y-8 gap-x-4 md:gap-6 lg:justify-between items-start" dir="rtl">
-             <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#065F46]" />
-             <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#D4AF37]" />
-             <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1B3022]" />
-             <QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-[#947D4C]" />
-             <QuickAction to="/majlis" label="الأخبار" icon={<Newspaper />} color="bg-[#064E3B]" />
-             <QuickAction to="/community" label="ركن الأعضاء" icon={<Users />} color="bg-[#3D8557]" />
-             <QuickAction to="/archive" label="الألبوم" icon={<Archive />} color="bg-[#C5A87C]" />
-             <QuickAction to="/heritage" label="الإرث" icon={<History />} color="bg-[#8E7745]" />
-             <QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-[#153221]" />
-             <QuickAction to="/finance" label="الصندوق" icon={<Wallet />} color="bg-[#BF953F]" />
-             <QuickAction to="/profile" label="ملفي" icon={<User />} color="bg-[#043A2B]" />
+          {/* PRO HORIZONTAL SCROLL - Styled like high-end apps */}
+          <div className="flex overflow-x-auto no-scrollbar gap-7 md:gap-4 lg:justify-between px-2 pb-2 items-start snap-x snap-mandatory" dir="rtl">
+             <div className="snap-center"><QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#065F46]" /></div>
+             <div className="snap-center"><QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#D4AF37]" /></div>
+             <div className="snap-center"><QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1B3022]" /></div>
+             <div className="snap-center"><QuickAction to="/tasks" label="مهام" icon={<ListChecks />} color="bg-[#947D4C]" /></div>
+             <div className="snap-center"><QuickAction to="/majlis" label="الأخبار" icon={<Newspaper />} color="bg-[#064E3B]" /></div>
+             <div className="snap-center"><QuickAction to="/community" label="ركن الأعضاء" icon={<Users />} color="bg-[#3D8557]" /></div>
+             <div className="snap-center"><QuickAction to="/archive" label="الألبوم" icon={<Archive />} color="bg-[#C5A87C]" /></div>
+             <div className="snap-center"><QuickAction to="/heritage" label="الإرث" icon={<History />} color="bg-[#8E7745]" /></div>
+             <div className="snap-center"><QuickAction to="/family-tree" label="الشجرة" icon={<Trees />} color="bg-[#153221]" /></div>
+             <div className="snap-center"><QuickAction to="/finance" label="الصندوق" icon={<Wallet />} color="bg-[#BF953F]" /></div>
+             <div className="snap-center"><QuickAction to="/profile" label="ملفي" icon={<User />} color="bg-[#043A2B]" /></div>
           </div>
        </div>
     </section>
