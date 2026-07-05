@@ -129,15 +129,17 @@ function ConversationRoute() {
   }, [conv, myParticipant, isAdmin]);
 
   useEffect(() => {
+    let active = true;
     setNotFound(false);
     setConv(null);
     setMessages([]);
     setLoading(true);
-    (async () => {
+
+    const loadData = async () => {
       try {
-        const { data: u } = await supabase.auth.getUser();
-        if (!u.user) return;
-        setMeId(u.user.id);
+        const { data: authData } = await supabase.auth.getUser();
+        if (!active || !authData?.user) return;
+        setMeId(authData.user.id);
 
         const { data: c, error: cErr } = await supabase
           .from("conversations")
@@ -145,6 +147,7 @@ function ConversationRoute() {
           .eq("id", conversationId)
           .maybeSingle();
 
+        if (!active) return;
         if (cErr || !c) {
           setNotFound(true);
           setLoading(false);
@@ -166,11 +169,13 @@ function ConversationRoute() {
             .limit(300),
         ]);
 
+        if (!active) return;
+
         const partList = (parts ?? []) as unknown as Participant[];
         setParticipants(partList);
 
         const pmap: Record<string, Profile> = {};
-        (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
+        (profs ?? []).forEach((p) => { if (p.id) pmap[p.id] = p as Profile; });
         setProfiles(pmap);
 
         const msgList = (msgs ?? []) as Message[];
@@ -182,26 +187,33 @@ function ConversationRoute() {
             supabase.from("message_reactions").select("*").in("message_id", ids),
             supabase.from("message_deliveries").select("*").in("message_id", ids),
           ]);
-          setReactions((rxs ?? []) as Reaction[]);
-          setDeliveries((delvs ?? []) as Delivery[]);
+          if (active) {
+            setReactions((rxs ?? []) as Reaction[]);
+            setDeliveries((delvs ?? []) as Delivery[]);
+          }
         }
 
-        const userIds = partList.map((p) => p.user_id);
-        if (userIds.length) {
+        const userIds = partList.map((p) => p.user_id).filter(Boolean);
+        if (active && userIds.length) {
           const { data: pres } = await supabase
             .from("user_presence")
             .select("*")
             .in("user_id", userIds);
-          const pm: Record<string, Presence> = {};
-          (pres ?? []).forEach((x) => (pm[x.user_id] = x as Presence));
-          setPresence(pm);
+          if (active) {
+            const pm: Record<string, Presence> = {};
+            (pres ?? []).forEach((x) => { if (x.user_id) pm[x.user_id] = x as Presence; });
+            setPresence(pm);
+          }
         }
       } catch (err) {
         console.error("Chat loading error:", err);
       } finally {
-        setLoading(false);
+        if (active) setLoading(false);
       }
-    })();
+    };
+
+    loadData();
+    return () => { active = false; };
   }, [conversationId]);
 
   useEffect(() => {
