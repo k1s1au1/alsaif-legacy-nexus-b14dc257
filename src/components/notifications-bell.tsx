@@ -54,7 +54,7 @@ export function NotificationsBell() {
       const out: Notif[] = [];
 
       // Safe localStorage access
-      let dismissed = [];
+      let dismissed: string[] = [];
       try {
         const raw = localStorage.getItem("dismissed_notifs");
         dismissed = raw ? JSON.parse(raw) : [];
