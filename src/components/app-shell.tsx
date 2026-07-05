@@ -13,6 +13,8 @@ import {
   Settings,
   X,
   Newspaper,
+  Bell,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -108,7 +110,6 @@ export function AppShell({
       <div className="mesh-gradient-container">
         <div className="mesh-blob-1" />
         <div className="mesh-blob-2" />
-        {/* Subtle noise texture for grain effect */}
         <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/asfalt-dark.png")' }} />
       </div>
 
@@ -125,8 +126,6 @@ export function AppShell({
         )}
       </AnimatePresence>
 
-      {/* Edge trigger for swiping open — invisible but interactive */}
-      {/* Edge trigger for swiping open — narrower & touch-only to prevent accidental desktop opens */}
       {!sidebarOpen && (
         <div
           className="fixed inset-y-0 right-0 w-3 z-[55]"
@@ -144,7 +143,6 @@ export function AppShell({
         dragElastic={0.08}
         dragMomentum={false}
         onDragEnd={(_, info) => {
-          // Require a clearer intent before closing to reduce accidental dismissal
           if (info.offset.x > 120 || info.velocity.x > 500) {
             setSidebarOpen(false);
           }
@@ -152,18 +150,13 @@ export function AppShell({
         animate={{ x: sidebarOpen ? 0 : 350 }}
         transition={{ type: "spring", damping: 32, stiffness: 320, mass: 0.7 }}
         className={cn(
-          "fixed inset-y-0 right-0 z-[70] flex flex-col bg-card border-l border-border shadow-2xl",
+          "fixed inset-y-0 right-0 z-[100] flex flex-col bg-card border-l border-border shadow-2xl",
           "w-[85vw] max-w-[320px] rounded-l-[32px] touch-pan-y",
         )}
       >
-        {/* Visual drag handle for mobile */}
         <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-14 bg-border/60 rounded-full" />
 
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
-          <div
-            className="absolute top-4 right-4 size-8 z-10 logo-alsaif opacity-40 hover:opacity-100 transition-opacity"
-            style={{ '--logo-url': dynamicLogo ? `url(${dynamicLogo})` : 'none' } as any}
-          />
           <div className="relative">
             <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
               <UserAvatar
@@ -221,68 +214,116 @@ export function AppShell({
         </div>
       </motion.aside>
 
-      <main className="relative min-h-screen pb-20">
-        <header className="h-24 sticky top-0 z-[50] px-6 lg:px-12 flex items-center justify-between bg-background/60 backdrop-blur-3xl border-b border-white/5 transition-all shadow-[0_8px_32px_-12px_rgba(0,0,0,0.1)]">
-          <div className="flex items-center gap-6">
-            <button
-              onClick={() => setSidebarOpen(true)}
-              className="size-12 grid place-items-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all active:scale-95 shadow-xl shadow-primary/20"
-            >
-              <Menu className="size-6" strokeWidth={2.5} />
-            </button>
-            <h1 className="text-xl font-black tracking-tight text-primary uppercase tracking-[0.05em]">{title}</h1>
-          </div>
+      <main className="relative min-h-screen pb-20 pt-6">
+        {/* RADICAL ROYAL COMMAND ISLAND HEADER */}
+        <div className="fixed top-6 inset-x-0 z-[80] px-4 md:px-8">
+           <header className="mx-auto max-w-5xl h-16 md:h-20 bg-white/40 backdrop-blur-3xl border border-white/60 rounded-full shadow-[0_20px_60px_-15px_rgba(0,0,0,0.15)] flex items-center justify-between px-3 md:px-5 relative overflow-hidden group">
 
-          <div className="flex items-center gap-4">
-            <NotificationsBell />
+              {/* Left Action: Royal Logo + Menu */}
+              <div className="flex items-center gap-1.5 md:gap-3">
+                 <button
+                   onClick={() => setSidebarOpen(true)}
+                   className="size-11 md:size-14 grid place-items-center rounded-full bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95 z-10"
+                 >
+                   <Menu className="size-5 md:size-6" strokeWidth={2.5} />
+                 </button>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="flex items-center gap-2 outline-none group">
-                  <div className="size-10 rounded-full ring-2 ring-primary/10 group-hover:ring-primary transition-all bg-background p-0.5 relative">
-                    <UserAvatar
-                      path={myAvatarPath}
-                      name={safeUser.name}
-                      initial={safeUser.initial}
-                      className="size-full rounded-full overflow-hidden"
-                      userId={myUserId}
-                      presenceDotClassName="absolute -bottom-1 -left-1 size-4 ring-2 ring-[var(--card)] shadow-lg"
-                    />
-                  </div>
-                  <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" sideOffset={12} className="min-w-[220px] rounded-2xl border-border bg-card p-2 text-right shadow-xl">
-                <DropdownMenuLabel className="px-4 py-4 border-b border-muted mb-1">
-                  <p className="text-[15px] font-bold text-primary">{safeUser.name}</p>
-                  <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{safeUser.role}</p>
-                </DropdownMenuLabel>
-                <Link to="/profile">
-                  <DropdownMenuItem className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-foreground focus:bg-muted focus:text-primary cursor-pointer">
-                    <User size={18} />
-                    <span>ملفي الشخصي</span>
-                  </DropdownMenuItem>
-                </Link>
-                <Link to="/settings">
-                  <DropdownMenuItem className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-foreground focus:bg-muted focus:text-primary cursor-pointer">
-                    <Settings size={18} />
-                    <span>الإعدادات</span>
-                  </DropdownMenuItem>
-                </Link>
-                <DropdownMenuSeparator className="bg-muted" />
-                <DropdownMenuItem
-                  onClick={signOut}
-                  className="rounded-xl px-4 py-3 flex flex-row-reverse justify-between gap-3 text-[15px] font-bold text-red-600 focus:bg-red-50 cursor-pointer"
-                >
-                  <LogOut size={18} />
-                  <span>تسجيل الخروج</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </header>
+                 <div className="hidden sm:flex items-center gap-3 pl-4 h-10 border-l border-primary/5">
+                    <div className="size-9 md:size-11 rounded-full bg-[#fdfcf7] p-2 shadow-inner border border-emerald-950/5 flex items-center justify-center">
+                       {dynamicLogo ? (
+                         <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
+                       ) : (
+                         <Sparkles className="size-5 text-gold-primary animate-pulse" />
+                       )}
+                    </div>
+                 </div>
+              </div>
 
-        <div className="p-6 lg:p-10 max-w-7xl mx-auto">
+              {/* Center Anchor: Page Title Hub */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <div className="flex flex-col items-center">
+                    <motion.h1
+                      initial={{ opacity: 0, y: 5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      key={title}
+                      className="text-xs md:text-sm font-black text-primary/40 uppercase tracking-[0.4em] text-center"
+                    >
+                      بوابة السيف
+                    </motion.h1>
+                    <motion.span
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      key={`${title}-main`}
+                      className="text-sm md:text-xl font-black text-primary tracking-tight leading-none"
+                    >
+                      {title}
+                    </motion.span>
+                 </div>
+              </div>
+
+              {/* Right Action: Notifications + Profile Medallion */}
+              <div className="flex items-center gap-1.5 md:gap-3 z-10">
+                 <div className="bg-primary/5 rounded-full p-1 border border-primary/5 flex items-center gap-1 md:gap-2">
+                    <NotificationsBell />
+
+                    <DropdownMenu>
+                       <DropdownMenuTrigger asChild>
+                          <button className="flex items-center gap-2 pr-2.5 md:pr-4 py-1.5 rounded-full bg-white/20 hover:bg-white/40 transition-all outline-none border border-white/40 group/profile shadow-sm">
+                             <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/20 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative">
+                                <UserAvatar
+                                  path={myAvatarPath}
+                                  name={safeUser.name}
+                                  initial={safeUser.initial}
+                                  className="size-full rounded-full"
+                                  userId={myUserId}
+                                  presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
+                                />
+                             </div>
+                             <span className="hidden md:block text-[13px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
+                             <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
+                          </button>
+                       </DropdownMenuTrigger>
+
+                       <DropdownMenuContent align="end" sideOffset={15} className="min-w-[240px] rounded-[24px] border-border bg-card/80 backdrop-blur-2xl p-2 text-right shadow-2xl">
+                          <DropdownMenuLabel className="px-5 py-5 border-b border-muted mb-2">
+                            <p className="text-[16px] font-black text-primary leading-tight">{safeUser.name}</p>
+                            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">{safeUser.role}</p>
+                          </DropdownMenuLabel>
+
+                          <Link to="/profile">
+                            <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
+                              <User size={18} />
+                              <span>ملفي الشخصي</span>
+                            </DropdownMenuItem>
+                          </Link>
+                          <Link to="/settings">
+                            <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
+                              <Settings size={18} />
+                              <span>الإعدادات</span>
+                            </DropdownMenuItem>
+                          </Link>
+
+                          <DropdownMenuSeparator className="bg-muted my-1" />
+
+                          <DropdownMenuItem
+                            onClick={signOut}
+                            className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-500 focus:text-white cursor-pointer transition-all"
+                          >
+                            <LogOut size={18} />
+                            <span>تسجيل الخروج</span>
+                          </DropdownMenuItem>
+                       </DropdownMenuContent>
+                    </DropdownMenu>
+                 </div>
+              </div>
+
+              {/* Subtle Animated Gold Border - bottom only */}
+              <div className="absolute bottom-0 inset-x-10 h-[2px] bg-gradient-to-r from-transparent via-gold-primary/30 to-transparent group-hover:via-gold-primary/60 transition-all duration-700" />
+           </header>
+        </div>
+
+        {/* Content Padding for the fixed header */}
+        <div className="pt-20 md:pt-28 p-6 lg:p-10 max-w-7xl mx-auto">
           {children}
         </div>
       </main>
