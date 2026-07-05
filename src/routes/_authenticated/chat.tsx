@@ -222,21 +222,42 @@ function ConversationRow({ item, meId, profiles, active, onArchive, onDelete }: 
   const otherAvatarPath = other ? profiles[other.user_id]?.avatar_url ?? null : null;
   const lastMine = item.lastMessage?.sender_id === meId;
   const isArchived = !!item.myParticipant?.archived_at;
+  const [dragX, setDragX] = useState(0);
 
   return (
-    <div className="relative overflow-hidden rounded-[28px] group/row">
-      <div className="absolute inset-0 flex items-center justify-between px-6 z-0">
-        <button onClick={onArchive} className={cn("flex flex-col items-center gap-1 transition-all active:scale-95", isArchived ? "text-emerald-500" : "text-amber-500")}>
-          <div className="size-10 rounded-full flex items-center justify-center bg-current/10 shadow-sm"><Archive className="size-5" /></div>
+    <div className="relative overflow-hidden rounded-[28px] group/row bg-muted/5">
+      {/* BACKGROUND ACTIONS - Only visible when dragging */}
+      <div className="absolute inset-0 flex items-center justify-between px-8 z-0">
+        <div style={{ opacity: Math.max(0, dragX / 60) }} className="flex flex-col items-center gap-1 text-emerald-500 transition-opacity">
+          <div className="size-10 rounded-full flex items-center justify-center bg-emerald-500/10 shadow-sm"><Archive className="size-5" /></div>
           <span className="text-[9px] font-black uppercase">{isArchived ? "استعادة" : "أرشفة"}</span>
-        </button>
-        <button onClick={onDelete} className="flex flex-col items-center gap-1 text-red-500 transition-all active:scale-95">
+        </div>
+        <div style={{ opacity: Math.max(0, -dragX / 60) }} className="flex flex-col items-center gap-1 text-red-500 transition-opacity">
           <div className="size-10 rounded-full flex items-center justify-center bg-red-500/10 shadow-sm"><Trash2 className="size-5" /></div>
           <span className="text-[9px] font-black uppercase">حذف</span>
-        </button>
+        </div>
       </div>
-      <motion.div drag="x" dragConstraints={{ left: -100, right: 100 }} dragSnapToOrigin onDragEnd={(_, info) => { if (info.offset.x > 60) onArchive(); else if (info.offset.x < -60) onDelete(); }} className="relative z-10">
-        <Link to="/chat/$conversationId" params={{ conversationId: item.conversation.id }} className={cn("flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden group/row border border-transparent", active ? "bg-primary text-white shadow-xl shadow-primary/10 border-primary" : "bg-card/50 hover:bg-card hover:border-border text-foreground shadow-sm")}>
+
+      <motion.div
+        drag="x"
+        dragConstraints={{ left: -100, right: 100 }}
+        dragSnapToOrigin
+        onDrag={(_, info) => setDragX(info.offset.x)}
+        onDragEnd={(_, info) => {
+          setDragX(0);
+          if (info.offset.x > 70) onArchive();
+          else if (info.offset.x < -70) onDelete();
+        }}
+        className="relative z-10"
+      >
+        <Link to="/chat/$conversationId" params={{ conversationId: item.conversation.id }}
+          className={cn(
+            "flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden group/row border",
+            active
+              ? "bg-primary text-white shadow-xl shadow-primary/10 border-primary"
+              : "bg-card hover:bg-muted/50 text-foreground border-border/40 shadow-sm"
+          )}>
+
           <div className="relative shrink-0">
             <div className={cn("size-12 rounded-xl border transition-all relative", active ? "border-white/20 shadow-inner" : "border-gold-primary/10 shadow-sm")}>
                {item.conversation.kind === "group" ? (
@@ -247,7 +268,7 @@ function ConversationRow({ item, meId, profiles, active, onArchive, onDelete }: 
             </div>
             {!active && item.unread > 0 && (<span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg z-30">{item.unread}</span>)}
           </div>
-          <div className="flex-1 min-w-0 space-y-0.5">
+          <div className="flex-1 min-w-0 space-y-0.5 text-right">
             <div className="flex items-center justify-between gap-2">
               <h3 className={cn("text-sm font-black truncate", active ? "text-white" : "text-primary")}>{title}</h3>
               <span className={cn("text-[9px] font-bold opacity-40", active ? "text-white" : "text-muted-foreground")}>{item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}</span>
