@@ -29,7 +29,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [counts, setCounts] = useState({ members: 0, tasks: 0 });
+  const [counts, setCounts] = useState({ members: 0, completedTasks: 0 });
   const dynamicLogo = useSiteLogo();
 
   const [reqForm, setReqForm] = useState({
@@ -41,12 +41,20 @@ function AuthPage() {
     password: ""
   });
 
+  const [msgIndex, setMsgIndex] = useState(0);
   const welcomeMessages = [
     "أهلاً بك في مجلس السيف الموقر",
     "نصل العائلة.. ونبض المجتمع",
     "حيث يُحفظ الإرث وتُبنى الروابط",
     "منصة التواصل الرسمية والخاصة"
   ];
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setMsgIndex((prev) => (prev + 1) % welcomeMessages.length);
+    }, 4000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -57,9 +65,9 @@ function AuthPage() {
     (async () => {
       const [{ count: mCount }, { count: tCount }] = await Promise.all([
         supabase.from("profiles").select("*", { count: 'exact', head: true }),
-        supabase.from("tasks").select("*", { count: 'exact', head: true })
+        supabase.from("tasks").select("*", { count: 'exact', head: true }).eq("status", "done")
       ]);
-      setCounts({ members: mCount || 0, tasks: tCount || 0 });
+      setCounts({ members: mCount || 0, completedTasks: tCount || 0 });
     })();
   }, [navigate]);
 
@@ -145,43 +153,61 @@ function AuthPage() {
       <div className="relative z-10 w-full max-w-7xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-12 p-6 lg:p-20">
 
         {/* Left Side: Welcoming Text & Heritage Visuals (Visible only on Desktop) */}
-        <div className="hidden lg:flex flex-1 flex-col items-start text-right space-y-10 animate-fade-up">
-           <motion.div
-             initial={{ x: 50, opacity: 0 }}
-             animate={{ x: 0, opacity: 1 }}
-             transition={{ duration: 0.8, ease: "easeOut" }}
-             className="space-y-6"
-           >
-              <div className="flex items-center gap-4">
+        <div className="hidden lg:flex flex-1 flex-col items-start text-right space-y-12 animate-fade-up">
+           <div className="space-y-6">
+              <motion.div
+                initial={{ x: 50, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="flex items-center gap-4"
+              >
                  <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
                  <span className="text-xs font-black uppercase tracking-[0.5em] text-gold-primary">مجلس عائلة السيف</span>
-              </div>
+              </motion.div>
 
-              <h1 className="text-7xl xl:text-8xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">
+              <motion.h1
+                initial={{ y: 30, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 1, delay: 0.2 }}
+                className="text-7xl xl:text-8xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl"
+              >
                  نصل العائلة<br />
-                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary to-[#8E7745]">ونبض المجتمع</span>
-              </h1>
+                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary to-[#8E7745] animate-pulse-slow">ونبض المجتمع</span>
+              </motion.h1>
 
-              <p className="text-xl xl:text-2xl text-white/50 font-medium max-w-xl leading-relaxed">
-                 بوابة التواصل الرقمية الرسمية لأبناء عائلة السيف العريقة، حيث يُحفظ الإرث وتُبنى روابط المستقبل بوفاء واعتزاز.
-              </p>
-           </motion.div>
-
-           <div className="grid grid-cols-2 gap-8 pt-6">
-              <HeritageStat label="عضو نشط" value={`${counts.members}+`} />
-              <HeritageStat label="مبادرة عائلية" value={`${counts.tasks}+`} />
+              <div className="h-12 overflow-hidden relative">
+                 <AnimatePresence mode="wait">
+                    <motion.p
+                      key={msgIndex}
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      exit={{ y: -20, opacity: 0 }}
+                      transition={{ duration: 0.8 }}
+                      className="text-xl xl:text-2xl text-white/50 font-medium max-w-xl leading-relaxed"
+                    >
+                       {welcomeMessages[msgIndex]}
+                    </motion.p>
+                 </AnimatePresence>
+              </div>
            </div>
 
-           {/* Floating Decorative Logo */}
+           <div className="grid grid-cols-2 gap-12 pt-6">
+              <HeritageStat label="الأعضاء المسجلين" value={`${counts.members}`} delay={0.4} />
+              <HeritageStat label="مبادرات مكتملة" value={`${counts.completedTasks}`} delay={0.6} />
+           </div>
+
+           {/* Floating Decorative Logo with Glow */}
            <motion.div
              animate={{
-               y: [0, -20, 0],
-               rotate: [0, 5, -5, 0]
+               y: [0, -15, 0],
+               rotate: [0, 2, -2, 0],
+               scale: [1, 1.02, 1]
              }}
-             transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-             className="pt-10 opacity-30"
+             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+             className="pt-10 relative group"
            >
-              <div className="size-48 logo-alsaif grayscale brightness-200" style={{ '--logo-url': `url(${logoAsset.url})` } as any} />
+              <div className="absolute inset-0 bg-gold-primary/10 blur-[60px] rounded-full scale-150 opacity-0 group-hover:opacity-100 transition-opacity duration-1000" />
+              <div className="size-56 logo-alsaif grayscale brightness-200 opacity-20 group-hover:opacity-50 transition-opacity" style={{ '--logo-url': `url(${logoAsset.url})` } as any} />
            </motion.div>
         </div>
 
@@ -319,12 +345,21 @@ function AuthPage() {
   );
 }
 
-function HeritageStat({ label, value }: { label: string, value: string }) {
+function HeritageStat({ label, value, delay = 0 }: { label: string, value: string, delay?: number }) {
   return (
-    <div className="space-y-1">
-       <p className="text-3xl font-black text-white tabular-nums">{value}</p>
-       <p className="text-[10px] font-black uppercase tracking-widest text-gold-primary/60">{label}</p>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, delay }}
+      className="space-y-1 group cursor-default"
+    >
+       <p className="text-5xl font-black text-white tabular-nums drop-shadow-lg group-hover:text-gold-primary transition-colors duration-500">
+          {value}
+       </p>
+       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary/60 group-hover:text-gold-primary transition-colors duration-500">
+          {label}
+       </p>
+    </motion.div>
   );
 }
 
