@@ -92,6 +92,7 @@ function ConversationRoute() {
   const [presence, setPresence] = useState<Record<string, Presence>>({});
   const [typingUsers, setTypingUsers] = useState<string[]>([]);
   const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [draft, setDraft] = useState("");
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [search, setSearch] = useState("");
@@ -131,62 +132,74 @@ function ConversationRoute() {
     setNotFound(false);
     setConv(null);
     setMessages([]);
+    setLoading(true);
     (async () => {
-      const { data: u } = await supabase.auth.getUser();
-      if (!u.user) return;
-      setMeId(u.user.id);
+      try {
+        const { data: u } = await supabase.auth.getUser();
+        if (!u.user) return;
+        setMeId(u.user.id);
 
-      const { data: c } = await supabase
-        .from("conversations")
-        .select("*")
-        .eq("id", conversationId)
-        .maybeSingle();
-      if (!c) {
-        setNotFound(true);
-        return;
-      }
-      setConv(c as unknown as Conversation);
-
-      const [{ data: parts }, { data: profs }, { data: msgs }] = await Promise.all([
-        supabase
-          .from("conversation_participants")
+        const { data: c, error: cErr } = await supabase
+          .from("conversations")
           .select("*")
-          .eq("conversation_id", conversationId),
-        supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
-        supabase
-          .from("messages")
-          .select("*")
-          .eq("conversation_id", conversationId)
-          .order("created_at", { ascending: true })
-          .limit(300),
-      ]);
+          .eq("id", conversationId)
+          .maybeSingle();
 
-      setParticipants((parts ?? []) as unknown as Participant[]);
-      const pmap: Record<string, Profile> = {};
-      (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
-      setProfiles(pmap);
-      const msgList = (msgs ?? []) as Message[];
-      setMessages(msgList);
+        if (cErr || !c) {
+          setNotFound(true);
+          setLoading(false);
+          return;
+        }
+        setConv(c as unknown as Conversation);
 
-      if (msgList.length) {
-        const ids = msgList.map((m) => m.id);
-        const [{ data: rxs }, { data: delvs }] = await Promise.all([
-          supabase.from("message_reactions").select("*").in("message_id", ids),
-          supabase.from("message_deliveries").select("*").in("message_id", ids),
+        const [{ data: parts }, { data: profs }, { data: msgs }] = await Promise.all([
+          supabase
+            .from("conversation_participants")
+            .select("*")
+            .eq("conversation_id", conversationId),
+          supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
+          supabase
+            .from("messages")
+            .select("*")
+            .eq("conversation_id", conversationId)
+            .order("created_at", { ascending: true })
+            .limit(300),
         ]);
-        setReactions((rxs ?? []) as Reaction[]);
-        setDeliveries((delvs ?? []) as Delivery[]);
-      }
 
-      const userIds = (parts ?? []).map((p) => p.user_id);
-      if (userIds.length) {
-        const { data: pres } = await supabase
-          .from("user_presence")
-          .select("*")
-          .in("user_id", userIds);
-        const pm: Record<string, Presence> = {};
-        (pres ?? []).forEach((x) => (pm[x.user_id] = x as Presence));
-        setPresence(pm);
+        const partList = (parts ?? []) as unknown as Participant[];
+        setParticipants(partList);
+
+        const pmap: Record<string, Profile> = {};
+        (profs ?? []).forEach((p) => (pmap[p.id] = p as Profile));
+        setProfiles(pmap);
+
+        const msgList = (msgs ?? []) as Message[];
+        setMessages(msgList);
+
+        if (msgList.length) {
+          const ids = msgList.map((m) => m.id);
+          const [{ data: rxs }, { data: delvs }] = await Promise.all([
+            supabase.from("message_reactions").select("*").in("message_id", ids),
+            supabase.from("message_deliveries").select("*").in("message_id", ids),
+          ]);
+          setReactions((rxs ?? []) as Reaction[]);
+          setDeliveries((delvs ?? []) as Delivery[]);
+        }
+
+        const userIds = partList.map((p) => p.user_id);
+        if (userIds.length) {
+          const { data: pres } = await supabase
+            .from("user_presence")
+            .select("*")
+            .in("user_id", userIds);
+          const pm: Record<string, Presence> = {};
+          (pres ?? []).forEach((x) => (pm[x.user_id] = x as Presence));
+          setPresence(pm);
+        }
+      } catch (err) {
+        console.error("Chat loading error:", err);
+      } finally {
+        setLoading(false);
       }
     })();
   }, [conversationId]);
@@ -538,6 +551,27 @@ function ConversationRoute() {
     if (!search.trim()) return messages;
     return messages.filter((m) => (m.body ?? "").toLowerCase().includes(search.toLowerCase()));
   }, [messages, search]);
+
+  if (loading) return (
+    <div className="flex-1 flex flex-col items-center justify-center bg-background/50 backdrop-blur-sm gap-4 animate-fade-in">
+       <div className="size-16 rounded-[28px] bg-primary/5 flex items-center justify-center border-2 border-gold-primary/20 shadow-2xl relative">
+          <Clock className="size-8 text-gold-primary animate-spin-slow" />
+          <div className="absolute inset-0 rounded-[28px] border-2 border-primary/20 animate-ping opacity-20" />
+       </div>
+       <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary/40 animate-pulse">جاري تأمين مجلس المحادثة...</p>
+    </div>
+  );
+
+  if (notFound) return (
+    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-6 animate-fade-up">
+       <div className="size-20 rounded-[32px] bg-red-500/10 flex items-center justify-center text-red-500 border border-red-500/20 shadow-xl"><Archive size={40} /></div>
+       <div className="space-y-2">
+          <h3 className="text-2xl font-black text-primary">المحادثة غير موجودة</h3>
+          <p className="text-muted-foreground font-bold opacity-60">قد تكون المحادثة قد حذفت أو ليس لديك صلاحية الوصول إليها.</p>
+       </div>
+       <button onClick={() => navigate({ to: "/chat" })} className="btn-gold px-8 py-3 rounded-full text-sm font-black">العودة للمحادثات</button>
+    </div>
+  );
 
   if (!conv) return null;
 
