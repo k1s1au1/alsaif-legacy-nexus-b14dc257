@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, Send, X, Phone, User, Sparkles, ImagePlus } from "lucide-react";
-import logoAsset from "@/assets/alsaif-mark.png.asset.json";
 import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useAppBackground } from "@/hooks/use-app-background";
@@ -152,11 +151,18 @@ function AuthPage() {
         >
           {/* Logo Section */}
           <div className="mb-12 text-center flex flex-col items-center w-full">
-             <div className="size-36 lg:size-48 bg-white rounded-[40px] lg:rounded-[56px] shadow-2xl p-6 lg:p-10 mb-8 relative overflow-hidden group/logo border-4 border-gold-primary/10">
-                <div
-                  className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg] scale-110"
-                  style={{ backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})` }}
-                />
+             <div className="size-40 lg:size-52 bg-white rounded-[44px] lg:rounded-[60px] shadow-2xl p-8 lg:p-12 mb-8 relative overflow-hidden group/logo border-4 border-gold-primary/10 flex items-center justify-center">
+                {dynamicLogo && !dynamicLogo.includes("alsaif-mark") ? (
+                  <div
+                    className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg] scale-110"
+                    style={{ backgroundImage: `url(${dynamicLogo})` }}
+                  />
+                ) : (
+                  <div className="flex flex-col items-center gap-3 opacity-20">
+                     <Sparkles className="size-16 text-emerald-950 animate-pulse" />
+                     <span className="text-[8px] font-black uppercase tracking-widest text-emerald-950">ارفع الشعار</span>
+                  </div>
+                )}
              </div>
 
              <h3 className="text-3xl lg:text-4xl font-black text-gold-primary tracking-tight">مجلس السيف</h3>
