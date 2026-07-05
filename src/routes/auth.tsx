@@ -29,6 +29,7 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [counts, setCounts] = useState({ members: 0, tasks: 0 });
   const dynamicLogo = useSiteLogo();
 
   const [reqForm, setReqForm] = useState({
@@ -51,6 +52,15 @@ function AuthPage() {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) navigate({ to: "/dashboard", replace: true });
     });
+
+    // Fetch stats for the welcome screen
+    (async () => {
+      const [{ count: mCount }, { count: tCount }] = await Promise.all([
+        supabase.from("profiles").select("*", { count: 'exact', head: true }),
+        supabase.from("tasks").select("*", { count: 'exact', head: true })
+      ]);
+      setCounts({ members: mCount || 0, tasks: tCount || 0 });
+    })();
   }, [navigate]);
 
   async function onLogin(e: React.FormEvent) {
@@ -158,8 +168,8 @@ function AuthPage() {
            </motion.div>
 
            <div className="grid grid-cols-2 gap-8 pt-6">
-              <HeritageStat label="عضو نشط" value="١٥٠+" />
-              <HeritageStat label="مبادرة عائلية" value="٤٠+" />
+              <HeritageStat label="عضو نشط" value={`${counts.members}+`} />
+              <HeritageStat label="مبادرة عائلية" value={`${counts.tasks}+`} />
            </div>
 
            {/* Floating Decorative Logo */}
