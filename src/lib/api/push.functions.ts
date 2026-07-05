@@ -60,7 +60,7 @@ export const sendPushNotification = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     try {
       const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const admin = getSupabaseAdmin();
+      const admin = await getSupabaseAdmin();
       if (!admin) throw new Error("Server not ready");
 
       const callerId = context.userId;

@@ -7,7 +7,7 @@ export const assignUserRole = createServerFn({ method: "POST" })
   .validator(z.object({ userId: z.string(), role: z.string() }))
   .handler(async ({ data: { userId, role }, context }) => {
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
+    const admin = await getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
 
     const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", context.userId);

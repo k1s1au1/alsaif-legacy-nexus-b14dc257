@@ -12,7 +12,7 @@ export const sendFcmNotification = createServerFn({ method: "POST" })
   }))
   .handler(async ({ data }) => {
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
+    const admin = await getSupabaseAdmin();
     if (!admin) return { success: false };
     // Logic...
     return { success: true };

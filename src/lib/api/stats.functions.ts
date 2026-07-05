@@ -4,7 +4,7 @@ export const getPublicStats = createServerFn({ method: "GET" })
   .handler(async () => {
     try {
       const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const admin = getSupabaseAdmin();
+      const admin = await getSupabaseAdmin();
       if (!admin) return { members: 0, completedTasks: 0 };
 
       const [{ count: mCount }, { count: tCount }] = await Promise.all([

@@ -8,7 +8,7 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { userId } = context;
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
+    const admin = await getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
 
     const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", userId);

@@ -1,6 +1,5 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
@@ -19,6 +18,9 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     }
 
     const token = authHeader.replace('Bearer ', '');
+
+    // Use dynamic import to prevent [Getter/Setter] serialization errors during build
+    const { createClient } = await import('@supabase/supabase-js');
     const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });

@@ -7,7 +7,7 @@ export const getMemberCredential = createServerFn({ method: "POST" })
   .validator(z.object({ userId: z.string().uuid() }))
   .handler(async ({ data: { userId } }) => {
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
+    const admin = await getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
     return { email: null, password: null };
   });

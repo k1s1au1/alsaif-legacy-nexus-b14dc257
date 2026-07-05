@@ -8,7 +8,7 @@ export const deleteMemberAccount = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     if (data.userId === context.userId) throw new Error("Unauthorized");
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
+    const admin = await getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
 
     await admin.auth.admin.deleteUser(data.userId);

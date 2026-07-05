@@ -7,7 +7,7 @@ export const executeLeadershipTransition = createServerFn({ method: "POST" })
   .validator(z.object({ postId: z.string().uuid() }))
   .handler(async ({ data: { postId } }) => {
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
+    const admin = await getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
 
     const { data: post } = await admin.from("majlis_posts").select("*").eq("id", postId).single();
