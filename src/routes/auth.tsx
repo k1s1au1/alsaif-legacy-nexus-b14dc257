@@ -4,14 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, Send, X, Phone, User, Sparkles } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
-import authBgAsset from "@/assets/alsaif-auth-bg.png.asset.json";
 import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import { useAppBackground } from "@/hooks/use-app-background";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getPublicStats } from "@/lib/api/stats.functions";
-import { BackgroundUploader } from "@/components/background-uploader";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -35,7 +32,6 @@ function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [counts, setCounts] = useState({ members: 0, completedTasks: 0 });
   const dynamicLogo = useSiteLogo();
-  const { url: customBg } = useAppBackground("auth_bg");
 
   const [reqForm, setReqForm] = useState({
     firstName: "",
@@ -134,7 +130,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-hidden" dir="rtl">
 
-      {/* 1. Full-Height Login Pane (Right Side in RTL - Order matters for display) */}
+      {/* 1. Full-Height Login Pane (Right Side in RTL) */}
       <div className="w-full lg:w-[500px] xl:w-[650px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-8 sm:p-24 border-l border-white/5 shadow-[-50px_0_100px_rgba(0,0,0,0.6)]">
 
         {/* Mobile Backdrop Glow */}
@@ -149,7 +145,7 @@ function AuthPage() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, type: "spring", damping: 25 }}
-          className="w-full max-w-md flex flex-col items-center"
+          className="w-full max-md flex flex-col items-center"
         >
           {/* Logo Section */}
           <div className="mb-12 text-center flex flex-col items-center w-full">
@@ -269,36 +265,27 @@ function AuthPage() {
       </div>
 
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-20 relative overflow-hidden bg-[#064e3b]">
+      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
 
-        {/* Heritage Backdrop Image with Seamless Full Coverage */}
-        <div className="absolute inset-0 z-0 overflow-hidden">
-           <motion.div
-             initial={{ scale: 1.15, opacity: 0 }}
-             animate={{ scale: 1, opacity: 0.35 }}
-             transition={{ duration: 3, ease: "easeOut" }}
-             className="size-full bg-cover bg-center bg-no-repeat transition-all duration-1000"
-             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
-           />
-        </div>
-
-        {/* Multi-layered Premium Seamless Blend */}
-        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
-        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#064e3b] via-transparent to-[#064e3b]/30 opacity-60" />
-        <div className="absolute inset-y-0 left-0 w-64 z-1 bg-gradient-to-r from-black/60 via-black/20 to-transparent" />
-
-        {/* Animated Heritage Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.04] pointer-events-none z-2 mix-blend-overlay scale-[2]"
+        {/* Animated Heritage Texture Overlay (The Emerald Pattern) */}
+        <div className="absolute inset-0 opacity-[0.06] pointer-events-none z-1 mix-blend-overlay scale-150"
              style={{
                backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
                backgroundSize: '100px 100px'
              }}
         />
 
-        <div className="relative z-10 space-y-10 w-full max-w-3xl pr-4">
+        {/* Gold Dust Particles */}
+        <div className="absolute inset-0 pointer-events-none z-2">
+          {[...Array(20)].map((_, i) => (
+            <motion.div key={i} initial={{ opacity: 0, x: Math.random() * 100 + "%", y: "110%" }} animate={{ y: "-10%", opacity: [0, 0.4, 0] }} transition={{ duration: 15 + Math.random() * 20, repeat: Infinity, ease: "linear", delay: Math.random() * -20 }} className="absolute size-1.5 bg-gold-primary rounded-full blur-[1px]" />
+          ))}
+        </div>
+
+        <div className="relative z-10 space-y-12 w-full max-w-4xl">
            <div className="space-y-6 text-right">
               <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }} className="flex items-center gap-4">
-                 <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
+                 <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_15px_rgba(212,175,55,0.5)]" />
                  <span className="text-xs font-black uppercase tracking-[0.5em] text-gold-primary">إرث يمتد.. ومستقبل يُبنى</span>
               </motion.div>
 
@@ -306,10 +293,10 @@ function AuthPage() {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 1, delay: 0.2 }}
-                className="text-6xl xl:text-[9rem] font-black text-white tracking-tighter leading-[0.9] drop-shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                className="text-7xl xl:text-[10rem] font-black text-white tracking-tighter leading-tight drop-shadow-2xl"
               >
                  عائلة<br />
-                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary via-white/80 to-[#8E7745] animate-pulse">السيف</span>
+                 <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary to-[#8E7745] animate-pulse">السيف</span>
               </motion.h1>
 
               <div className="h-16 overflow-hidden relative">
@@ -320,7 +307,7 @@ function AuthPage() {
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -40, opacity: 0 }}
                       transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-                      className="text-2xl xl:text-3xl text-white/70 font-bold max-w-2xl leading-tight drop-shadow-lg"
+                      className="text-2xl xl:text-4xl text-white/70 font-bold max-w-2xl leading-tight"
                     >
                        {welcomeMessages[msgIndex]}
                     </motion.p>
@@ -328,36 +315,30 @@ function AuthPage() {
               </div>
            </div>
 
-           <div className="grid grid-cols-2 gap-16 pt-8 border-t border-white/10 w-fit">
+           <div className="grid grid-cols-2 gap-16 pt-6">
               <HeritageStat label="الأعضاء المسجلين" value={`${counts.members}`} delay={0.4} />
               <HeritageStat label="مبادرات مكتملة" value={`${counts.completedTasks}`} delay={0.6} />
            </div>
-        </div>
 
-           {/* Floating Decorative Logo (Subtle Background element) */}
+           {/* Floating Decorative Logo (NEW OFFICIAL LOGO) */}
            <motion.div
              animate={{ rotate: [0, 360], scale: [1, 1.05, 1] }}
-             transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
-             className="pt-20 opacity-[0.08] pointer-events-none flex justify-center w-full"
+             transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+             className="pt-20 opacity-10 pointer-events-none flex justify-center w-full"
            >
-              <div className="size-[500px] border-[2px] border-dashed border-gold-primary/30 rounded-full flex items-center justify-center relative">
-                 <div className="size-[400px] border-[1px] border-gold-primary/10 rounded-full" />
-                 <div className="absolute size-64"
+              <div className="size-[450px] border-[2px] border-dashed border-gold-primary/30 rounded-full flex items-center justify-center relative">
+                 <div className="size-[350px] border-[1px] border-gold-primary/10 rounded-full" />
+                 <div className="absolute size-56"
                       style={{
                         backgroundImage: dynamicLogo ? `url(${dynamicLogo})` : `url(${logoAsset.url})`,
                         backgroundSize: 'contain',
                         backgroundRepeat: 'no-repeat',
                         backgroundPosition: 'center',
-                        filter: 'brightness(0) invert(1)'
+                        filter: 'brightness(0) invert(1) opacity(0.5)'
                       }}
                  />
               </div>
            </motion.div>
-        </div>
-
-        {/* Change Background Button (Visible for testing/admin) */}
-        <div className="absolute bottom-10 left-10 z-50">
-           <BackgroundUploader settingKey="auth_bg" label="تغيير الخلفية" className="bg-white/10 text-white/40 border-white/10 hover:bg-gold-primary hover:text-emerald-950 shadow-none transition-all" />
         </div>
       </div>
 
@@ -374,7 +355,7 @@ function HeritageStat({ label, value, delay = 0 }: { label: string, value: strin
       className="space-y-2 group cursor-default"
     >
        <div className="flex items-baseline gap-2">
-          <p className="text-7xl xl:text-9xl font-black text-white tabular-nums drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:text-gold-primary transition-colors duration-700">
+          <p className="text-6xl xl:text-8xl font-black text-white tabular-nums drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:text-gold-primary transition-colors duration-700">
              {value}
           </p>
           <Sparkles className="size-6 text-gold-primary opacity-0 group-hover:opacity-100 transition-opacity animate-bounce" />
