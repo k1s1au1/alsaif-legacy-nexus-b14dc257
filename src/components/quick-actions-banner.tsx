@@ -24,33 +24,33 @@ interface QuickActionProps {
 
 function QuickAction({ to, label, icon, color }: QuickActionProps) {
   return (
-    <Link to={to} className="group flex flex-col items-center gap-2 shrink-0 focus:outline-none">
-       {/* Solid Colored Icon Container - Compact Size */}
+    <Link to={to} className="group flex flex-col items-center gap-3 shrink-0 focus:outline-none">
+       {/* Solid Colored Icon Container - Responsive Size */}
        <div className={cn(
-         "size-12 md:size-14 rounded-[20px] flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1.5",
-         "shadow-md group-hover:shadow-xl relative overflow-hidden",
+         "size-15 md:size-16 rounded-[22px] flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1.5",
+         "shadow-lg group-hover:shadow-2xl relative overflow-hidden",
          color
        )}>
-          {React.cloneElement(icon, { size: 24, strokeWidth: 1.5 })}
+          {React.cloneElement(icon, { size: 28, strokeWidth: 1.5 })}
        </div>
-       <span className="text-[10px] md:text-[11px] font-black text-primary/70 group-hover:text-primary transition-colors whitespace-nowrap tracking-tight">{label}</span>
+       <span className="text-[11px] md:text-[12px] font-black text-primary/70 group-hover:text-primary transition-colors whitespace-nowrap tracking-tight">{label}</span>
     </Link>
   );
 }
 
 export function QuickActionsBanner() {
   return (
-    <section className="animate-fade-up w-full px-4 md:px-0 py-2">
-       {/* Premium White Glassy Container Around the Icons */}
-       <div className="bg-white/60 backdrop-blur-2xl rounded-[38px] p-5 md:p-8 border border-white/60 shadow-[0_15px_40px_-15px_rgba(0,0,0,0.05)] relative overflow-hidden group/banner">
+    <section className="animate-fade-up w-full px-4 md:px-0 py-4">
+       {/* Premium White Glassy Container - Balanced Padding */}
+       <div className="bg-white/60 backdrop-blur-2xl rounded-[44px] p-7 md:p-10 border border-white/60 shadow-[0_20px_50px_-20px_rgba(0,0,0,0.08)] relative overflow-hidden group/banner">
 
-          <div className="flex items-center justify-center gap-3 mb-6 opacity-40 relative z-10">
+          <div className="flex items-center justify-center gap-4 mb-8 opacity-40 relative z-10">
             <div className="h-[1px] w-12 bg-gradient-to-r from-transparent to-primary/40" />
             <h3 className="text-[9px] font-black text-primary uppercase tracking-[0.4em] whitespace-nowrap">الوصول السريع</h3>
             <div className="h-[1px] w-12 bg-gradient-to-l from-transparent to-primary/40" />
           </div>
 
-          <div className="flex overflow-x-auto no-scrollbar gap-6 md:gap-4 lg:justify-between px-2 pb-2 items-start relative z-10" dir="rtl">
+          <div className="flex overflow-x-auto no-scrollbar gap-8 md:gap-4 lg:justify-between px-2 pb-2 items-start relative z-10" dir="rtl">
              <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#065F46]" />
              <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#D4AF37]" />
              <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1B3022]" />
