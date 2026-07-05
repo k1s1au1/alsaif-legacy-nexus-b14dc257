@@ -132,26 +132,37 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-hidden" dir="rtl">
 
-      {/* 1. Full-Height Login Pane (Right Side in RTL) */}
-      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-8 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0">
+      {/* 1. Full-Height Login Pane (Main on Mobile) */}
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0">
 
-        {/* Mobile Backdrop Glow */}
-        <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#064e3b] to-[#0d0f17] -z-1 opacity-20" />
+        {/* Immersive Mobile Background (Shows the custom image with emerald overlay) */}
+        <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
+           <div
+             className="size-full bg-cover bg-left opacity-20 scale-110 blur-[2px]"
+             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
+           />
+           <div className="absolute inset-0 bg-gradient-to-b from-[#064e3b]/40 via-[#0d0f17] to-[#0d0f17]" />
+        </div>
 
-        {/* Palm Watermark Decoration */}
-        <div className="absolute -left-10 -bottom-10 size-72 opacity-[0.03] pointer-events-none">
+        {/* Palm Watermark Decoration (Subtle on mobile) */}
+        <div className="absolute -left-10 -bottom-10 size-60 lg:size-72 opacity-[0.02] pointer-events-none">
            <img src={palmWatermark} alt="" className="size-full object-contain brightness-0 invert" />
         </div>
 
         <motion.div
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.7, type: "spring", damping: 25 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, type: "spring" }}
           className="w-full max-w-md flex flex-col items-center"
         >
+          {/* Mobile Welcome Tag */}
+          <div className="lg:hidden mb-6 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20 backdrop-blur-md">
+             <p className="text-[10px] font-black text-gold-primary uppercase tracking-[0.3em]">{getGreeting()}، يا أهل الوفاء</p>
+          </div>
+
           {/* Logo Section */}
-          <div className="mb-12 text-center flex flex-col items-center w-full">
-             <div className="size-40 lg:size-52 bg-white rounded-[44px] lg:rounded-[60px] shadow-2xl p-8 lg:p-12 mb-8 relative overflow-hidden group/logo border-4 border-gold-primary/10 flex items-center justify-center">
+          <div className="mb-10 lg:mb-12 text-center flex flex-col items-center w-full">
+             <div className="size-32 lg:size-52 bg-white rounded-[38px] lg:rounded-[60px] shadow-2xl p-6 lg:p-12 mb-6 lg:mb-8 relative overflow-hidden group/logo border-4 border-gold-primary/10 flex items-center justify-center">
                 {dynamicLogo && !dynamicLogo.includes("alsaif-mark") ? (
                   <div
                     className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg] scale-110"
