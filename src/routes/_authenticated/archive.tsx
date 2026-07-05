@@ -122,7 +122,7 @@ function ArchivePage() {
             .from("archive-media")
             .createSignedUrl(r.storage_path, 60 * 60);
 
-          const p = profMap.get(r.uploader_id);
+          const p = profMap.get(r.uploader_id) as any;
           return {
             ...(r as ArchiveItem),
             url: signed?.signedUrl ?? "",

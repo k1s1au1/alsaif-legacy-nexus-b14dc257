@@ -44,6 +44,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
+import { PresenceDot, usePresenceFor } from "@/lib/presence";
 import {
   chatTimeLabel,
   conversationAvatarInitial,
@@ -543,6 +544,7 @@ function ConversationRoute() {
   const title = conversationTitle(conv, participants, profiles, meId);
   const otherInDirect = participants.find((p) => p.user_id !== meId);
   const presenceInfo = otherInDirect ? presence[otherInDirect.user_id] : undefined;
+  const otherPresenceState = usePresenceFor(otherInDirect?.user_id ?? null);
   const statusLabel = conv.kind === "direct"
     ? (presenceInfo?.status === "online" ? "متصل الآن" : lastSeenLabel(presenceInfo?.last_seen_at ?? null))
     : `${participants.length} عضو`;
@@ -563,11 +565,16 @@ function ConversationRoute() {
           </button>
 
           <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setShowInfo(true)}>
-             <div className="size-12 rounded-[20px] bg-primary/5 border border-primary/10 overflow-hidden relative shadow-inner">
-                {conv.kind === "group" ? (
-                  <div className="size-full flex items-center justify-center bg-primary text-white"><Users className="size-6" /></div>
-                ) : (
-                  <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full" userId={otherInDirect?.user_id ?? null} />
+             <div className="relative shrink-0">
+                <div className="size-12 rounded-[20px] bg-primary/5 border border-primary/10 overflow-hidden shadow-inner">
+                   {conv.kind === "group" ? (
+                     <div className="size-full flex items-center justify-center bg-primary text-white"><Users className="size-6" /></div>
+                   ) : (
+                     <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full" />
+                   )}
+                </div>
+                {conv.kind === "direct" && otherInDirect && (
+                  <PresenceDot state={otherPresenceState} className="absolute -bottom-0.5 -right-0.5 z-10" />
                 )}
              </div>
              <div className="min-w-0">

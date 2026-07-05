@@ -398,7 +398,7 @@ function TripDialog({ trip, onClose, onSaved }: any) {
     const { data: u } = await supabase.auth.getUser();
     if (!u.user) return;
 
-    let imagePath = undefined;
+    let imagePath: string | null | undefined = undefined;
     if (imageFile) {
       const ext = imageFile.name.split(".").pop() || "jpg";
       const path = `${u.user.id}/${crypto.randomUUID()}.${ext}`;

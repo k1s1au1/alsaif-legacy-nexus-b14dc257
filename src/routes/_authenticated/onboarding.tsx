@@ -47,9 +47,10 @@ function OnboardingPage() {
         return;
       }
       setUserId(u.user.id);
-      const { data: p } = await supabase
+      const { data: pRaw } = await supabase
         .rpc("get_my_profile" as any)
-        .maybeSingle<{ first_name: string | null; father_name: string | null; grandfather_name: string | null; phone: string | null }>();
+        .maybeSingle();
+      const p = pRaw as { first_name: string | null; father_name: string | null; grandfather_name: string | null; phone: string | null } | null;
       if (p?.first_name && p?.father_name && p?.grandfather_name) {
         navigate({ to: "/dashboard", replace: true });
         return;

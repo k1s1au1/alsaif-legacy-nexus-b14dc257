@@ -79,7 +79,7 @@ function NotificationsPage() {
       .select("conversation_id,last_read_at")
       .eq("user_id", uid);
     if (parts?.length) {
-      const readMap = new Map(parts.map((p) => [p.conversation_id, new Date(p.last_read_at).getTime()]));
+      const readMap = new Map<string, number>(parts.map((p: any) => [p.conversation_id, new Date(p.last_read_at).getTime()]));
       const { data: msgs } = await supabase
         .from("messages")
         .select("id,conversation_id,body,created_at,sender_id")

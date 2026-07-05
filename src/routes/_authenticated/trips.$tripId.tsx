@@ -126,10 +126,10 @@ function TripDetail() {
       .from("profiles")
       .select("id, arabic_name, full_name, avatar_url")
       .in("id", ids);
-    const map = new Map((profs ?? []).map((p) => [p.id, p]));
+    const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
     setAttendees(
       ids.map((id) => {
-        const p = map.get(id);
+        const p = map.get(id) as any;
         const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
         return {
           user_id: id,
