@@ -569,9 +569,6 @@ function ConversationRoute() {
                 ) : (
                   <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full" userId={otherInDirect?.user_id ?? null} />
                 )}
-                {conv.kind === "direct" && presenceInfo?.status === "online" && (
-                   <span className="absolute bottom-0 right-0 size-3 bg-emerald-500 rounded-full border-2 border-card" />
-                )}
              </div>
              <div className="min-w-0">
                 <h2 className="text-[17px] font-black tracking-tight text-foreground group-hover:text-primary transition-colors truncate">{title}</h2>

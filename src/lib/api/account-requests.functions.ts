@@ -4,17 +4,16 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const approveAccountRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: { id: string }) => z.object({ id: z.string().uuid() }).parse(data))
+  .validator(z.object({ id: z.string().uuid() }))
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
+    const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const admin = getSupabaseAdmin();
+    if (!admin) throw new Error("Server error");
 
     const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", userId);
     const isPriv = (roles ?? []).some((r: any) => ["admin", "chairman"].includes(r.role));
     if (!isPriv) throw new Error("Unauthorized");
-
-    const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = getSupabaseAdmin();
-    if (!admin) throw new Error("Server error");
 
     const { data: req } = await admin.from("account_requests").select("*").eq("id", data.id).single();
     if (!req) throw new Error("Request not found");
