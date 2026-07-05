@@ -115,7 +115,7 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     try {
       const res = await runTransition({ data: { postId } });
       if (res.success) {
-        toast.success(`تم بنجاح! ${res.newChairman} هو رئيس المجلس الجديد الآن.`);
+        toast.success(`تم بنجاح! ${(res as any).newChairman ?? ""} هو رئيس المجلس الجديد الآن.`);
         await load();
       }
     } catch (e: any) {
