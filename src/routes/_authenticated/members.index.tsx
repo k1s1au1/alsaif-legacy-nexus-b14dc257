@@ -7,7 +7,6 @@ import { Loader2, Search, Users, ShieldCheck, Mail, MapPin, ChevronLeft, Trash2 
 import { PresenceDot, presenceFromLastSeen, type PresenceState } from "@/lib/presence";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useServerFn } from "@tanstack/react-start";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";

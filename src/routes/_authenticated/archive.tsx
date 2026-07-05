@@ -34,7 +34,6 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/archive")({
   ssr: false,
@@ -268,7 +267,7 @@ function ArchivePage() {
                  <div className="absolute bottom-0 left-0 size-[400px] bg-blue-500/5 rounded-full blur-[100px] translate-y-1/2 -translate-x-1/4" />
                  {/* Decorative Logo */}
                  <div className="absolute left-10 md:left-20 top-1/2 -translate-y-1/2 opacity-[0.03] md:opacity-[0.05] pointer-events-none transition-transform duration-[2000ms] group-hover:scale-110">
-                    <div className="size-48 md:size-[450px] logo-alsaif-banner" style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any} />
+                    <div className="size-48 md:size-[450px] logo-alsaif-banner" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
                  </div>
               </div>
 

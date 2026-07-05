@@ -9,7 +9,6 @@ import { UserAvatar, invalidateAvatar } from "@/components/user-avatar";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 
 export const Route = createFileRoute("/_authenticated/profile")({
   ssr: false,

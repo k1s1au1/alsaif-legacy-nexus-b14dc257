@@ -19,7 +19,6 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { FamilyProjects } from "@/components/family-projects";
 
@@ -269,7 +268,7 @@ function FinancePage() {
             <div className="absolute -bottom-24 -right-16 size-72 bg-gold-primary/20 rounded-full blur-3xl" />
             <div
               className="absolute right-6 top-6 size-28 md:size-40 opacity-15 logo-alsaif-banner pointer-events-none transition-all duration-1000 group-hover:opacity-25 group-hover:scale-110"
-              style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
+              style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
             />
 
             <div className="relative z-10 p-8 md:p-12 text-white flex flex-col items-center text-center">

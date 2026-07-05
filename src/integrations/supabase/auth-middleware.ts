@@ -1,14 +1,15 @@
 import { createMiddleware } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
+import { createClient } from '@supabase/supabase-js'
 import type { Database } from './types'
 
 export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
   async ({ next }) => {
     const SUPABASE_URL = process.env.SUPABASE_URL;
-    const SUPABASE_PUBLISHABLE_KEY = process.env.SUPABASE_PUBLISHABLE_KEY;
+    const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!SUPABASE_URL || !SUPABASE_PUBLISHABLE_KEY) {
-      throw new Error("Missing Supabase environment variables");
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error("Server environment not configured");
     }
     
     const request = getRequest();
@@ -18,18 +19,9 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
     }
 
     const token = authHeader.replace('Bearer ', '');
-    if (!token) throw new Error('Unauthorized');
-
-    // Dynamic import to avoid build-time Proxy issues
-    const { createClient } = await import('@supabase/supabase-js');
-    const supabase = createClient<Database>(
-      SUPABASE_URL!,
-      SUPABASE_PUBLISHABLE_KEY!,
-      {
-        global: { headers: { Authorization: `Bearer ${token}` } },
-        auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-      }
-    );
+    const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: { persistSession: false, autoRefreshToken: false },
+    });
 
     const { data, error } = await supabase.auth.getClaims(token);
     if (error || !data?.claims) throw new Error('Unauthorized');

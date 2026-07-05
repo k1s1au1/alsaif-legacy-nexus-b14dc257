@@ -40,7 +40,6 @@ import { assignUserRole } from "@/lib/api/roles.functions";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
-import alsaifMark from "@/assets/alsaif-mark.png.asset.json";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
@@ -398,7 +397,7 @@ function AdminPage() {
             <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
               <div
                 className="size-28 md:size-64 logo-alsaif-banner"
-                style={{ "--logo-url": `url(${dynamicLogo || alsaifMark?.url || ""})` } as any}
+                style={{ "--logo-url": `url(${dynamicLogo || ""})` } as any}
               />
             </div>
 
