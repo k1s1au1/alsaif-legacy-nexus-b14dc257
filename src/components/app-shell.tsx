@@ -222,57 +222,37 @@ export function AppShell({
       </motion.aside>
 
       <main className="relative min-h-screen pb-20">
-        {/* ROYAL FLOATING ISLAND HEADER */}
-        <div className="px-4 md:px-10 pt-4 md:pt-6 sticky top-0 z-[50]">
-          <header className="h-20 max-w-7xl mx-auto flex items-center justify-between bg-white/40 backdrop-blur-2xl border border-white/60 rounded-[32px] px-6 md:px-10 shadow-[0_15px_50px_-15px_rgba(0,0,0,0.1)] transition-all">
-            <div className="flex items-center gap-4 md:gap-8">
-              {/* Menu Button */}
-              <button
-                onClick={() => setSidebarOpen(true)}
-                className="size-11 grid place-items-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg shadow-primary/20"
-              >
-                <Menu className="size-5" strokeWidth={2.5} />
-              </button>
+        <header className="h-24 sticky top-0 z-[50] px-6 lg:px-12 flex items-center justify-between bg-background/60 backdrop-blur-3xl border-b border-white/5 transition-all shadow-[0_8px_32px_-12px_rgba(0,0,0,0.1)]">
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="size-12 grid place-items-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all active:scale-95 shadow-xl shadow-primary/20"
+            >
+              <Menu className="size-6" strokeWidth={2.5} />
+            </button>
+            <h1 className="text-xl font-black tracking-tight text-primary uppercase tracking-[0.05em]">{title}</h1>
+          </div>
 
-              {/* Branding Section */}
-              <div className="hidden sm:flex items-center gap-4">
-                 {dynamicLogo && (
-                   <div className="size-10 rounded-xl bg-[#fdfcf7] p-2 flex items-center justify-center shadow-inner border border-emerald-950/5">
-                      <div
-                        className="size-full bg-contain bg-no-repeat bg-center"
-                        style={{ backgroundImage: `url(${dynamicLogo})` }}
-                      />
-                   </div>
-                 )}
-                 <div className="h-8 w-px bg-primary/10" />
-                 <h1 className="text-base md:text-lg font-black tracking-tight text-primary uppercase tracking-widest">{title}</h1>
-              </div>
+          <div className="flex items-center gap-4">
+            <NotificationsBell />
 
-              {/* Mobile Title */}
-              <h1 className="sm:hidden text-sm font-black tracking-tight text-primary uppercase truncate max-w-[120px]">{title}</h1>
-            </div>
-
-            <div className="flex items-center gap-3 md:gap-6">
-              <NotificationsBell />
-
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-2 group bg-primary/5 hover:bg-primary/10 p-1 pr-3 rounded-full transition-all border border-primary/5 outline-none">
-                    <div className="size-8 md:size-9 rounded-full ring-2 ring-primary/20 group-hover:ring-primary transition-all bg-background p-0.5 relative shadow-sm">
-                      <UserAvatar
-                        path={myAvatarPath}
-                        name={safeUser.name}
-                        initial={safeUser.initial}
-                        className="size-full rounded-full"
-                        userId={myUserId}
-                        presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-3 ring-2 ring-[var(--card)] shadow-lg"
-                      />
-                    </div>
-                    <span className="hidden md:block text-[13px] font-black text-primary mr-1">{safeUser.name.split(' ')[0]}</span>
-                    <ChevronDown className="size-4 text-primary/40 group-hover:text-primary transition-colors ml-1" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" sideOffset={12} className="min-w-[220px] rounded-2xl border-border bg-card p-2 text-right shadow-xl">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-2 outline-none group">
+                  <div className="size-10 rounded-full ring-2 ring-primary/10 group-hover:ring-primary transition-all bg-background p-0.5 relative">
+                    <UserAvatar
+                      path={myAvatarPath}
+                      name={safeUser.name}
+                      initial={safeUser.initial}
+                      className="size-full rounded-full overflow-hidden"
+                      userId={myUserId}
+                      presenceDotClassName="absolute -bottom-1 -left-1 size-4 ring-2 ring-[var(--card)] shadow-lg"
+                    />
+                  </div>
+                  <ChevronDown className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" sideOffset={12} className="min-w-[220px] rounded-2xl border-border bg-card p-2 text-right shadow-xl">
                 <DropdownMenuLabel className="px-4 py-4 border-b border-muted mb-1">
                   <p className="text-[15px] font-bold text-primary">{safeUser.name}</p>
                   <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-widest">{safeUser.role}</p>
