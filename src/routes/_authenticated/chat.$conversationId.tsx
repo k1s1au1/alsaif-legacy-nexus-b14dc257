@@ -165,6 +165,26 @@ function ConversationRoute() {
     </div>
   );
 
+  async function toggleMute() {
+    if (!myParticipant) return;
+    await supabase.from("conversation_participants").update({ muted: !myParticipant.muted }).eq("id", myParticipant.id);
+    toast.success(myParticipant.muted ? "تم تفعيل التنبيهات" : "تم كتم التنبيهات");
+  }
+
+  async function deleteConversation() {
+    if (!conv || !meId) return;
+    const isOwner = myParticipant?.role === 'owner';
+    const msg = isOwner && conv.kind === 'group' ? "هل تريد حذف هذا المجلس نهائياً لجميع الأعضاء؟" : "هل تريد حذف هذه المحادثة من قائمتك؟";
+    if (!confirm(msg)) return;
+
+    if (isOwner && conv.kind === 'group') {
+      await supabase.from("conversations").delete().eq("id", conv.id);
+    } else {
+      await supabase.from("conversation_participants").delete().eq("id", myParticipant?.id);
+    }
+    navigate({ to: "/chat" });
+  }
+
   return (
     <div className="flex-1 flex flex-col h-full bg-background relative overflow-hidden" dir="rtl">
 
@@ -238,7 +258,7 @@ function ConversationRoute() {
          </form>
       </div>
 
-      <AnimatePresence>{showInfo && <InfoDrawer conversation={conv} participants={participants} profiles={profiles} presence={presence} meId={meId} isAdmin={isAdmin} myParticipant={myParticipant} onClose={() => setShowInfo(false)} />}</AnimatePresence>
+      <AnimatePresence>{showInfo && <InfoDrawer conversation={conv} participants={participants} profiles={profiles} meId={meId} myParticipant={myParticipant} onMute={toggleMute} onDelete={deleteConversation} onClose={() => setShowInfo(false)} />}</AnimatePresence>
     </div>
   );
 }
@@ -354,7 +374,7 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, onReply, onReact
   );
 }
 
-function InfoDrawer({ conversation, participants, profiles, meId, onClose }: any) {
+function InfoDrawer({ conversation, participants, profiles, meId, myParticipant, onMute, onDelete, onClose }: any) {
   const otherUser = participants.find((p: Participant) => p.user_id !== meId);
   const otherProfile = otherUser ? profiles[otherUser.user_id] : null;
 
@@ -367,7 +387,7 @@ function InfoDrawer({ conversation, participants, profiles, meId, onClose }: any
            <button onClick={onClose} className="size-10 rounded-full hover:bg-muted flex items-center justify-center transition-all text-muted-foreground"><X size={24} /></button>
         </header>
 
-        <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 space-y-8 lg:space-y-10">
+        <div className="flex-1 overflow-y-auto no-scrollbar p-6 lg:p-8 space-y-10">
            <div className="flex flex-col items-center text-center space-y-6">
               <div className="size-24 lg:size-32 rounded-[28px] lg:rounded-[32px] bg-muted border border-border flex items-center justify-center relative overflow-hidden group">
                  {conversation.kind === "group" ? (
@@ -382,8 +402,24 @@ function InfoDrawer({ conversation, participants, profiles, meId, onClose }: any
               </div>
            </div>
 
+           {/* ACTIONS */}
+           <div className="grid grid-cols-2 gap-3">
+              <button onClick={onMute} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-muted/40 hover:bg-muted transition-all border border-border/40 group">
+                 <div className="size-10 rounded-2xl bg-card flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    {myParticipant?.muted ? <Bell className="size-5 text-gold-primary" /> : <BellOff className="size-5 text-muted-foreground" />}
+                 </div>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-foreground/60">{myParticipant?.muted ? "تفعيل" : "كتم"}</span>
+              </button>
+              <button onClick={onDelete} className="flex flex-col items-center gap-2 p-4 rounded-3xl bg-red-500/5 hover:bg-red-500/10 transition-all border border-red-500/10 group text-red-500">
+                 <div className="size-10 rounded-2xl bg-card flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                    <Trash2 className="size-5" />
+                 </div>
+                 <span className="text-[10px] font-black uppercase tracking-widest">حذف</span>
+              </button>
+           </div>
+
            <div className="space-y-6">
-              <h5 className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40">أعضاء الجلسة</h5>
+              <h5 className="font-black text-[10px] uppercase tracking-[0.2em] text-muted-foreground/40 text-center">أعضاء الجلسة</h5>
               <div className="space-y-2">
                  {participants.map((p: any) => {
                     const prof = profiles[p.user_id];

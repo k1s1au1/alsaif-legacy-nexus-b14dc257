@@ -188,9 +188,21 @@ function ChatLayout() {
               <div className="py-20 text-center opacity-30"><Clock className="size-8 mx-auto animate-spin mb-2" /></div>
             ) : filtered.length === 0 ? (
               <div className="py-20 px-8 text-center opacity-40 text-xs font-bold leading-relaxed">{showArchive ? "لا توجد محادثات مؤرشفة" : "ابدأ تواصلك الأول مع أفراد العائلة"}</div>
-            ) : filtered.map((it) => (
-              <ConversationRow key={it.conversation.id} item={it} meId={meId} profiles={profiles} active={path === `/chat/${it.conversation.id}`} />
-            ))}
+            ) : (
+              <div className="space-y-1">
+                {filtered.map((it) => (
+                  <ConversationRow
+                    key={it.conversation.id}
+                    item={it}
+                    meId={meId}
+                    profiles={profiles}
+                    active={path === `/chat/${it.conversation.id}`}
+                    onArchive={() => handleToggleArchive(it)}
+                    onDelete={() => handleDeleteOrLeave(it)}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </aside>
 
@@ -223,53 +235,69 @@ function ChatLayout() {
   );
 }
 
-function ConversationRow({ item, meId, profiles, active }: { item: ConversationListItem; meId: string | null; profiles: Record<string, Profile>; active: boolean }) {
+function ConversationRow({ item, meId, profiles, active, onArchive, onDelete }: { item: ConversationListItem; meId: string | null; profiles: Record<string, Profile>; active: boolean; onArchive: () => void; onDelete: () => void; }) {
   const title = conversationTitle(item.conversation, item.participants, profiles, meId);
   const initial = conversationAvatarInitial(item.conversation, item.participants, profiles, meId);
   const other = item.conversation.kind === "direct" ? item.participants.find((p) => p.user_id !== meId) : undefined;
   const otherAvatarPath = other ? profiles[other.user_id]?.avatar_url ?? null : null;
   const lastMine = item.lastMessage?.sender_id === meId;
+  const isArchived = !!item.myParticipant?.archived_at;
 
   return (
-    <Link to="/chat/$conversationId" params={{ conversationId: item.conversation.id }}
-      className={cn(
-        "flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden group/row border border-transparent",
-        active
-          ? "bg-primary text-white shadow-xl shadow-primary/10 border-primary"
-          : "bg-card/50 hover:bg-card hover:border-border text-foreground shadow-sm"
-      )}>
-
-      <div className="relative shrink-0">
-        <div className={cn("size-12 rounded-xl border transition-all relative", active ? "border-white/20 shadow-inner" : "border-gold-primary/10 shadow-sm")}>
-           {item.conversation.kind === "group" ? (
-             <div className="size-full flex items-center justify-center bg-muted rounded-xl overflow-hidden"><Users className={cn("size-5", active ? "text-white" : "text-primary")} /></div>
-           ) : (
-             <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full rounded-xl overflow-hidden" userId={other?.user_id ?? null} presenceDotClassName="absolute -bottom-1 -left-1 size-3.5 ring-2 ring-card shadow-lg z-20" />
-           )}
-        </div>
-        {!active && item.unread > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg z-30">
-            {item.unread}
-          </span>
-        )}
+    <div className="relative overflow-hidden rounded-[28px] group/row">
+      <div className="absolute inset-0 flex items-center justify-between px-6 z-0">
+        <button onClick={(e) => { e.preventDefault(); onArchive(); }} className={cn("flex flex-col items-center gap-1 transition-all active:scale-95", isArchived ? "text-emerald-500" : "text-amber-500")}>
+          <div className="size-10 rounded-full flex items-center justify-center bg-current/10 shadow-sm"><Archive className="size-5" /></div>
+          <span className="text-[9px] font-black uppercase tracking-tighter">{isArchived ? "استعادة" : "أرشفة"}</span>
+        </button>
+        <button onClick={(e) => { e.preventDefault(); onDelete(); }} className="flex flex-col items-center gap-1 text-red-500 transition-all active:scale-95">
+          <div className="size-10 rounded-full flex items-center justify-center bg-red-500/10 shadow-sm"><Trash2 className="size-5" /></div>
+          <span className="text-[9px] font-black uppercase tracking-tighter">حذف</span>
+        </button>
       </div>
 
-      <div className="flex-1 min-w-0 space-y-0.5">
-        <div className="flex items-center justify-between gap-2">
-          <h3 className={cn("text-sm font-black truncate", active ? "text-white" : "text-primary")}>{title}</h3>
-          <span className={cn("text-[9px] font-bold opacity-40", active ? "text-white" : "text-muted-foreground")}>
-            {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
-          </span>
-        </div>
-        <div className="flex items-center gap-1.5 overflow-hidden">
-          <p className={cn("text-[11px] font-bold truncate flex-1", active ? "text-white/70" : "text-muted-foreground")}>
-            {lastMine && item.lastMessage && <CheckCheck className={cn("size-3 inline ml-1 opacity-50")} />}
-            {messagePreview(item.lastMessage)}
-          </p>
-          {item.myParticipant?.muted && !active && <BellOff className="size-2.5 text-muted-foreground/30 shrink-0" />}
-        </div>
-      </div>
-    </Link>
+      <motion.div drag="x" dragConstraints={{ left: -100, right: 100 }} dragSnapToOrigin onDragEnd={(_, info) => { if (info.offset.x > 60) onArchive(); else if (info.offset.x < -60) onDelete(); }} className="relative z-10">
+        <Link to="/chat/$conversationId" params={{ conversationId: item.conversation.id }}
+          className={cn(
+            "flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden group/row border border-transparent",
+            active
+              ? "bg-primary text-white shadow-xl shadow-primary/10 border-primary"
+              : "bg-card/50 hover:bg-card hover:border-border text-foreground shadow-sm"
+          )}>
+
+          <div className="relative shrink-0">
+            <div className={cn("size-12 rounded-xl border transition-all relative", active ? "border-white/20 shadow-inner" : "border-gold-primary/10 shadow-sm")}>
+               {item.conversation.kind === "group" ? (
+                 <div className="size-full flex items-center justify-center bg-muted rounded-xl overflow-hidden"><Users className={cn("size-5", active ? "text-white" : "text-primary")} /></div>
+               ) : (
+                 <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full rounded-xl overflow-hidden" userId={other?.user_id ?? null} presenceDotClassName="absolute -bottom-1 -left-1 size-3.5 ring-2 ring-card shadow-lg z-20" />
+               )}
+            </div>
+            {!active && item.unread > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg z-30">
+                {item.unread}
+              </span>
+            )}
+          </div>
+
+          <div className="flex-1 min-w-0 space-y-0.5">
+            <div className="flex items-center justify-between gap-2">
+              <h3 className={cn("text-sm font-black truncate", active ? "text-white" : "text-primary")}>{title}</h3>
+              <span className={cn("text-[9px] font-bold opacity-40", active ? "text-white" : "text-muted-foreground")}>
+                {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 overflow-hidden">
+              <p className={cn("text-[11px] font-bold truncate flex-1", active ? "text-white/70" : "text-muted-foreground")}>
+                {lastMine && item.lastMessage && <CheckCheck className={cn("size-3 inline ml-1 opacity-50")} />}
+                {messagePreview(item.lastMessage)}
+              </p>
+              {item.myParticipant?.muted && !active && <BellOff className="size-2.5 text-muted-foreground/30 shrink-0" />}
+            </div>
+          </div>
+        </Link>
+      </motion.div>
+    </div>
   );
 }
 
