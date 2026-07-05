@@ -564,11 +564,16 @@ function ConversationRoute() {
           </button>
 
           <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setShowInfo(true)}>
-             <div className="size-12 rounded-[20px] bg-primary/5 border border-primary/10 overflow-hidden relative shadow-inner">
-                {conv.kind === "group" ? (
-                  <div className="size-full flex items-center justify-center bg-primary text-white"><Users className="size-6" /></div>
-                ) : (
-                  <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full" userId={otherInDirect?.user_id ?? null} />
+             <div className="relative shrink-0">
+                <div className="size-12 rounded-[20px] bg-primary/5 border border-primary/10 overflow-hidden shadow-inner">
+                   {conv.kind === "group" ? (
+                     <div className="size-full flex items-center justify-center bg-primary text-white"><Users className="size-6" /></div>
+                   ) : (
+                     <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full" />
+                   )}
+                </div>
+                {conv.kind === "direct" && otherInDirect && (
+                  <PresenceDot state={usePresenceFor(otherInDirect.user_id)} className="absolute -bottom-0.5 -right-0.5 z-10" />
                 )}
              </div>
              <div className="min-w-0">
