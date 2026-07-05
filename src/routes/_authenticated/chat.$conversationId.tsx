@@ -544,6 +544,7 @@ function ConversationRoute() {
   const title = conversationTitle(conv, participants, profiles, meId);
   const otherInDirect = participants.find((p) => p.user_id !== meId);
   const presenceInfo = otherInDirect ? presence[otherInDirect.user_id] : undefined;
+  const otherPresenceState = usePresenceFor(otherInDirect?.user_id ?? null);
   const statusLabel = conv.kind === "direct"
     ? (presenceInfo?.status === "online" ? "متصل الآن" : lastSeenLabel(presenceInfo?.last_seen_at ?? null))
     : `${participants.length} عضو`;
