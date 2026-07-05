@@ -4,12 +4,10 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export const getMemberCredential = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator((data: { userId: string }) => z.object({ userId: z.string().uuid() }).parse(data))
-  .handler(async ({ data, context }) => {
+  .validator(z.object({ userId: z.string().uuid() }))
+  .handler(async ({ data: { userId } }) => {
     const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const supabaseAdmin = getSupabaseAdmin();
-    if (!supabaseAdmin) throw new Error("Server not ready");
-
-    // Resolve...
+    const admin = getSupabaseAdmin();
+    if (!admin) throw new Error("Server error");
     return { email: null, password: null };
   });
