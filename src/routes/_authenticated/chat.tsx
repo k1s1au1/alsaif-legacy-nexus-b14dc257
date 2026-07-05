@@ -12,6 +12,7 @@ import {
   Plus,
   Clock,
   Sparkles,
+  Trash2,
 } from "lucide-react";
 import {
   chatTimeLabel,
@@ -150,24 +151,9 @@ function ChatLayout() {
     if (!item.myParticipant) return;
     const isArchiving = !item.myParticipant.archived_at;
     const now = new Date().toISOString();
-
-    setItems(prev => prev.map(it =>
-      it.conversation.id === item.conversation.id
-        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
-        : it
-    ));
-
-    const { error } = await supabase
-      .from("conversation_participants")
-      .update({ archived_at: isArchiving ? now : null })
-      .eq("id", item.myParticipant.id);
-
-    if (error) {
-      toast.error("حدث خطأ");
-      load();
-    } else {
-      toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة");
-    }
+    setItems(prev => prev.map(it => it.conversation.id === item.conversation.id ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } } : it));
+    const { error } = await supabase.from("conversation_participants").update({ archived_at: isArchiving ? now : null }).eq("id", item.myParticipant.id);
+    if (error) { toast.error("حدث خطأ"); load(); } else { toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة"); }
   };
 
   const handleDeleteOrLeave = async (item: ConversationListItem) => {
@@ -176,109 +162,55 @@ function ChatLayout() {
     const isGroup = item.conversation.kind === "group";
     const msg = isOwner && isGroup ? "هل تود حذف هذه المجموعة نهائياً؟" : isGroup ? "هل تود مغادرة هذه المجموعة؟" : "هل تود حذف هذه المحادثة؟";
     if (!confirm(msg)) return;
-
     let error;
-    if (isOwner && isGroup) {
-      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
-      error = err;
-    } else {
-      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
-      error = err;
-    }
-
-    if (error) {
-      toast.error("فشل الإجراء");
-    } else {
-      toast.success("تم الحذف");
-      load();
-    }
+    if (isOwner && isGroup) { error = (await supabase.from("conversations").delete().eq("id", item.conversation.id)).error; }
+    else { error = (await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id)).error; }
+    if (error) { toast.error("فشل الإجراء"); } else { toast.success("تم الحذف"); load(); }
   };
 
   return (
     <AppShell title="المحادثات" user={shellUser}>
       <div className="flex h-[calc(100vh-6rem)] -m-6 lg:-m-10 overflow-hidden bg-card animate-fade-up relative z-10">
-
-        {/* INTEGRATED SIDEBAR */}
-        <aside className={cn(
-            "flex flex-col w-full lg:w-[280px] xl:w-[320px] shrink-0 border-l border-border bg-muted/20 relative z-20 transition-all duration-500",
-            isConvOpen ? "hidden lg:flex" : "flex"
-          )}>
-
+        <aside className={cn("flex flex-col w-full lg:w-[280px] xl:w-[320px] shrink-0 border-l border-border bg-muted/20 relative z-20 transition-all duration-500", isConvOpen ? "hidden lg:flex" : "flex")}>
           <div className="p-6 space-y-6 shrink-0 border-b border-border bg-card/50 backdrop-blur-md">
             <div className="flex items-center justify-between">
               <div className="space-y-1">
-                <div className="flex items-center gap-2 text-gold-primary">
-                  <Sparkles className="size-3 animate-pulse" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em]">الرسائل</span>
-                </div>
+                <div className="flex items-center gap-2 text-gold-primary"><Sparkles className="size-3 animate-pulse" /><span className="text-[9px] font-black uppercase tracking-[0.3em]">الرسائل</span></div>
                 <h2 className="text-2xl font-black text-primary tracking-tighter">مجلس السيف</h2>
               </div>
-              <button onClick={() => setShowNew("chat")} className="size-10 rounded-xl bg-gold-primary text-emerald-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg">
-                <Plus className="size-5" strokeWidth={3} />
-              </button>
+              <button onClick={() => setShowNew("chat")} className="size-10 rounded-xl bg-gold-primary text-emerald-950 flex items-center justify-center hover:scale-105 active:scale-95 transition-all shadow-lg"><Plus className="size-5" strokeWidth={3} /></button>
             </div>
-
             <div className="relative group">
               <Search className="size-3.5 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-primary transition-colors" strokeWidth={3} />
               <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="ابحث في المحادثات..." className="w-full bg-background border border-border rounded-xl pl-4 pr-10 py-2.5 text-xs font-bold focus:ring-2 focus:ring-primary/10 transition-all shadow-inner" />
             </div>
-
             <div className="flex p-1 bg-muted rounded-xl border border-border/40">
               <button onClick={() => setShowArchive(false)} className={cn("flex-1 py-2 text-[10px] font-black rounded-lg transition-all", !showArchive ? "bg-card text-primary shadow-sm" : "text-muted-foreground")}>النشطة</button>
-              <button onClick={() => setShowArchive(true)} className={cn("flex-1 py-2 text-[10px] font-black rounded-lg transition-all flex items-center justify-center gap-2", showArchive ? "bg-card text-primary shadow-sm" : "text-muted-foreground")}>
-                <Archive size={12} /> المؤرشفة
-              </button>
+              <button onClick={() => setShowArchive(true)} className={cn("flex-1 py-2 text-[10px] font-black rounded-lg transition-all flex items-center justify-center gap-2", showArchive ? "bg-card text-primary shadow-sm" : "text-muted-foreground")}><Archive size={12} /> المؤرشفة</button>
             </div>
           </div>
-
           <div className="flex-1 overflow-y-auto p-3 space-y-1 bg-muted/10 min-h-0 custom-scrollbar">
             {loading ? (
               <div className="py-20 text-center opacity-30"><Clock className="size-8 mx-auto animate-spin mb-2" /></div>
             ) : filtered.length === 0 ? (
               <div className="py-20 px-8 text-center opacity-40 text-xs font-bold leading-relaxed">{showArchive ? "لا توجد محادثات مؤرشفة" : "ابدأ تواصلك الأول مع أفراد العائلة"}</div>
-            ) : (
-              <div className="space-y-1">
-                {filtered.map((it) => (
-                  <ConversationRow
-                    key={it.conversation.id}
-                    item={it}
-                    meId={meId}
-                    profiles={profiles}
-                    active={path === `/chat/${it.conversation.id}`}
-                    onArchive={() => handleToggleArchive(it)}
-                    onDelete={() => handleDeleteOrLeave(it)}
-                  />
-                ))}
-              </div>
-            )}
+            ) : filtered.map((it) => (
+              <ConversationRow key={it.conversation.id} item={it} meId={meId} profiles={profiles} active={path === `/chat/${it.conversation.id}`} onArchive={() => handleToggleArchive(it)} onDelete={() => handleDeleteOrLeave(it)} />
+            ))}
           </div>
         </aside>
-
-        {/* MAIN VIEWPORT */}
         <main className={cn("flex-1 min-w-0 bg-background relative z-10", isConvOpen ? "flex" : "hidden lg:flex")}>
           {!isConvOpen && (
             <div className="flex-1 flex flex-col items-center justify-center p-10 text-center space-y-8 animate-fade-up">
-               <div className="relative">
-                 <div className="absolute inset-0 bg-gold-primary/10 blur-[80px] rounded-full scale-150" />
-                 <div className="size-48 md:size-64 relative z-10 logo-alsaif opacity-10"
-                      style={{ '--logo-url': `url(${dynamicLogo || ""})` } as any} />
-               </div>
-               <div className="space-y-2 max-w-sm">
-                 <h3 className="text-2xl font-black text-primary tracking-tight">مجلس المحادثات</h3>
-                 <p className="text-muted-foreground font-bold text-base opacity-60 leading-relaxed">اختر إحدى الجلسات لبدء حوار عائلي ممتع وآمن.</p>
-               </div>
+               <div className="relative"><div className="absolute inset-0 bg-gold-primary/10 blur-[80px] rounded-full scale-150" /><div className="size-48 md:size-64 relative z-10 logo-alsaif opacity-10" style={{ '--logo-url': `url(${dynamicLogo || ""})` } as any} /></div>
+               <div className="space-y-2 max-w-sm"><h3 className="text-2xl font-black text-primary tracking-tight">مجلس المحادثات</h3><p className="text-muted-foreground font-bold text-base opacity-60 leading-relaxed">اختر إحدى الجلسات لبدء حوار عائلي ممتع وآمن.</p></div>
                <button onClick={() => setShowNew("chat")} className="btn-gold px-10 py-4 text-base rounded-2xl shadow-xl hover:scale-105 active:scale-95 transition-all">بدء مجلس جديد</button>
             </div>
           )}
           <Outlet />
         </main>
       </div>
-
-      <AnimatePresence>
-        {showNew && meId && (
-          <NewConversationDialog mode={showNew} meId={meId} profiles={profiles} onClose={() => setShowNew(null)} />
-        )}
-      </AnimatePresence>
+      <AnimatePresence>{showNew && meId && (<NewConversationDialog mode={showNew} meId={meId} profiles={profiles} onClose={() => setShowNew(null)} />)}</AnimatePresence>
     </AppShell>
   );
 }
@@ -291,76 +223,20 @@ function ConversationRow({ item, meId, profiles, active, onArchive, onDelete }: 
   const lastMine = item.lastMessage?.sender_id === meId;
   const isArchived = !!item.myParticipant?.archived_at;
 
-  const handleToggleArchive = async (item: ConversationListItem) => {
-    if (!item.myParticipant) return;
-    const isArchiving = !item.myParticipant.archived_at;
-    const now = new Date().toISOString();
-
-    setItems(prev => prev.map(it =>
-      it.conversation.id === item.conversation.id
-        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
-        : it
-    ));
-
-    const { error } = await supabase
-      .from("conversation_participants")
-      .update({ archived_at: isArchiving ? now : null })
-      .eq("id", item.myParticipant.id);
-
-    if (error) {
-      toast.error("حدث خطأ");
-      load();
-    } else {
-      toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة");
-    }
-  };
-
-  const handleDeleteOrLeave = async (item: ConversationListItem) => {
-    if (!item.myParticipant) return;
-    const isOwner = item.myParticipant.role === "owner";
-    const isGroup = item.conversation.kind === "group";
-    const msg = isOwner && isGroup ? "هل تود حذف هذه المجموعة نهائياً؟" : isGroup ? "هل تود مغادرة هذه المجموعة؟" : "هل تود حذف هذه المحادثة؟";
-    if (!confirm(msg)) return;
-
-    let error;
-    if (isOwner && isGroup) {
-      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
-      error = err;
-    } else {
-      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
-      error = err;
-    }
-
-    if (error) {
-      toast.error("فشل الإجراء");
-    } else {
-      toast.success("تم الحذف");
-      load();
-    }
-  };
-
   return (
     <div className="relative overflow-hidden rounded-[28px] group/row">
       <div className="absolute inset-0 flex items-center justify-between px-6 z-0">
-        <button onClick={(e) => { e.preventDefault(); onArchive(); }} className={cn("flex flex-col items-center gap-1 transition-all active:scale-95", isArchived ? "text-emerald-500" : "text-amber-500")}>
+        <button onClick={onArchive} className={cn("flex flex-col items-center gap-1 transition-all active:scale-95", isArchived ? "text-emerald-500" : "text-amber-500")}>
           <div className="size-10 rounded-full flex items-center justify-center bg-current/10 shadow-sm"><Archive className="size-5" /></div>
-          <span className="text-[9px] font-black uppercase tracking-tighter">{isArchived ? "استعادة" : "أرشفة"}</span>
+          <span className="text-[9px] font-black uppercase">{isArchived ? "استعادة" : "أرشفة"}</span>
         </button>
-        <button onClick={(e) => { e.preventDefault(); onDelete(); }} className="flex flex-col items-center gap-1 text-red-500 transition-all active:scale-95">
+        <button onClick={onDelete} className="flex flex-col items-center gap-1 text-red-500 transition-all active:scale-95">
           <div className="size-10 rounded-full flex items-center justify-center bg-red-500/10 shadow-sm"><Trash2 className="size-5" /></div>
-          <span className="text-[9px] font-black uppercase tracking-tighter">حذف</span>
+          <span className="text-[9px] font-black uppercase">حذف</span>
         </button>
       </div>
-
       <motion.div drag="x" dragConstraints={{ left: -100, right: 100 }} dragSnapToOrigin onDragEnd={(_, info) => { if (info.offset.x > 60) onArchive(); else if (info.offset.x < -60) onDelete(); }} className="relative z-10">
-        <Link to="/chat/$conversationId" params={{ conversationId: item.conversation.id }}
-          className={cn(
-            "flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden group/row border border-transparent",
-            active
-              ? "bg-primary text-white shadow-xl shadow-primary/10 border-primary"
-              : "bg-card/50 hover:bg-card hover:border-border text-foreground shadow-sm"
-          )}>
-
+        <Link to="/chat/$conversationId" params={{ conversationId: item.conversation.id }} className={cn("flex items-center gap-3 px-4 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden group/row border border-transparent", active ? "bg-primary text-white shadow-xl shadow-primary/10 border-primary" : "bg-card/50 hover:bg-card hover:border-border text-foreground shadow-sm")}>
           <div className="relative shrink-0">
             <div className={cn("size-12 rounded-xl border transition-all relative", active ? "border-white/20 shadow-inner" : "border-gold-primary/10 shadow-sm")}>
                {item.conversation.kind === "group" ? (
@@ -369,25 +245,15 @@ function ConversationRow({ item, meId, profiles, active, onArchive, onDelete }: 
                  <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full rounded-xl overflow-hidden" userId={other?.user_id ?? null} presenceDotClassName="absolute -bottom-1 -left-1 size-3.5 ring-2 ring-card shadow-lg z-20" />
                )}
             </div>
-            {!active && item.unread > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg z-30">
-                {item.unread}
-              </span>
-            )}
+            {!active && item.unread > 0 && (<span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg z-30">{item.unread}</span>)}
           </div>
-
           <div className="flex-1 min-w-0 space-y-0.5">
             <div className="flex items-center justify-between gap-2">
               <h3 className={cn("text-sm font-black truncate", active ? "text-white" : "text-primary")}>{title}</h3>
-              <span className={cn("text-[9px] font-bold opacity-40", active ? "text-white" : "text-muted-foreground")}>
-                {item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}
-              </span>
+              <span className={cn("text-[9px] font-bold opacity-40", active ? "text-white" : "text-muted-foreground")}>{item.lastMessage ? chatTimeLabel(item.lastMessage.created_at) : ""}</span>
             </div>
             <div className="flex items-center gap-1.5 overflow-hidden">
-              <p className={cn("text-[11px] font-bold truncate flex-1", active ? "text-white/70" : "text-muted-foreground")}>
-                {lastMine && item.lastMessage && <CheckCheck className={cn("size-3 inline ml-1 opacity-50")} />}
-                {messagePreview(item.lastMessage)}
-              </p>
+              <p className={cn("text-[11px] font-bold truncate flex-1", active ? "text-white/70" : "text-muted-foreground")}>{lastMine && item.lastMessage && <CheckCheck className={cn("size-3 inline ml-1 opacity-50")} />}{messagePreview(item.lastMessage)}</p>
               {item.myParticipant?.muted && !active && <BellOff className="size-2.5 text-muted-foreground/30 shrink-0" />}
             </div>
           </div>
@@ -403,14 +269,8 @@ function NewConversationDialog({ mode, meId, profiles, onClose }: { mode: "chat"
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [title, setTitle] = useState("");
   const [busy, setBusy] = useState(false);
-
   const list = Object.values(profiles).filter((p) => p.id !== meId).filter((p) => !q.trim() || displayName(p).toLowerCase().includes(q.toLowerCase())).sort((a, b) => displayName(a).localeCompare(displayName(b), "ar"));
-
-  function toggle(id: string) {
-    if (mode === "chat") setSelected(new Set([id]));
-    else { const next = new Set(selected); if (next.has(id)) next.delete(id); else next.add(id); setSelected(next); }
-  }
-
+  function toggle(id: string) { if (mode === "chat") setSelected(new Set([id])); else { const next = new Set(selected); if (next.has(id)) next.delete(id); else next.add(id); setSelected(next); } }
   async function create() {
     if (selected.size === 0 || busy) return;
     setBusy(true);
@@ -433,83 +293,26 @@ function NewConversationDialog({ mode, meId, profiles, onClose }: { mode: "chat"
     } catch (err: any) { toast.error("تعذّر إنشاء المحادثة"); } finally { setBusy(false); }
   }
 
-  const handleToggleArchive = async (item: ConversationListItem) => {
-    if (!item.myParticipant) return;
-    const isArchiving = !item.myParticipant.archived_at;
-    const now = new Date().toISOString();
-
-    setItems(prev => prev.map(it =>
-      it.conversation.id === item.conversation.id
-        ? { ...it, myParticipant: { ...it.myParticipant!, archived_at: isArchiving ? now : null } }
-        : it
-    ));
-
-    const { error } = await supabase
-      .from("conversation_participants")
-      .update({ archived_at: isArchiving ? now : null })
-      .eq("id", item.myParticipant.id);
-
-    if (error) {
-      toast.error("حدث خطأ");
-      load();
-    } else {
-      toast.success(isArchiving ? "تمت الأرشفة" : "تمت الاستعادة");
-    }
-  };
-
-  const handleDeleteOrLeave = async (item: ConversationListItem) => {
-    if (!item.myParticipant) return;
-    const isOwner = item.myParticipant.role === "owner";
-    const isGroup = item.conversation.kind === "group";
-    const msg = isOwner && isGroup ? "هل تود حذف هذه المجموعة نهائياً؟" : isGroup ? "هل تود مغادرة هذه المجموعة؟" : "هل تود حذف هذه المحادثة؟";
-    if (!confirm(msg)) return;
-
-    let error;
-    if (isOwner && isGroup) {
-      const { error: err } = await supabase.from("conversations").delete().eq("id", item.conversation.id);
-      error = err;
-    } else {
-      const { error: err } = await supabase.from("conversation_participants").delete().eq("id", item.myParticipant.id);
-      error = err;
-    }
-
-    if (error) {
-      toast.error("فشل الإجراء");
-    } else {
-      toast.success("تم الحذف");
-      load();
-    }
-  };
-
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
       <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 20 }} className="relative bg-card border border-border rounded-[40px] w-full max-w-md overflow-hidden shadow-2xl flex flex-col max-h-[80vh]" dir="rtl">
         <div className="p-8 space-y-6 flex flex-col flex-1 min-h-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xl font-black text-primary">{mode === "chat" ? "محادثة جديدة" : "مجلس عائلي جديد"}</h3>
-            <button onClick={onClose} className="size-10 rounded-full hover:bg-muted text-muted-foreground transition-all flex items-center justify-center"><X size={20} /></button>
-          </div>
+          <div className="flex items-center justify-between"><h3 className="text-xl font-black text-primary">{mode === "chat" ? "محادثة جديدة" : "مجلس عائلي جديد"}</h3><button onClick={onClose} className="size-10 rounded-full hover:bg-muted text-muted-foreground transition-all flex items-center justify-center"><X size={20} /></button></div>
           <div className="space-y-4">
             {mode === "group" && <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="اسم المجلس..." className="w-full bg-muted border border-border rounded-xl px-5 py-3.5 font-bold text-sm" />}
-            <div className="relative">
-              <Search className="size-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
-              <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث عن عضو..." className="w-full bg-muted border border-border rounded-xl pl-4 pr-11 py-3.5 font-bold text-sm" />
-            </div>
+            <div className="relative"><Search className="size-4 absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground" /><input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث عن عضو..." className="w-full bg-muted border border-border rounded-xl pl-4 pr-11 py-3.5 font-bold text-sm" /></div>
           </div>
           <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 py-4">
             {list.map((p) => (
-              <button key={p.id} onClick={() => toggle(p.id)}
-                className={cn("w-full flex items-center gap-4 px-4 py-3 rounded-2xl border-2 transition-all", selected.has(p.id) ? "border-primary bg-primary/5 shadow-sm" : "border-transparent hover:bg-muted")}>
+              <button key={p.id} onClick={() => toggle(p.id)} className={cn("w-full flex items-center gap-4 px-4 py-3 rounded-2xl border-2 transition-all", selected.has(p.id) ? "border-primary bg-primary/5 shadow-sm" : "border-transparent hover:bg-muted")}>
                 <div className="size-10 rounded-lg overflow-hidden border border-border"><UserAvatar path={p.avatar_url} name={displayName(p)} className="size-full" /></div>
                 <span className={cn("text-sm font-black", selected.has(p.id) ? "text-primary" : "text-foreground")}>{displayName(p)}</span>
                 {selected.has(p.id) && <div className="ms-auto size-5 rounded-full bg-primary flex items-center justify-center text-white"><Check size={12} strokeWidth={4} /></div>}
               </button>
             ))}
           </div>
-          <button onClick={create} disabled={selected.size === 0 || busy} className="w-full btn-gold py-5 rounded-[24px] text-lg font-black shadow-xl disabled:opacity-50">
-             {busy ? "جاري التأسيس..." : `تأكيد (${selected.size})`}
-          </button>
+          <button onClick={create} disabled={selected.size === 0 || busy} className="w-full btn-gold py-5 rounded-[24px] text-lg font-black shadow-xl disabled:opacity-50">{busy ? "جاري التأسيس..." : `تأكيد (${selected.size})`}</button>
         </div>
       </motion.div>
     </div>
