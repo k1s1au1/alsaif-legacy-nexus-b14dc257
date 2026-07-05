@@ -303,7 +303,7 @@ function AuthPage() {
                 initial={{ y: 30, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ duration: 1, delay: 0.2 }}
-                className="text-7xl xl:text-[10rem] font-black text-[#FDFCF7] tracking-tighter leading-none drop-shadow-2xl"
+                className="text-7xl xl:text-[10rem] font-black text-white tracking-tighter leading-none drop-shadow-2xl"
               >
                  عائلة<br />
                  <span className="text-transparent bg-clip-text bg-gradient-to-l from-gold-primary to-[#8E7745] animate-pulse">السيف</span>
@@ -317,7 +317,7 @@ function AuthPage() {
                       animate={{ y: 0, opacity: 1 }}
                       exit={{ y: -40, opacity: 0 }}
                       transition={{ duration: 0.8, type: "spring", stiffness: 100 }}
-                      className="text-2xl xl:text-4xl text-[#FDFCF7]/80 font-bold max-w-2xl leading-tight"
+                      className="text-2xl xl:text-4xl text-white/70 font-bold max-w-2xl leading-tight"
                     >
                        {welcomeMessages[msgIndex]}
                     </motion.p>
@@ -365,12 +365,12 @@ function HeritageStat({ label, value, delay = 0 }: { label: string, value: strin
       className="space-y-2 group cursor-default"
     >
        <div className="flex items-baseline gap-2">
-          <p className="text-6xl xl:text-8xl font-black text-[#FDFCF7] tabular-nums drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:text-gold-primary transition-colors duration-700">
+          <p className="text-6xl xl:text-8xl font-black text-white tabular-nums drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:text-gold-primary transition-colors duration-700">
              {value}
           </p>
           <Sparkles className="size-6 text-gold-primary opacity-0 group-hover:opacity-100 transition-opacity animate-bounce" />
        </div>
-       <p className="text-xs font-black uppercase tracking-[0.4em] text-gold-primary/80 group-hover:text-[#FDFCF7] transition-colors duration-500">
+       <p className="text-xs font-black uppercase tracking-[0.4em] text-gold-primary/60 group-hover:text-white transition-colors duration-500">
           {label}
        </p>
     </motion.div>
