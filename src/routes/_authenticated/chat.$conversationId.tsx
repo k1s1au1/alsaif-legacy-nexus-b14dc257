@@ -175,18 +175,15 @@ function ConversationRoute() {
             <ChevronLeft className="size-6" />
           </button>
 
-          <div className="flex items-center gap-3 cursor-pointer group" onClick={() => setShowInfo(true)}>
+          <div className="flex items-center gap-4 cursor-pointer group" onClick={() => setShowInfo(true)}>
              <div className="relative shrink-0">
-                <div className="size-10 lg:size-12 rounded-xl lg:rounded-2xl bg-muted border border-border overflow-hidden">
+                <div className="size-10 lg:size-12 rounded-xl lg:rounded-2xl bg-muted border border-border relative">
                    {conv?.kind === "group" ? (
-                     <div className="size-full flex items-center justify-center bg-primary/5"><Users className="size-5 lg:size-6 text-primary" /></div>
+                     <div className="size-full flex items-center justify-center bg-primary/5 rounded-xl lg:rounded-2xl overflow-hidden"><Users className="size-5 lg:size-6 text-primary" /></div>
                    ) : (
-                     <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full object-cover" />
+                     <UserAvatar path={otherInDirect ? profiles[otherInDirect.user_id]?.avatar_url ?? null : null} name={title} className="size-full object-cover rounded-xl lg:rounded-2xl overflow-hidden" userId={otherInDirect?.user_id ?? null} presenceDotClassName="absolute -bottom-1 -left-1 size-3 lg:size-4 ring-2 ring-card shadow-lg z-20" />
                    )}
                 </div>
-                {conv?.kind === "direct" && otherInDirect && (
-                  <PresenceDot state={otherPresenceState} className="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-card shadow-lg z-20" />
-                )}
              </div>
              <div className="min-w-0">
                 <h2 className="text-sm lg:text-base font-black tracking-tight text-foreground group-hover:text-primary transition-colors truncate">{title}</h2>

@@ -240,15 +240,15 @@ function ConversationRow({ item, meId, profiles, active }: { item: ConversationL
       )}>
 
       <div className="relative shrink-0">
-        <div className={cn("size-12 rounded-xl overflow-hidden border transition-all", active ? "border-white/20 shadow-inner" : "border-gold-primary/10 shadow-sm")}>
+        <div className={cn("size-12 rounded-xl border transition-all relative", active ? "border-white/20 shadow-inner" : "border-gold-primary/10 shadow-sm")}>
            {item.conversation.kind === "group" ? (
-             <div className="size-full flex items-center justify-center bg-muted"><Users className={cn("size-5", active ? "text-white" : "text-primary")} /></div>
+             <div className="size-full flex items-center justify-center bg-muted rounded-xl overflow-hidden"><Users className={cn("size-5", active ? "text-white" : "text-primary")} /></div>
            ) : (
-             <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full" userId={other?.user_id ?? null} presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-3 ring-2 ring-card shadow-lg" />
+             <UserAvatar path={otherAvatarPath} name={title} initial={initial} className="size-full rounded-xl overflow-hidden" userId={other?.user_id ?? null} presenceDotClassName="absolute -bottom-1 -left-1 size-3.5 ring-2 ring-card shadow-lg z-20" />
            )}
         </div>
         {!active && item.unread > 0 && (
-          <span className="absolute -top-1 -left-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg">
+          <span className="absolute -top-1 -right-1 min-w-[18px] h-4.5 px-1.5 rounded-full bg-red-500 text-white text-[9px] font-black grid place-items-center border-2 border-card shadow-lg z-30">
             {item.unread}
           </span>
         )}
