@@ -354,7 +354,7 @@ function MessageBubble({ m, meId, profiles, replyTo, reactions, onReply, onReact
   );
 }
 
-function InfoDrawer({ conversation, participants, profiles, onClose }: any) {
+function InfoDrawer({ conversation, participants, profiles, meId, onClose }: any) {
   const otherUser = participants.find((p: Participant) => p.user_id !== meId);
   const otherProfile = otherUser ? profiles[otherUser.user_id] : null;
 
