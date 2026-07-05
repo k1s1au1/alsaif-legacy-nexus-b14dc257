@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Mail, Lock, Eye, EyeOff, ArrowLeft, Send, X, Phone, User, Sparkles } from "lucide-react";
 import logoAsset from "@/assets/alsaif-mark.png.asset.json";
+import authBg from "@/assets/alsaif-auth-bg.png.asset.json";
 import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { motion, AnimatePresence } from "framer-motion";
@@ -65,11 +66,9 @@ function AuthPage() {
     const fetchStats = async () => {
       try {
         const data = await getPublicStats();
-        // If data is returned correctly from server function
         if (data && typeof data.members === 'number') {
            setCounts(data);
         } else {
-           // Fallback to client fetch if server function fails/returns invalid
            const [{ count: m }, { count: t }] = await Promise.all([
              supabase.from("profiles").select("*", { count: 'exact', head: true }),
              supabase.from("tasks").select("*", { count: 'exact', head: true }).eq("status", "done")
@@ -165,9 +164,9 @@ function AuthPage() {
              </div>
 
              <h3 className="text-4xl lg:text-5xl font-black text-gold-primary tracking-tight">مجلس السيف</h3>
-             <div className="flex items-center gap-3 mt-3 opacity-30">
+             <div className="flex items-center gap-3 mt-4 opacity-30">
                 <div className="h-px w-8 bg-gold-primary" />
-                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">الهوية الرقمية</span>
+                <span className="text-[11px] font-black uppercase tracking-[0.4em] text-white">الهوية الرقمية</span>
                 <div className="h-px w-8 bg-gold-primary" />
              </div>
           </div>
@@ -207,7 +206,7 @@ function AuthPage() {
 
                 <button
                   type="submit" disabled={loading}
-                  className="w-full h-16 bg-gold-primary text-emerald-950 font-black rounded-2xl shadow-[0_20px_50px_-10px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 mt-2"
+                  className="w-full h-16 bg-gold-primary text-emerald-950 font-black rounded-2xl shadow-[0_15px_40px_-5px_rgba(212,175,55,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-4 mt-2"
                 >
                   {loading ? <Loader2 className="animate-spin size-6" /> : <><span>دخول للمجلس</span><ArrowLeft className="size-6 rotate-180" /></>}
                 </button>
@@ -273,9 +272,20 @@ function AuthPage() {
       </div>
 
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-gradient-to-br from-[#064e3b] via-[#042d22] to-[#02140e]">
+      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
+
+        {/* Heritage Image with Gradient Mask */}
+        <motion.div
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: 0.3 }}
+          transition={{ duration: 2 }}
+          className="absolute inset-0 z-0 bg-cover bg-center"
+          style={{ backgroundImage: `url(${authBg.url})` }}
+        />
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/80 to-transparent" />
+
         {/* Animated Heritage Texture Overlay */}
-        <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-0 mix-blend-overlay scale-150"
+        <div className="absolute inset-0 opacity-[0.05] pointer-events-none z-2 mix-blend-overlay scale-150"
              style={{
                backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
                backgroundSize: '100px 100px'
@@ -283,7 +293,7 @@ function AuthPage() {
         />
 
         {/* Gold Dust Particles */}
-        <div className="absolute inset-0 pointer-events-none z-1">
+        <div className="absolute inset-0 pointer-events-none z-3">
           {[...Array(15)].map((_, i) => (
             <motion.div key={i} initial={{ opacity: 0, x: Math.random() * 100 + "%", y: "110%" }} animate={{ y: "-10%", opacity: [0, 0.4, 0] }} transition={{ duration: 20 + Math.random() * 10, repeat: Infinity, ease: "linear", delay: Math.random() * -20 }} className="absolute size-1.5 bg-gold-primary rounded-full blur-[1px]" />
           ))}
