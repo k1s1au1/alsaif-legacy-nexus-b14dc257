@@ -379,60 +379,6 @@ export function AppShell({
               </div>
            </header>
         </motion.div>
-                 {/* Sidebar Button (Only visible on desktop now) */}
-                 <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
-                    <Menu className="size-6" />
-                 </button>
-
-                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
-                    <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
-                       {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
-                    </div>
-                    <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
-                 </div>
-              </div>
-
-              {/* DYNAMIC ISLAND CENTER CONTENT - Refined Alignment */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
-                 <AnimatePresence mode="wait">
-                    {headerCompact && (
-                       <motion.div
-                         key="compact"
-                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                         className="flex items-center gap-2 text-[14px] font-black text-white tabular-nums tracking-widest drop-shadow-md bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md"
-                       >
-                          <Clock className="size-3.5 text-gold-primary" />
-                          <LiveClock variant="time" />
-                       </motion.div>
-                    )}
-                 </AnimatePresence>
-              </div>
-
-              <div className={cn("flex items-center gap-2 z-10 transition-all duration-500", headerCompact ? "opacity-0 scale-90 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100")}>
-                 {/* Time Display on Right for Mobile Hero Integration */}
-                 {!headerCompact && (
-                   <div className="md:hidden flex items-center gap-2 text-[13px] font-black text-white/90 tabular-nums tracking-tighter">
-                      <LiveClock variant="time" />
-                   </div>
-                 )}
-
-                 {/* Desktop Clock */}
-                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
-                    <Clock className="size-3.5 text-gold-primary" />
-                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
-                       <LiveClock variant="time" />
-                       <div className="w-px h-3 bg-primary/10" />
-                       <LiveClock variant="date" />
-                    </div>
-                 </div>
-
-                 <NotificationsBell />
-                 <div className="hidden md:block">
-                   <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
-                 </div>
-              </div>
-           </header>
-        </motion.div>
 
         <div className={cn(
           "max-w-7xl mx-auto transition-all duration-500",
