@@ -300,28 +300,24 @@ export function AppShell({
           initial={false}
           animate={{
             y: 0,
-            scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.9 : 1
+            scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
           }}
-          className={cn(
-            "z-[80] fixed top-4 inset-x-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center transition-all duration-500",
-          )}
+          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center")}
         >
            <header
              onClick={() => headerCompact && setHeaderCompact(false)}
              className={cn(
-               "flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
+               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
-                 ? "h-11 bg-black/90 w-48 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-16 bg-emerald-950/80 w-full rounded-full px-4 border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.3)]",
-               "backdrop-blur-3xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
+                 ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                 : "h-14 bg-slate-600/95 w-full rounded-full px-4 border-emerald-900/10 shadow-2xl",
+               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* Subtle Texture Overlay */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
+              {/* No texture for crystal clear glass look */}
 
-              <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-all duration-500", headerCompact ? "opacity-0 scale-90 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100")}>
-                 {/* Sidebar Button (Always visible on desktop now) */}
+              <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+                 {/* Sidebar Button (Only visible on desktop now) */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
                  </button>
@@ -332,39 +328,38 @@ export function AppShell({
                     </div>
                     <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
                  </div>
-
-                 {/* Mobile Logo on the left when expanded */}
-                 {!headerCompact && (
-                   <div className="md:hidden size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
-                      {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
-                   </div>
-                 )}
               </div>
 
-              {/* DYNAMIC ISLAND CENTER CONTENT */}
+              {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
                  <AnimatePresence mode="wait">
                     {headerCompact ? (
                        <motion.div
                          key="compact"
-                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                         className="flex items-center gap-2 text-[14px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
+                         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
                        >
-                          <Clock className="size-3.5 text-gold-primary" />
+                          <Clock className="size-3 text-gold-primary" />
                           <LiveClock variant="time" />
                        </motion.div>
                     ) : (
                        <motion.div
                          key="expanded"
-                         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                         className="flex flex-col items-center gap-0.5"
+                         initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                         className="flex flex-col items-center gap-0.5 drop-shadow-lg"
                        >
-                          <div className="text-[15px] font-black text-white tabular-nums leading-none tracking-tight">
+                          <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
-                          <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30">
-                             <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
-                             <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل الآن</span>
+                          <div className="flex items-center gap-2">
+                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
+                                <LiveClock variant="date" />
+                             </div>
+                             <div className="h-2 w-px bg-white/20 md:hidden" />
+                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
+                                <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
+                             </div>
                           </div>
                        </motion.div>
                     )}
@@ -372,6 +367,16 @@ export function AppShell({
               </div>
 
               <div className={cn("flex items-center gap-2 z-10 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+                 {/* Desktop Clock */}
+                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
+                    <Clock className="size-3.5 text-gold-primary" />
+                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
+                       <LiveClock variant="time" />
+                       <div className="w-px h-3 bg-primary/10" />
+                       <LiveClock variant="date" />
+                    </div>
+                 </div>
+
                  <NotificationsBell />
                  <div className="hidden md:block">
                    <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
@@ -380,10 +385,7 @@ export function AppShell({
            </header>
         </motion.div>
 
-        <div className={cn(
-          "max-w-7xl mx-auto transition-all duration-500",
-          (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "pt-0" : "pt-24 md:pt-6 px-4 md:px-8 lg:px-12"
-        )}>
+        <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
           {children}
         </div>
 
