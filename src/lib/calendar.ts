@@ -1,3 +1,5 @@
+import { toast } from "sonner";
+
 /**
  * Generates and downloads an .ics file for mobile/desktop calendar integration
  */
@@ -8,36 +10,56 @@ export function addToCalendar({ title, description, location, startTime, duratio
   startTime: string;
   durationMinutes?: number;
 }) {
-  const start = new Date(startTime);
-  const end = new Date(start.getTime() + (durationMinutes || 60) * 60 * 1000);
+  try {
+    const start = new Date(startTime);
+    if (isNaN(start.getTime())) throw new Error("Invalid start time");
 
-  const formatICSDate = (date: Date) => {
-    return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
-  };
+    const end = new Date(start.getTime() + (durationMinutes || 60) * 60 * 1000);
 
-  const icsLines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Alsaif Nexus//Calendar Integration//EN',
-    'BEGIN:VEVENT',
-    `SUMMARY:${title}`,
-    `DTSTART:${formatICSDate(start)}`,
-    `DTEND:${formatICSDate(end)}`,
-    `DESCRIPTION:${description || ''}`,
-    `LOCATION:${location || ''}`,
-    'END:VEVENT',
-    'END:VCALENDAR'
-  ];
+    const formatICSDate = (date: Date) => {
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    };
 
-  const icsString = icsLines.join('\r\n');
-  const blob = new Blob([icsString], { type: 'text/calendar;charset=utf-8' });
-  const url = window.URL.createObjectURL(blob);
+    const escapeICS = (str: string) => {
+      return str.replace(/[\\,;]/g, (match) => `\\${match}`).replace(/\n/g, '\\n');
+    };
 
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', `${title.replace(/\s+/g, '_')}.ics`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.URL.revokeObjectURL(url);
+    const icsLines = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Alsaif Nexus//Calendar//EN',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `SUMMARY:${escapeICS(title)}`,
+      `DTSTART:${formatICSDate(start)}`,
+      `DTEND:${formatICSDate(end)}`,
+      `DESCRIPTION:${escapeICS(description || '')}`,
+      `LOCATION:${escapeICS(location || '')}`,
+      'STATUS:CONFIRMED',
+      'SEQUENCE:0',
+      'END:VEVENT',
+      'END:VCALENDAR'
+    ];
+
+    const icsString = icsLines.join('\r\n');
+    const dataUrl = `data:text/calendar;charset=utf-8,${encodeURIComponent(icsString)}`;
+
+    // Try a direct navigation for mobile first, as it's the most reliable trigger for calendar apps
+    if (typeof window !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+       window.location.href = dataUrl;
+    } else {
+       // On desktop, a download link is preferred
+       const link = document.createElement('a');
+       link.href = dataUrl;
+       link.setAttribute('download', `${title.replace(/[^a-z0-9]/gi, '_')}.ics`);
+       document.body.appendChild(link);
+       link.click();
+       setTimeout(() => document.body.removeChild(link), 100);
+    }
+
+    toast.success("جاري فتح التقويم", { description: "يرجى تأكيد الحفظ في هاتفك." });
+  } catch (err) {
+    console.error("Calendar export error:", err);
+    toast.error("فشل تصدير التقويم");
+  }
 }
