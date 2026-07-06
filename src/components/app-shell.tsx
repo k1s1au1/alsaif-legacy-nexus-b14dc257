@@ -341,12 +341,12 @@ export function AppShell({
                              <LiveClock variant="time" />
                           </div>
                           <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-80">
+                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
                                 <LiveClock variant="date" />
                              </div>
-                             <div className="h-2 w-px bg-white/10 md:hidden" />
-                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
-                                <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
+                             <div className="h-2 w-px bg-white/20 md:hidden" />
+                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
+                                <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
                                 <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
                              </div>
                           </div>
