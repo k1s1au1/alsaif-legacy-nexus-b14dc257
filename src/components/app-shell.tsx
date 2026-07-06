@@ -300,11 +300,10 @@ export function AppShell({
           initial={false}
           animate={{
             y: 0,
-            scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
+            scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.9 : 1
           }}
           className={cn(
-            "z-[80] fixed inset-x-0 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center transition-all duration-700",
-            (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "top-0 px-0" : "top-4 px-4"
+            "z-[80] fixed top-4 inset-x-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center transition-all duration-500",
           )}
         >
            <header
@@ -313,26 +312,73 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/90 w-48 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-20 bg-[#051410] w-full rounded-none px-6 border-none shadow-none",
+                 : "h-16 bg-emerald-950/80 w-full rounded-full px-4 border border-white/10 shadow-[0_15px_35px_rgba(0,0,0,0.3)]",
                "backdrop-blur-3xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* Refined Texture Overlay - only visible when merged at top */}
-              {!headerCompact && (
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-                     style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
-              )}
+              {/* Subtle Texture Overlay */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
+                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
 
               <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-all duration-500", headerCompact ? "opacity-0 scale-90 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100")}>
-                 {/* Notification Bell on Left for Mobile Hero Integration */}
-                 <div className={cn("md:hidden transition-opacity duration-500", headerCompact ? "opacity-0" : "opacity-100")}>
-                    <NotificationsBell />
-                 </div>
-
-                 {/* Sidebar Button (Desktop) */}
+                 {/* Sidebar Button (Always visible on desktop now) */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
                  </button>
+
+                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
+                    <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
+                       {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                    </div>
+                    <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
+                 </div>
+
+                 {/* Mobile Logo on the left when expanded */}
+                 {!headerCompact && (
+                   <div className="md:hidden size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
+                      {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                   </div>
+                 )}
+              </div>
+
+              {/* DYNAMIC ISLAND CENTER CONTENT */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
+                 <AnimatePresence mode="wait">
+                    {headerCompact ? (
+                       <motion.div
+                         key="compact"
+                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                         className="flex items-center gap-2 text-[14px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
+                       >
+                          <Clock className="size-3.5 text-gold-primary" />
+                          <LiveClock variant="time" />
+                       </motion.div>
+                    ) : (
+                       <motion.div
+                         key="expanded"
+                         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                         className="flex flex-col items-center gap-0.5"
+                       >
+                          <div className="text-[15px] font-black text-white tabular-nums leading-none tracking-tight">
+                             <LiveClock variant="time" />
+                          </div>
+                          <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30">
+                             <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
+                             <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل الآن</span>
+                          </div>
+                       </motion.div>
+                    )}
+                 </AnimatePresence>
+              </div>
+
+              <div className={cn("flex items-center gap-2 z-10 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+                 <NotificationsBell />
+                 <div className="hidden md:block">
+                   <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
+                 </div>
+              </div>
+           </header>
+        </motion.div>
                  {/* Sidebar Button (Only visible on desktop now) */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />

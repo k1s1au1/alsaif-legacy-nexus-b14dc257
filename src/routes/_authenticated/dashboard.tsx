@@ -269,41 +269,28 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* RESPONSIVE HERO CARD (Merged with Header on Mobile) */}
-        <section className="animate-fade-up px-0 md:px-0">
-          <div className="relative overflow-hidden md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border-x md:border-b border-white/5 group">
+        {/* RESPONSIVE HERO CARD - Floating Prestige Style */}
+        <section className="animate-fade-up px-4 md:px-0">
+          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-gradient-to-br from-[#064E3B] via-[#051410] to-black shadow-[0_30px_70px_-15px_rgba(0,0,0,0.6)] border border-white/5 group">
 
             {/* Background Texture & Ornaments */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
+            <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay"
                  style={{
                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
                    backgroundSize: '80px 80px'
                  }}
             />
 
-            {/* Top Center Medallion (Mobile) */}
-            <div className="md:hidden pt-8 flex justify-center">
-               <div className="relative size-32 rounded-full p-1.5 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl">
-                  <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-emerald-950/5">
-                     {dynamicLogo ? (
-                       <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
-                     ) : (
-                       <Sparkles className="size-16 text-gold-primary animate-pulse" />
-                     )}
-                  </div>
-               </div>
-            </div>
+            <div className="relative z-10 flex flex-col md:flex-row items-center gap-10 md:gap-16 p-10 md:p-16">
 
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-16 p-10 md:p-12">
-
-              {/* Desktop Avatar (Hidden on Mobile) */}
-              <div className="hidden md:flex shrink-0 items-center justify-center">
+              {/* Profile/Logo Medallion - Floating Center Pedestal */}
+              <div className="shrink-0 flex items-center justify-center">
                  <div className="relative group/avatar">
-                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-2xl animate-pulse" />
-                    <div className="relative size-48 rounded-full p-1.5 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
-                       <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-emerald-950/5">
+                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-3xl animate-pulse" />
+                    <div className="relative size-36 md:size-52 rounded-full p-2 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-1000 group-hover/avatar:rotate-[360deg]">
+                       <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[4px] border-emerald-950/10">
                           {dynamicLogo ? (
-                            <div className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]" style={{ backgroundImage: `url(${dynamicLogo})` }} />
+                            <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
                           ) : (
                             <Sparkles className="size-16 text-gold-primary animate-pulse" />
                           )}
@@ -313,53 +300,36 @@ function Dashboard() {
               </div>
 
               {/* Identity Section */}
-              <div className="flex-1 text-center md:text-right space-y-8 min-w-0">
-                 <div className="space-y-4">
-                    <h2 className="text-5xl sm:text-6xl md:text-7xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+              <div className="flex-1 text-center md:text-right space-y-6 min-w-0">
+                 <div className="space-y-3">
+                    <div className="inline-flex items-center gap-2.5 px-4 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20 backdrop-blur-md">
+                       <span className="size-1.5 rounded-full bg-gold-primary animate-ping" />
+                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[10px]">
+                          {getGreeting()}، يا أهل الوفاء
+                       </p>
+                    </div>
+
+                    <h2 className="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                        {profile.name}
                     </h2>
 
                     <AnimatePresence mode="wait">
                       <motion.p
                         key={statusIndex}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        className="text-white/60 font-bold text-lg md:text-xl italic leading-relaxed max-w-lg mx-auto md:mx-0"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 20 }}
+                        className="text-white/50 font-bold text-lg md:text-2xl italic leading-relaxed max-w-lg mx-auto md:mx-0"
                       >
                          {statusMessages[statusIndex]}
                       </motion.p>
                     </AnimatePresence>
                  </div>
-
-                 {/* Unified Pill (Date | Time) exactly like ref */}
-                 <div className="flex justify-center md:justify-start">
-                    <div className="inline-flex items-center gap-4 bg-black/40 backdrop-blur-2xl px-6 py-3.5 rounded-2xl border border-white/10 shadow-2xl">
-                       <div className="flex items-center gap-2.5 text-white/80">
-                          <Calendar className="size-4 text-gold-primary/70" />
-                          <span className="text-xs md:text-sm font-black tabular-nums tracking-tight">
-                             <LiveClock variant="date" />
-                          </span>
-                       </div>
-                       <div className="w-px h-5 bg-white/10" />
-                       <div className="flex items-center gap-2.5">
-                          <Clock className="size-4 text-gold-primary animate-pulse" />
-                          <span className="text-lg md:text-xl font-black tabular-nums tracking-tighter text-white">
-                             <LiveClock variant="time" />
-                          </span>
-                       </div>
-                    </div>
-                 </div>
               </div>
             </div>
 
-            {/* Corner Ornaments */}
-            <div className="absolute top-0 right-0 size-40 md:size-64 opacity-[0.05] pointer-events-none">
-              <svg viewBox="0 0 100 100" className="size-full fill-gold-primary"><path d="M100,0 L100,30 Q100,0 70,0 L100,0 Z" /></svg>
-            </div>
-            <div className="absolute bottom-0 left-0 size-40 md:size-64 opacity-[0.05] pointer-events-none rotate-180">
-              <svg viewBox="0 0 100 100" className="size-full fill-gold-primary"><path d="M100,0 L100,30 Q100,0 70,0 L100,0 Z" /></svg>
-            </div>
+            {/* Subtle Pedestal Bottom Line */}
+            <div className="absolute bottom-0 inset-x-0 h-1.5 bg-gradient-to-r from-transparent via-gold-primary/30 to-transparent" />
           </div>
         </section>
 
