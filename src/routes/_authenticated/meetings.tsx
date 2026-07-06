@@ -35,6 +35,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 import { sendFcmNotification } from "@/lib/fcm";
 import { MeetingPresentations } from "@/components/meeting-presentations";
+import { addToCalendar } from "@/lib/calendar";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -529,6 +530,18 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                 <span className="px-2.5 py-1 md:px-4 md:py-1.5 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1">
                    <Clock className="size-2.5 md:size-3 shrink-0" /> {meeting.duration_minutes || "—"} د
                 </span>
+                <button
+                  onClick={() => addToCalendar({
+                    title: meeting.title,
+                    description: meeting.description || "",
+                    location: meeting.location || "",
+                    startTime: meeting.scheduled_at,
+                    durationMinutes: meeting.duration_minutes || 60
+                  })}
+                  className="px-2.5 py-1 md:px-4 md:py-1.5 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1 hover:bg-gold-primary hover:text-black transition-all"
+                >
+                   <CalendarDays className="size-2.5 md:size-3 shrink-0" /> تقويم الجوال
+                </button>
              </div>
              <h3 className="text-xl sm:text-2xl md:text-6xl font-black tracking-tight leading-tight drop-shadow-2xl break-words line-clamp-3">{meeting.title}</h3>
           </div>

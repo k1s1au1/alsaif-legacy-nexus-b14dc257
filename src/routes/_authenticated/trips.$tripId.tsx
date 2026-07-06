@@ -29,6 +29,7 @@ import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
+import { addToCalendar } from "@/lib/calendar";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -404,6 +405,17 @@ function TripDetail() {
             العودة إلى الترفيه
           </Link>
           <div className="flex items-center gap-2">
+            <button
+              onClick={() => trip && addToCalendar({
+                title: trip.title,
+                description: trip.description || "",
+                location: trip.location || "",
+                startTime: trip.start_date || new Date().toISOString(),
+              })}
+              className="px-4 py-2 rounded-full bg-gold-primary/10 hover:bg-gold-primary/20 text-gold-primary border border-gold-primary/20 transition-all font-black text-[10px] flex items-center gap-2"
+            >
+               <Calendar size={14} /> إضافة للتقويم
+            </button>
             <button className="size-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-gold-primary/20 transition-all text-gold-primary">
               <Share2 size={18} />
             </button>
