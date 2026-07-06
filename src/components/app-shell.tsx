@@ -64,9 +64,12 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
     </>
   );
 
+  const activeColor = "text-[var(--gold-primary)]";
+  const inactiveColor = "text-[var(--primary-foreground)] opacity-40";
+
   if (onClick) {
     return (
-      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-emerald-900" : "text-emerald-950/40")}>
+      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? activeColor : inactiveColor)}>
         {content}
       </button>
     );
@@ -75,7 +78,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
   return (
     <Link to={to} className={cn(
       "flex flex-col items-center gap-1 transition-all duration-300",
-      active ? "text-emerald-900" : "text-emerald-950/40"
+      active ? activeColor : inactiveColor
     )}>
        {content}
     </Link>
@@ -328,7 +331,7 @@ export function AppShell({
                          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
                          className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
                        >
-                          <Clock className="size-3 text-gold-primary" />
+                          <Clock className="size-3 text-[var(--gold-primary)]" />
                           <LiveClock variant="time" />
                        </motion.div>
                     ) : (
@@ -337,14 +340,14 @@ export function AppShell({
                          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
                          className="flex flex-col items-center gap-0.5 drop-shadow-lg"
                        >
-                          <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
+                          <div className="text-[16px] font-black text-[var(--primary-foreground)] tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
                           <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
+                             <div className="text-[9px] font-bold text-[var(--gold-primary)] uppercase tracking-[0.2em] leading-none opacity-90">
                                 <LiveClock variant="date" />
                              </div>
-                             <div className="h-2 w-px bg-white/20 md:hidden" />
+                             <div className="h-2 w-px bg-[var(--primary-foreground)]/20 md:hidden" />
                              <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
                                 <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
                                 <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
