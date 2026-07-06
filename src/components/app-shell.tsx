@@ -64,10 +64,12 @@ export function AppShell({
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() ?? 0;
-    // Hide on scroll down (threshold 100px), show on scroll up
+    // Hide on scroll down (threshold 100px)
     if (latest > previous && latest > 100) {
       setHeaderVisible(false);
-    } else if (latest < previous) {
+    }
+    // ONLY show if we scroll all the way to the top (near 0)
+    else if (latest < 50) {
       setHeaderVisible(true);
     }
   });
