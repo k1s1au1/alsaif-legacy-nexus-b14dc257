@@ -18,7 +18,14 @@ import {
   Home,
   MessageCircle,
   Trophy,
-  MoreHorizontal
+  MoreHorizontal,
+  Ticket,
+  CalendarDays,
+  ListChecks,
+  Trees,
+  Wallet,
+  History,
+  Archive,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -46,14 +53,46 @@ const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] 
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
 
-function BottomNavItem({ to, label, icon, active }: { to: string, label: string, icon: any, active: boolean }) {
+function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label: string, icon: any, active?: boolean, onClick?: () => void }) {
+  const content = (
+    <>
+       {icon}
+       <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+    </>
+  );
+
+  if (onClick) {
+    return (
+      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-gold-primary" : "text-white/40")}>
+        {content}
+      </button>
+    );
+  }
+
   return (
     <Link to={to} className={cn(
       "flex flex-col items-center gap-1 transition-all duration-300",
       active ? "text-gold-primary" : "text-white/40"
     )}>
-       {icon}
-       <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+       {content}
+    </Link>
+  );
+}
+
+function QuickActionItem({ to, label, icon, color, onClick }: any) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className="flex flex-col items-center gap-3 group animate-fade-up"
+    >
+       <div className={cn(
+         "size-16 rounded-[24px] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:scale-110",
+         color
+       )}>
+          {icon}
+       </div>
+       <span className="text-xs font-black text-white/70 group-hover:text-gold-primary transition-colors text-center leading-tight">{label}</span>
     </Link>
   );
 }
@@ -101,7 +140,7 @@ function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut }: any) {
 
           <DropdownMenuItem
             onClick={signOut}
-            className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-500 focus:text-white cursor-pointer transition-all"
+            className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-50 focus:text-white cursor-pointer transition-all"
           >
             <LogOut size={18} />
             <span>تسجيل الخروج</span>
@@ -126,6 +165,7 @@ export function AppShell({
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [showQuickActions, setShowQuickActions] = useState(false);
 
   // Header Visibility Control
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -134,15 +174,8 @@ export function AppShell({
   useMotionValueEvent(scrollY, "change", (latest) => {
     const previous = scrollY.getPrevious() ?? 0;
     const diff = latest - previous;
-
-    // Hide on scroll down significantly
-    if (diff > 10 && latest > 100) {
-      setHeaderVisible(false);
-    }
-    // Show on scroll up significantly or when reaching the top
-    else if (diff < -20 || latest < 50) {
-      setHeaderVisible(true);
-    }
+    if (diff > 10 && latest > 100) setHeaderVisible(false);
+    else if (diff < -20 || latest < 50) setHeaderVisible(true);
   });
 
   const queryClient = useQueryClient();
@@ -150,11 +183,11 @@ export function AppShell({
   useFcm();
 
   useEffect(() => {
-    if (sidebarOpen) {
+    if (sidebarOpen || showQuickActions) {
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = "unset"; };
     }
-  }, [sidebarOpen]);
+  }, [sidebarOpen, showQuickActions]);
 
   usePresenceHeartbeat();
 
@@ -194,177 +227,75 @@ export function AppShell({
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
-      {/* Global Animated Mesh Gradient Background */}
       <div className="mesh-gradient-container">
         <div className="mesh-blob-1" />
         <div className="mesh-blob-2" />
-        {/* Subtle noise texture for grain effect */}
         <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/asfalt-dark.png")' }} />
       </div>
 
       <DynamicIsland />
+
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm"
           />
         )}
       </AnimatePresence>
 
-      {/* Edge trigger for swiping open — invisible but interactive */}
-      {!sidebarOpen && (
-        <div
-          className="fixed inset-y-0 right-0 w-3 z-[55]"
-          onPointerDown={(e) => {
-            if (e.pointerType === "mouse") return;
-            setSidebarOpen(true);
-          }}
-        />
-      )}
-
       <motion.aside
-        drag="x"
-        dragDirectionLock
-        dragConstraints={{ left: 0, right: 350 }}
-        dragElastic={0.08}
-        dragMomentum={false}
-        onDragEnd={(_, info) => {
-          if (info.offset.x > 120 || info.velocity.x > 500) {
-            setSidebarOpen(false);
-          }
-        }}
+        initial={false}
         animate={{ x: sidebarOpen ? 0 : 350 }}
-        transition={{ type: "spring", damping: 32, stiffness: 320, mass: 0.7 }}
+        transition={{ type: "spring", damping: 32, stiffness: 320 }}
         className={cn(
-          "fixed inset-y-0 right-0 z-[100] flex flex-col bg-card border-l border-border shadow-2xl",
+          "fixed inset-y-0 right-0 z-[120] flex flex-col bg-card border-l border-border shadow-2xl",
           "w-[85vw] max-w-[320px] rounded-l-[32px] touch-pan-y",
         )}
       >
-        <div className="absolute left-2 top-1/2 -translate-y-1/2 w-1.5 h-14 bg-border/60 rounded-full" />
-
-        <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative overflow-hidden">
-          <div className="relative">
-            <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
-              <UserAvatar
-                path={myAvatarPath}
-                name={safeUser.name}
-                initial={safeUser.initial}
-                className="size-full rounded-full overflow-hidden"
-                userId={myUserId}
-                presenceDotClassName="absolute -bottom-1 -left-1 size-6 ring-4 ring-[var(--card)] shadow-xl"
-              />
-            </div>
-            <button
-              onClick={() => setSidebarOpen(false)}
-              className="absolute -top-4 -left-4 size-10 rounded-full bg-card shadow-lg ring-1 ring-black/5 flex items-center justify-center text-primary hover:bg-muted transition-all"
-            >
-              <X size={20} strokeWidth={2.5} />
-            </button>
+        <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative">
+          <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
+            <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
           </div>
           <div>
             <h3 className="text-xl font-bold text-primary tracking-tight">{safeUser.name}</h3>
             <p className="text-[12px] text-muted-foreground font-bold uppercase tracking-[0.1em] mt-1">{safeUser.role}</p>
           </div>
+          <button onClick={() => setSidebarOpen(false)} className="absolute top-4 left-4 p-2 text-primary"><X size={24} /></button>
         </div>
 
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto no-scrollbar">
-          {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => {
-            const active = path === to || path.startsWith(to + "/");
-            return (
-              <Link
-                key={to}
-                to={to}
-                onClick={() => setSidebarOpen(false)}
-                className={cn(
-                  "flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[16px] font-bold transition-all duration-200 gap-4",
-                  active
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20"
-                    : "text-foreground hover:bg-muted hover:text-primary"
-                )}
-              >
-                <Icon className={cn("size-5 shrink-0", active ? "text-primary-foreground" : "text-muted-foreground")} strokeWidth={active ? 2.5 : 2} />
-                <span className="mr-auto">{label}</span>
-              </Link>
-            );
-          })}
+          {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
+            <Link key={to} to={to} onClick={() => setSidebarOpen(false)} className={cn("flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[16px] font-bold gap-4", path === to ? "bg-primary text-white" : "text-foreground hover:bg-muted")}>
+              <Icon size={20} />
+              <span className="mr-auto">{label}</span>
+            </Link>
+          ))}
         </nav>
-
-        <div className="p-6 border-t border-border">
-          <button
-            onClick={signOut}
-            className="w-full flex flex-row-reverse items-center justify-between px-6 py-4 rounded-2xl bg-destructive/10 text-destructive hover:bg-destructive/20 transition-all font-bold border border-destructive/20"
-          >
-            <LogOut className="size-5" />
-            <span className="text-[16px]">تسجيل الخروج</span>
-          </button>
-        </div>
       </motion.aside>
 
       <main className="relative min-h-screen pb-32 md:pb-20">
-        {/* RESPONSIVE HEADER SYSTEM */}
         <motion.div
-          initial={false}
-          animate={{
-            y: (typeof window !== 'undefined' && window.innerWidth < 768)
-               ? (headerVisible ? 0 : -100)
-               : 0,
-            opacity: (typeof window !== 'undefined' && window.innerWidth < 768)
-               ? (headerVisible ? 1 : 0)
-               : 1
-          }}
-          transition={{ duration: 0.3 }}
-          className={cn(
-            "z-[80] transition-[padding] duration-500",
-            "fixed top-4 inset-x-0 px-4", // Mobile: Floating
-            "md:sticky md:top-0 md:inset-x-0 md:px-0" // Desktop: Fixed
-          )}
+          animate={{ y: (typeof window !== 'undefined' && window.innerWidth < 768) ? (headerVisible ? 0 : -100) : 0 }}
+          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0")}
         >
-           <header className={cn(
-             "mx-auto flex items-center justify-between transition-all duration-500 relative overflow-hidden",
-             "h-14 bg-emerald-950/90 backdrop-blur-xl border border-white/10 rounded-full px-4 shadow-2xl", // Mobile Island Style (Darker like image)
-             "md:h-20 md:max-w-none md:bg-background/80 md:rounded-none md:border-x-0 md:border-t-0 md:border-b md:border-white/5 md:px-8 lg:px-12"
-           )}>
-
+           <header className={cn("mx-auto flex items-center justify-between h-14 bg-emerald-950/90 backdrop-blur-xl border border-white/10 rounded-full px-4 shadow-2xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12")}>
               <div className="flex items-center gap-2 md:gap-6">
-                 {/* Mobile Logo Button */}
-                 <div className="md:hidden size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5 shadow-inner">
+                 <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
                     {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
                  </div>
-
-                 {/* Desktop Menu Button */}
-                 <button onClick={() => setSidebarOpen(true)} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
-                   <Menu className="size-6" />
-                 </button>
-
-                 <div className="hidden md:flex items-center gap-4 h-10 border-l border-primary/10 pl-6">
-                    <h1 className="text-lg font-black tracking-tight text-primary uppercase">{title}</h1>
-                 </div>
+                 <h1 className="md:block hidden text-lg font-black text-primary uppercase">{title}</h1>
               </div>
-
-              {/* Mobile Centered Title */}
               <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <span className="text-sm font-black text-white tracking-wide">{title}</span>
+                 <span className="text-sm font-black text-white">{title}</span>
               </div>
-
-              <div className="flex items-center gap-2 md:gap-4 z-10">
+              <div className="flex items-center gap-2 z-10">
                  <NotificationsBell />
                  <div className="hidden md:block">
-                   <UserDropdown
-                     safeUser={safeUser}
-                     myAvatarPath={myAvatarPath}
-                     myUserId={myUserId}
-                     signOut={signOut}
-                   />
+                   <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
                  </div>
-
-                 {/* Mobile Menu Trigger */}
-                 <button onClick={() => setSidebarOpen(true)} className="md:hidden size-9 rounded-full bg-white/10 flex items-center justify-center text-white">
-                    <Menu size={18} />
-                 </button>
+                 <button onClick={() => setSidebarOpen(true)} className="md:hidden size-9 rounded-full bg-white/10 flex items-center justify-center text-white"><Menu size={18} /></button>
               </div>
            </header>
         </motion.div>
@@ -373,21 +304,60 @@ export function AppShell({
           {children}
         </div>
 
-        {/* MODERN MOBILE BOTTOM NAV (From the image) */}
+        {/* MODERN MOBILE BOTTOM NAV */}
         <div className="md:hidden fixed bottom-6 inset-x-6 z-[100]">
            <nav className="h-16 bg-[#051410] border border-white/10 rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl">
               <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
-              <BottomNavItem to="/chat" label="المحادثة" icon={<MessageCircle size={20} />} active={path === "/chat"} />
-              <div className="size-12 rounded-full bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.4)] flex items-center justify-center -mt-8 border-4 border-[#051410]">
-                 <Sparkles className="text-emerald-950 size-6" />
+              <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
+              <div className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#051410] p-2 relative group active:scale-95 transition-all">
+                 <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
+                 {dynamicLogo ? (
+                   <div className="size-full bg-contain bg-no-repeat bg-center relative z-10" style={{ backgroundImage: `url(${dynamicLogo})` }} />
+                 ) : (
+                   <Sparkles className="text-gold-primary size-6 relative z-10" />
+                 )}
               </div>
               <BottomNavItem to="/admin" label="الإدارة" icon={<Trophy size={20} />} active={path === "/admin"} />
-              <button onClick={() => setSidebarOpen(true)} className="flex flex-col items-center gap-1 text-white/40">
-                 <MoreHorizontal size={20} />
-                 <span className="text-[9px] font-black uppercase">المزيد</span>
-              </button>
+              <BottomNavItem to="#" label="المزيد" icon={<MoreHorizontal size={20} />} onClick={() => setShowQuickActions(true)} />
            </nav>
         </div>
+
+        {/* QUICK ACTIONS OVERLAY */}
+        <AnimatePresence>
+          {showQuickActions && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-[#051410]/95 backdrop-blur-2xl"
+              dir="rtl"
+            >
+               <button onClick={() => setShowQuickActions(false)} className="absolute top-10 left-10 size-12 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
+                  <X size={24} />
+               </button>
+
+               <div className="w-full max-w-lg space-y-12">
+                  <div className="text-center space-y-2">
+                     <h3 className="text-3xl font-black text-white">الوصول السريع</h3>
+                     <p className="text-gold-primary/60 font-bold uppercase tracking-widest text-[10px]">بوابة مجلس السيف الرقمية</p>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-y-10 gap-x-6">
+                     <QuickActionItem to="/chat" label="محادثة" icon={<MessageCircle size={28} />} color="bg-[#065F46]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/trips" label="ترفيه" icon={<Ticket size={28} />} color="bg-[#D4AF37]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/meetings" label="اجتماعات" icon={<CalendarDays size={28} />} color="bg-[#1B3022]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/tasks" label="مهام" icon={<ListChecks size={28} />} color="bg-[#947D4C]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/majlis" label="الأخبار" icon={<Newspaper size={28} />} color="bg-[#064E3B]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/community" label="ركن الأعضاء" icon={<Users size={28} />} color="bg-[#3D8557]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/archive" label="الألبوم" icon={<Archive size={28} />} color="bg-[#C5A87C]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/heritage" label="الإرث" icon={<History size={28} />} color="bg-[#8E7745]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/family-tree" label="شجرة العائلة" icon={<Trees size={28} />} color="bg-[#153221]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/finance" label="الصندوق" icon={<Wallet size={28} />} color="bg-[#BF953F]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/profile" label="ملفي" icon={<User size={28} />} color="bg-[#043A2B]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/settings" label="الأعدادات" icon={<Settings size={28} />} color="bg-primary" onClick={() => setShowQuickActions(false)} />
+                  </div>
+               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </main>
     </div>
   );
