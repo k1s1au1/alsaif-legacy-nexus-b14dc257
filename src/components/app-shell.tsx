@@ -376,9 +376,15 @@ export function AppShell({
               onClick={() => setShowMoreHub(false)}
             >
                <motion.div
+                 drag="y"
+                 dragConstraints={{ top: 0 }}
+                 dragElastic={0.2}
+                 onDragEnd={(_, info) => {
+                   if (info.offset.y > 100) setShowMoreHub(false);
+                 }}
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                 className="bg-emerald-950 rounded-t-[48px] border-t border-white/10 p-8 space-y-10 shadow-2xl"
+                 className="bg-[#051410] rounded-t-[48px] border-t border-white/10 p-8 space-y-10 shadow-2xl touch-none"
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
@@ -404,11 +410,11 @@ export function AppShell({
                          key={to} to={to}
                          onClick={() => setShowMoreHub(false)}
                          className={cn(
-                           "flex flex-row items-center justify-between p-5 rounded-3xl font-black transition-all",
+                           "flex flex-row-reverse items-center justify-between p-5 rounded-3xl font-black transition-all",
                            path === to ? "bg-gold-primary text-emerald-950 shadow-xl" : "bg-white/5 text-white hover:bg-white/10"
                          )}
                        >
-                         <div className="flex items-center gap-4">
+                         <div className="flex items-center gap-4 flex-row-reverse">
                            <Icon size={22} strokeWidth={2.5} />
                            <span className="text-base tracking-tight">{label}</span>
                          </div>
@@ -469,15 +475,6 @@ export function AppShell({
                      <QuickActionItem to="/finance" label="الصندوق" icon={<Wallet size={28} />} color="bg-[#BF953F]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/profile" label="ملفي" icon={<User size={28} />} color="bg-[#043A2B]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/settings" label="الأعدادات" icon={<Settings size={28} />} color="bg-primary" onClick={() => setShowQuickActions(false)} />
-                     <button
-                        onClick={() => { setShowQuickActions(false); signOut(); }}
-                        className="flex flex-col items-center gap-3 group animate-fade-up"
-                     >
-                        <div className="size-16 rounded-[24px] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:scale-110 bg-red-600/20 border border-red-600/20">
-                           <LogOut size={28} className="text-red-500" />
-                        </div>
-                        <span className="text-xs font-black text-red-500/80 group-hover:text-red-500 transition-colors text-center leading-tight">تسجيل خروج</span>
-                     </button>
                   </div>
                </div>
             </motion.div>
