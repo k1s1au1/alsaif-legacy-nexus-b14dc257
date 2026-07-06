@@ -358,26 +358,30 @@ function Dashboard() {
         {announcements.length > 0 && (() => {
             const a = announcements[annIndex % announcements.length];
             return (
-              <section className="animate-fade-up px-4 md:px-0">
-                <Link to="/majlis" className="block group relative overflow-hidden rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[160px] flex items-center p-8 md:p-12">
+              <section className="animate-fade-up px-2 md:px-0">
+                <Link to="/majlis" className="block group relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[200px] flex items-stretch">
                    {a.imageUrl && (
                       <div className="absolute inset-0 z-0">
-                         <img src={a.imageUrl} className="size-full object-cover opacity-20 group-hover:scale-110 transition-transform" alt="" />
-                         <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-transparent to-transparent" />
+                         <img src={a.imageUrl} className="size-full object-cover opacity-30 md:opacity-20 group-hover:scale-110 transition-transform duration-1000" alt="" />
+                         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black/90 via-black/40 to-transparent" />
                       </div>
                    )}
-                   <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 w-full">
-                      <div className="flex items-center gap-6">
-                         <div className="size-16 md:size-24 rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-12 transition-transform duration-500">
-                            <Newspaper size={40} />
+                   <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full p-6 md:p-12">
+                      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 text-center md:text-right">
+                         <div className="size-16 md:size-24 rounded-2xl md:rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
+                            <Newspaper size={32} className="md:size-[40px]" />
                          </div>
-                         <div className="text-center md:text-right space-y-1">
-                            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">{a._label}</span>
+                         <div className="space-y-2 md:space-y-1">
+                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary opacity-80">{a._label}</span>
                             <h3 className="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">{a.title}</h3>
-                            <p className="text-white/70 font-bold text-sm md:text-lg line-clamp-2 max-w-2xl">{a.cleanBody}</p>
+                            <p className="text-white/80 font-bold text-sm md:text-lg leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-2">
+                               {a.cleanBody}
+                            </p>
                          </div>
                       </div>
-                      <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
+                      <div className="hidden md:flex shrink-0">
+                         <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
+                      </div>
                    </div>
                 </Link>
               </section>
