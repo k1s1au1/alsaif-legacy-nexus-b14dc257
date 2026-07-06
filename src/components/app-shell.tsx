@@ -399,9 +399,10 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-               <nav className="h-16 w-full max-w-sm bg-emerald-950/80 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden">
-                  {/* Glass Sheen Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+               <nav className="h-16 w-full max-w-sm bg-gradient-to-t from-[#A68948] to-[#C5A87C] border border-[#B89B5E] rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden">
+                  {/* Subtle Texture Overlay */}
+                  <div className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
+                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
 
                   <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
                   <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
@@ -411,11 +412,11 @@ export function AppShell({
                     <motion.div
                       animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute inset-0 rounded-full bg-gold-primary blur-md"
+                      className="absolute inset-0 rounded-full bg-emerald-900 blur-md"
                     />
                     <button
                       onClick={() => setShowQuickActions(true)}
-                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-emerald-950 p-2 relative z-10 active:scale-90 transition-transform"
+                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-[#B89B5E] p-2 relative z-10 active:scale-90 transition-transform"
                     >
                        {dynamicLogo ? (
                          <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
@@ -433,7 +434,7 @@ export function AppShell({
 
                   <button
                     onClick={() => setShowMoreHub(true)}
-                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-gold-primary" : "text-white/40")}
+                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-900" : "text-emerald-950/40")}
                   >
                      <MoreHorizontal size={20} />
                      <span className="text-[9px] font-black uppercase">المزيد</span>
