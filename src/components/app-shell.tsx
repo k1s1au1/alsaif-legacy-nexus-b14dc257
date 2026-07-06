@@ -298,14 +298,12 @@ export function AppShell({
              className={cn(
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
-                 ? "h-11 bg-gradient-to-br from-[#D4AF37] via-[#C5A87C] to-[#B89B5E] w-40 rounded-full px-6 border-[#B89B5E] shadow-[0_10px_40px_rgba(197,168,124,0.5)]"
-                 : "h-14 bg-gradient-to-br from-[#F3E5AB] via-[#C5A87C] to-[#A68948] w-full rounded-full px-4 border-[#B89B5E] shadow-2xl",
-               "backdrop-blur-2xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
+                 ? "h-11 bg-black/60 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
+                 : "h-14 bg-white/5 w-full rounded-full px-4 border-white/10 shadow-2xl",
+               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* Subtle Texture Overlay */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+              {/* No texture for crystal clear glass look */}
 
               <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
@@ -328,9 +326,9 @@ export function AppShell({
                        <motion.div
                          key="compact"
                          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                         className="flex items-center gap-2 text-[13px] font-black text-emerald-950 tabular-nums tracking-widest"
+                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest"
                        >
-                          <Clock className="size-3 text-emerald-800" />
+                          <Clock className="size-3 text-gold-primary" />
                           <LiveClock variant="time" />
                        </motion.div>
                     ) : (
@@ -339,17 +337,17 @@ export function AppShell({
                          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
                          className="flex flex-col items-center gap-0.5"
                        >
-                          <div className="text-[15px] font-black text-emerald-950 tabular-nums leading-none tracking-tight">
+                          <div className="text-[15px] font-black text-white tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
                           <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-[0.2em] leading-none opacity-80">
+                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-80">
                                 <LiveClock variant="date" />
                              </div>
-                             <div className="h-2 w-px bg-emerald-950/10 md:hidden" />
-                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-950/5 px-1.5 py-0.5 rounded-full border border-emerald-950/10">
-                                <div className="size-1 rounded-full bg-emerald-600 animate-pulse" />
-                                <span className="text-[7px] font-black text-emerald-800 uppercase tracking-tighter">{onlineCount} متصل</span>
+                             <div className="h-2 w-px bg-white/10 md:hidden" />
+                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                                <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
                              </div>
                           </div>
                        </motion.div>
