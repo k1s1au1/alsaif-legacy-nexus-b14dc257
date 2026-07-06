@@ -36,6 +36,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
 import { DynamicIsland } from "@/components/dynamic-island";
+import { LiveClock } from "@/components/dashboard/live-clock";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -296,10 +297,25 @@ export function AppShell({
               </div>
 
               <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <span className="text-sm font-black text-white">{title}</span>
+                 <div className="flex flex-col items-center">
+                    <span className="text-sm font-black text-white">{title}</span>
+                    <div className="text-[8px] font-black text-gold-primary tabular-nums mt-0.5">
+                       <LiveClock variant="time" />
+                    </div>
+                 </div>
               </div>
 
               <div className="flex items-center gap-2 z-10">
+                 {/* Desktop Clock */}
+                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
+                    <Clock className="size-3.5 text-gold-primary" />
+                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
+                       <LiveClock variant="time" />
+                       <div className="w-px h-3 bg-primary/10" />
+                       <LiveClock variant="date" />
+                    </div>
+                 </div>
+
                  <NotificationsBell />
                  <div className="hidden md:block">
                    <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
@@ -325,7 +341,11 @@ export function AppShell({
                    <Sparkles className="text-gold-primary size-6 relative z-10" />
                  )}
               </div>
-              <BottomNavItem to="/admin" label="الإدارة" icon={<Trophy size={20} />} active={path === "/admin"} />
+              {isAdmin ? (
+                <BottomNavItem to="/admin" label="الإدارة" icon={<Trophy size={20} />} active={path === "/admin"} />
+              ) : (
+                <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
+              )}
               <BottomNavItem to="#" label="المزيد" icon={<MoreHorizontal size={20} />} onClick={() => setShowQuickActions(true)} />
            </nav>
         </div>

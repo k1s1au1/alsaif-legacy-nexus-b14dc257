@@ -323,24 +323,6 @@ function Dashboard() {
                        </div>
                     </div>
                  </div>
-
-                 {/* Premium Integrated Date/Time Panel */}
-                 <div className="flex items-center justify-center md:justify-start pt-4">
-                    <div className="flex flex-col sm:flex-row items-center gap-1.5 p-1 bg-black/40 backdrop-blur-2xl rounded-[28px] border border-white/10 shadow-2xl w-full sm:w-auto">
-                       <div className="flex items-center gap-3 px-6 py-3 bg-white/5 rounded-2xl border border-white/5 w-full sm:w-auto justify-center">
-                          <Clock className="size-4 text-gold-primary" />
-                          <span className="text-lg sm:text-2xl font-black tabular-nums tracking-tighter text-white">
-                             <LiveClock variant="time" />
-                          </span>
-                       </div>
-                       <div className="flex items-center gap-3 px-6 py-3 w-full sm:w-auto justify-center">
-                          <Calendar className="size-4 text-white/20" />
-                          <span className="text-[9px] sm:text-[10px] font-black text-white/40 uppercase tracking-[0.2em] whitespace-nowrap">
-                             <LiveClock variant="date" />
-                          </span>
-                       </div>
-                    </div>
-                 </div>
               </div>
             </div>
 
