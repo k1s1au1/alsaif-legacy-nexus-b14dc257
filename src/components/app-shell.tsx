@@ -64,12 +64,9 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
     </>
   );
 
-  const activeColor = "text-[var(--gold-primary)]";
-  const inactiveColor = "text-[var(--primary-foreground)] opacity-40";
-
   if (onClick) {
     return (
-      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? activeColor : inactiveColor)}>
+      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-emerald-900" : "text-emerald-950/40")}>
         {content}
       </button>
     );
@@ -78,7 +75,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
   return (
     <Link to={to} className={cn(
       "flex flex-col items-center gap-1 transition-all duration-300",
-      active ? activeColor : inactiveColor
+      active ? "text-emerald-900" : "text-emerald-950/40"
     )}>
        {content}
     </Link>
@@ -302,17 +299,11 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-14 w-full rounded-full px-4 shadow-2xl",
+                 : "h-14 bg-black/40 w-full rounded-full px-4 border-white/10 shadow-2xl",
                "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
-             style={{
-               backgroundColor: headerCompact ? undefined : 'var(--primary)',
-               borderColor: headerCompact ? undefined : 'rgba(var(--gold-primary-rgb), 0.2)'
-             } as any}
            >
-              {/* Subtle Texture Overlay */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+              {/* No texture for crystal clear glass look */}
 
               <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
@@ -337,7 +328,7 @@ export function AppShell({
                          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
                          className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
                        >
-                          <Clock className="size-3 text-[var(--gold-primary)]" />
+                          <Clock className="size-3 text-gold-primary" />
                           <LiveClock variant="time" />
                        </motion.div>
                     ) : (
@@ -346,14 +337,14 @@ export function AppShell({
                          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
                          className="flex flex-col items-center gap-0.5 drop-shadow-lg"
                        >
-                          <div className="text-[16px] font-black text-[var(--primary-foreground)] tabular-nums leading-none tracking-tight">
+                          <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
                           <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-[var(--gold-primary)] uppercase tracking-[0.2em] leading-none opacity-90">
+                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
                                 <LiveClock variant="date" />
                              </div>
-                             <div className="h-2 w-px bg-[var(--primary-foreground)]/20 md:hidden" />
+                             <div className="h-2 w-px bg-white/20 md:hidden" />
                              <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
                                 <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
                                 <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
@@ -389,14 +380,7 @@ export function AppShell({
 
         {/* MODERN MOBILE BOTTOM NAV */}
         <div className="md:hidden fixed bottom-6 inset-x-6 z-[100]">
-           <nav
-             className="h-16 border rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl relative overflow-hidden transition-colors duration-500"
-             style={{
-               background: `linear-gradient(to top, var(--primary), var(--primary))`,
-               borderColor: 'var(--gold-primary)',
-               borderOpacity: 0.2
-             } as any}
-           >
+           <nav className="h-16 bg-gradient-to-t from-[#A68948] to-[#C5A87C] border border-[#B89B5E] rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl relative overflow-hidden">
               {/* Subtle Texture Overlay */}
               <div className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
                    style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
@@ -408,14 +392,13 @@ export function AppShell({
                  {/* CENTRAL LOGO: Now triggers Quick Actions */}
                  <button
                    onClick={() => setShowQuickActions(true)}
-                   className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] p-2 relative group active:scale-95 transition-all"
-                   style={{ borderColor: 'var(--primary)' }}
+                   className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#B89B5E] p-2 relative group active:scale-95 transition-all"
                  >
-                    <div className="absolute inset-0 bg-[var(--gold-primary)]/10 rounded-full blur-lg animate-pulse" />
+                    <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
                     {dynamicLogo ? (
                       <div className="size-full bg-contain bg-no-repeat bg-center relative z-10" style={{ backgroundImage: `url(${dynamicLogo})` }} />
                     ) : (
-                      <Sparkles className="text-[var(--gold-primary)] size-6 relative z-10" />
+                      <Sparkles className="text-gold-primary size-6 relative z-10" />
                     )}
                  </button>
 
@@ -428,8 +411,7 @@ export function AppShell({
                  {/* MORE BUTTON: Now triggers Sidebar */}
                  <button
                    onClick={() => setShowMoreHub(true)}
-                   className={cn("flex flex-col items-center gap-1 transition-all duration-300")}
-                   style={{ color: showMoreHub ? 'var(--gold-primary)' : 'var(--primary-foreground)', opacity: showMoreHub ? 1 : 0.4 }}
+                   className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-900" : "text-emerald-950/40")}
                  >
                     <MoreHorizontal size={20} />
                     <span className="text-[9px] font-black uppercase">المزيد</span>
@@ -456,13 +438,12 @@ export function AppShell({
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "rounded-t-[40px] border-t p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]",
-                    "touch-none relative overflow-hidden will-change-transform transition-colors duration-500"
+                    "bg-[#C5A87C] rounded-t-[40px] border-t border-[#B89B5E] p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]",
+                    "touch-none relative overflow-hidden will-change-transform"
                  )}
                  style={{
-                    backgroundColor: 'var(--primary)',
-                    borderColor: 'rgba(212, 175, 55, 0.2)'
-                 } as any}
+                    background: "linear-gradient(to bottom, #F3E5AB 0%, #C5A87C 50%, #A68948 100%)"
+                 }}
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
@@ -470,16 +451,16 @@ export function AppShell({
                   <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-multiply"
                        style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")`, backgroundRepeat: 'repeat' }} />
 
-                  <div className="relative z-10 w-12 h-1.5 bg-black/10 rounded-full mx-auto mb-2 opacity-50" />
+                  <div className="relative z-10 w-12 h-1.5 bg-emerald-950/10 rounded-full mx-auto mb-2 opacity-50" />
 
                   {/* User Profile Section */}
                   <div className="relative z-10 flex items-center gap-5 p-2">
-                     <div className="size-16 rounded-full ring-4 ring-black/10 p-0.5 bg-white/20 shadow-lg">
+                     <div className="size-16 rounded-full ring-4 ring-emerald-900/10 p-0.5 bg-white/20 shadow-lg">
                         <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
                      </div>
                      <div className="space-y-0.5">
-                        <h3 className="text-xl font-black text-[var(--primary-foreground)] leading-tight">{safeUser.name}</h3>
-                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-black/5 border border-black/10 text-[var(--primary-foreground)] opacity-70 text-[9px] font-black uppercase tracking-widest">
+                        <h3 className="text-xl font-black text-emerald-950 leading-tight">{safeUser.name}</h3>
+                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-950/5 border border-emerald-950/10 text-emerald-900 text-[9px] font-black uppercase tracking-widest">
                            {safeUser.role}
                         </div>
                      </div>
@@ -493,7 +474,7 @@ export function AppShell({
                          onClick={() => setShowMoreHub(false)}
                          className={cn(
                            "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
-                           path === to ? "bg-[var(--gold-primary)] text-white shadow-xl" : "bg-black/5 text-[var(--primary-foreground)] hover:bg-black/10 border border-black/5"
+                           path === to ? "bg-emerald-950 text-white shadow-xl" : "bg-white/10 text-emerald-950 hover:bg-white/20 border border-white/10"
                          )}
                        >
                          <div className="flex items-center gap-4 flex-row-reverse">
@@ -531,21 +512,17 @@ export function AppShell({
           {showQuickActions && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-[#064E3B]/40 backdrop-blur-[32px]"
+              className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-[#051410]/95 backdrop-blur-2xl"
               dir="rtl"
             >
-               {/* Decorative Gradient Glows for Glass Effect */}
-               <div className="absolute top-1/4 left-1/4 size-96 bg-gold-primary/10 rounded-full blur-[120px] pointer-events-none" />
-               <div className="absolute bottom-1/4 right-1/4 size-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
-
-               <button onClick={() => setShowQuickActions(false)} className="absolute top-10 left-10 size-12 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white border border-white/10 backdrop-blur-md transition-all active:scale-90">
+               <button onClick={() => setShowQuickActions(false)} className="absolute top-10 left-10 size-12 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
                   <X size={24} />
                </button>
 
-               <div className="w-full max-w-lg space-y-12 relative z-10">
+               <div className="w-full max-w-lg space-y-12">
                   <div className="text-center space-y-2">
-                     <h3 className="text-3xl font-black text-white drop-shadow-lg">الوصول السريع</h3>
-                     <p className="text-gold-primary/80 font-bold uppercase tracking-widest text-[10px] drop-shadow-md">بوابة مجلس السيف الرقمية</p>
+                     <h3 className="text-3xl font-black text-white">الوصول السريع</h3>
+                     <p className="text-gold-primary/60 font-bold uppercase tracking-widest text-[10px]">بوابة مجلس السيف الرقمية</p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-y-10 gap-x-6">
