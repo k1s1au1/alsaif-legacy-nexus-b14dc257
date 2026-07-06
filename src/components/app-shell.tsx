@@ -312,16 +312,27 @@ export function AppShell({
              className={cn(
                "flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
-                 ? "h-11 bg-black/80 w-48 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-24 bg-[#051410] w-full rounded-none px-6 border-b border-white/5 shadow-none",
+                 ? "h-11 bg-black/90 w-48 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                 : "h-20 bg-[#051410] w-full rounded-none px-6 border-none shadow-none",
                "backdrop-blur-3xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* Refined Texture for the Integrated Header */}
-              <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
+              {/* Refined Texture Overlay - only visible when merged at top */}
+              {!headerCompact && (
+                <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
+                     style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
+              )}
 
               <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-all duration-500", headerCompact ? "opacity-0 scale-90 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100")}>
+                 {/* Notification Bell on Left for Mobile Hero Integration */}
+                 <div className={cn("md:hidden transition-opacity duration-500", headerCompact ? "opacity-0" : "opacity-100")}>
+                    <NotificationsBell />
+                 </div>
+
+                 {/* Sidebar Button (Desktop) */}
+                 <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
+                    <Menu className="size-6" />
+                 </button>
                  {/* Sidebar Button (Only visible on desktop now) */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
@@ -338,40 +349,27 @@ export function AppShell({
               {/* DYNAMIC ISLAND CENTER CONTENT - Refined Alignment */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
                  <AnimatePresence mode="wait">
-                    {headerCompact ? (
+                    {headerCompact && (
                        <motion.div
                          key="compact"
                          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                         className="flex items-center gap-2 text-[14px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
+                         className="flex items-center gap-2 text-[14px] font-black text-white tabular-nums tracking-widest drop-shadow-md bg-black/40 px-4 py-1.5 rounded-full border border-white/10 backdrop-blur-md"
                        >
                           <Clock className="size-3.5 text-gold-primary" />
                           <LiveClock variant="time" />
-                       </motion.div>
-                    ) : (
-                       <motion.div
-                         key="expanded"
-                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
-                         className="flex flex-col items-center gap-1 drop-shadow-2xl"
-                       >
-                          <div className="text-[18px] font-black text-white tabular-nums leading-none tracking-tight">
-                             <LiveClock variant="time" />
-                          </div>
-                          <div className="flex items-center gap-2.5">
-                             <div className="text-[10px] font-bold text-gold-primary uppercase tracking-[0.3em] leading-none opacity-90">
-                                <LiveClock variant="date" />
-                             </div>
-                             <div className="h-2.5 w-px bg-white/20" />
-                             <div className="flex items-center gap-1.5 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
-                                <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-[8px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل الآن</span>
-                             </div>
-                          </div>
                        </motion.div>
                     )}
                  </AnimatePresence>
               </div>
 
-              <div className={cn("flex items-center gap-2 z-10 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+              <div className={cn("flex items-center gap-2 z-10 transition-all duration-500", headerCompact ? "opacity-0 scale-90 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100")}>
+                 {/* Time Display on Right for Mobile Hero Integration */}
+                 {!headerCompact && (
+                   <div className="md:hidden flex items-center gap-2 text-[13px] font-black text-white/90 tabular-nums tracking-tighter">
+                      <LiveClock variant="time" />
+                   </div>
+                 )}
+
                  {/* Desktop Clock */}
                  <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
                     <Clock className="size-3.5 text-gold-primary" />
@@ -391,8 +389,8 @@ export function AppShell({
         </motion.div>
 
         <div className={cn(
-          "p-4 md:p-8 lg:p-12 max-w-7xl mx-auto transition-all duration-500",
-          (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "pt-20" : "pt-24 md:pt-6"
+          "max-w-7xl mx-auto transition-all duration-500",
+          (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "pt-0" : "pt-24 md:pt-6 px-4 md:px-8 lg:px-12"
         )}>
           {children}
         </div>
