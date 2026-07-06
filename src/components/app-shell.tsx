@@ -27,6 +27,7 @@ import {
   Wallet,
   History,
   Archive,
+  ChevronLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -168,6 +169,7 @@ export function AppShell({
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
+  const [showMoreHub, setShowMoreHub] = useState(false);
 
   // Header Visibility Control
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -185,11 +187,11 @@ export function AppShell({
   useFcm();
 
   useEffect(() => {
-    if (sidebarOpen || showQuickActions) {
+    if (sidebarOpen || showQuickActions || showMoreHub) {
       document.body.style.overflow = "hidden";
       return () => { document.body.style.overflow = "unset"; };
     }
-  }, [sidebarOpen, showQuickActions]);
+  }, [sidebarOpen, showQuickActions, showMoreHub]);
 
   usePresenceHeartbeat();
 
@@ -284,9 +286,9 @@ export function AppShell({
         >
            <header className={cn("mx-auto flex items-center justify-between h-14 bg-emerald-950/90 backdrop-blur-xl border border-white/10 rounded-full px-4 shadow-2xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12")}>
               <div className="flex items-center gap-2 md:gap-6">
-                 {/* Sidebar Button (Always visible on desktop now) */}
-                 <button onClick={() => setSidebarOpen(true)} className="size-9 md:size-12 flex items-center justify-center rounded-full md:rounded-2xl bg-white/10 md:bg-primary text-white md:text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
-                    <Menu className="size-5 md:size-6" />
+                 {/* Sidebar Button (Only visible on desktop now) */}
+                 <button onClick={() => setSidebarOpen(true)} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
+                    <Menu className="size-6" />
                  </button>
 
                  <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
@@ -337,7 +339,6 @@ export function AppShell({
               <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
               <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
 
-              {/* CENTRAL LOGO: Now triggers Quick Actions */}
               <button
                 onClick={() => setShowQuickActions(true)}
                 className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#051410] p-2 relative group active:scale-95 transition-all"
@@ -356,13 +357,86 @@ export function AppShell({
                 <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
               )}
 
-              {/* MORE BUTTON: Now triggers Sidebar */}
-              <button onClick={() => setSidebarOpen(true)} className="flex flex-col items-center gap-1 text-white/40">
+              <button
+                onClick={() => setShowMoreHub(true)}
+                className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-gold-primary" : "text-white/40")}
+              >
                  <MoreHorizontal size={20} />
                  <span className="text-[9px] font-black uppercase">المزيد</span>
               </button>
            </nav>
         </div>
+
+        {/* MOBILE MORE HUB OVERLAY (REPLACES SIDEBAR) */}
+        <AnimatePresence>
+          {showMoreHub && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/60 backdrop-blur-md"
+              onClick={() => setShowMoreHub(false)}
+            >
+               <motion.div
+                 initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                 className="bg-emerald-950 rounded-t-[48px] border-t border-white/10 p-8 space-y-10 shadow-2xl"
+                 onClick={e => e.stopPropagation()}
+                 dir="rtl"
+               >
+                  <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4" />
+
+                  {/* User Profile Section */}
+                  <div className="flex items-center gap-5 p-2">
+                     <div className="size-20 rounded-full ring-4 ring-gold-primary/20 p-1 bg-white/5 shadow-xl">
+                        <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
+                     </div>
+                     <div className="space-y-1">
+                        <h3 className="text-2xl font-black text-white">{safeUser.name}</h3>
+                        <div className="inline-flex px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20 text-gold-primary text-[10px] font-black uppercase tracking-widest">
+                           {safeUser.role}
+                        </div>
+                     </div>
+                  </div>
+
+                  {/* Navigation Links Grid */}
+                  <div className="grid grid-cols-1 gap-3">
+                     {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
+                       <Link
+                         key={to} to={to}
+                         onClick={() => setShowMoreHub(false)}
+                         className={cn(
+                           "flex flex-row items-center justify-between p-5 rounded-3xl font-black transition-all",
+                           path === to ? "bg-gold-primary text-emerald-950 shadow-xl" : "bg-white/5 text-white hover:bg-white/10"
+                         )}
+                       >
+                         <div className="flex items-center gap-4">
+                           <Icon size={22} strokeWidth={2.5} />
+                           <span className="text-base tracking-tight">{label}</span>
+                         </div>
+                         <ChevronLeft size={20} className={path === to ? "opacity-40" : "opacity-20"} />
+                       </Link>
+                     ))}
+                  </div>
+
+                  {/* Bottom Actions */}
+                  <div className="pt-6 border-t border-white/5 flex gap-4">
+                     <button
+                        onClick={signOut}
+                        className="flex-1 flex items-center justify-center gap-3 py-5 rounded-[28px] bg-rose-500/10 text-rose-500 font-black text-sm border border-rose-500/20 active:scale-95 transition-all"
+                     >
+                        <LogOut size={20} />
+                        <span>تسجيل الخروج</span>
+                     </button>
+                     <button
+                        onClick={() => setShowMoreHub(false)}
+                        className="flex-1 flex items-center justify-center py-5 rounded-[28px] bg-white/5 text-white/60 font-black text-sm border border-white/10 active:scale-95 transition-all"
+                     >
+                        إغلاق
+                     </button>
+                  </div>
+               </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* QUICK ACTIONS OVERLAY */}
         <AnimatePresence>
