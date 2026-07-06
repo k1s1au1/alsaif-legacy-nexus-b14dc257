@@ -24,7 +24,7 @@ interface QuickActionProps {
 
 function QuickAction({ to, label, icon, color }: QuickActionProps) {
   return (
-    <Link to={to} className="group flex flex-col items-center gap-2.5 shrink-0 focus:outline-none w-full">
+    <Link to={to} className="group flex flex-col items-center gap-3 shrink-0 focus:outline-none">
        <div className={cn(
          "size-14 md:size-16 rounded-[24px] flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1.5",
          "shadow-[0_8px_30px_rgb(0,0,0,0.12)] group-hover:shadow-2xl relative overflow-hidden",
@@ -40,15 +40,15 @@ function QuickAction({ to, label, icon, color }: QuickActionProps) {
 
 export function QuickActionsBanner() {
   return (
-    <section className="animate-fade-up w-full px-2 md:px-0 py-4 hidden md:block">
+    <section className="animate-fade-up w-full px-4 md:px-0 py-8 hidden md:block">
        <div className="flex items-center justify-center gap-4 mb-10 opacity-30">
          <div className="h-[1px] w-12 bg-primary" />
-         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع</h3>
+         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع للمجلس</h3>
          <div className="h-[1px] w-12 bg-primary" />
        </div>
 
-       {/* 3-Column Grid for Mobile, Flex for Desktop */}
-       <div className="grid grid-cols-3 sm:grid-cols-4 md:flex md:flex-row md:overflow-x-auto no-scrollbar gap-y-10 gap-x-4 md:gap-8 lg:justify-between px-2 pb-4 items-start">
+       {/* Desktop: Centered Row of Actions */}
+       <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 px-4 pb-4">
           <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#065F46]" />
           <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#D4AF37]" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1B3022]" />
