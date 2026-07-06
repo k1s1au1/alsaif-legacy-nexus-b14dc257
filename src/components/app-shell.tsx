@@ -194,10 +194,21 @@ export function AppShell({
     }
   }, [sidebarOpen, showQuickActions, showMoreHub]);
 
+  // Navigation Visibility Control
   const [headerCompact, setHeaderCompact] = useState(false);
+  const [navVisible, setNavVisible] = useState(true);
+
   useMotionValueEvent(scrollY, "change", (latest) => {
+    const previous = scrollY.getPrevious() ?? 0;
+    const diff = latest - previous;
+
+    // Header logic
     if (latest > 100) setHeaderCompact(true);
     else setHeaderCompact(false);
+
+    // Bottom Nav logic
+    if (diff > 15 && latest > 200) setNavVisible(false);
+    else if (diff < -25 || latest < 50) setNavVisible(true);
   });
 
   useEffect(() => {
@@ -378,47 +389,59 @@ export function AppShell({
           {children}
         </div>
 
-        {/* MODERN MOBILE BOTTOM NAV */}
-        <div className="md:hidden fixed bottom-6 inset-x-6 z-[100]">
-           <nav className="h-16 bg-gradient-to-t from-[#A68948] to-[#C5A87C] border border-[#B89B5E] rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl relative overflow-hidden">
-              {/* Subtle Texture Overlay */}
-              <div className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+        {/* MODERN FLOATING MOBILE BOTTOM DOCK */}
+        <AnimatePresence>
+          {navVisible && (
+            <motion.div
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
+            >
+               <nav className="h-16 w-full max-w-sm bg-emerald-950/80 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden">
+                  {/* Glass Sheen Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
-              <div className="relative z-10 flex items-center justify-around w-full">
-                 <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
-                 <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
+                  <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
+                  <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
 
-                 {/* CENTRAL LOGO: Now triggers Quick Actions */}
-                 <button
-                   onClick={() => setShowQuickActions(true)}
-                   className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#B89B5E] p-2 relative group active:scale-95 transition-all"
-                 >
-                    <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
-                    {dynamicLogo ? (
-                      <div className="size-full bg-contain bg-no-repeat bg-center relative z-10" style={{ backgroundImage: `url(${dynamicLogo})` }} />
-                    ) : (
-                      <Sparkles className="text-gold-primary size-6 relative z-10" />
-                    )}
-                 </button>
+                  {/* PULSING CENTRAL LOGO */}
+                  <div className="relative">
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                      className="absolute inset-0 rounded-full bg-gold-primary blur-md"
+                    />
+                    <button
+                      onClick={() => setShowQuickActions(true)}
+                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-emerald-950 p-2 relative z-10 active:scale-90 transition-transform"
+                    >
+                       {dynamicLogo ? (
+                         <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
+                       ) : (
+                         <Sparkles className="text-gold-primary size-6" />
+                       )}
+                    </button>
+                  </div>
 
-                 {isAdmin ? (
-                   <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
-                 ) : (
-                   <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
-                 )}
+                  {isAdmin ? (
+                    <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
+                  ) : (
+                    <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
+                  )}
 
-                 {/* MORE BUTTON: Now triggers Sidebar */}
-                 <button
-                   onClick={() => setShowMoreHub(true)}
-                   className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-900" : "text-emerald-950/40")}
-                 >
-                    <MoreHorizontal size={20} />
-                    <span className="text-[9px] font-black uppercase">المزيد</span>
-                 </button>
-              </div>
-           </nav>
-        </div>
+                  <button
+                    onClick={() => setShowMoreHub(true)}
+                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-gold-primary" : "text-white/40")}
+                  >
+                     <MoreHorizontal size={20} />
+                     <span className="text-[9px] font-black uppercase">المزيد</span>
+                  </button>
+               </nav>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* MOBILE MORE HUB OVERLAY (REPLACES SIDEBAR) */}
         <AnimatePresence>
