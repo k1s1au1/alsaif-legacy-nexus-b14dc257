@@ -302,7 +302,10 @@ export function AppShell({
             y: 0,
             scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
           }}
-          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center")}
+          className={cn(
+            "z-[80] fixed inset-x-0 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center transition-all duration-500",
+            (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "top-0 px-0" : "top-4 px-4"
+          )}
         >
            <header
              onClick={() => headerCompact && setHeaderCompact(false)}
@@ -310,11 +313,13 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-14 bg-slate-600/95 w-full rounded-full px-4 border-emerald-900/10 shadow-2xl",
-               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
+                 : "h-20 bg-[#051410] w-full rounded-none px-6 border-b border-white/5 shadow-2xl",
+               "backdrop-blur-3xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* No texture for crystal clear glass look */}
+              {/* Subtle Texture Overlay */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay"
+                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
 
               <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
@@ -385,7 +390,10 @@ export function AppShell({
            </header>
         </motion.div>
 
-        <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
+        <div className={cn(
+          "p-4 md:p-8 lg:p-12 max-w-7xl mx-auto transition-all duration-500",
+          (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "pt-20" : "pt-24 md:pt-6"
+        )}>
           {children}
         </div>
 
