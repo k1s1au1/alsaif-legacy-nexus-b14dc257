@@ -359,26 +359,27 @@ function Dashboard() {
             const a = announcements[annIndex % announcements.length];
             return (
               <section className="animate-fade-up px-2 md:px-0">
-                <Link to="/majlis" className="block group relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[200px] flex items-stretch">
+                <Link to="/majlis" className="block group relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[240px] md:min-h-[200px] flex items-stretch">
                    {a.imageUrl && (
                       <div className="absolute inset-0 z-0 overflow-hidden">
                          <img
                             src={a.imageUrl}
-                            className="size-full object-cover object-center transition-all duration-1000 group-hover:scale-105"
+                            className="size-full object-cover object-left md:object-center transition-all duration-1000 group-hover:scale-105"
                             alt=""
                          />
-                         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black/90 via-black/40 to-transparent" />
+                         {/* Dynamic Mask: Bottom-to-top on mobile, Right-to-left on desktop */}
+                         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black via-black/40 to-transparent" />
                       </div>
                    )}
-                   <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6 w-full p-6 md:p-12">
-                      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 text-center md:text-right">
-                         <div className="size-16 md:size-24 rounded-2xl md:rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
-                            <Newspaper size={32} className="md:size-[40px]" />
+                   <div className="relative z-10 flex flex-col md:flex-row items-end md:items-center justify-between gap-6 w-full p-6 md:p-12">
+                      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 text-center md:text-right w-full">
+                         <div className="size-14 md:size-24 rounded-2xl md:rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
+                            <Newspaper size={28} className="md:size-[40px]" />
                          </div>
-                         <div className="space-y-2 md:space-y-1">
+                         <div className="space-y-2 md:space-y-1 w-full">
                             <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary opacity-80">{a._label}</span>
                             <h3 className="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">{a.title}</h3>
-                            <p className="text-white/80 font-bold text-sm md:text-lg leading-relaxed max-w-2xl line-clamp-3 md:line-clamp-2">
+                            <p className="text-white/90 font-bold text-sm md:text-lg leading-relaxed max-w-2xl">
                                {a.cleanBody}
                             </p>
                          </div>
