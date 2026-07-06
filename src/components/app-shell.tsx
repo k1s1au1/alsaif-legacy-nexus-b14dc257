@@ -298,10 +298,12 @@ export function AppShell({
               </div>
 
               <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <div className="flex flex-col items-center">
-                    <span className="text-sm font-black text-white">{title}</span>
-                    <div className="text-[8px] font-black text-gold-primary tabular-nums mt-0.5">
+                 <div className="flex flex-col items-center gap-0.5">
+                    <div className="text-[14px] font-black text-white tabular-nums leading-none tracking-tight">
                        <LiveClock variant="time" />
+                    </div>
+                    <div className="text-[9px] font-bold text-gold-primary/80 uppercase tracking-widest leading-none">
+                       <LiveClock variant="date" />
                     </div>
                  </div>
               </div>
