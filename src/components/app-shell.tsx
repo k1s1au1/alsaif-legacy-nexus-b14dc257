@@ -336,20 +336,31 @@ export function AppShell({
            <nav className="h-16 bg-[#051410] border border-white/10 rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl">
               <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
               <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
-              <div className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#051410] p-2 relative group active:scale-95 transition-all">
+
+              {/* CENTRAL LOGO: Now triggers Quick Actions */}
+              <button
+                onClick={() => setShowQuickActions(true)}
+                className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#051410] p-2 relative group active:scale-95 transition-all"
+              >
                  <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
                  {dynamicLogo ? (
                    <div className="size-full bg-contain bg-no-repeat bg-center relative z-10" style={{ backgroundImage: `url(${dynamicLogo})` }} />
                  ) : (
                    <Sparkles className="text-gold-primary size-6 relative z-10" />
                  )}
-              </div>
+              </button>
+
               {isAdmin ? (
                 <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
               ) : (
                 <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
               )}
-              <BottomNavItem to="#" label="المزيد" icon={<MoreHorizontal size={20} />} onClick={() => setShowQuickActions(true)} />
+
+              {/* MORE BUTTON: Now triggers Sidebar */}
+              <button onClick={() => setSidebarOpen(true)} className="flex flex-col items-center gap-1 text-white/40">
+                 <MoreHorizontal size={20} />
+                 <span className="text-[9px] font-black uppercase">المزيد</span>
+              </button>
            </nav>
         </div>
 
