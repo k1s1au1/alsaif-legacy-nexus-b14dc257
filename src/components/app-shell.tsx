@@ -361,6 +361,15 @@ export function AppShell({
                      <QuickActionItem to="/finance" label="الصندوق" icon={<Wallet size={28} />} color="bg-[#BF953F]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/profile" label="ملفي" icon={<User size={28} />} color="bg-[#043A2B]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/settings" label="الأعدادات" icon={<Settings size={28} />} color="bg-primary" onClick={() => setShowQuickActions(false)} />
+                     <button
+                        onClick={() => { setShowQuickActions(false); signOut(); }}
+                        className="flex flex-col items-center gap-3 group animate-fade-up"
+                     >
+                        <div className="size-16 rounded-[24px] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:scale-110 bg-red-600/20 border border-red-600/20">
+                           <LogOut size={28} className="text-red-500" />
+                        </div>
+                        <span className="text-xs font-black text-red-500/80 group-hover:text-red-500 transition-colors text-center leading-tight">تسجيل خروج</span>
+                     </button>
                   </div>
                </div>
             </motion.div>
