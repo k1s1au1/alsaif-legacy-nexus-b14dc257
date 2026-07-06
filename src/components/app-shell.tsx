@@ -427,73 +427,79 @@ export function AppShell({
           {showMoreHub && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/60 backdrop-blur-md"
+              className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/40 md:backdrop-blur-sm"
               onClick={() => setShowMoreHub(false)}
             >
                <motion.div
                  drag="y"
                  dragConstraints={{ top: 0 }}
-                 dragElastic={0.2}
+                 dragElastic={0.1}
                  onDragEnd={(_, info) => {
-                   if (info.offset.y > 100) setShowMoreHub(false);
+                   if (info.offset.y > 80) setShowMoreHub(false);
                  }}
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                 transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                 className="bg-gradient-to-b from-[#F3E5AB] via-[#C5A87C] to-[#A68948] rounded-t-[48px] border-t border-[#B89B5E] p-8 space-y-10 shadow-2xl touch-none relative overflow-hidden"
+                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+                 className={cn(
+                    "bg-[#C5A87C] rounded-t-[40px] border-t border-[#B89B5E] p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]",
+                    "touch-none relative overflow-hidden will-change-transform"
+                 )}
+                 style={{
+                    background: "linear-gradient(to bottom, #F3E5AB 0%, #C5A87C 50%, #A68948 100%)"
+                 }}
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
-                  {/* Subtle Texture Overlay */}
-                  <div className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay"
-                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+                  {/* Subtle Texture Overlay - Optimized */}
+                  <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-multiply"
+                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")`, backgroundRepeat: 'repeat' }} />
 
-                  <div className="relative z-10 w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-4" />
+                  <div className="relative z-10 w-12 h-1.5 bg-emerald-950/10 rounded-full mx-auto mb-2 opacity-50" />
 
                   {/* User Profile Section */}
                   <div className="relative z-10 flex items-center gap-5 p-2">
-                     <div className="size-20 rounded-full ring-4 ring-emerald-900/20 p-1 bg-white/10 shadow-xl backdrop-blur-sm">
+                     <div className="size-16 rounded-full ring-4 ring-emerald-900/10 p-0.5 bg-white/20 shadow-lg">
                         <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
                      </div>
-                     <div className="space-y-1">
-                        <h3 className="text-2xl font-black text-emerald-950">{safeUser.name}</h3>
-                        <div className="inline-flex px-3 py-1 rounded-full bg-emerald-950/10 border border-emerald-950/20 text-emerald-900 text-[10px] font-black uppercase tracking-widest">
+                     <div className="space-y-0.5">
+                        <h3 className="text-xl font-black text-emerald-950 leading-tight">{safeUser.name}</h3>
+                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-950/5 border border-emerald-950/10 text-emerald-900 text-[9px] font-black uppercase tracking-widest">
                            {safeUser.role}
                         </div>
                      </div>
                   </div>
 
                   {/* Navigation Links Grid */}
-                  <div className="relative z-10 grid grid-cols-1 gap-3">
+                  <div className="relative z-10 grid grid-cols-1 gap-2.5">
                      {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
                        <Link
                          key={to} to={to}
                          onClick={() => setShowMoreHub(false)}
                          className={cn(
-                           "flex flex-row-reverse items-center justify-between p-5 rounded-3xl font-black transition-all",
-                           path === to ? "bg-emerald-950 text-white shadow-xl" : "bg-emerald-950/5 text-emerald-950 hover:bg-emerald-950/10"
+                           "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
+                           path === to ? "bg-emerald-950 text-white shadow-xl" : "bg-white/10 text-emerald-950 hover:bg-white/20 border border-white/10"
                          )}
                        >
                          <div className="flex items-center gap-4 flex-row-reverse">
-                           <Icon size={22} strokeWidth={2.5} />
-                           <span className="text-base tracking-tight">{label}</span>
+                           <Icon size={20} strokeWidth={2.5} />
+                           <span className="text-[15px] tracking-tight">{label}</span>
                          </div>
-                         <ChevronLeft size={20} className={path === to ? "opacity-40" : "opacity-20"} />
+                         <ChevronLeft size={18} className={path === to ? "opacity-40" : "opacity-20"} />
                        </Link>
                      ))}
                   </div>
 
                   {/* Bottom Actions */}
-                  <div className="relative z-10 pt-6 border-t border-emerald-950/5 flex gap-4">
+                  <div className="relative z-10 pt-4 flex gap-3">
                      <button
                         onClick={signOut}
-                        className="flex-1 flex items-center justify-center gap-3 py-5 rounded-[28px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[22px] bg-rose-500 text-white font-black text-xs shadow-lg active:scale-95 transition-all"
                      >
-                        <LogOut size={20} />
+                        <LogOut size={18} />
                         <span>تسجيل الخروج</span>
                      </button>
                      <button
                         onClick={() => setShowMoreHub(false)}
-                        className="flex-1 flex items-center justify-center py-5 rounded-[28px] bg-emerald-950/5 text-emerald-900 font-black text-sm border border-emerald-950/10 active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center py-4 rounded-[22px] bg-emerald-950/5 text-emerald-900 font-black text-xs border border-emerald-950/10 active:scale-95 transition-all"
                      >
                         إغلاق
                      </button>
