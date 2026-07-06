@@ -21,7 +21,7 @@ export const approveAccountRequest = createServerFn({ method: "POST" })
     const fullName = `${req.first_name} ${req.father_name}`;
     const { data: authUser, error: authErr } = await admin.auth.admin.createUser({
       email: req.email,
-      password: req.desired_password,
+      password: req.desired_password ?? undefined,
       email_confirm: true,
       user_metadata: { full_name: fullName, arabic_name: fullName }
     });

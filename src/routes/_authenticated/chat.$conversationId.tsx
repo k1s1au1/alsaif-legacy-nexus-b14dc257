@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
-  Archive, BellOff, CheckCheck, Download, Image as ImageIcon, Lock, Paperclip, Reply, Search,
+  Archive, Bell, BellOff, CheckCheck, Download, Image as ImageIcon, Lock, Paperclip, Reply, Search,
   Send, ShieldCheck, Smile, Trash2, Users, X, Clock, ChevronLeft, MoreHorizontal
 } from "lucide-react";
 import { toast } from "sonner";
