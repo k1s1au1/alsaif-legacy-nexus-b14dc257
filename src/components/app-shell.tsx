@@ -389,13 +389,6 @@ export function AppShell({
            </nav>
         </div>
       </main>
-n.div>
-
-        {/* Content Area */}
-        <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
-          {children}
-        </div>
-      </main>
     </div>
   );
 }
