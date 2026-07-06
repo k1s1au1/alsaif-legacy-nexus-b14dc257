@@ -66,7 +66,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
 
   if (onClick) {
     return (
-      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-gold-primary" : "text-white/40")}>
+      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-emerald-900" : "text-emerald-950/40")}>
         {content}
       </button>
     );
@@ -75,7 +75,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
   return (
     <Link to={to} className={cn(
       "flex flex-col items-center gap-1 transition-all duration-300",
-      active ? "text-gold-primary" : "text-white/40"
+      active ? "text-emerald-900" : "text-emerald-950/40"
     )}>
        {content}
     </Link>
@@ -297,7 +297,7 @@ export function AppShell({
              onClick={() => headerCompact && setHeaderCompact(false)}
              className={cn(
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
-               (headerCompact) ? "h-11 bg-black/95 w-40 rounded-full px-6 border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)]" : "h-14 bg-emerald-950/90 w-full rounded-full px-4 border-white/10 shadow-2xl",
+               (headerCompact) ? "h-11 bg-[#C5A87C] w-40 rounded-full px-6 border-[#B89B5E] shadow-[0_0_40px_rgba(197,168,124,0.4)]" : "h-14 bg-[#C5A87C]/95 w-full rounded-full px-4 border-[#B89B5E] shadow-2xl",
                "backdrop-blur-2xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
@@ -322,9 +322,9 @@ export function AppShell({
                        <motion.div
                          key="compact"
                          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest"
+                         className="flex items-center gap-2 text-[13px] font-black text-emerald-950 tabular-nums tracking-widest"
                        >
-                          <Clock className="size-3 text-gold-primary" />
+                          <Clock className="size-3 text-emerald-800" />
                           <LiveClock variant="time" />
                        </motion.div>
                     ) : (
@@ -333,17 +333,17 @@ export function AppShell({
                          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
                          className="flex flex-col items-center gap-0.5"
                        >
-                          <div className="text-[15px] font-black text-white tabular-nums leading-none tracking-tight">
+                          <div className="text-[15px] font-black text-emerald-950 tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
                           <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-80">
+                             <div className="text-[9px] font-bold text-emerald-800 uppercase tracking-[0.2em] leading-none opacity-80">
                                 <LiveClock variant="date" />
                              </div>
-                             <div className="h-2 w-px bg-white/10 md:hidden" />
-                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
-                                <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
-                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
+                             <div className="h-2 w-px bg-emerald-950/10 md:hidden" />
+                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-950/5 px-1.5 py-0.5 rounded-full border border-emerald-950/10">
+                                <div className="size-1 rounded-full bg-emerald-600 animate-pulse" />
+                                <span className="text-[7px] font-black text-emerald-800 uppercase tracking-tighter">{onlineCount} متصل</span>
                              </div>
                           </div>
                        </motion.div>
@@ -376,13 +376,14 @@ export function AppShell({
 
         {/* MODERN MOBILE BOTTOM NAV */}
         <div className="md:hidden fixed bottom-6 inset-x-6 z-[100]">
-           <nav className="h-16 bg-[#051410] border border-white/10 rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl">
+           <nav className="h-16 bg-[#C5A87C] border border-[#B89B5E] rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl">
               <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
               <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
 
+              {/* CENTRAL LOGO: Now triggers Quick Actions */}
               <button
                 onClick={() => setShowQuickActions(true)}
-                className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#051410] p-2 relative group active:scale-95 transition-all"
+                className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#C5A87C] p-2 relative group active:scale-95 transition-all"
               >
                  <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
                  {dynamicLogo ? (
@@ -398,9 +399,10 @@ export function AppShell({
                 <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
               )}
 
+              {/* MORE BUTTON: Now triggers Sidebar */}
               <button
                 onClick={() => setShowMoreHub(true)}
-                className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-gold-primary" : "text-white/40")}
+                className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-900" : "text-emerald-950/40")}
               >
                  <MoreHorizontal size={20} />
                  <span className="text-[9px] font-black uppercase">المزيد</span>
@@ -425,20 +427,20 @@ export function AppShell({
                  }}
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                 className="bg-[#051410] rounded-t-[48px] border-t border-white/10 p-8 space-y-10 shadow-2xl touch-none"
+                 className="bg-[#C5A87C] rounded-t-[48px] border-t border-[#B89B5E] p-8 space-y-10 shadow-2xl touch-none"
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
-                  <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-4" />
+                  <div className="w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-4" />
 
                   {/* User Profile Section */}
                   <div className="flex items-center gap-5 p-2">
-                     <div className="size-20 rounded-full ring-4 ring-gold-primary/20 p-1 bg-white/5 shadow-xl">
+                     <div className="size-20 rounded-full ring-4 ring-emerald-900/20 p-1 bg-white/5 shadow-xl">
                         <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
                      </div>
                      <div className="space-y-1">
-                        <h3 className="text-2xl font-black text-white">{safeUser.name}</h3>
-                        <div className="inline-flex px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20 text-gold-primary text-[10px] font-black uppercase tracking-widest">
+                        <h3 className="text-2xl font-black text-emerald-950">{safeUser.name}</h3>
+                        <div className="inline-flex px-3 py-1 rounded-full bg-emerald-950/10 border border-emerald-950/20 text-emerald-900 text-[10px] font-black uppercase tracking-widest">
                            {safeUser.role}
                         </div>
                      </div>
@@ -452,7 +454,7 @@ export function AppShell({
                          onClick={() => setShowMoreHub(false)}
                          className={cn(
                            "flex flex-row-reverse items-center justify-between p-5 rounded-3xl font-black transition-all",
-                           path === to ? "bg-gold-primary text-emerald-950 shadow-xl" : "bg-white/5 text-white hover:bg-white/10"
+                           path === to ? "bg-emerald-950 text-white shadow-xl" : "bg-emerald-950/5 text-emerald-950 hover:bg-emerald-950/10"
                          )}
                        >
                          <div className="flex items-center gap-4 flex-row-reverse">
@@ -465,17 +467,17 @@ export function AppShell({
                   </div>
 
                   {/* Bottom Actions */}
-                  <div className="pt-6 border-t border-white/5 flex gap-4">
+                  <div className="pt-6 border-t border-emerald-950/5 flex gap-4">
                      <button
                         onClick={signOut}
-                        className="flex-1 flex items-center justify-center gap-3 py-5 rounded-[28px] bg-rose-500/10 text-rose-500 font-black text-sm border border-rose-500/20 active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center gap-3 py-5 rounded-[28px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 active:scale-95 transition-all"
                      >
                         <LogOut size={20} />
                         <span>تسجيل الخروج</span>
                      </button>
                      <button
                         onClick={() => setShowMoreHub(false)}
-                        className="flex-1 flex items-center justify-center py-5 rounded-[28px] bg-white/5 text-white/60 font-black text-sm border border-white/10 active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center py-5 rounded-[28px] bg-emerald-950/5 text-emerald-900 font-black text-sm border border-emerald-950/10 active:scale-95 transition-all"
                      >
                         إغلاق
                      </button>
