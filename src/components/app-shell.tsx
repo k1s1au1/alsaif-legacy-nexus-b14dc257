@@ -282,20 +282,28 @@ export function AppShell({
         >
            <header className={cn("mx-auto flex items-center justify-between h-14 bg-emerald-950/90 backdrop-blur-xl border border-white/10 rounded-full px-4 shadow-2xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12")}>
               <div className="flex items-center gap-2 md:gap-6">
-                 <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
-                    {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                 {/* Sidebar Button (Always visible on desktop now) */}
+                 <button onClick={() => setSidebarOpen(true)} className="size-9 md:size-12 flex items-center justify-center rounded-full md:rounded-2xl bg-white/10 md:bg-primary text-white md:text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
+                    <Menu className="size-5 md:size-6" />
+                 </button>
+
+                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
+                    <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
+                       {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                    </div>
+                    <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
                  </div>
-                 <h1 className="md:block hidden text-lg font-black text-primary uppercase">{title}</h1>
               </div>
+
               <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none">
                  <span className="text-sm font-black text-white">{title}</span>
               </div>
+
               <div className="flex items-center gap-2 z-10">
                  <NotificationsBell />
                  <div className="hidden md:block">
                    <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
                  </div>
-                 <button onClick={() => setSidebarOpen(true)} className="md:hidden size-9 rounded-full bg-white/10 flex items-center justify-center text-white"><Menu size={18} /></button>
               </div>
            </header>
         </motion.div>
