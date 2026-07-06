@@ -15,6 +15,7 @@ import {
   Newspaper,
   Bell,
   Sparkles,
+  Clock,
   Home,
   MessageCircle,
   Trophy,
