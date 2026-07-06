@@ -512,17 +512,21 @@ export function AppShell({
           {showQuickActions && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-[#051410]/95 backdrop-blur-2xl"
+              className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-[#064E3B]/40 backdrop-blur-[32px]"
               dir="rtl"
             >
-               <button onClick={() => setShowQuickActions(false)} className="absolute top-10 left-10 size-12 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
+               {/* Decorative Gradient Glows for Glass Effect */}
+               <div className="absolute top-1/4 left-1/4 size-96 bg-gold-primary/10 rounded-full blur-[120px] pointer-events-none" />
+               <div className="absolute bottom-1/4 right-1/4 size-96 bg-emerald-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+               <button onClick={() => setShowQuickActions(false)} className="absolute top-10 left-10 size-12 rounded-full bg-white/10 flex items-center justify-center text-white/60 hover:text-white border border-white/10 backdrop-blur-md transition-all active:scale-90">
                   <X size={24} />
                </button>
 
-               <div className="w-full max-w-lg space-y-12">
+               <div className="w-full max-w-lg space-y-12 relative z-10">
                   <div className="text-center space-y-2">
-                     <h3 className="text-3xl font-black text-white">الوصول السريع</h3>
-                     <p className="text-gold-primary/60 font-bold uppercase tracking-widest text-[10px]">بوابة مجلس السيف الرقمية</p>
+                     <h3 className="text-3xl font-black text-white drop-shadow-lg">الوصول السريع</h3>
+                     <p className="text-gold-primary/80 font-bold uppercase tracking-widest text-[10px] drop-shadow-md">بوابة مجلس السيف الرقمية</p>
                   </div>
 
                   <div className="grid grid-cols-3 gap-y-10 gap-x-6">
