@@ -298,8 +298,8 @@ export function AppShell({
              className={cn(
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
-                 ? "h-11 bg-black/60 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
-                 : "h-14 bg-white/5 w-full rounded-full px-4 border-white/10 shadow-2xl",
+                 ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                 : "h-14 bg-black/40 w-full rounded-full px-4 border-white/10 shadow-2xl",
                "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
@@ -326,7 +326,7 @@ export function AppShell({
                        <motion.div
                          key="compact"
                          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest"
+                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
                        >
                           <Clock className="size-3 text-gold-primary" />
                           <LiveClock variant="time" />
@@ -335,9 +335,9 @@ export function AppShell({
                        <motion.div
                          key="expanded"
                          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                         className="flex flex-col items-center gap-0.5"
+                         className="flex flex-col items-center gap-0.5 drop-shadow-lg"
                        >
-                          <div className="text-[15px] font-black text-white tabular-nums leading-none tracking-tight">
+                          <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
                           <div className="flex items-center gap-2">
