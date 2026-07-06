@@ -351,7 +351,7 @@ export function AppShell({
               {/* Desktop Subtle Gold Accent */}
               <div className="hidden md:block absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-primary/20 to-transparent" />
            </header>
-        </div>
+        </motion.div>
 
         {/* Content Area */}
         <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
