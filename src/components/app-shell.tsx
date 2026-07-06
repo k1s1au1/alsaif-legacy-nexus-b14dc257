@@ -199,6 +199,8 @@ export function AppShell({
     if (latest > 100) setHeaderCompact(true);
     else setHeaderCompact(false);
   });
+
+  useEffect(() => {
     (async () => {
       try {
         const { data } = await supabase.auth.getUser();

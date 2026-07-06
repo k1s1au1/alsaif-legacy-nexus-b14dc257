@@ -223,11 +223,18 @@ function Dashboard() {
     return () => clearInterval(t);
   }, [statusMessages.length]);
 
-  const stats = [
-    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
-    { label: "أفراد العائلة", value: counts.members, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
-    { label: "ترفيه عائلي", value: counts.trips, suffix: "وجهة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
-    { label: "مهام قيد التنفيذ", value: counts.tasks, suffix: "مهمة", color: "bg-gradient-to-br from-rose-700 to-rose-950", icon: <ListChecks className="size-16" />, link: "/tasks" },
+  const stats: Array<{
+    label: string;
+    value: number;
+    suffix: string;
+    color: string;
+    icon: React.ElementType<{ className?: string }>;
+    link: "/finance" | "/members" | "/trips" | "/tasks";
+  }> = [
+    { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: Wallet, link: "/finance" },
+    { label: "أفراد العائلة", value: counts.members, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: Users, link: "/members" },
+    { label: "ترفيه عائلي", value: counts.trips, suffix: "وجهة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: Plane, link: "/trips" },
+    { label: "مهام قيد التنفيذ", value: counts.tasks, suffix: "مهمة", color: "bg-gradient-to-br from-rose-700 to-rose-950", icon: ListChecks, link: "/tasks" },
   ];
 
   const getGreeting = () => {
@@ -401,7 +408,7 @@ function Dashboard() {
                   s.color
                 )}>
                    <div className="absolute top-0 right-0 p-3 md:p-6 opacity-10 group-hover:opacity-20 transition-opacity">
-                      {React.cloneElement(s.icon as React.ReactElement, { className: "size-10 md:size-16" })}
+                       {React.createElement(s.icon, { className: "size-10 md:size-16" })}
                    </div>
                    <div className="relative z-10 space-y-2 md:space-y-4">
                       <p className="text-[10px] md:text-sm font-black uppercase tracking-widest opacity-80">{s.label}</p>
