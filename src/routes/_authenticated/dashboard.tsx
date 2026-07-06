@@ -223,7 +223,14 @@ function Dashboard() {
     return () => clearInterval(t);
   }, [statusMessages.length]);
 
-  const stats = [
+  const stats: Array<{
+    label: string;
+    value: number;
+    suffix: string;
+    color: string;
+    icon: React.ReactElement<{ className?: string }>;
+    link: "/finance" | "/members" | "/trips" | "/tasks";
+  }> = [
     { label: "رصيد الصندوق", value: fundBalance, suffix: "ر.س", color: "bg-gradient-to-br from-emerald-600 to-teal-900", icon: <Wallet className="size-16" />, link: "/finance" },
     { label: "أفراد العائلة", value: counts.members, suffix: "عضو", color: "bg-gradient-to-br from-primary to-emerald-950", icon: <Users className="size-16" />, link: "/members" },
     { label: "ترفيه عائلي", value: counts.trips, suffix: "وجهة", color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]", icon: <Plane className="size-16" />, link: "/trips" },
