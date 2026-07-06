@@ -384,12 +384,25 @@ function Dashboard() {
             );
         })()}
 
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 px-4 md:px-0">
+        <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 px-2 md:px-0">
            {stats.map((s, i) => (
              <Link key={i} to={s.link} className="block group">
-                <div className={cn("relative overflow-hidden rounded-[32px] p-8 text-white shadow-xl transition-all duration-500 hover:scale-[1.02]", s.color)}>
-                   <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:opacity-20 transition-opacity">{s.icon}</div>
-                   <div className="relative z-10 space-y-4"><p className="text-sm font-black uppercase tracking-widest opacity-80">{s.label}</p><div className="flex items-baseline gap-2"><span className="text-4xl font-black tracking-tighter"><AnimatedCounter value={s.value} /></span><span className="text-sm font-bold opacity-60">{s.suffix}</span></div></div>
+                <div className={cn(
+                  "relative overflow-hidden rounded-[24px] md:rounded-[32px] p-5 md:p-8 text-white shadow-lg transition-all duration-500 hover:scale-[1.02]",
+                  s.color
+                )}>
+                   <div className="absolute top-0 right-0 p-3 md:p-6 opacity-10 group-hover:opacity-20 transition-opacity">
+                      {React.cloneElement(s.icon as React.ReactElement, { className: "size-10 md:size-16" })}
+                   </div>
+                   <div className="relative z-10 space-y-2 md:space-y-4">
+                      <p className="text-[10px] md:text-sm font-black uppercase tracking-widest opacity-80">{s.label}</p>
+                      <div className="flex items-baseline gap-1 md:gap-2">
+                         <span className="text-xl md:text-4xl font-black tracking-tighter">
+                            <AnimatedCounter value={s.value} />
+                         </span>
+                         <span className="text-[10px] md:text-sm font-bold opacity-60">{s.suffix}</span>
+                      </div>
+                   </div>
                 </div>
              </Link>
            ))}
