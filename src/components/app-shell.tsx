@@ -66,7 +66,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
 
   if (onClick) {
     return (
-      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-emerald-900" : "text-emerald-950/40")}>
+      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-emerald-700" : "text-emerald-950/30")}>
         {content}
       </button>
     );
@@ -75,7 +75,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
   return (
     <Link to={to} className={cn(
       "flex flex-col items-center gap-1 transition-all duration-300",
-      active ? "text-emerald-900" : "text-emerald-950/40"
+      active ? "text-emerald-700" : "text-emerald-950/30"
     )}>
        {content}
     </Link>
@@ -399,9 +399,9 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-               <nav className="h-16 w-full max-w-sm bg-gradient-to-br from-[#D4AF37] via-[#C5A87C] to-[#8E7745] border border-white/20 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
-                  {/* Metallic Sheen Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none opacity-50" />
+               <nav className="h-16 w-full max-w-sm bg-white/90 border border-emerald-900/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
+                  {/* Pearlescent Glow Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-emerald-50/20 to-white/10 pointer-events-none" />
 
                   <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
                   <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
@@ -409,18 +409,18 @@ export function AppShell({
                   {/* PULSING CENTRAL LOGO */}
                   <div className="relative">
                     <motion.div
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0, 0.2] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute inset-0 rounded-full bg-white blur-md"
+                      className="absolute inset-0 rounded-full bg-emerald-500 blur-md"
                     />
                     <button
                       onClick={() => setShowQuickActions(true)}
-                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-[#D4AF37] p-2 relative z-10 active:scale-90 transition-transform"
+                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-[#FDFCF7] p-2 relative z-10 active:scale-90 transition-transform"
                     >
                        {dynamicLogo ? (
                          <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
                        ) : (
-                         <Sparkles className="text-[#D4AF37] size-6" />
+                         <Sparkles className="text-gold-primary size-6" />
                        )}
                     </button>
                   </div>
@@ -433,7 +433,7 @@ export function AppShell({
 
                   <button
                     onClick={() => setShowMoreHub(true)}
-                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-950" : "text-emerald-900/40")}
+                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-700" : "text-emerald-950/30")}
                   >
                      <MoreHorizontal size={20} />
                      <span className="text-[9px] font-black uppercase">المزيد</span>
@@ -448,7 +448,7 @@ export function AppShell({
           {showMoreHub && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/40 md:backdrop-blur-sm"
+              className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/30 md:backdrop-blur-sm"
               onClick={() => setShowMoreHub(false)}
             >
                <motion.div
@@ -461,29 +461,26 @@ export function AppShell({
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "rounded-t-[40px] border-t border-white/20 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]",
+                    "bg-white/95 rounded-t-[40px] border-t border-emerald-900/10 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.15)]",
                     "touch-none relative overflow-hidden will-change-transform"
                  )}
-                 style={{
-                    background: "linear-gradient(to bottom, #F3E5AB 0%, #D4AF37 50%, #A68948 100%)"
-                 }}
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
-                  {/* Metallic Texture Overlay */}
-                  <div className="absolute inset-0 opacity-[0.1] pointer-events-none mix-blend-overlay"
-                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/brushed-alum.png")` }} />
+                  {/* Subtle Silk Texture */}
+                  <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-multiply"
+                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/silk.png")` }} />
 
-                  <div className="relative z-10 w-12 h-1.5 bg-black/10 rounded-full mx-auto mb-2 opacity-50" />
+                  <div className="relative z-10 w-12 h-1.5 bg-emerald-900/10 rounded-full mx-auto mb-2 opacity-50" />
 
                   {/* User Profile Section */}
                   <div className="relative z-10 flex items-center gap-5 p-2">
-                     <div className="size-16 rounded-full ring-4 ring-emerald-900/10 p-0.5 bg-white/20 shadow-lg">
+                     <div className="size-16 rounded-full ring-4 ring-emerald-900/5 p-0.5 bg-emerald-950/5 shadow-sm">
                         <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
                      </div>
                      <div className="space-y-0.5">
                         <h3 className="text-xl font-black text-emerald-950 leading-tight">{safeUser.name}</h3>
-                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-950/5 border border-emerald-950/10 text-emerald-900 text-[9px] font-black uppercase tracking-widest">
+                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-600/10 border border-emerald-600/10 text-emerald-700 text-[9px] font-black uppercase tracking-widest">
                            {safeUser.role}
                         </div>
                      </div>
@@ -497,7 +494,7 @@ export function AppShell({
                          onClick={() => setShowMoreHub(false)}
                          className={cn(
                            "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
-                           path === to ? "bg-emerald-950 text-white shadow-xl" : "bg-white/10 text-emerald-950 hover:bg-white/20 border border-white/10"
+                           path === to ? "bg-emerald-700 text-white shadow-lg" : "bg-emerald-50/50 text-emerald-900 hover:bg-emerald-100 border border-emerald-900/5"
                          )}
                        >
                          <div className="flex items-center gap-4 flex-row-reverse">
