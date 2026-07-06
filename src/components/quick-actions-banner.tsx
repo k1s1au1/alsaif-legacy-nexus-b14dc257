@@ -59,7 +59,6 @@ export function QuickActionsBanner() {
           <QuickAction to="/heritage" label="الإرث" icon={<History />} color="bg-[#8E7745]" />
           <QuickAction to="/family-tree" label="شجرة العائلة" icon={<Trees />} color="bg-[#153221]" />
           <QuickAction to="/finance" label="الصندوق" icon={<Wallet />} color="bg-[#BF953F]" />
-          <QuickAction to="/profile" label="ملفي" icon={<User />} color="bg-[#043A2B]" />
        </div>
     </section>
   );
