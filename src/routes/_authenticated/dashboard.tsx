@@ -361,8 +361,12 @@ function Dashboard() {
               <section className="animate-fade-up px-2 md:px-0">
                 <Link to="/majlis" className="block group relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[200px] flex items-stretch">
                    {a.imageUrl && (
-                      <div className="absolute inset-0 z-0">
-                         <img src={a.imageUrl} className="size-full object-cover opacity-30 md:opacity-20 group-hover:scale-110 transition-transform duration-1000" alt="" />
+                      <div className="absolute inset-0 z-0 overflow-hidden">
+                         <img
+                            src={a.imageUrl}
+                            className="size-full object-cover object-center transition-all duration-1000 group-hover:scale-105"
+                            alt=""
+                         />
                          <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black/90 via-black/40 to-transparent" />
                       </div>
                    )}
