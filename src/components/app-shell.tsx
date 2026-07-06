@@ -310,7 +310,7 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-14 bg-black/40 w-full rounded-full px-4 border-white/10 shadow-2xl",
+                 : "h-14 bg-slate-400/90 w-full rounded-full px-4 border-emerald-900/10 shadow-2xl",
                "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
@@ -399,7 +399,7 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-               <nav className="h-16 w-full max-w-sm bg-slate-200/90 border border-emerald-900/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.15)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
+               <nav className="h-16 w-full max-w-sm bg-slate-400/90 border border-emerald-900/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.2)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
                   {/* Platinum Gloss Effect */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none opacity-40" />
 
@@ -415,7 +415,7 @@ export function AppShell({
                     />
                     <button
                       onClick={() => setShowQuickActions(true)}
-                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-slate-200 p-2 relative z-10 active:scale-90 transition-transform"
+                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-slate-400 p-2 relative z-10 active:scale-90 transition-transform"
                     >
                        {dynamicLogo ? (
                          <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
@@ -433,7 +433,7 @@ export function AppShell({
 
                   <button
                     onClick={() => setShowMoreHub(true)}
-                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-700" : "text-emerald-950/30")}
+                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-950" : "text-emerald-900/50")}
                   >
                      <MoreHorizontal size={20} />
                      <span className="text-[9px] font-black uppercase">المزيد</span>
@@ -461,17 +461,17 @@ export function AppShell({
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "bg-slate-100 rounded-t-[40px] border-t border-emerald-900/10 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.2)]",
+                    "bg-slate-400/95 rounded-t-[40px] border-t border-emerald-900/10 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]",
                     "touch-none relative overflow-hidden will-change-transform"
                  )}
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
                   {/* Subtle Texture */}
-                  <div className="absolute inset-0 opacity-[0.04] pointer-events-none mix-blend-multiply"
+                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-multiply"
                        style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")` }} />
 
-                  <div className="relative z-10 w-12 h-1.5 bg-emerald-900/10 rounded-full mx-auto mb-2 opacity-50" />
+                  <div className="relative z-10 w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-2 opacity-50" />
 
                   {/* User Profile Section */}
                   <div className="relative z-10 flex items-center gap-5 p-2">
