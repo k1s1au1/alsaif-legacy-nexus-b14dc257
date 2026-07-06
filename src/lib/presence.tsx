@@ -191,3 +191,9 @@ export function usePresenceFor(userId: string | null | undefined): PresenceState
   return presenceFromLastSeen(presenceStore.map[userId]);
 }
 
+/** Get the total number of users currently online (auto-refreshing). */
+export function useOnlineCount(): number {
+  useSyncExternalStore(subscribePresence, getPresenceSnapshot, () => 0);
+  return Object.values(presenceStore.map).filter(lastSeen => presenceFromLastSeen(lastSeen) === "online").length;
+}
+

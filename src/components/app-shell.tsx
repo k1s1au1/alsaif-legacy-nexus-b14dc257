@@ -33,7 +33,7 @@ import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { usePresenceHeartbeat } from "@/lib/presence";
+import { usePresenceHeartbeat, useOnlineCount } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
@@ -184,6 +184,7 @@ export function AppShell({
 
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
+  const onlineCount = useOnlineCount();
   useFcm();
 
   useEffect(() => {
@@ -193,9 +194,11 @@ export function AppShell({
     }
   }, [sidebarOpen, showQuickActions, showMoreHub]);
 
-  usePresenceHeartbeat();
-
-  useEffect(() => {
+  const [headerCompact, setHeaderCompact] = useState(false);
+  useMotionValueEvent(scrollY, "change", (latest) => {
+    if (latest > 100) setHeaderCompact(true);
+    else setHeaderCompact(false);
+  });
     (async () => {
       try {
         const { data } = await supabase.auth.getUser();
@@ -281,13 +284,24 @@ export function AppShell({
 
       <main className="relative min-h-screen pb-32 md:pb-20">
         <motion.div
-          animate={{ y: (typeof window !== 'undefined' && window.innerWidth < 768) ? (headerVisible ? 0 : -100) : 0 }}
-          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0")}
+          initial={false}
+          animate={{
+            y: 0,
+            scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
+          }}
+          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center")}
         >
-           <header className={cn("mx-auto flex items-center justify-between h-14 bg-emerald-950/90 backdrop-blur-xl border border-white/10 rounded-full px-4 shadow-2xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12")}>
-              <div className="flex items-center gap-2 md:gap-6">
+           <header
+             onClick={() => headerCompact && setHeaderCompact(false)}
+             className={cn(
+               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
+               (headerCompact) ? "h-11 bg-black/95 w-40 rounded-full px-6 border-white/20 shadow-[0_0_40px_rgba(0,0,0,0.5)]" : "h-14 bg-emerald-950/90 w-full rounded-full px-4 border-white/10 shadow-2xl",
+               "backdrop-blur-2xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
+             )}
+           >
+              <div className={cn("flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
-                 <button onClick={() => setSidebarOpen(true)} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
+                 <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
                  </button>
 
@@ -299,18 +313,43 @@ export function AppShell({
                  </div>
               </div>
 
-              <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none">
-                 <div className="flex flex-col items-center gap-0.5">
-                    <div className="text-[14px] font-black text-white tabular-nums leading-none tracking-tight">
-                       <LiveClock variant="time" />
-                    </div>
-                    <div className="text-[9px] font-bold text-gold-primary/80 uppercase tracking-widest leading-none">
-                       <LiveClock variant="date" />
-                    </div>
-                 </div>
+              {/* DYNAMIC ISLAND CENTER CONTENT */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <AnimatePresence mode="wait">
+                    {headerCompact ? (
+                       <motion.div
+                         key="compact"
+                         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
+                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest"
+                       >
+                          <Clock className="size-3 text-gold-primary" />
+                          <LiveClock variant="time" />
+                       </motion.div>
+                    ) : (
+                       <motion.div
+                         key="expanded"
+                         initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+                         className="flex flex-col items-center gap-0.5"
+                       >
+                          <div className="text-[15px] font-black text-white tabular-nums leading-none tracking-tight">
+                             <LiveClock variant="time" />
+                          </div>
+                          <div className="flex items-center gap-2">
+                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-80">
+                                <LiveClock variant="date" />
+                             </div>
+                             <div className="h-2 w-px bg-white/10 md:hidden" />
+                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/10 px-1.5 py-0.5 rounded-full border border-emerald-500/20">
+                                <div className="size-1 rounded-full bg-emerald-500 animate-pulse" />
+                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
+                             </div>
+                          </div>
+                       </motion.div>
+                    )}
+                 </AnimatePresence>
               </div>
 
-              <div className="flex items-center gap-2 z-10">
+              <div className={cn("flex items-center gap-2 z-10 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Desktop Clock */}
                  <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
                     <Clock className="size-3.5 text-gold-primary" />
