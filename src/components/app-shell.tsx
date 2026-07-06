@@ -14,7 +14,11 @@ import {
   X,
   Newspaper,
   Bell,
-  Sparkles
+  Sparkles,
+  Home,
+  MessageCircle,
+  Trophy,
+  MoreHorizontal
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -41,6 +45,71 @@ const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] 
   { to: "/settings", label: "الإعدادات", icon: Settings },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
+
+function BottomNavItem({ to, label, icon, active }: { to: string, label: string, icon: any, active: boolean }) {
+  return (
+    <Link to={to} className={cn(
+      "flex flex-col items-center gap-1 transition-all duration-300",
+      active ? "text-gold-primary" : "text-white/40"
+    )}>
+       {icon}
+       <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+    </Link>
+  );
+}
+
+function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut }: any) {
+  return (
+    <DropdownMenu>
+       <DropdownMenuTrigger asChild>
+          <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
+             <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative">
+                <UserAvatar
+                  path={myAvatarPath}
+                  name={safeUser.name}
+                  initial={safeUser.initial}
+                  className="size-full rounded-full"
+                  userId={myUserId}
+                  presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
+                />
+             </div>
+             <span className="hidden sm:block text-[13px] md:text-[14px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
+             <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
+          </button>
+       </DropdownMenuTrigger>
+
+       <DropdownMenuContent align="end" sideOffset={15} className="min-w-[240px] rounded-[24px] border-border bg-card/80 backdrop-blur-2xl p-2 text-right shadow-2xl">
+          <DropdownMenuLabel className="px-5 py-5 border-b border-muted mb-2">
+            <p className="text-[16px] font-black text-primary leading-tight">{safeUser.name}</p>
+            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">{safeUser.role}</p>
+          </DropdownMenuLabel>
+
+          <Link to="/profile">
+            <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
+              <User size={18} />
+              <span>ملفي الشخصي</span>
+            </DropdownMenuItem>
+          </Link>
+          <Link to="/settings">
+            <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
+              <Settings size={18} />
+              <span>الإعدادات</span>
+            </DropdownMenuItem>
+          </Link>
+
+          <DropdownMenuSeparator className="bg-muted my-1" />
+
+          <DropdownMenuItem
+            onClick={signOut}
+            className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-500 focus:text-white cursor-pointer transition-all"
+          >
+            <LogOut size={18} />
+            <span>تسجيل الخروج</span>
+          </DropdownMenuItem>
+       </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
 
 export function AppShell({
   children,
@@ -235,18 +304,10 @@ export function AppShell({
         </div>
       </motion.aside>
 
-      <main className="relative min-h-screen pb-20">
-        {/* RESPONSIVE HEADER SYSTEM: Floating on Mobile with Gesture Support, Classic on Desktop */}
+      <main className="relative min-h-screen pb-32 md:pb-20">
+        {/* RESPONSIVE HEADER SYSTEM */}
         <motion.div
           initial={false}
-          // Only enable drag hiding for mobile
-          drag={typeof window !== 'undefined' && window.innerWidth < 768 ? "y" : false}
-          dragConstraints={{ top: 0, bottom: 0 }}
-          dragElastic={0.2}
-          onDragEnd={(_, info) => {
-            if (info.offset.y < -30) setHeaderVisible(false);
-            if (info.offset.y > 30) setHeaderVisible(true);
-          }}
           animate={{
             y: (typeof window !== 'undefined' && window.innerWidth < 768)
                ? (headerVisible ? 0 : -100)
@@ -255,107 +316,80 @@ export function AppShell({
                ? (headerVisible ? 1 : 0)
                : 1
           }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.3 }}
           className={cn(
             "z-[80] transition-[padding] duration-500",
-            "fixed top-4 inset-x-0 px-4 touch-none", // Mobile: Floating
-            "md:sticky md:top-0 md:inset-x-0 md:px-0 md:!translate-y-0 md:!opacity-100" // Desktop: Fixed at top (Force stable)
+            "fixed top-4 inset-x-0 px-4", // Mobile: Floating
+            "md:sticky md:top-0 md:inset-x-0 md:px-0" // Desktop: Fixed
           )}
         >
            <header className={cn(
-             "mx-auto flex items-center justify-between transition-all duration-500 relative overflow-hidden group",
-             "h-16 bg-white/40 backdrop-blur-3xl border border-white/60 rounded-full shadow-[0_15px_40px_-10px_rgba(0,0,0,0.1)] px-3", // Mobile Island
-             "md:h-20 md:max-w-none md:bg-background/80 md:rounded-none md:border-x-0 md:border-t-0 md:border-b md:border-white/5 md:shadow-md md:px-8 lg:px-12" // Desktop Classic
+             "mx-auto flex items-center justify-between transition-all duration-500 relative overflow-hidden",
+             "h-14 bg-emerald-950/90 backdrop-blur-xl border border-white/10 rounded-full px-4 shadow-2xl", // Mobile Island Style (Darker like image)
+             "md:h-20 md:max-w-none md:bg-background/80 md:rounded-none md:border-x-0 md:border-t-0 md:border-b md:border-white/5 md:px-8 lg:px-12"
            )}>
 
-              {/* Left Action: Royal Logo + Menu */}
               <div className="flex items-center gap-2 md:gap-6">
-                 <button
-                   onClick={() => setSidebarOpen(true)}
-                   className="size-10 md:size-12 grid place-items-center rounded-xl md:rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95 z-10"
-                 >
-                   <Menu className="size-5 md:size-6" strokeWidth={2.5} />
+                 {/* Mobile Logo Button */}
+                 <div className="md:hidden size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5 shadow-inner">
+                    {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                 </div>
+
+                 {/* Desktop Menu Button */}
+                 <button onClick={() => setSidebarOpen(true)} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
+                   <Menu className="size-6" />
                  </button>
 
-                 <div className="flex items-center gap-3 md:pl-6 h-10 md:border-l md:border-primary/10">
-                    <div className="size-8 md:size-10 rounded-full bg-[#fdfcf7] p-1.5 md:p-2 shadow-inner border border-emerald-950/5 flex items-center justify-center">
-                       {dynamicLogo ? (
-                         <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
-                       ) : (
-                         <Sparkles className="size-5 text-gold-primary animate-pulse" />
-                       )}
-                    </div>
-                    {/* Desktop Title beside logo */}
-                    <h1 className="hidden md:block text-lg font-black tracking-tight text-primary uppercase tracking-[0.05em]">{title}</h1>
+                 <div className="hidden md:flex items-center gap-4 h-10 border-l border-primary/10 pl-6">
+                    <h1 className="text-lg font-black tracking-tight text-primary uppercase">{title}</h1>
                  </div>
               </div>
 
-              {/* Center Anchor: Page Title Hub (Mobile Only) */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
-                 <div className="flex flex-col items-center">
-                    <span className="text-[8px] font-black text-primary/40 uppercase tracking-[0.4em]">بوابة السيف</span>
-                    <span className="text-xs font-black text-primary tracking-tight leading-none truncate max-w-[120px]">{title}</span>
-                 </div>
+              {/* Mobile Centered Title */}
+              <div className="md:hidden absolute inset-0 flex items-center justify-center pointer-events-none">
+                 <span className="text-sm font-black text-white tracking-wide">{title}</span>
               </div>
 
-              {/* Right Action: Notifications + Profile Medallion */}
               <div className="flex items-center gap-2 md:gap-4 z-10">
                  <NotificationsBell />
+                 <div className="hidden md:block">
+                   <UserDropdown
+                     safeUser={safeUser}
+                     myAvatarPath={myAvatarPath}
+                     myUserId={myUserId}
+                     signOut={signOut}
+                   />
+                 </div>
 
-                 <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                       <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
-                          <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative">
-                             <UserAvatar
-                               path={myAvatarPath}
-                               name={safeUser.name}
-                               initial={safeUser.initial}
-                               className="size-full rounded-full"
-                               userId={myUserId}
-                               presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
-                             />
-                          </div>
-                          <span className="hidden sm:block text-[13px] md:text-[14px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
-                          <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
-                       </button>
-                    </DropdownMenuTrigger>
-
-                    <DropdownMenuContent align="end" sideOffset={15} className="min-w-[240px] rounded-[24px] border-border bg-card/80 backdrop-blur-2xl p-2 text-right shadow-2xl">
-                       <DropdownMenuLabel className="px-5 py-5 border-b border-muted mb-2">
-                         <p className="text-[16px] font-black text-primary leading-tight">{safeUser.name}</p>
-                         <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">{safeUser.role}</p>
-                       </DropdownMenuLabel>
-
-                       <Link to="/profile">
-                         <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
-                           <User size={18} />
-                           <span>ملفي الشخصي</span>
-                         </DropdownMenuItem>
-                       </Link>
-                       <Link to="/settings">
-                         <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
-                           <Settings size={18} />
-                           <span>الإعدادات</span>
-                         </DropdownMenuItem>
-                       </Link>
-
-                       <DropdownMenuSeparator className="bg-muted my-1" />
-
-                       <DropdownMenuItem
-                         onClick={signOut}
-                         className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-50 focus:text-white cursor-pointer transition-all"
-                       >
-                         <LogOut size={18} />
-                         <span>تسجيل الخروج</span>
-                       </DropdownMenuItem>
-                    </DropdownMenuContent>
-                 </DropdownMenu>
+                 {/* Mobile Menu Trigger */}
+                 <button onClick={() => setSidebarOpen(true)} className="md:hidden size-9 rounded-full bg-white/10 flex items-center justify-center text-white">
+                    <Menu size={18} />
+                 </button>
               </div>
-
-              {/* Desktop Subtle Gold Accent */}
-              <div className="hidden md:block absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-gold-primary/20 to-transparent" />
            </header>
         </motion.div>
+
+        <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
+          {children}
+        </div>
+
+        {/* MODERN MOBILE BOTTOM NAV (From the image) */}
+        <div className="md:hidden fixed bottom-6 inset-x-6 z-[100]">
+           <nav className="h-16 bg-[#051410] border border-white/10 rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl">
+              <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
+              <BottomNavItem to="/chat" label="المحادثة" icon={<MessageCircle size={20} />} active={path === "/chat"} />
+              <div className="size-12 rounded-full bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.4)] flex items-center justify-center -mt-8 border-4 border-[#051410]">
+                 <Sparkles className="text-emerald-950 size-6" />
+              </div>
+              <BottomNavItem to="/admin" label="الإدارة" icon={<Trophy size={20} />} active={path === "/admin"} />
+              <button onClick={() => setSidebarOpen(true)} className="flex flex-col items-center gap-1 text-white/40">
+                 <MoreHorizontal size={20} />
+                 <span className="text-[9px] font-black uppercase">المزيد</span>
+              </button>
+           </nav>
+        </div>
+      </main>
+n.div>
 
         {/* Content Area */}
         <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
