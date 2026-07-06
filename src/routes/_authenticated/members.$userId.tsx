@@ -7,11 +7,7 @@ import { UserAvatar } from "@/components/user-avatar";
 import {
   ArrowRight,
   Calendar,
-  Eye,
-  EyeOff,
-  KeyRound,
   Loader2,
-  Mail,
   Phone,
   User as UserIcon,
   Shield,
@@ -21,7 +17,6 @@ import {
   History,
   Award
 } from "lucide-react";
-import { getMemberCredential } from "@/lib/api/member-credentials.functions";
 import { PresenceDot, presenceFromLastSeen, presenceLabel } from "@/lib/presence";
 import { toast } from "sonner";
 import { roleLabel } from "@/hooks/use-user-role";
@@ -58,11 +53,7 @@ function MemberProfilePage() {
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [credential, setCredential] = useState<{ email: string | null; password: string | null } | null>(null);
-  const [credLoading, setCredLoading] = useState(false);
-  const [showPwd, setShowPwd] = useState(false);
   const [lastSeen, setLastSeen] = useState<string | null>(null);
-  const fetchCredential = useServerFn(getMemberCredential);
 
   const [me, setMe] = useState<{ name: string; role: string; initial: string; avatarPath: string | null }>({
     name: "...",
@@ -292,63 +283,6 @@ function MemberProfilePage() {
               </div>
            </section>
         </div>
-
-        {/* Admin Credentials Panel */}
-        {isAdmin && (
-          <section className="animate-fade-up border-2 border-gold-primary/20 rounded-[40px] overflow-hidden" style={{ animationDelay: "300ms" }}>
-            <div className="bg-gold-primary/5 p-8 border-b border-gold-primary/10 flex items-center justify-between">
-               <div className="flex items-center gap-3">
-                  <KeyRound className="text-gold-primary size-6" />
-                  <div>
-                    <h3 className="text-lg font-black text-primary tracking-tight">بيانات الدخول</h3>
-                    <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">إدارة الدخول (للمسؤول فقط)</p>
-                  </div>
-               </div>
-            </div>
-
-            <div className="bg-[#fdfcf7] p-8 md:p-12 space-y-8">
-               {credential ? (
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <ProfileField label="البريد الإلكتروني" value={credential.email} icon={<Mail />} />
-                    <div className="space-y-2">
-                       <label className="text-[10px] font-black text-primary/40 uppercase tracking-widest">كلمة المرور المؤقتة</label>
-                       <div className="relative group">
-                          <KeyRound className="absolute right-5 top-1/2 -translate-y-1/2 text-gold-primary size-5" />
-                          <div className="w-full h-14 bg-muted/40 border-2 border-border rounded-2xl flex items-center pr-14 pl-6 font-bold text-primary">
-                             {showPwd ? credential.password : "••••••••••••"}
-                             <button onClick={() => setShowPwd(!showPwd)} className="mr-auto text-primary/40 hover:text-primary transition-colors">
-                                {showPwd ? <EyeOff size={20} /> : <Eye size={20} />}
-                             </button>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-               ) : (
-                 <div className="flex flex-col md:flex-row items-center justify-between gap-8 p-8 bg-muted/20 rounded-3xl border-2 border-dashed border-border/60">
-                    <p className="text-sm font-bold text-muted-foreground text-center md:text-right max-w-sm">يمكنك استرجاع بيانات الدخول التي تم إنشاؤها للعضو عند تسجيله في المجلس.</p>
-                    <button
-                      disabled={credLoading}
-                      onClick={async () => {
-                        setCredLoading(true);
-                        try {
-                           const res = await fetchCredential({ data: { userId } });
-                           setCredential(res);
-                        } catch { toast.error("تعذر جلب البيانات"); }
-                        finally { setCredLoading(false); }
-                      }}
-                      className="btn-gold px-10 py-4 rounded-2xl font-black text-sm shadow-xl flex items-center gap-3"
-                    >
-                      {credLoading ? <Loader2 className="animate-spin size-5" /> : <KeyRound size={20} />}
-                      استرجاع البيانات
-                    </button>
-                 </div>
-               )}
-               <p className="text-[10px] font-black text-rose-500 italic text-center opacity-70 leading-relaxed">
-                  * هذه البيانات سرية للغاية وخاصة بإدارة المجلس. لا تظهر إلا كلمة المرور المبدئية التي تم تسجيلها في النظام.
-               </p>
-            </div>
-          </section>
-        )}
       </div>
     </AppShell>
   );
