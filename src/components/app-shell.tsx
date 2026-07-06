@@ -296,12 +296,18 @@ export function AppShell({
            <header
              onClick={() => headerCompact && setHeaderCompact(false)}
              className={cn(
-               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]",
-               (headerCompact) ? "h-11 bg-[#C5A87C] w-40 rounded-full px-6 border-[#B89B5E] shadow-[0_0_40px_rgba(197,168,124,0.4)]" : "h-14 bg-[#C5A87C]/95 w-full rounded-full px-4 border-[#B89B5E] shadow-2xl",
+               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
+               (headerCompact)
+                 ? "h-11 bg-gradient-to-br from-[#D4AF37] via-[#C5A87C] to-[#B89B5E] w-40 rounded-full px-6 border-[#B89B5E] shadow-[0_10px_40px_rgba(197,168,124,0.5)]"
+                 : "h-14 bg-gradient-to-br from-[#F3E5AB] via-[#C5A87C] to-[#A68948] w-full rounded-full px-4 border-[#B89B5E] shadow-2xl",
                "backdrop-blur-2xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              <div className={cn("flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+              {/* Subtle Texture Overlay */}
+              <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay"
+                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+
+              <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
@@ -376,37 +382,43 @@ export function AppShell({
 
         {/* MODERN MOBILE BOTTOM NAV */}
         <div className="md:hidden fixed bottom-6 inset-x-6 z-[100]">
-           <nav className="h-16 bg-[#C5A87C] border border-[#B89B5E] rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl">
-              <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
-              <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
+           <nav className="h-16 bg-gradient-to-t from-[#A68948] to-[#C5A87C] border border-[#B89B5E] rounded-full shadow-2xl flex items-center justify-around px-2 backdrop-blur-xl relative overflow-hidden">
+              {/* Subtle Texture Overlay */}
+              <div className="absolute inset-0 opacity-[0.08] pointer-events-none mix-blend-overlay"
+                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
 
-              {/* CENTRAL LOGO: Now triggers Quick Actions */}
-              <button
-                onClick={() => setShowQuickActions(true)}
-                className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#C5A87C] p-2 relative group active:scale-95 transition-all"
-              >
-                 <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
-                 {dynamicLogo ? (
-                   <div className="size-full bg-contain bg-no-repeat bg-center relative z-10" style={{ backgroundImage: `url(${dynamicLogo})` }} />
+              <div className="relative z-10 flex items-center justify-around w-full">
+                 <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
+                 <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
+
+                 {/* CENTRAL LOGO: Now triggers Quick Actions */}
+                 <button
+                   onClick={() => setShowQuickActions(true)}
+                   className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[6px] border-[#B89B5E] p-2 relative group active:scale-95 transition-all"
+                 >
+                    <div className="absolute inset-0 bg-gold-primary/10 rounded-full blur-lg animate-pulse" />
+                    {dynamicLogo ? (
+                      <div className="size-full bg-contain bg-no-repeat bg-center relative z-10" style={{ backgroundImage: `url(${dynamicLogo})` }} />
+                    ) : (
+                      <Sparkles className="text-gold-primary size-6 relative z-10" />
+                    )}
+                 </button>
+
+                 {isAdmin ? (
+                   <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
                  ) : (
-                   <Sparkles className="text-gold-primary size-6 relative z-10" />
+                   <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
                  )}
-              </button>
 
-              {isAdmin ? (
-                <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
-              ) : (
-                <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
-              )}
-
-              {/* MORE BUTTON: Now triggers Sidebar */}
-              <button
-                onClick={() => setShowMoreHub(true)}
-                className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-900" : "text-emerald-950/40")}
-              >
-                 <MoreHorizontal size={20} />
-                 <span className="text-[9px] font-black uppercase">المزيد</span>
-              </button>
+                 {/* MORE BUTTON: Now triggers Sidebar */}
+                 <button
+                   onClick={() => setShowMoreHub(true)}
+                   className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-emerald-900" : "text-emerald-950/40")}
+                 >
+                    <MoreHorizontal size={20} />
+                    <span className="text-[9px] font-black uppercase">المزيد</span>
+                 </button>
+              </div>
            </nav>
         </div>
 
@@ -427,15 +439,19 @@ export function AppShell({
                  }}
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                 className="bg-[#C5A87C] rounded-t-[48px] border-t border-[#B89B5E] p-8 space-y-10 shadow-2xl touch-none"
+                 className="bg-gradient-to-b from-[#F3E5AB] via-[#C5A87C] to-[#A68948] rounded-t-[48px] border-t border-[#B89B5E] p-8 space-y-10 shadow-2xl touch-none relative overflow-hidden"
                  onClick={e => e.stopPropagation()}
                  dir="rtl"
                >
-                  <div className="w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-4" />
+                  {/* Subtle Texture Overlay */}
+                  <div className="absolute inset-0 opacity-[0.07] pointer-events-none mix-blend-overlay"
+                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+
+                  <div className="relative z-10 w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-4" />
 
                   {/* User Profile Section */}
-                  <div className="flex items-center gap-5 p-2">
-                     <div className="size-20 rounded-full ring-4 ring-emerald-900/20 p-1 bg-white/5 shadow-xl">
+                  <div className="relative z-10 flex items-center gap-5 p-2">
+                     <div className="size-20 rounded-full ring-4 ring-emerald-900/20 p-1 bg-white/10 shadow-xl backdrop-blur-sm">
                         <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
                      </div>
                      <div className="space-y-1">
@@ -447,7 +463,7 @@ export function AppShell({
                   </div>
 
                   {/* Navigation Links Grid */}
-                  <div className="grid grid-cols-1 gap-3">
+                  <div className="relative z-10 grid grid-cols-1 gap-3">
                      {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
                        <Link
                          key={to} to={to}
@@ -467,7 +483,7 @@ export function AppShell({
                   </div>
 
                   {/* Bottom Actions */}
-                  <div className="pt-6 border-t border-emerald-950/5 flex gap-4">
+                  <div className="relative z-10 pt-6 border-t border-emerald-950/5 flex gap-4">
                      <button
                         onClick={signOut}
                         className="flex-1 flex items-center justify-center gap-3 py-5 rounded-[28px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 active:scale-95 transition-all"
