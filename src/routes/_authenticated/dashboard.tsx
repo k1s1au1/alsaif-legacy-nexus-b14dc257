@@ -270,8 +270,8 @@ function Dashboard() {
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
         {/* RESPONSIVE HERO CARD (Merged with Header on Mobile) */}
-        <section className="animate-fade-up px-0 md:px-0 -mt-4 md:mt-0">
-          <div className="relative overflow-hidden rounded-b-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border-x border-b border-white/5 group">
+        <section className="animate-fade-up px-0 md:px-0 -mt-6 md:mt-0">
+          <div className="relative overflow-hidden rounded-b-[48px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border-x border-b border-white/5 group">
 
             {/* Background Texture */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"

@@ -303,25 +303,25 @@ export function AppShell({
             scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
           }}
           className={cn(
-            "z-[80] fixed inset-x-0 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center transition-all duration-500",
+            "z-[80] fixed inset-x-0 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center transition-all duration-700",
             (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "top-0 px-0" : "top-4 px-4"
           )}
         >
            <header
              onClick={() => headerCompact && setHeaderCompact(false)}
              className={cn(
-               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
+               "flex items-center justify-between transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
-                 ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-20 bg-[#051410] w-full rounded-none px-6 border-b border-white/5 shadow-2xl",
+                 ? "h-11 bg-black/80 w-48 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                 : "h-24 bg-[#051410] w-full rounded-none px-6 border-b border-white/5 shadow-none",
                "backdrop-blur-3xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* Subtle Texture Overlay */}
-              <div className="absolute inset-0 opacity-10 pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/sandpaper.png")` }} />
+              {/* Refined Texture for the Integrated Header */}
+              <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
+                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
 
-              <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+              <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-all duration-500", headerCompact ? "opacity-0 scale-90 pointer-events-none md:opacity-100 md:scale-100 md:pointer-events-auto" : "opacity-100 scale-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
@@ -335,35 +335,35 @@ export function AppShell({
                  </div>
               </div>
 
-              {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
+              {/* DYNAMIC ISLAND CENTER CONTENT - Refined Alignment */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
                  <AnimatePresence mode="wait">
                     {headerCompact ? (
                        <motion.div
                          key="compact"
-                         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
+                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                         className="flex items-center gap-2 text-[14px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
                        >
-                          <Clock className="size-3 text-gold-primary" />
+                          <Clock className="size-3.5 text-gold-primary" />
                           <LiveClock variant="time" />
                        </motion.div>
                     ) : (
                        <motion.div
                          key="expanded"
-                         initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                         className="flex flex-col items-center gap-0.5 drop-shadow-lg"
+                         initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }}
+                         className="flex flex-col items-center gap-1 drop-shadow-2xl"
                        >
-                          <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
+                          <div className="text-[18px] font-black text-white tabular-nums leading-none tracking-tight">
                              <LiveClock variant="time" />
                           </div>
-                          <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
+                          <div className="flex items-center gap-2.5">
+                             <div className="text-[10px] font-bold text-gold-primary uppercase tracking-[0.3em] leading-none opacity-90">
                                 <LiveClock variant="date" />
                              </div>
-                             <div className="h-2 w-px bg-white/20 md:hidden" />
-                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
-                                <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
+                             <div className="h-2.5 w-px bg-white/20" />
+                             <div className="flex items-center gap-1.5 bg-emerald-500/20 px-2 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
+                                <div className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                                <span className="text-[8px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل الآن</span>
                              </div>
                           </div>
                        </motion.div>
