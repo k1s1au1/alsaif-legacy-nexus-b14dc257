@@ -319,8 +319,8 @@ export function AppShell({
                  </div>
               </div>
 
-              {/* DYNAMIC ISLAND CENTER CONTENT */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
                  <AnimatePresence mode="wait">
                     {headerCompact ? (
                        <motion.div
