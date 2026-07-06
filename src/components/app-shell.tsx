@@ -18,7 +18,7 @@ import {
   Clock,
   Home,
   MessageCircle,
-  Trophy,
+  ShieldCheck,
   MoreHorizontal,
   Ticket,
   CalendarDays,
@@ -345,7 +345,7 @@ export function AppShell({
                  )}
               </div>
               {isAdmin ? (
-                <BottomNavItem to="/admin" label="الإدارة" icon={<Trophy size={20} />} active={path === "/admin"} />
+                <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
               ) : (
                 <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
               )}
