@@ -141,7 +141,10 @@ function SecureVaultPage() {
         .from("vault-media")
         .upload(filePath, selectedFile);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error("Storage Error:", uploadError);
+        throw new Error(`فشل رفع الملف: تأكد من وجود مساحة تخزين باسم vault-media`);
+      }
 
       // 2. Insert into DB
       const { error: dbError } = await supabase.from("secure_vault" as any).insert({
@@ -154,15 +157,18 @@ function SecureVaultPage() {
         is_encrypted: true
       });
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("DB Error:", dbError);
+        throw new Error(`فشل حفظ البيانات: تأكد من إنشاء جدول secure_vault في قاعدة البيانات`);
+      }
 
       toast.success("تم الإيداع في الخزنة بنجاح ✨", { id: toastId });
       setShowAdd(false);
       resetForm();
       load();
     } catch (err: any) {
-      console.error("Upload error", err);
-      toast.error("فشل الإيداع: تأكد من صلاحيات الخزنة", { id: toastId });
+      console.error("Upload error details:", err);
+      toast.error(err.message || "فشل الإيداع: تأكد من صلاحيات الخزنة", { id: toastId });
     } finally {
       setIsUploading(false);
     }
