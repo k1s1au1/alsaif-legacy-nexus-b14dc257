@@ -121,6 +121,13 @@ function RootComponent() {
         document.documentElement.classList.remove("font-royal-mode");
       }
 
+      // Font Size Magnification
+      const savedScale = localStorage.getItem("app-font-scale");
+      if (savedScale) {
+        document.documentElement.style.setProperty("--app-font-scale", savedScale);
+        document.documentElement.style.fontSize = `calc(16px * ${savedScale})`;
+      }
+
       // Restore custom theme colors
       const savedColor = localStorage.getItem("app-theme-color-id");
       if (savedColor) {

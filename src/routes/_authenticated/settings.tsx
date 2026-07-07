@@ -15,6 +15,8 @@ import {
   Palette,
   Type,
   X,
+  Plus,
+  Minus,
   ImagePlus,
   Star
 } from "lucide-react";
@@ -117,6 +119,7 @@ function SettingsPage() {
   const [darkMode, setDarkMode] = useState<"light" | "dark" | "system" | null>(null);
   const [font, setFont] = useState("Tajawal");
   const [fontStyle, setFontStyle] = useState<"modern" | "royal">("modern");
+  const [fontScale, setFontScale] = useState(1);
   const [themeColor, setThemeColor] = useState("emerald");
   const [appVersion, setAppVersion] = useState("1.1.9 (Web)");
   const [isNative, setIsNative] = useState(false);
@@ -151,6 +154,11 @@ function SettingsPage() {
       setFont(savedFont);
       const fontObj = FONTS.find(f => f.id === savedFont);
       if (fontObj) applyFont(fontObj.family);
+    }
+
+    const savedScale = localStorage.getItem("app-font-scale");
+    if (savedScale) {
+      setFontScale(parseFloat(savedScale));
     }
 
     const savedStyle = localStorage.getItem("font-style") as "modern" | "royal" | null;
@@ -189,6 +197,17 @@ function SettingsPage() {
 
   const applyFont = (fontFamily: string) => {
     document.documentElement.style.setProperty("--app-font", fontFamily);
+  };
+
+  const applyFontScale = (scale: number) => {
+    document.documentElement.style.setProperty("--app-font-scale", scale.toString());
+    document.documentElement.style.fontSize = `calc(16px * ${scale})`;
+  };
+
+  const handleFontScaleChange = (scale: number) => {
+    setFontScale(scale);
+    localStorage.setItem("app-font-scale", scale.toString());
+    applyFontScale(scale);
   };
 
   const applyFontStyle = (style: "modern" | "royal") => {
@@ -308,6 +327,57 @@ function SettingsPage() {
                       <p className="text-sm font-bold text-primary">{currentFontObj.name}</p>
                       <p className="text-[10px] text-muted-foreground">{currentFontObj.desc}</p>
                    </div>
+                </div>
+             </div>
+
+             {/* Font Size Magnification Slider */}
+             <div className="pt-6 border-t border-border/40">
+                <div className="flex items-center justify-between mb-6">
+                   <div className="flex items-center gap-3">
+                      <div className="size-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-600">
+                         <Type className="size-5" />
+                      </div>
+                      <div className="text-right">
+                         <h4 className="text-lg font-black text-primary">تكبير الخطوط</h4>
+                         <p className="text-[10px] text-muted-foreground font-bold">تحكم في حجم نصوص المنصة بالكامل</p>
+                      </div>
+                   </div>
+                   <div className="px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-primary font-black text-xs">
+                      {Math.round(fontScale * 100)}%
+                   </div>
+                </div>
+
+                <div className="flex items-center gap-6">
+                   <button
+                     onClick={() => handleFontScaleChange(Math.max(0.8, fontScale - 0.05))}
+                     className="size-12 rounded-2xl bg-muted flex items-center justify-center text-primary hover:bg-primary hover:text-white transition-all active:scale-90"
+                   >
+                      <Minus size={20} strokeWidth={3} />
+                   </button>
+
+                   <div className="flex-1 px-2">
+                      <input
+                        type="range"
+                        min="0.8"
+                        max="1.5"
+                        step="0.05"
+                        value={fontScale}
+                        onChange={(e) => handleFontScaleChange(parseFloat(e.target.value))}
+                        className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+                      />
+                      <div className="flex justify-between mt-2 px-1 text-[9px] font-black text-muted-foreground uppercase tracking-widest">
+                         <span>افتراضي</span>
+                         <span>كبير</span>
+                         <span>ضخم</span>
+                      </div>
+                   </div>
+
+                   <button
+                     onClick={() => handleFontScaleChange(Math.min(1.5, fontScale + 0.05))}
+                     className="size-12 rounded-2xl bg-primary flex items-center justify-center text-white hover:brightness-110 transition-all active:scale-90 shadow-lg shadow-primary/20"
+                   >
+                      <Plus size={20} strokeWidth={3} />
+                   </button>
                 </div>
              </div>
           </div>
