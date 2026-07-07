@@ -133,19 +133,25 @@ function SecureVaultPage() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Unauthorized");
 
+      // Check if file is selected
+      if (!selectedFile) throw new Error("لم يتم اختيار ملف");
+
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `${userData.user.id}/${crypto.randomUUID()}.${fileExt}`;
 
+      console.log("Starting upload to vault-media...", filePath);
+
       // 1. Upload to Storage
-      const { error: uploadError } = await supabase.storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from("vault-media")
-        .upload(filePath, selectedFile);
+        .upload(filePath, selectedFile, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
       if (uploadError) {
-        console.error("Storage Error Object:", uploadError);
-        // Extract the most helpful part of the error
-        const errorMsg = (uploadError as any).message || JSON.stringify(uploadError);
-        throw new Error(`خطأ في الرفع: ${errorMsg}`);
+        console.error("Supabase Storage Full Error:", uploadError);
+        throw new Error(`عذراً، خطأ في الرفع: ${uploadError.message || JSON.stringify(uploadError)}`);
       }
 
       // 2. Insert into DB
