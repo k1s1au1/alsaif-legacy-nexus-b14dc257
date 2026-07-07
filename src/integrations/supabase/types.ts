@@ -1137,6 +1137,42 @@ export type Database = {
         }
         Relationships: []
       }
+      secure_vault: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_encrypted: boolean
+          owner_id: string
+          storage_path: string | null
+          title: string
+          unlock_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_encrypted?: boolean
+          owner_id: string
+          storage_path?: string | null
+          title: string
+          unlock_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_encrypted?: boolean
+          owner_id?: string
+          storage_path?: string | null
+          title?: string
+          unlock_at?: string | null
+        }
+        Relationships: []
+      }
       tasks: {
         Row: {
           assignee_id: string | null

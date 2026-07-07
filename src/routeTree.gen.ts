@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedVaultRouteImport } from './routes/_authenticated/vault'
 import { Route as AuthenticatedTasksRouteImport } from './routes/_authenticated/tasks'
 import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings'
 import { Route as AuthenticatedProfileRouteImport } from './routes/_authenticated/profile'
@@ -54,6 +55,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedVaultRoute = AuthenticatedVaultRouteImport.update({
+  id: '/vault',
+  path: '/vault',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedTasksRoute = AuthenticatedTasksRouteImport.update({
   id: '/tasks',
@@ -191,6 +197,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/vault': typeof AuthenticatedVaultRoute
   '/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
   '/members/$userId': typeof AuthenticatedMembersUserIdRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -217,6 +224,7 @@ export interface FileRoutesByTo {
   '/profile': typeof AuthenticatedProfileRoute
   '/settings': typeof AuthenticatedSettingsRoute
   '/tasks': typeof AuthenticatedTasksRoute
+  '/vault': typeof AuthenticatedVaultRoute
   '/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
   '/members/$userId': typeof AuthenticatedMembersUserIdRoute
   '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -246,6 +254,7 @@ export interface FileRoutesById {
   '/_authenticated/profile': typeof AuthenticatedProfileRoute
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute
   '/_authenticated/tasks': typeof AuthenticatedTasksRoute
+  '/_authenticated/vault': typeof AuthenticatedVaultRoute
   '/_authenticated/chat/$conversationId': typeof AuthenticatedChatConversationIdRoute
   '/_authenticated/members/$userId': typeof AuthenticatedMembersUserIdRoute
   '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute
@@ -275,6 +284,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/tasks'
+    | '/vault'
     | '/chat/$conversationId'
     | '/members/$userId'
     | '/trips/$tripId'
@@ -301,6 +311,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/settings'
     | '/tasks'
+    | '/vault'
     | '/chat/$conversationId'
     | '/members/$userId'
     | '/trips/$tripId'
@@ -329,6 +340,7 @@ export interface FileRouteTypes {
     | '/_authenticated/profile'
     | '/_authenticated/settings'
     | '/_authenticated/tasks'
+    | '/_authenticated/vault'
     | '/_authenticated/chat/$conversationId'
     | '/_authenticated/members/$userId'
     | '/_authenticated/trips/$tripId'
@@ -373,6 +385,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/vault': {
+      id: '/_authenticated/vault'
+      path: '/vault'
+      fullPath: '/vault'
+      preLoaderRoute: typeof AuthenticatedVaultRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/tasks': {
       id: '/_authenticated/tasks'
@@ -561,6 +580,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedProfileRoute: typeof AuthenticatedProfileRoute
   AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute
   AuthenticatedTasksRoute: typeof AuthenticatedTasksRoute
+  AuthenticatedVaultRoute: typeof AuthenticatedVaultRoute
   AuthenticatedMembersUserIdRoute: typeof AuthenticatedMembersUserIdRoute
   AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute
   AuthenticatedMembersIndexRoute: typeof AuthenticatedMembersIndexRoute
@@ -584,6 +604,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedProfileRoute: AuthenticatedProfileRoute,
   AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
   AuthenticatedTasksRoute: AuthenticatedTasksRoute,
+  AuthenticatedVaultRoute: AuthenticatedVaultRoute,
   AuthenticatedMembersUserIdRoute: AuthenticatedMembersUserIdRoute,
   AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
   AuthenticatedMembersIndexRoute: AuthenticatedMembersIndexRoute,
