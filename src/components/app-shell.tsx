@@ -66,7 +66,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
 
   if (onClick) {
     return (
-      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-white" : "text-white/40")}>
+      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-gold-primary" : "text-white/40")}>
         {content}
       </button>
     );
@@ -75,7 +75,7 @@ function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label
   return (
     <Link to={to} className={cn(
       "flex flex-col items-center gap-1 transition-all duration-300",
-      active ? "text-white" : "text-white/40"
+      active ? "text-gold-primary" : "text-white/40"
     )}>
        {content}
     </Link>
@@ -310,7 +310,7 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-14 bg-slate-600/95 w-full rounded-full px-4 border-emerald-900/10 shadow-2xl",
+                 : "h-14 bg-emerald-950/60 w-full rounded-full px-4 border border-white/10 shadow-2xl",
                "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
@@ -399,9 +399,9 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-               <nav className="h-16 w-full max-w-sm bg-slate-600/95 border border-emerald-900/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
-                  {/* Platinum Gloss Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/20 to-transparent pointer-events-none opacity-40" />
+               <nav className="h-16 w-full max-w-sm bg-emerald-950/60 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
+                  {/* Subtle Sheen Effect */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
                   <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
                   <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
@@ -411,11 +411,11 @@ export function AppShell({
                     <motion.div
                       animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
                       transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute inset-0 rounded-full bg-emerald-500 blur-md"
+                      className="absolute inset-0 rounded-full bg-gold-primary blur-md"
                     />
                     <button
                       onClick={() => setShowQuickActions(true)}
-                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-slate-600 p-2 relative z-10 active:scale-90 transition-transform"
+                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-emerald-950/60 p-2 relative z-10 active:scale-90 transition-transform"
                     >
                        {dynamicLogo ? (
                          <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
@@ -433,7 +433,7 @@ export function AppShell({
 
                   <button
                     onClick={() => setShowMoreHub(true)}
-                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-white" : "text-white/40")}
+                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-gold-primary" : "text-white/40")}
                   >
                      <MoreHorizontal size={20} />
                      <span className="text-[9px] font-black uppercase">المزيد</span>
