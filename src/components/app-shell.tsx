@@ -157,10 +157,12 @@ export function AppShell({
   children,
   title,
   user,
+  fullWidth = false,
 }: {
   children: ReactNode;
   title: string;
   user: { name: string; role: string; initial: string; avatarPath?: string | null };
+  fullWidth?: boolean;
 }) {
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -385,7 +387,10 @@ export function AppShell({
            </header>
         </motion.div>
 
-        <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
+        <div className={cn(
+          "p-4 md:p-8 lg:p-12 pt-24 md:pt-6 mx-auto",
+          fullWidth ? "max-w-none w-full" : "max-w-7xl"
+        )}>
           {children}
         </div>
 

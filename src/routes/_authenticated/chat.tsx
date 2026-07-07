@@ -170,8 +170,8 @@ function ChatLayout() {
   };
 
   return (
-    <AppShell title="المحادثات" user={shellUser}>
-      <div className="flex h-[calc(100vh-6rem)] -m-6 lg:-m-10 overflow-hidden bg-card animate-fade-up relative z-10">
+    <AppShell title="المحادثات" user={shellUser} fullWidth={true}>
+      <div className="flex h-[calc(100vh-6rem)] -m-4 md:-m-8 lg:-m-12 overflow-hidden bg-card animate-fade-up relative z-10 shadow-2xl">
         <aside className={cn("flex flex-col w-full lg:w-[280px] xl:w-[320px] shrink-0 border-l border-border bg-muted/20 relative z-20 transition-all duration-500", isConvOpen ? "hidden lg:flex" : "flex")}>
           <div className="p-6 space-y-6 shrink-0 border-b border-border bg-card/50 backdrop-blur-md">
             <div className="flex items-center justify-between">
