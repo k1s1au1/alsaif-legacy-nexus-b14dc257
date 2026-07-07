@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
+import { QuickActionsBanner } from "@/components/quick-actions-banner";
 import {
   Archive,
   Upload,
@@ -303,6 +304,8 @@ function ArchivePage() {
               </div>
            </div>
         </section>
+
+        <QuickActionsBanner />
 
         {/* Dynamic Navigation Tabs */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 animate-fade-up" style={{ animationDelay: "100ms" }}>
