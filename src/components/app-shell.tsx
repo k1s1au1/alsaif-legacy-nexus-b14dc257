@@ -302,10 +302,7 @@ export function AppShell({
             y: 0,
             scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
           }}
-          className={cn(
-            "z-[80] fixed top-0 inset-x-0 md:sticky md:top-0 md:px-0 flex justify-center transition-all duration-500",
-            headerCompact ? "top-4 px-4" : "top-0 px-0"
-          )}
+          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center")}
         >
            <header
              onClick={() => headerCompact && setHeaderCompact(false)}
@@ -313,15 +310,11 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-20 bg-emerald-950 w-full rounded-none px-6 border-none",
-               "backdrop-blur-3xl md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
+                 : "h-14 bg-emerald-950/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
+               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
-              {/* Subtle Texture for the Edge-to-Edge look */}
-              {!headerCompact && (
-                <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-                     style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
-              )}
+              {/* No texture for crystal clear glass look */}
 
               <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
                  {/* Sidebar Button (Only visible on desktop now) */}
@@ -392,10 +385,7 @@ export function AppShell({
            </header>
         </motion.div>
 
-        <div className={cn(
-          "max-w-7xl mx-auto transition-all duration-500",
-          (typeof window !== 'undefined' && window.innerWidth < 768 && !headerCompact) ? "pt-0 px-0" : "pt-24 md:pt-6 px-4 md:px-8 lg:px-12"
-        )}>
+        <div className="p-4 md:p-8 lg:p-12 pt-24 md:pt-6 max-w-7xl mx-auto">
           {children}
         </div>
 

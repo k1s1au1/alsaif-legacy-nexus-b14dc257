@@ -269,13 +269,9 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* RESPONSIVE HERO CARD - Edge-to-Edge Expansion */}
-        <section className="animate-fade-up px-0 md:px-0">
-          <div className="relative overflow-hidden md:rounded-[48px] bg-emerald-950 shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border-b border-white/5 group">
-
-            {/* Background Texture for the Full-Width Look */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-                 style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
+        {/* RESPONSIVE HERO CARD (Mobile Centered / Desktop Side-by-Side) */}
+        <section className="animate-fade-up px-2 md:px-0">
+          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
 
             {/* Background Texture */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
