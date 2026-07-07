@@ -51,6 +51,7 @@ import {
 const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] = [
   { to: "/dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
   { to: "/admin", label: "الإدارة", icon: Shield, adminOnly: true },
+  { to: "/vault", label: "الخزنة", icon: Lock },
   { to: "/members", label: "الأعضاء", icon: Users },
   { to: "/settings", label: "الإعدادات", icon: Settings },
   { to: "/profile", label: "ملفي الشخصي", icon: User },
@@ -577,6 +578,7 @@ export function AppShell({
                      <QuickActionItem to="/archive" label="الألبوم" icon={<Archive size={28} />} color="bg-[#C5A87C]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/heritage" label="الإرث" icon={<History size={28} />} color="bg-[#8E7745]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/family-tree" label="شجرة العائلة" icon={<Trees size={28} />} color="bg-[#153221]" onClick={() => setShowQuickActions(false)} />
+                     <QuickActionItem to="/vault" label="الخزنة" icon={<Lock size={28} />} color="bg-[#7c2d12]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/finance" label="الصندوق" icon={<Wallet size={28} />} color="bg-[#BF953F]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/profile" label="ملفي" icon={<User size={28} />} color="bg-[#043A2B]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/settings" label="الأعدادات" icon={<Settings size={28} />} color="bg-primary" onClick={() => setShowQuickActions(false)} />
