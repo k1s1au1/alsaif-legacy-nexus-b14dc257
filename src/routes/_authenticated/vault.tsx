@@ -142,8 +142,10 @@ function SecureVaultPage() {
         .upload(filePath, selectedFile);
 
       if (uploadError) {
-        console.error("Storage Error:", uploadError);
-        throw new Error(`فشل رفع الملف: تأكد من وجود مساحة تخزين باسم vault-media`);
+        console.error("Storage Error Object:", uploadError);
+        // Extract the most helpful part of the error
+        const errorMsg = (uploadError as any).message || JSON.stringify(uploadError);
+        throw new Error(`خطأ في الرفع: ${errorMsg}`);
       }
 
       // 2. Insert into DB
@@ -158,8 +160,9 @@ function SecureVaultPage() {
       });
 
       if (dbError) {
-        console.error("DB Error:", dbError);
-        throw new Error(`فشل حفظ البيانات: تأكد من إنشاء جدول secure_vault في قاعدة البيانات`);
+        console.error("Database Error Object:", dbError);
+        const errorMsg = dbError.message || JSON.stringify(dbError);
+        throw new Error(`خطأ في الحفظ: ${errorMsg}`);
       }
 
       toast.success("تم الإيداع في الخزنة بنجاح ✨", { id: toastId });
