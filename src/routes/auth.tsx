@@ -141,24 +141,19 @@ function AuthPage() {
   return (
     <div className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-hidden" dir="rtl">
 
-      {/* 0. Full-Screen Background Image (For Desktop and Mobile Integration) */}
-      <div className="absolute inset-0 z-0 overflow-hidden">
-         <motion.div
-           key={customBg}
-           initial={{ scale: 1.1, opacity: 0 }}
-           animate={{ scale: 1, opacity: 0.35 }}
-           transition={{ duration: 2.5, ease: "easeOut" }}
-           className="size-full bg-cover bg-center bg-no-repeat"
-           style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
-         />
-         {/* Adaptive Overlays */}
-         <div className="absolute inset-0 bg-gradient-to-b lg:bg-gradient-to-l from-[#064e3b]/60 via-[#05070a]/90 to-[#05070a]" />
-      </div>
+      {/* 1. Full-Height Login Pane (Main on Mobile) */}
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0">
 
-      {/* 1. Login Pane (Floating Glass on Desktop, Full screen on Mobile) */}
-      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-[#0d0f17]/90 lg:bg-[#0d0f17]/80 backdrop-blur-2xl relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 lg:border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0">
+        {/* Immersive Mobile Background (Shows the custom image with emerald overlay) */}
+        <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
+           <div
+             className="size-full bg-cover bg-left opacity-20 scale-110 blur-[2px]"
+             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
+           />
+           <div className="absolute inset-0 bg-gradient-to-b from-[#064e3b]/40 via-[#0d0f17] to-[#0d0f17]" />
+        </div>
 
-        {/* Palm Watermark Decoration (Subtle) */}
+        {/* Palm Watermark Decoration (Subtle on mobile) */}
         <div className="absolute -left-10 -bottom-10 size-60 lg:size-72 opacity-[0.02] pointer-events-none">
            <img src={palmWatermark} alt="" className="size-full object-contain brightness-0 invert" />
         </div>
@@ -299,9 +294,26 @@ function AuthPage() {
       </div>
 
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative z-10">
+      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#064e3b]">
 
-        <div className="relative space-y-10 w-full max-w-4xl pr-4">
+        {/* Heritage Backdrop Image with Optimized Fitting */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+           <motion.div
+             key={customBg}
+             initial={{ scale: 1.15, opacity: 0 }}
+             animate={{ scale: 1, opacity: 0.5 }}
+             transition={{ duration: 3, ease: "easeOut" }}
+             className="size-full bg-cover bg-left bg-no-repeat transition-all duration-1000"
+             style={{ backgroundImage: customBg ? `url(${customBg})` : 'none' }}
+           />
+        </div>
+
+        {/* Refined Seamless Blend - More transparent on the left to show details */}
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#064e3b] via-[#064e3b]/70 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#064e3b]/40 via-transparent to-transparent opacity-40" />
+        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/20 to-transparent" />
+
+        <div className="relative z-10 space-y-10 w-full max-w-4xl pr-4">
            <div className="space-y-6 text-right">
               <motion.div initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.8 }} className="flex items-center gap-4">
                  <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
