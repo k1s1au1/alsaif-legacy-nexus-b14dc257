@@ -527,25 +527,42 @@ export function AppShell({
           )}
         </AnimatePresence>
 
-        {/* QUICK ACTIONS OVERLAY */}
+        {/* QUICK ACTIONS HUB OVERLAY (MATCHES MORE HUB DESIGN) */}
         <AnimatePresence>
           {showQuickActions && (
             <motion.div
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-[#051410]/95 backdrop-blur-2xl"
-              dir="rtl"
+              className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/40 md:backdrop-blur-sm"
+              onClick={() => setShowQuickActions(false)}
             >
-               <button onClick={() => setShowQuickActions(false)} className="absolute top-10 left-10 size-12 rounded-full bg-white/5 flex items-center justify-center text-white/40 hover:text-white transition-all">
-                  <X size={24} />
-               </button>
+               <motion.div
+                 drag="y"
+                 dragConstraints={{ top: 0 }}
+                 dragElastic={0.1}
+                 onDragEnd={(_, info) => {
+                   if (info.offset.y > 80) setShowQuickActions(false);
+                 }}
+                 initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
+                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+                 className={cn(
+                    "bg-slate-600/95 rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.4)]",
+                    "touch-none relative overflow-hidden will-change-transform"
+                 )}
+                 onClick={e => e.stopPropagation()}
+                 dir="rtl"
+               >
+                  {/* Subtle Texture Overlay */}
+                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-overlay"
+                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")` }} />
 
-               <div className="w-full max-w-lg space-y-12">
-                  <div className="text-center space-y-2">
-                     <h3 className="text-3xl font-black text-white">الوصول السريع</h3>
-                     <p className="text-gold-primary/60 font-bold uppercase tracking-widest text-[10px]">بوابة مجلس السيف الرقمية</p>
+                  <div className="relative z-10 w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2 opacity-50" />
+
+                  <div className="relative z-10 text-center space-y-1">
+                     <h3 className="text-2xl font-black text-white">الوصول السريع</h3>
+                     <p className="text-white/40 font-bold uppercase tracking-widest text-[9px]">بوابة مجلس السيف الرقمية</p>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-y-10 gap-x-6">
+                  <div className="relative z-10 grid grid-cols-3 gap-y-8 gap-x-4">
                      <QuickActionItem to="/chat" label="محادثة" icon={<MessageCircle size={28} />} color="bg-[#065F46]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/trips" label="ترفيه" icon={<Ticket size={28} />} color="bg-[#D4AF37]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/meetings" label="اجتماعات" icon={<CalendarDays size={28} />} color="bg-[#1B3022]" onClick={() => setShowQuickActions(false)} />
@@ -559,7 +576,16 @@ export function AppShell({
                      <QuickActionItem to="/profile" label="ملفي" icon={<User size={28} />} color="bg-[#043A2B]" onClick={() => setShowQuickActions(false)} />
                      <QuickActionItem to="/settings" label="الأعدادات" icon={<Settings size={28} />} color="bg-primary" onClick={() => setShowQuickActions(false)} />
                   </div>
-               </div>
+
+                  <div className="relative z-10 pt-4">
+                     <button
+                        onClick={() => setShowQuickActions(false)}
+                        className="w-full py-4 rounded-[22px] bg-white/5 text-white/60 font-black text-xs border border-white/10 active:scale-95 transition-all"
+                     >
+                        إغلاق
+                     </button>
+                  </div>
+               </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
