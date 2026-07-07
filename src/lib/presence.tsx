@@ -197,3 +197,11 @@ export function useOnlineCount(): number {
   return Object.values(presenceStore.map).filter(lastSeen => presenceFromLastSeen(lastSeen) === "online").length;
 }
 
+/** Get the list of user IDs currently online (auto-refreshing). */
+export function useOnlineUsers(): string[] {
+  useSyncExternalStore(subscribePresence, getPresenceSnapshot, () => 0);
+  return Object.entries(presenceStore.map)
+    .filter(([_, lastSeen]) => presenceFromLastSeen(lastSeen) === "online")
+    .map(([uid, _]) => uid);
+}
+

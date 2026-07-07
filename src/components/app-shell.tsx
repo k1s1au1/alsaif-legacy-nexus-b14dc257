@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { usePresenceHeartbeat, useOnlineCount } from "@/lib/presence";
+import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
@@ -189,7 +189,19 @@ export function AppShell({
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
   const onlineCount = useOnlineCount();
+  const onlineUserIds = useOnlineUsers();
+  const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
   useFcm();
+
+  useEffect(() => {
+    if (onlineUserIds.length > 0) {
+      supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", onlineUserIds).then(({ data }) => {
+        if (data) setOnlineUserProfiles(data);
+      });
+    } else {
+      setOnlineUserProfiles([]);
+    }
+  }, [onlineUserIds]);
 
   useEffect(() => {
     if (sidebarOpen || showQuickActions || showMoreHub) {
@@ -362,8 +374,28 @@ export function AppShell({
                              <div className="h-2 w-px bg-white/20 md:hidden" />
                              <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
                                 <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل</span>
+                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل الآن</span>
                              </div>
+                          </div>
+
+                          {/* Family Presence Radar - Floating Faces */}
+                          <div className="flex -space-x-2 mt-2">
+                             {onlineProfiles.slice(0, 5).map((p, i) => (
+                                <motion.div
+                                  key={p.id}
+                                  initial={{ scale: 0, x: 10 }}
+                                  animate={{ scale: 1, x: 0 }}
+                                  transition={{ delay: i * 0.1 }}
+                                  className="size-5 rounded-full border border-white/20 overflow-hidden bg-emerald-950"
+                                >
+                                   <UserAvatar path={p.avatar_url} name={p.arabic_name || p.full_name} className="size-full" />
+                                </motion.div>
+                             ))}
+                             {onlineCount > 5 && (
+                                <div className="size-5 rounded-full bg-emerald-900 border border-white/20 flex items-center justify-center text-[7px] font-black text-white">
+                                   +{onlineCount - 5}
+                                </div>
+                             )}
                           </div>
                        </motion.div>
                     )}
