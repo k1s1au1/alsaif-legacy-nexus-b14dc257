@@ -65,6 +65,15 @@ function SecureVaultPage() {
   const [activeTab, setActiveTab] = useState<VaultCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Upload Form State
+  const [newTitle, setNewTitle] = useState("");
+  const [newDesc, setNewDesc] = useState("");
+  const [newCat, setNewCat] = useState<VaultCategory>("will");
+  const [newUnlockAt, setNewUnlockAt] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
     // Note: This table might not exist yet, we'll handle the error or mock it for now
@@ -99,6 +108,91 @@ function SecureVaultPage() {
     (it.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
      (it.description?.toLowerCase().includes(searchQuery.toLowerCase())))
   );
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 20 * 1024 * 1024) {
+        toast.error("حجم الملف كبير جداً (الأقصى 20MB)");
+        return;
+      }
+      setSelectedFile(file);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!newTitle || !selectedFile) {
+      toast.error("يرجى إكمال البيانات واختيار ملف");
+      return;
+    }
+
+    setIsUploading(true);
+    const toastId = toast.loading("جاري تشفير وإيداع الوثيقة...");
+
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Unauthorized");
+
+      const fileExt = selectedFile.name.split('.').pop();
+      const filePath = `${userData.user.id}/${crypto.randomUUID()}.${fileExt}`;
+
+      // 1. Upload to Storage
+      const { error: uploadError } = await supabase.storage
+        .from("vault-media")
+        .upload(filePath, selectedFile);
+
+      if (uploadError) throw uploadError;
+
+      // 2. Insert into DB
+      const { error: dbError } = await supabase.from("secure_vault" as any).insert({
+        title: newTitle,
+        description: newDesc || null,
+        category: newCat,
+        storage_path: filePath,
+        owner_id: userData.user.id,
+        unlock_at: newUnlockAt || null,
+        is_encrypted: true
+      });
+
+      if (dbError) throw dbError;
+
+      toast.success("تم الإيداع في الخزنة بنجاح ✨", { id: toastId });
+      setShowAdd(false);
+      resetForm();
+      load();
+    } catch (err: any) {
+      console.error("Upload error", err);
+      toast.error("فشل الإيداع: تأكد من صلاحيات الخزنة", { id: toastId });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const resetForm = () => {
+    setNewTitle("");
+    setNewDesc("");
+    setNewCat("will");
+    setNewUnlockAt("");
+    setSelectedFile(null);
+  };
+
+  const handleDownload = async (item: VaultItem) => {
+    if (item.unlock_at && new Date(item.unlock_at) > new Date()) {
+      toast.error("هذه الوثيقة لا تزال مقفلة زمنياً");
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.storage
+        .from("vault-media")
+        .createSignedUrl(item.storage_path, 60);
+
+      if (error) throw error;
+      window.open(data.signedUrl, '_blank');
+    } catch (err) {
+      toast.error("تعذر فتح الوثيقة");
+    }
+  };
 
   return (
     <AppShell title="خزنة الوثائق والوصايا" user={{ name: "الخزنة الرقمية", role: "خصوصية فائقة", initial: "خ" }}>
@@ -195,7 +289,7 @@ function SecureVaultPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
              {filteredItems.map(item => (
-                <VaultCard key={item.id} item={item} />
+                <VaultCard key={item.id} item={item} onDownload={() => handleDownload(item)} />
              ))}
           </div>
         )}
@@ -230,19 +324,43 @@ function SecureVaultPage() {
                   <div className="space-y-6 relative z-10">
                      <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">عنوان الوثيقة</label>
-                        <input placeholder="مثلاً: وصية الجد خالد، صك مزرعة القصيم..." className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none" />
+                        <input
+                          value={newTitle}
+                          onChange={e => setNewTitle(e.target.value)}
+                          placeholder="مثلاً: وصية الجد خالد، صك مزرعة القصيم..."
+                          className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                        />
+                     </div>
+
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">وصف مختصر (اختياري)</label>
+                        <input
+                          value={newDesc}
+                          onChange={e => setNewDesc(e.target.value)}
+                          placeholder="اكتب وصفاً بسيطاً لمحتوى الوثيقة..."
+                          className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
+                        />
                      </div>
 
                      <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                            <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">التصنيف</label>
-                           <select className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none">
+                           <select
+                             value={newCat}
+                             onChange={e => setNewCat(e.target.value as VaultCategory)}
+                             className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                           >
                               {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                            </select>
                         </div>
                         <div className="space-y-2">
                            <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">تاريخ الفتح (اختياري)</label>
-                           <input type="date" className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none" />
+                           <input
+                             type="date"
+                             value={newUnlockAt}
+                             onChange={e => setNewUnlockAt(e.target.value)}
+                             className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                           />
                         </div>
                      </div>
 
@@ -251,14 +369,20 @@ function SecureVaultPage() {
                            <Download size={32} className="rotate-180" />
                         </div>
                         <div className="text-center">
-                           <p className="font-black text-primary">اسحب الملف هنا</p>
-                           <p className="text-[10px] font-bold text-muted-foreground opacity-60 mt-1">PDF, JPG, PNG (حد أقصى 20MB)</p>
+                           <p className="font-black text-primary">{selectedFile ? selectedFile.name : "اسحب الملف هنا"}</p>
+                           <p className="text-[10px] font-bold text-muted-foreground opacity-60 mt-1">{selectedFile ? `(${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)` : "PDF, JPG, PNG (حد أقصى 20MB)"}</p>
                         </div>
-                        <input type="file" hidden />
+                        <input type="file" hidden accept=".pdf,image/*" onChange={handleFileSelect} />
                      </label>
                   </div>
 
-                  <button className="w-full btn-gold py-6 rounded-[24px] text-lg font-black shadow-xl shadow-gold-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">تأكيد الإيداع في الخزنة</button>
+                  <button
+                    onClick={handleUpload}
+                    disabled={isUploading || !newTitle || !selectedFile}
+                    className="w-full btn-gold py-6 rounded-[24px] text-lg font-black shadow-xl shadow-gold-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                  >
+                     {isUploading ? <Loader2 className="size-6 animate-spin mx-auto" /> : "تأكيد الإيداع في الخزنة"}
+                  </button>
                </motion.div>
             </div>
          )}
@@ -267,13 +391,14 @@ function SecureVaultPage() {
   );
 }
 
-function VaultCard({ item }: { item: VaultItem }) {
+function VaultCard({ item, onDownload }: { item: VaultItem, onDownload: () => void }) {
   const cat = CATEGORIES.find(c => c.key === item.category)!;
   const isLocked = item.unlock_at && new Date(item.unlock_at) > new Date();
 
   return (
     <motion.div
       whileHover={{ y: -5 }}
+      onClick={onDownload}
       className="card-surface p-8 space-y-6 group cursor-pointer relative overflow-hidden"
     >
        <div className={cn("absolute top-0 right-0 w-1.5 h-full", cat.color)} />
