@@ -12,6 +12,7 @@ import {
   History,
   Archive,
   Users,
+  Lock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
