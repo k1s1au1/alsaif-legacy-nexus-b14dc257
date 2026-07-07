@@ -310,7 +310,7 @@ export function AppShell({
                "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-14 bg-emerald-950/60 w-full rounded-full px-4 border border-white/10 shadow-2xl",
+                 : "h-14 bg-emerald-950/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
                "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none"
              )}
            >
@@ -399,7 +399,7 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-               <nav className="h-16 w-full max-w-sm bg-emerald-950/60 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
+               <nav className="h-16 w-full max-w-sm bg-emerald-950/95 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
                   {/* Subtle Sheen Effect */}
                   <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
