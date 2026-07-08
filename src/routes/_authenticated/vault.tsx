@@ -143,7 +143,7 @@ function SecureVaultPage() {
 
       // 1. Upload to Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from("family-vault")
+        .from("vault-media")
         .upload(filePath, selectedFile, {
           cacheControl: '3600',
           upsert: false
@@ -199,7 +199,7 @@ function SecureVaultPage() {
 
     try {
       const { data, error } = await supabase.storage
-        .from("family-vault")
+        .from("vault-media")
         .createSignedUrl(item.storage_path, 60);
 
       if (error) throw error;
