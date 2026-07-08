@@ -509,76 +509,94 @@ function TripDetail() {
             </div>
           </div>
 
-          {/* Premium Attendance Dock — Horizontal & sleek */}
+          {/* Premium Attendance Card — Meeting Style */}
           <div className="animate-fade-up">
             <div className={cn(
-              "relative overflow-hidden rounded-[32px] md:rounded-[48px] p-6 md:p-10 flex flex-col lg:flex-row items-center justify-between gap-8 shadow-2xl transition-all duration-700",
-              attendanceStatus === 'going' ? "bg-emerald-950 ring-2 ring-emerald-500/30" :
-              attendanceStatus === 'not_going' ? "bg-rose-950 ring-2 ring-rose-500/30" :
-              "bg-card border border-border"
+              "relative min-h-[300px] overflow-hidden rounded-[48px] p-8 md:p-12 text-white shadow-2xl transition-all duration-700 flex flex-col justify-between gap-8",
+              attendanceStatus === 'going' ? "bg-emerald-950" :
+              attendanceStatus === 'not_going' ? "bg-rose-950" :
+              "bg-emerald-900/90"
             )}>
-              {/* Background Texture */}
-              <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay"
-                   style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
+              {/* Background Gradient & Watermark */}
+              <div className={cn(
+                "absolute inset-0 transition-opacity duration-700 z-0",
+                attendanceStatus === 'going' ? "bg-gradient-to-br from-emerald-900 via-emerald-950 to-black" :
+                attendanceStatus === 'not_going' ? "bg-gradient-to-br from-rose-900 via-rose-950 to-black" :
+                "bg-gradient-to-br from-[#064E3B] via-[#051410] to-black"
+              )} />
 
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 text-center md:text-right">
-                 <div className={cn(
-                   "size-16 md:size-20 rounded-[24px] md:rounded-[32px] flex items-center justify-center transition-all duration-500 shadow-2xl",
-                   attendanceStatus === 'going' ? "bg-emerald-500 text-white rotate-3" :
-                   attendanceStatus === 'not_going' ? "bg-rose-500 text-white -rotate-3" :
-                   "bg-gold-primary/10 text-gold-primary"
-                 )}>
-                    {attendanceStatus === 'going' ? <UserCheck size={36} strokeWidth={2.5} /> :
-                     attendanceStatus === 'not_going' ? <UserX size={36} strokeWidth={2.5} /> :
-                     <Users size={36} strokeWidth={2.5} />}
-                 </div>
-                 <div className="space-y-1">
-                    <h3 className={cn("text-2xl md:text-3xl font-black tracking-tight", (attendanceStatus) ? "text-white" : "text-foreground")}>
-                      {attendanceStatus === 'going' ? "سعداء بانضمامك!" :
-                       attendanceStatus === 'not_going' ? "سنفتقدك في هذه الرحلة" :
-                       "هل ستنضم إلينا؟"}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-10 pointer-events-none scale-[2] logo-alsaif-banner z-1"
+                   style={{ '--logo-url': dynamicLogo ? `url(${dynamicLogo})` : 'none' } as any} />
+
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                 <div className="space-y-4 text-center md:text-right">
+                    <div className="flex items-center justify-center md:justify-start gap-3">
+                       <div className="size-12 rounded-2xl bg-gold-primary/20 backdrop-blur-xl flex items-center justify-center text-gold-primary border border-gold-primary/20">
+                          <Users size={24} />
+                       </div>
+                       <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">مركز تأكيد الحضور</span>
+                    </div>
+                    <h3 className="text-3xl md:text-5xl font-black tracking-tighter">
+                       {attendanceStatus === 'going' ? "سعداء بانضمامك!" :
+                        attendanceStatus === 'not_going' ? "سنفتقدك هذه المرة" :
+                        "هل ستنضم إلينا؟"}
                     </h3>
                     <div className="flex items-center justify-center md:justify-start gap-4">
-                       <p className={cn("text-sm md:text-base font-bold", attendanceStatus ? "text-white/60" : "text-muted-foreground")}>
-                          {attendanceStatus === 'going' ? "تم تأكيد حضورك" :
-                           attendanceStatus === 'not_going' ? "تم تسجيل اعتذارك" :
-                           "أكد حضورك الآن لنرتب لك مكاناً يليق بك."}
+                       <p className="text-base font-bold text-white/60">
+                          {attendanceStatus === 'going' ? "تم تأكيد حضورك، ننتظرك بكل حب." :
+                           attendanceStatus === 'not_going' ? "تم تسجيل اعتذارك، نراك في مناسبات قادمة." :
+                           "أكد حضورك الآن لنرتب لك مكاناً يليق بك في رحلتنا العائلية."}
                        </p>
-                       <div className="h-4 w-px bg-white/20 hidden md:block" />
-                       <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10">
-                          <span className="text-[10px] font-black text-gold-primary uppercase">إجمالي الحضور:</span>
-                          <span className="text-sm font-black text-white">{attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)}</span>
-                       </div>
+                    </div>
+                 </div>
+
+                 {/* Real-time Counter Stats */}
+                 <div className="flex items-center gap-4">
+                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-[32px] p-6 text-center min-w-[140px] shadow-2xl">
+                       <span className="block text-4xl md:text-5xl font-black text-gold-primary tabular-nums leading-none">
+                          {attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)}
+                       </span>
+                       <span className="block text-[10px] font-black text-white/40 uppercase tracking-widest mt-1">إجمالي الحضور</span>
                     </div>
                  </div>
               </div>
 
-              <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto">
-                 {attendanceStatus === 'going' && (
-                    <div className="flex flex-col gap-2 w-full md:w-[280px] bg-white/5 p-4 rounded-[28px] border border-white/10 animate-fade-up">
-                       <div className="flex items-center justify-between px-1">
-                          <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
-                          <div className="text-center bg-gold-primary/20 px-3 py-1 rounded-lg border border-gold-primary/20">
-                             <span className="text-[14px] font-black leading-none text-gold-primary">{1 + companionsCount} حاضرين</span>
-                          </div>
-                       </div>
-                       <input
-                         type="tel"
-                         value={companionsCount === 0 ? "" : companionsCount}
-                         onFocus={(e) => e.target.select()}
-                         onChange={(e) => {
-                           const val = e.target.value.replace(/[^0-9]/g, '');
-                           setCompanionsCount(val === '' ? 0 : parseInt(val));
-                         }}
-                         onBlur={() => updateAttendance('going', companionsCount)}
-                         className="w-full h-20 bg-black/30 border-2 border-white/10 rounded-[22px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
-                         placeholder="٠"
-                       />
-                    </div>
-                 )}
+              <div className="relative z-10 grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6 items-end">
+                 {/* Companions Section (only if going) */}
+                 <div className="w-full">
+                    <AnimatePresence>
+                       {attendanceStatus === 'going' && (
+                         <motion.div
+                           initial={{ opacity: 0, y: 10 }}
+                           animate={{ opacity: 1, y: 0 }}
+                           exit={{ opacity: 0, y: 10 }}
+                           className="flex flex-col gap-2 bg-white/5 p-5 rounded-[32px] border border-white/10"
+                         >
+                            <div className="flex items-center justify-between px-2">
+                               <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                               <div className="bg-gold-primary/20 px-4 py-1 rounded-full">
+                                  <span className="text-sm font-black text-gold-primary">{1 + companionsCount} حاضرين (أنت + الضيوف)</span>
+                               </div>
+                            </div>
+                            <input
+                              type="tel"
+                              value={companionsCount === 0 ? "" : companionsCount}
+                              onFocus={(e) => e.target.select()}
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/[^0-9]/g, '');
+                                setCompanionsCount(val === '' ? 0 : parseInt(val));
+                              }}
+                              onBlur={() => updateAttendance('going', companionsCount)}
+                              className="w-full h-20 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                              placeholder="٠"
+                            />
+                         </motion.div>
+                       )}
+                    </AnimatePresence>
+                 </div>
 
-                 <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 p-1.5 rounded-[32px] grid grid-cols-2 gap-1.5 shadow-2xl h-[76px] w-full md:w-[320px] overflow-hidden">
-                    {/* Animated High-End Switcher */}
+                 {/* RSVP Switcher */}
+                 <div className="relative bg-white/5 backdrop-blur-3xl border border-white/10 p-1.5 rounded-[32px] grid grid-cols-2 gap-1.5 shadow-2xl h-[76px] w-full overflow-hidden">
                     <div
                       className={cn(
                         "absolute inset-y-1.5 w-[calc(50%-7.5px)] rounded-[26px] transition-all duration-700 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-[0_10px_30px_rgba(0,0,0,0.5)]",
