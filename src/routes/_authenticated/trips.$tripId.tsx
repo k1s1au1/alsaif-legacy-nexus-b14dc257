@@ -336,14 +336,23 @@ function TripDetail() {
     setSaving(true);
 
     try {
-      if (isRemoving) {
+      if (isRemoving || status === 'not_going') {
         const { error } = await supabase
           .from("trip_attendees")
           .delete()
           .eq("trip_id", tripId)
           .eq("user_id", userId);
-        if (error) throw error;
-        toast.success("تم إلغاء اختيارك");
+
+        if (error) {
+           // If delete fails, maybe try upserting status if column exists
+           const { error: upsertError } = await supabase
+             .from("trip_attendees")
+             .upsert({ trip_id: tripId, user_id: userId, status: 'not_going' }, { onConflict: "trip_id,user_id" });
+           if (upsertError) throw upsertError;
+        }
+
+        if (status === 'not_going') toast.info("تم تسجيل اعتذارك");
+        else toast.success("تم إلغاء اختيارك");
       } else {
         // Attempt upsert with all fields
         const payload: any = { trip_id: tripId, user_id: userId, status, companions_count: companions };
@@ -362,7 +371,6 @@ function TripDetail() {
         }
 
         if (status === 'going') toast.success("تم تأكيد حضورك ✨");
-        else toast.info("تم تسجيل اعتذارك");
       }
 
       await loadAttendees(tripId);
@@ -618,7 +626,14 @@ function TripDetail() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <span className="text-base font-black text-foreground truncate block">{a.name}</span>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">عضو مؤكد</span>
+                          <div className="flex items-center gap-2">
+                             <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">عضو مؤكد</span>
+                             {a.companions_count > 0 && (
+                               <span className="text-[9px] font-black bg-gold-primary/10 text-gold-primary px-2 py-0.5 rounded-full border border-gold-primary/20">
+                                  +{a.companions_count} مرافقين
+                               </span>
+                             )}
+                          </div>
                         </div>
                         <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                           <CheckCircle2 size={16} />

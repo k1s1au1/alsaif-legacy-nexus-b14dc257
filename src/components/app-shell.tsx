@@ -350,20 +350,27 @@ export function AppShell({
              )}
              dir="rtl"
            >
-              {/* Identity Section - Right on Mobile (order-first), Left on Desktop (md:order-last) */}
+              {/* Identity Section (Mobile: Right/Start, Desktop: Left/End) */}
               <div className={cn(
-                "relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300",
+                "relative z-10 flex items-center gap-2 md:gap-4 transition-opacity duration-300",
                 headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100",
                 "order-first md:order-last"
               )}>
-                 <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
-
-                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
-                    <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
-                       {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                 {/* Desktop specific: Clock -> Bell -> Profile */}
+                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 mr-2">
+                    <Clock className="size-3.5 text-gold-primary" />
+                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
+                       <LiveClock variant="time" />
+                       <div className="w-px h-3 bg-primary/10" />
+                       <LiveClock variant="date" />
                     </div>
-                    <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
                  </div>
+
+                 <div className="hidden md:block mr-2">
+                    <NotificationsBell />
+                 </div>
+
+                 <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
               </div>
 
               {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
@@ -422,29 +429,28 @@ export function AppShell({
                  </AnimatePresence>
               </div>
 
-              {/* Menu/Bell Section - Left on Mobile (order-last), Right on Desktop (md:order-first) */}
+              {/* Sidebar/Logo Section (Mobile: Left/End, Desktop: Right/Start) */}
               <div className={cn(
-                "flex items-center gap-2 z-10 transition-opacity duration-300",
+                "flex items-center gap-2 md:gap-4 z-10 transition-opacity duration-300",
                 headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100",
                 "order-last md:order-first"
               )}>
-                 {/* Notifications */}
-                 <NotificationsBell />
-
-                 {/* Desktop Extra: Clock */}
-                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
-                    <Clock className="size-3.5 text-gold-primary" />
-                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
-                       <LiveClock variant="time" />
-                       <div className="w-px h-3 bg-primary/10" />
-                       <LiveClock variant="date" />
-                    </div>
-                 </div>
-
-                 {/* Sidebar Trigger - Right on Desktop */}
-                 <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
+                 {/* Desktop: Sidebar (Far Right) -> Logo -> Title */}
+                 <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95 ml-2">
                     <Menu className="size-6" />
                  </button>
+
+                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
+                    <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
+                       {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
+                    </div>
+                    <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
+                 </div>
+
+                 {/* Mobile Notifications Bell (Left side) */}
+                 <div className="md:hidden">
+                    <NotificationsBell />
+                 </div>
               </div>
            </header>
         </motion.div>
