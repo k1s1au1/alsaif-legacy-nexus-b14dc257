@@ -538,36 +538,42 @@ function TripDetail() {
                        attendanceStatus === 'not_going' ? "سنفتقدك في هذه الرحلة" :
                        "هل ستنضم إلينا؟"}
                     </h3>
-                    <p className={cn("text-sm md:text-base font-bold", attendanceStatus ? "text-white/60" : "text-muted-foreground")}>
-                       {attendanceStatus === 'going' ? `تم تأكيد حضورك مع ${companionsCount} مرافقين.` :
-                        attendanceStatus === 'not_going' ? "تم تسجيل اعتذارك، نراك في المرة القادمة." :
-                        "أكد حضورك الآن لنرتب لك مكاناً يليق بك في رحلتنا العائلية."}
-                    </p>
+                    <div className="flex items-center justify-center md:justify-start gap-4">
+                       <p className={cn("text-sm md:text-base font-bold", attendanceStatus ? "text-white/60" : "text-muted-foreground")}>
+                          {attendanceStatus === 'going' ? "تم تأكيد حضورك" :
+                           attendanceStatus === 'not_going' ? "تم تسجيل اعتذارك" :
+                           "أكد حضورك الآن لنرتب لك مكاناً يليق بك."}
+                       </p>
+                       <div className="h-4 w-px bg-white/20 hidden md:block" />
+                       <div className="flex items-center gap-1.5 bg-white/5 px-3 py-1 rounded-full border border-white/10">
+                          <span className="text-[10px] font-black text-gold-primary uppercase">إجمالي الحضور:</span>
+                          <span className="text-sm font-black text-white">{attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)}</span>
+                       </div>
+                    </div>
                  </div>
               </div>
 
               <div className="relative z-10 flex flex-col md:flex-row items-center gap-6 w-full lg:w-auto">
                  {attendanceStatus === 'going' && (
-                    <div className="flex flex-col gap-1 w-full md:w-auto">
-                       <p className="text-[10px] font-black uppercase tracking-widest text-gold-primary text-center md:text-right mr-1">عدد المرافقين؟</p>
-                       <div className="flex items-center gap-3 bg-white/5 p-1.5 rounded-2xl border border-white/10 min-w-[160px]">
-                          <input
-                            type="tel"
-                            value={companionsCount === 0 ? "" : companionsCount}
-                            onFocus={(e) => e.target.select()}
-                            onChange={(e) => {
-                              const val = e.target.value.replace(/[^0-9]/g, '');
-                              setCompanionsCount(val === '' ? 0 : parseInt(val));
-                            }}
-                            onBlur={() => updateAttendance('going', companionsCount)}
-                            className="w-20 h-14 bg-black/30 border border-white/10 rounded-xl font-black text-center text-3xl focus:outline-none focus:border-gold-primary text-white shadow-inner"
-                            placeholder="٠"
-                          />
-                          <div className="flex-1 text-center pr-2">
-                             <p className="text-[11px] font-black text-white/40 leading-none">الإجمالي:</p>
-                             <p className="text-xl font-black text-white leading-tight">{1 + companionsCount}</p>
+                    <div className="flex flex-col gap-2 w-full md:w-[280px] bg-white/5 p-4 rounded-[28px] border border-white/10 animate-fade-up">
+                       <div className="flex items-center justify-between px-1">
+                          <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                          <div className="text-center bg-gold-primary/20 px-3 py-1 rounded-lg border border-gold-primary/20">
+                             <span className="text-[14px] font-black leading-none text-gold-primary">{1 + companionsCount} حاضرين</span>
                           </div>
                        </div>
+                       <input
+                         type="tel"
+                         value={companionsCount === 0 ? "" : companionsCount}
+                         onFocus={(e) => e.target.select()}
+                         onChange={(e) => {
+                           const val = e.target.value.replace(/[^0-9]/g, '');
+                           setCompanionsCount(val === '' ? 0 : parseInt(val));
+                         }}
+                         onBlur={() => updateAttendance('going', companionsCount)}
+                         className="w-full h-20 bg-black/30 border-2 border-white/10 rounded-[22px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                         placeholder="٠"
+                       />
                     </div>
                  )}
 
@@ -714,8 +720,8 @@ function TripDetail() {
                   <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
                     <Users size={18} /> المشاركون المؤكدون
                   </div>
-                  <span className="px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 text-xs font-black">
-                    {attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)} شخص
+                  <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20 text-xs font-black">
+                    {attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)} حاضرين
                   </span>
                 </div>
 
