@@ -25,6 +25,13 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { UserAvatar } from "@/components/user-avatar";
 
 export const Route = createFileRoute("/_authenticated/vault")({
   ssr: false,
@@ -67,6 +74,7 @@ function SecureVaultPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [activeTab, setActiveTab] = useState<VaultCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Upload Form State
   const [newTitle, setNewTitle] = useState("");
@@ -76,6 +84,12 @@ function SecureVaultPage() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserId(data.user?.id || null);
+    });
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -350,7 +364,7 @@ function SecureVaultPage() {
                   item={item}
                   onDownload={() => handleDownload(item)}
                   onDelete={() => handleDelete(item)}
-                  isOwner={item.owner_id === (supabase.auth.getSession() as any)?.data?.session?.user?.id}
+                  isOwner={item.owner_id === currentUserId}
                 />
              ))}
           </div>
@@ -470,16 +484,26 @@ function VaultCard({ item, onDownload, onDelete, isOwner }: { item: VaultItem, o
              {isLocked ? <Clock size={28} /> : <cat.icon size={28} />}
           </div>
 
-          <div className="flex items-center gap-2">
-            {isOwner && (
-              <button
-                onClick={(e) => { e.stopPropagation(); onDelete(); }}
-                className="size-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all"
-              >
-                <Trash2 size={18} />
-              </button>
-            )}
-            <button className="size-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground transition-all"><MoreVertical size={20} /></button>
+          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+            <DropdownMenu>
+               <DropdownMenuTrigger asChild>
+                  <button className="size-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground transition-all outline-none">
+                     <MoreVertical size={20} />
+                  </button>
+               </DropdownMenuTrigger>
+               <DropdownMenuContent align="end" className="w-48 rounded-2xl bg-card/80 backdrop-blur-xl border-border p-1.5 shadow-2xl">
+                  <DropdownMenuItem onClick={onDownload} className="flex items-center justify-end gap-3 p-3 rounded-xl font-bold text-xs cursor-pointer focus:bg-primary focus:text-white transition-all">
+                     <span>فتح ومعاينة</span>
+                     <Eye size={16} />
+                  </DropdownMenuItem>
+                  {isOwner && (
+                    <DropdownMenuItem onClick={onDelete} className="flex items-center justify-end gap-3 p-3 rounded-xl font-bold text-xs cursor-pointer text-rose-500 focus:bg-rose-500 focus:text-white transition-all">
+                       <span>حذف نهائياً</span>
+                       <Trash2 size={16} />
+                    </DropdownMenuItem>
+                  )}
+               </DropdownMenuContent>
+            </DropdownMenu>
           </div>
        </div>
 
