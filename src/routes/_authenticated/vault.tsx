@@ -37,8 +37,6 @@ export const Route = createFileRoute("/_authenticated/vault")({
   component: SecureVaultPage,
 });
 
-type VaultCategory = "will" | "deed" | "private" | "heritage";
-
 interface VaultItem {
   id: string;
   title: string;
@@ -49,13 +47,18 @@ interface VaultItem {
   is_encrypted: boolean;
   unlock_at: string | null;
   created_at: string;
+  uploader?: {
+    arabic_name: string | null;
+    full_name: string | null;
+    avatar_url: string | null;
+  };
 }
 
 const CATEGORIES: { key: VaultCategory; label: string; icon: any; color: string; desc: string }[] = [
-  { key: "will", label: "الوصايا", icon: FileText, color: "bg-amber-500", desc: "رسائل ووصايا موجهة للمستقبل." },
-  { key: "deed", label: "الصكوك والوثائق", icon: ShieldCheck, color: "bg-emerald-600", desc: "صكوك ملكية ووثائق رسمية عائلية." },
+  { key: "will", label: "الوصايا", icon: FileText, color: "bg-amber-600", desc: "رسائل ووصايا موجهة للمستقبل." },
+  { key: "deed", label: "الصكوك والوثائق", icon: ShieldCheck, color: "bg-emerald-700", desc: "صكوك ملكية ووثائق رسمية عائلية." },
   { key: "heritage", label: "مخطوطات تاريخية", icon: History, color: "bg-gold-primary", desc: "وثائق ومراسلات تاريخية قديمة." },
-  { key: "private", label: "خاص وسري", icon: Lock, color: "bg-rose-700", desc: "مستندات خاصة لا يراها إلا أشخاص محددون." },
+  { key: "private", label: "خاص وسري", icon: Lock, color: "bg-rose-800", desc: "مستندات خاصة لا يراها إلا أشخاص محددون." },
 ];
 
 function SecureVaultPage() {
@@ -76,7 +79,6 @@ function SecureVaultPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    // Note: This table might not exist yet, we'll handle the error or mock it for now
     try {
       const { data, error } = await supabase
         .from("secure_vault" as any)
@@ -84,18 +86,32 @@ function SecureVaultPage() {
         .order("created_at", { ascending: false });
 
       if (error) {
-        if (error.code === "PGRST116" || error.message.includes("does not exist")) {
-           // Table doesn't exist, we'll show an empty state or instructions
-           setItems([]);
-        } else {
-           throw error;
-        }
+        setItems([]);
       } else {
-        setItems(data || []);
+        const vaultItems = (data || []) as VaultItem[];
+
+        // Fetch uploader profiles
+        const uploaderIds = [...new Set(vaultItems.map(it => it.owner_id))];
+        if (uploaderIds.length > 0) {
+           const { data: profs } = await supabase
+             .from("profiles")
+             .select("id, arabic_name, full_name, avatar_url")
+             .in("id", uploaderIds);
+
+           const profMap: Record<string, any> = {};
+           profs?.forEach(p => profMap[p.id] = p);
+
+           setItems(vaultItems.map(it => ({
+             ...it,
+             uploader: profMap[it.owner_id]
+           })));
+        } else {
+           setItems(vaultItems);
+        }
       }
     } catch (err) {
       console.error("Vault load error", err);
-      toast.error("فشل تحميل الخزنة");
+      setItems([]);
     } finally {
       setLoading(false);
     }
@@ -216,6 +232,24 @@ function SecureVaultPage() {
     }
   };
 
+  const handleDelete = async (item: VaultItem) => {
+    if (!confirm("هل أنت متأكد من حذف هذه الوثيقة نهائياً؟")) return;
+
+    try {
+      const { error: dbError } = await supabase.from("secure_vault" as any).delete().eq("id", item.id);
+      if (dbError) throw dbError;
+
+      await supabase.storage.from("vault-media").remove([item.storage_path]);
+
+      toast.success("تم حذف الوثيقة بنجاح");
+      load();
+    } catch (err) {
+      toast.error("فشل في حذف الوثيقة");
+    }
+  };
+
+  const meId = supabase.auth.getUser().then(({data}) => data.user?.id);
+
   return (
     <AppShell title="خزنة الوثائق والوصايا" user={{ name: "الخزنة الرقمية", role: "خصوصية فائقة", initial: "خ" }}>
       <div className="max-w-7xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
@@ -311,7 +345,13 @@ function SecureVaultPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
              {filteredItems.map(item => (
-                <VaultCard key={item.id} item={item} onDownload={() => handleDownload(item)} />
+                <VaultCard
+                  key={item.id}
+                  item={item}
+                  onDownload={() => handleDownload(item)}
+                  onDelete={() => handleDelete(item)}
+                  isOwner={item.owner_id === (supabase.auth.getSession() as any)?.data?.session?.user?.id}
+                />
              ))}
           </div>
         )}
@@ -413,8 +453,8 @@ function SecureVaultPage() {
   );
 }
 
-function VaultCard({ item, onDownload }: { item: VaultItem, onDownload: () => void }) {
-  const cat = CATEGORIES.find(c => c.key === item.category)!;
+function VaultCard({ item, onDownload, onDelete, isOwner }: { item: VaultItem, onDownload: () => void, onDelete: () => void, isOwner: boolean }) {
+  const cat = CATEGORIES.find(c => c.key === item.category) || CATEGORIES[0];
   const isLocked = item.unlock_at && new Date(item.unlock_at) > new Date();
 
   return (
@@ -429,7 +469,18 @@ function VaultCard({ item, onDownload }: { item: VaultItem, onDownload: () => vo
           <div className={cn("size-14 rounded-2xl flex items-center justify-center text-white shadow-lg", cat.color)}>
              {isLocked ? <Clock size={28} /> : <cat.icon size={28} />}
           </div>
-          <button className="size-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground transition-all"><MoreVertical size={20} /></button>
+
+          <div className="flex items-center gap-2">
+            {isOwner && (
+              <button
+                onClick={(e) => { e.stopPropagation(); onDelete(); }}
+                className="size-10 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white flex items-center justify-center transition-all"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+            <button className="size-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground transition-all"><MoreVertical size={20} /></button>
+          </div>
        </div>
 
        <div className="space-y-2">
@@ -441,9 +492,14 @@ function VaultCard({ item, onDownload }: { item: VaultItem, onDownload: () => vo
        </div>
 
        <div className="pt-4 flex items-center justify-between border-t border-border/40">
-          <div className="flex items-center gap-2">
-             <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-             <span className="text-[10px] font-black uppercase text-primary/60">{cat.label}</span>
+          <div className="flex items-center gap-4">
+             <div className="size-8 rounded-full border border-white/10 overflow-hidden bg-emerald-950">
+                <img src={item.uploader?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (item.uploader?.arabic_name || "V")} alt="" className="size-full object-cover" />
+             </div>
+             <div className="text-right">
+                <p className="text-[8px] font-black uppercase text-primary/40 tracking-widest leading-none">المودع</p>
+                <span className="text-[10px] font-black text-primary/70">{item.uploader?.arabic_name || item.uploader?.full_name || "عضو العائلة"}</span>
+             </div>
           </div>
           <div className="flex items-center gap-2 text-gold-primary">
              <span className="text-[10px] font-black uppercase tracking-widest">{isLocked ? "مغلق" : "عرض"}</span>
