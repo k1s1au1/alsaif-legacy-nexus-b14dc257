@@ -37,7 +37,6 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { sendFcmNotification } from "@/lib/fcm";
 import { MeetingPresentations } from "@/components/meeting-presentations";
 import { addToCalendar } from "@/lib/calendar";
-import { MeetingCalendar } from "@/components/meetings/meeting-calendar";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -112,29 +111,19 @@ function MeetingsPage() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const [{ data: m }, { data: a }, { data: pr }, { data: ev }] = await Promise.all([
+    const [{ data: m }, { data: a }, { data: pr }] = await Promise.all([
       supabase.from("meetings").select("*").order("scheduled_at", { ascending: true }),
       supabase.from("meeting_attendees").select("*"),
       supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
-      supabase.from("events").select("*"),
     ]);
-
-    // Combine meetings and events for the calendar
-    const calendarItems = [
-      ...((m ?? []) as any[]).map(x => ({ ...x, type: 'meeting', date: x.scheduled_at })),
-      ...((ev ?? []) as any[]).map(x => ({ ...x, type: 'event', date: x.starts_at, scheduled_at: x.starts_at }))
-    ];
 
     setMeetings((m ?? []) as Meeting[]);
     setAttendees((a ?? []) as Attendee[]);
     const map: Record<string, ProfileLite> = {};
     (pr ?? []).forEach((p: any) => { map[p.id] = p; });
     setProfiles(map);
-    setAllCalendarItems(calendarItems);
     setLoading(false);
   }, []);
-
-  const [allCalendarItems, setAllCalendarItems] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -332,11 +321,10 @@ function MeetingsPage() {
     return attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.companions_count ?? 0;
   };
 
-  const [tab, setTab] = useState<"upcoming" | "calendar" | "past">("upcoming");
+  const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
   const tabs: { key: typeof tab; label: string; count?: number; icon: any }[] = [
     { key: "upcoming", label: "القادمة", count: upcoming.length, icon: Timer },
-    { key: "calendar", label: "التقويم الذكي", icon: CalendarDays },
     { key: "past", label: "الأرشيف", count: past.length, icon: Clock },
   ];
 
@@ -371,7 +359,7 @@ function MeetingsPage() {
         </section>
 
         {/* Tabs */}
-        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
+        <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
           {tabs.map(t => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -449,10 +437,6 @@ function MeetingsPage() {
                   )}
                 </Carousel>
               )
-            )}
-
-            {tab === "calendar" && (
-              <MeetingCalendar meetings={allCalendarItems} />
             )}
 
             {tab === "past" && (
@@ -668,27 +652,26 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
         <div className="relative z-10 flex flex-col gap-3 md:gap-4 w-full">
            {myRsvp === 'going' && (
              <div className="flex flex-col gap-2 bg-white/5 p-4 rounded-[22px] border border-white/10 animate-fade-up">
-                <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                <div className="flex items-center justify-between">
+                   <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                   <div className="text-center bg-gold-primary/20 px-3 py-1 rounded-lg border border-gold-primary/20">
+                      <span className="text-[14px] font-black leading-none text-gold-primary">{1 + compCount} حاضرين</span>
+                   </div>
+                </div>
                 <div className="flex items-center gap-3">
-                   <div className="flex-1 grid grid-cols-5 gap-1.5">
-                      {[0, 1, 2, 3, 4].map((num) => (
-                        <button
-                          key={num}
-                          onClick={() => onRsvp(meeting.id, 'going', num)}
-                          className={cn(
-                            "py-2 rounded-xl text-xs font-black transition-all",
-                            compCount === num ? "bg-gold-primary text-black shadow-lg" : "bg-white/5 hover:bg-white/10 text-white/60"
-                          )}
-                        >
-                          {num}
-                        </button>
-                      ))}
-                   </div>
-                   <div className="w-px h-8 bg-white/10" />
-                   <div className="text-center min-w-[40px]">
-                      <p className="text-[14px] font-black leading-none">{1 + compCount}</p>
-                      <p className="text-[7px] font-black text-white/40 uppercase">المجموع</p>
-                   </div>
+                   <input
+                     type="number"
+                     min="0"
+                     max="50"
+                     value={compCount}
+                     onChange={(e) => {
+                       const val = parseInt(e.target.value) || 0;
+                       setCompCount(val);
+                     }}
+                     onBlur={() => onRsvp(meeting.id, 'going', compCount)}
+                     className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 font-black text-center text-lg focus:outline-none focus:border-gold-primary transition-all"
+                     placeholder="اكتب عدد المرافقين هنا..."
+                   />
                 </div>
              </div>
            )}
