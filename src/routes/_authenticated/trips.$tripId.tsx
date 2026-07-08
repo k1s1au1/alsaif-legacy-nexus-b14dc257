@@ -324,11 +324,19 @@ function TripDetail() {
     };
   }, [tripId, userId, primaryRole]);
 
-  async function updateAttendance(status: 'going' | 'not_going', companions: number = 0) {
+  async function updateAttendance(status: 'going' | 'not_going', companions: number = 0, isExplicitClick: boolean = false) {
     if (!userId || saving) return;
 
     const prevStatus = attendanceStatus;
-    const isRemoving = attendanceStatus === status && companionsCount === companions;
+    const prevCompanions = companionsCount;
+
+    // Logic for toggling off if clicking the same button
+    const isRemoving = isExplicitClick && attendanceStatus === status && companionsCount === companions;
+
+    if (!isExplicitClick && attendanceStatus === status && companionsCount === companions) {
+      // Don't do anything if it's just an auto-save (onBlur) and nothing changed
+      return;
+    }
 
     // Optimistic UI
     setAttendanceStatus(isRemoving ? null : status);
@@ -370,7 +378,13 @@ function TripDetail() {
           if (retryError) throw retryError;
         }
 
-        if (status === 'going') toast.success("تم تأكيد حضورك ✨");
+        if (status === 'going') {
+          if (prevStatus === 'going') {
+             if (prevCompanions !== companions) toast.success("تم تحديث عدد المرافقين بنجاح ✨");
+          } else {
+             toast.success("تم تأكيد حضورك ✨");
+          }
+        }
       }
 
       await loadAttendees(tripId);
@@ -378,6 +392,7 @@ function TripDetail() {
       console.error("Attendance update error:", err);
       toast.error("حدث خطأ أثناء تحديث حالة الحضور");
       setAttendanceStatus(prevStatus);
+      setCompanionsCount(prevCompanions);
     } finally {
       setSaving(false);
     }
@@ -568,7 +583,7 @@ function TripDetail() {
                     />
 
                     <button
-                      onClick={() => updateAttendance('going', companionsCount)}
+                      onClick={() => updateAttendance('going', companionsCount, true)}
                       disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                       className={cn(
                         "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-lg transition-all duration-500",
@@ -580,7 +595,7 @@ function TripDetail() {
                     </button>
 
                     <button
-                      onClick={() => updateAttendance('not_going')}
+                      onClick={() => updateAttendance('not_going', 0, true)}
                       disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                       className={cn(
                         "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-lg transition-all duration-500",
@@ -726,15 +741,15 @@ function TripDetail() {
                           />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <span className="text-base font-black text-foreground truncate block">{a.name}</span>
                           <div className="flex items-center gap-2">
-                             <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">عضو مؤكد</span>
+                             <span className="text-base font-black text-foreground truncate">{a.name}</span>
                              {a.companions_count > 0 && (
-                               <span className="text-[9px] font-black bg-gold-primary/10 text-gold-primary px-2 py-0.5 rounded-full border border-gold-primary/20">
+                               <span className="text-[9px] font-black bg-gold-primary/10 text-gold-primary px-2 py-0.5 rounded-full border border-gold-primary/20 shrink-0">
                                   +{a.companions_count} مرافقين
                                </span>
                              )}
                           </div>
+                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60 block">عضو مؤكد</span>
                         </div>
                         <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
                           <CheckCircle2 size={16} />
