@@ -76,9 +76,10 @@ function TripDetail() {
   const [loading, setLoading] = useState(true);
   const [attendanceLoaded, setAttendanceLoaded] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState<'going' | 'not_going' | null>(null);
+  const [companionsCount, setCompanionsCount] = useState(0);
   const [saving, setSaving] = useState(false);
   const [attendees, setAttendees] = useState<
-    { user_id: string; name: string; initial: string; avatarPath: string | null }[]
+    { user_id: string; name: string; initial: string; avatarPath: string | null; companions_count: number }[]
   >([]);
   const [checklist, setChecklist] = useState<any[]>([]);
   const [newItemName, setNewItemName] = useState("");
@@ -95,7 +96,7 @@ function TripDetail() {
     try {
       const { data: rows, error } = await supabase
         .from("trip_attendees")
-        .select("user_id, created_at, status")
+        .select("user_id, created_at, status, companions_count")
         .eq("trip_id", tid);
 
       if (error) {
@@ -127,6 +128,10 @@ function TripDetail() {
       .select("id, arabic_name, full_name, avatar_url")
       .in("id", ids);
     const map = new Map((profs ?? []).map((p: any) => [p.id, p]));
+
+    // Map with companions count
+    const rowsMap = new Map(rows.map(r => [r.user_id, r.companions_count || 0]));
+
     setAttendees(
       ids.map((id) => {
         const p = map.get(id) as any;
@@ -136,6 +141,7 @@ function TripDetail() {
           name,
           initial: (name[0] ?? "س").toUpperCase(),
           avatarPath: p?.avatar_url ?? null,
+          companions_count: rowsMap.get(id) || 0
         };
       }),
     );
@@ -270,7 +276,7 @@ function TripDetail() {
 
         const { data: mine, error: mineErr } = await supabase
           .from("trip_attendees")
-          .select("status")
+          .select("status, companions_count")
           .eq("trip_id", tripId)
           .eq("user_id", userId)
           .maybeSingle();
@@ -284,10 +290,13 @@ function TripDetail() {
             .eq("user_id", userId)
             .maybeSingle();
           setAttendanceStatus(fallbackMine ? 'going' : null);
+          setCompanionsCount(0);
         } else if (mine) {
           setAttendanceStatus((mine as any).status || 'going');
+          setCompanionsCount((mine as any).companions_count || 0);
         } else {
           setAttendanceStatus(null);
+          setCompanionsCount(0);
         }
         setAttendanceLoaded(true);
       }
@@ -314,14 +323,15 @@ function TripDetail() {
     };
   }, [tripId, userId, primaryRole]);
 
-  async function updateAttendance(status: 'going' | 'not_going') {
+  async function updateAttendance(status: 'going' | 'not_going', companions: number = 0) {
     if (!userId || saving) return;
 
     const prevStatus = attendanceStatus;
-    const isRemoving = attendanceStatus === status;
+    const isRemoving = attendanceStatus === status && companionsCount === companions;
 
-    // Optimistic UI so toggling between "going" and "not_going" is instant
+    // Optimistic UI
     setAttendanceStatus(isRemoving ? null : status);
+    if (!isRemoving) setCompanionsCount(companions);
     setSaving(true);
 
     try {
@@ -334,15 +344,14 @@ function TripDetail() {
         if (error) throw error;
         toast.success("تم إلغاء اختيارك");
       } else {
-        // Single atomic write — no delete+insert race when switching options
         const { error } = await supabase
           .from("trip_attendees")
           .upsert(
-            { trip_id: tripId, user_id: userId, status } as any,
+            { trip_id: tripId, user_id: userId, status, companions_count: companions } as any,
             { onConflict: "trip_id,user_id" },
           );
         if (error) {
-          // Fallback for legacy schema without `status` column
+          // Fallback for legacy schema
           await supabase
             .from("trip_attendees")
             .upsert(
@@ -580,7 +589,7 @@ function TripDetail() {
                     <Users size={18} /> المشاركون المؤكدون
                   </div>
                   <span className="px-4 py-1.5 bg-primary/5 rounded-full border border-primary/10 text-xs font-black">
-                    {attendees.length} عضو
+                    {attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)} شخص
                   </span>
                 </div>
 
@@ -646,8 +655,27 @@ function TripDetail() {
                 </div>
 
                 <div className="relative z-10 flex flex-col gap-3">
+                  {attendanceStatus === 'going' && (
+                    <div className="flex flex-col gap-2 mb-2 animate-fade-up">
+                       <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest text-center">عدد المرافقين معك؟</p>
+                       <input
+                         type="text"
+                         inputMode="numeric"
+                         pattern="[0-9]*"
+                         value={companionsCount}
+                         onChange={(e) => {
+                           const val = e.target.value.replace(/[^0-9]/g, '');
+                           setCompanionsCount(val === '' ? 0 : parseInt(val));
+                         }}
+                         onBlur={() => updateAttendance('going', companionsCount)}
+                         className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 font-black text-center text-lg focus:outline-none focus:border-gold-primary transition-all text-white"
+                         placeholder="٠"
+                       />
+                    </div>
+                  )}
+
                   <button
-                    onClick={() => updateAttendance('going')}
+                    onClick={() => updateAttendance('going', companionsCount)}
                     disabled={saving || !userId || !attendanceLoaded || rolesLoading}
                     className={cn(
                       "flex w-full items-center justify-center gap-3 rounded-2xl py-4 font-black text-base transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
@@ -661,7 +689,7 @@ function TripDetail() {
                     ) : (
                       <CheckCircle2 size={20} strokeWidth={2.5} />
                     )}
-                    سأحضر
+                    سأحضر {attendanceStatus === 'going' && `(+${companionsCount})`}
                   </button>
 
                   <button

@@ -660,17 +660,17 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                 </div>
                 <div className="flex items-center gap-3">
                    <input
-                     type="number"
-                     min="0"
-                     max="50"
+                     type="text"
+                     inputMode="numeric"
+                     pattern="[0-9]*"
                      value={compCount}
                      onChange={(e) => {
-                       const val = parseInt(e.target.value) || 0;
-                       setCompCount(val);
+                       const val = e.target.value.replace(/[^0-9]/g, '');
+                       setCompCount(val === '' ? 0 : parseInt(val));
                      }}
                      onBlur={() => onRsvp(meeting.id, 'going', compCount)}
-                     className="flex-1 h-12 bg-white/5 border border-white/10 rounded-xl px-4 font-black text-center text-lg focus:outline-none focus:border-gold-primary transition-all"
-                     placeholder="اكتب عدد المرافقين هنا..."
+                     className="flex-1 h-14 bg-white/10 border-2 border-white/20 rounded-2xl px-6 font-black text-center text-xl focus:outline-none focus:border-gold-primary focus:bg-white/20 transition-all shadow-inner"
+                     placeholder="٠"
                    />
                 </div>
              </div>

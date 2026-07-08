@@ -23,6 +23,10 @@ export const executeLeadershipTransition = createServerFn({ method: "POST" })
     const totalVotes = (votes ?? []).length;
     const percentage = totalVotes > 0 ? (yesVotes / totalVotes) * 100 : 0;
 
+    // Check for both old and new type names for compatibility
+    const isLeadershipPoll = pollData.type === "leadership_shura" || pollData.type === "chairman";
+    if (!isLeadershipPoll) throw new Error("This is not a leadership poll");
+
     if (percentage < (pollData.threshold || 70)) throw new Error("Threshold not met");
 
     const newChairmanId = pollData.target_uid;

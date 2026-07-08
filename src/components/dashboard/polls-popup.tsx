@@ -90,10 +90,13 @@ export function PollsPopup({ userId }: { userId: string | null }) {
       if (p.myVoteIndex !== -1) return false;
       if (p.poll.status === "finalized") return false;
 
-      // 2. Committee Only Check
-      if (p.poll.target_committee_only) {
-        const isCommittee = userRoles.some(r => ["admin", "manager", "chairman"].includes(r));
+      // 2. Role-based Visibility Check
+      if (p.poll.type === "chairman") {
+        const isCommittee = userRoles.some(r => ["admin", "chairman"].includes(r));
         if (!isCommittee) return false;
+      } else if (p.poll.type === "manager") {
+        const isManagerOrHigher = userRoles.some(r => ["admin", "chairman", "manager"].includes(r));
+        if (!isManagerOrHigher) return false;
       }
 
       // 3. Expiration Check
@@ -218,9 +221,10 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                   });
                   const total = counts.reduce((a, b) => a + b, 0);
                   const voted = myVoteIndex !== -1;
-                  const isLeadership = poll.type === "leadership_shura";
+                  const isChairmanPoll = poll.type === "chairman";
+                  const isManagerPoll = poll.type === "manager";
                   const yesPct = total > 0 ? Math.round((counts[0] / total) * 100) : 0;
-                  const canExecute = isLeadership && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
+                  const canExecute = isChairmanPoll && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
                   const alreadyExecuted = poll.status === "executed";
                   const finalized = poll.status === "finalized";
                   const expired = poll.expires_at && new Date(poll.expires_at) < new Date();
@@ -236,18 +240,23 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                       exit={{ opacity: 0, scale: 0.95 }}
                       className={cn(
                         "rounded-2xl border-2 p-5 space-y-4 relative overflow-hidden",
-                        isLeadership ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]" : "border-border/40 bg-card",
+                        isChairmanPoll ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]" :
+                        isManagerPoll ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/40 bg-card",
                         expired && "opacity-60 grayscale-[0.5]"
                       )}
                     >
-                      {isLeadership && (
-                        <div className="absolute -top-6 -left-6 size-20 bg-gold-primary/10 rounded-full blur-xl" />
+                      {(isChairmanPoll || isManagerPoll) && (
+                        <div className={cn(
+                          "absolute -top-6 -left-6 size-20 rounded-full blur-xl",
+                          isChairmanPoll ? "bg-gold-primary/10" : "bg-emerald-500/10"
+                        )} />
                       )}
 
                       <div className="flex items-start justify-between gap-3 relative z-10">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                             {isLeadership && <Crown className="size-4 text-gold-primary" />}
+                             {isChairmanPoll && <Crown className="size-4 text-gold-primary" />}
+                             {isManagerPoll && <ShieldCheck className="size-4 text-emerald-600" />}
                              <h4 className="font-black text-primary line-clamp-1">{post.title}</h4>
                              {expired && <span className="text-[9px] font-black bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">انتهى الوقت</span>}
                           </div>
@@ -256,7 +265,8 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                         <div className="flex flex-col items-end gap-1 shrink-0">
                           <span className={cn(
                             "text-[10px] font-black px-2 py-1 rounded-full",
-                            isLeadership ? "bg-gold-primary text-emerald-950" : "bg-primary/10 text-primary"
+                            isChairmanPoll ? "bg-gold-primary text-emerald-950" :
+                            isManagerPoll ? "bg-emerald-600 text-white" : "bg-primary/10 text-primary"
                           )}>
                             {total} صوت
                           </span>
@@ -279,7 +289,7 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                               )}
                             >
                               <div
-                                className={cn("absolute inset-y-0 right-0 transition-all duration-700", isLeadership && i === 0 ? "bg-gold-primary/10" : "bg-primary/5")}
+                                className={cn("absolute inset-y-0 right-0 transition-all duration-700", (isChairmanPoll || isManagerPoll) && i === 0 ? "bg-gold-primary/10" : "bg-primary/5")}
                                 style={{ width: `${pct}%` }}
                               />
                               <div className="relative z-10 flex justify-between items-center text-sm">
@@ -294,10 +304,10 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                         })}
                       </div>
 
-                      {isLeadership && !alreadyExecuted && (
+                      {isChairmanPoll && !alreadyExecuted && (
                         <div className="pt-2">
                            <div className="flex items-center justify-between mb-2">
-                              <span className="text-[10px] font-black uppercase text-gold-primary tracking-widest">مستوى التأييد الحالي</span>
+                              <span className="text-[10px] font-black uppercase text-gold-primary tracking-widest">مستوى التأييد الحالي لرئاسة المجلس</span>
                               <span className="text-xs font-black text-primary tabular-nums">{yesPct}% / {poll.threshold || 70}%</span>
                            </div>
                            <div className="h-1.5 bg-gold-primary/10 rounded-full overflow-hidden">
