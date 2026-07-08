@@ -22,7 +22,7 @@ export function sectionLabel(section: Section): string {
 
 export function roleLabel(role: AppRole | string | null): string {
   switch (role) {
-    case "admin": return "مسؤول تقني";
+    case "admin": return "مسؤول";
     case "manager": return "مسؤول قسم";
     case "chairman": return "رئيس المجلس";
     default: return "عضو";

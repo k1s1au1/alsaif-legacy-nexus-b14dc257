@@ -117,7 +117,7 @@ function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut }: any) {
                   presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
                 />
              </div>
-             <span className="hidden sm:block text-[13px] md:text-[14px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
+             <span className="text-[11px] md:text-[14px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
              <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
           </button>
        </DropdownMenuTrigger>
@@ -171,6 +171,8 @@ export function AppShell({
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
+  const [myName, setMyName] = useState<string>(user?.name || "");
+  const [myRole, setMyRole] = useState<string>(user?.role || "");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showMoreHub, setShowMoreHub] = useState(false);
@@ -230,17 +232,29 @@ export function AppShell({
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await supabase.auth.getUser();
-        if (!data?.user) return;
-        const uid = data.user.id;
+        const { data: authData } = await supabase.auth.getUser();
+        if (!authData?.user) return;
+        const uid = authData.user.id;
         setMyUserId(uid);
 
-        const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", uid);
-        const r = (roles ?? []).map(x => x.role);
-        setIsAdmin(r.includes("admin") || r.includes("manager") || r.includes("chairman"));
+        const [{ data: rolesData }, { data: profileData }] = await Promise.all([
+          supabase.from("user_roles").select("role").eq("user_id", uid),
+          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", uid).maybeSingle()
+        ]);
 
-        const { data: p } = await supabase.from("profiles").select("avatar_url").eq("id", uid).maybeSingle();
-        if (p?.avatar_url) setMyAvatarPath(p.avatar_url);
+        const rs = (rolesData ?? []).map(x => x.role);
+        setIsAdmin(rs.includes("admin") || rs.includes("manager") || rs.includes("chairman"));
+
+        const name = profileData?.arabic_name || profileData?.full_name || authData.user.email?.split("@")[0] || "عضو العائلة";
+        setMyName(name);
+
+        let roleLabelStr = "عضو";
+        if (rs.includes("chairman")) roleLabelStr = "رئيس المجلس";
+        else if (rs.includes("admin")) roleLabelStr = "مسؤول";
+        else if (rs.includes("manager")) roleLabelStr = "مسؤول قسم";
+        setMyRole(roleLabelStr);
+
+        if (profileData?.avatar_url) setMyAvatarPath(profileData.avatar_url);
       } catch (e) {
         console.error("Shell initialization error", e);
       }
@@ -259,7 +273,12 @@ export function AppShell({
     }
   }
 
-  const safeUser = user || { name: "عضو العائلة", role: "عضو", initial: "ع" };
+  const safeUser = {
+    name: myName || "جاري التحميل...",
+    role: myRole || "عضو",
+    initial: (myName || "ع")[0].toUpperCase(),
+    avatarPath: myAvatarPath
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
@@ -294,9 +313,9 @@ export function AppShell({
           <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
             <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
           </div>
-          <div>
-            <h3 className="text-xl font-bold text-primary tracking-tight">{safeUser.name}</h3>
-            <p className="text-[12px] text-muted-foreground font-bold uppercase tracking-[0.1em] mt-1">{safeUser.role}</p>
+          <div className="text-center md:text-right">
+            <h3 className="text-xl font-black text-primary tracking-tight">{safeUser.name}</h3>
+            <p className="text-[11px] text-gold-primary font-black uppercase tracking-[0.2em] mt-1">{safeUser.role}</p>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="absolute top-4 left-4 p-2 text-primary"><X size={24} /></button>
         </div>
@@ -414,9 +433,7 @@ export function AppShell({
                  </div>
 
                  <NotificationsBell />
-                 <div className="hidden md:block">
-                   <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
-                 </div>
+                 <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
               </div>
            </header>
         </motion.div>
