@@ -75,6 +75,7 @@ const REQ_TABS = [
   { key: "rejected", label: "طلبات مرفوضة" },
 ];
 
+// Main Admin Page Component for Alsaif Family Hub
 function AdminPage() {
   const { userId: meId, isAdmin: isSystemAdmin, isChairman: isSiteChairman, isPrivileged: isA } = useUserRole();
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
@@ -803,8 +804,8 @@ function PollsManager({ list, meId, onRefresh }: any) {
     title: "",
     question: "",
     options: ["", ""],
-    durationHours: "24",
-    isLeadership: false
+    durationDays: "1",
+    pollType: "general" as "general" | "manager" | "chairman"
   });
   const [finalizing, setFinalizing] = useState<string | null>(null);
   const runFinalize = useServerFn(finalizePoll);
@@ -813,14 +814,14 @@ function PollsManager({ list, meId, onRefresh }: any) {
     if (!draft.title || !draft.question || draft.options.some(o => !o)) return toast.error("يرجى إكمال البيانات");
 
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + parseInt(draft.durationHours || "24"));
+    expiresAt.setDate(expiresAt.getDate() + parseInt(draft.durationDays || "1"));
 
     const pollData = {
       question: draft.question,
       options: draft.options,
       expires_at: expiresAt.toISOString(),
-      type: draft.isLeadership ? "leadership_shura" : "general",
-      target_committee_only: draft.isLeadership // Leadership polls are always committee-only by default now
+      type: draft.pollType,
+      target_committee_only: draft.pollType !== "general"
     };
 
     const { error } = await supabase.from("majlis_posts").insert({
@@ -832,7 +833,7 @@ function PollsManager({ list, meId, onRefresh }: any) {
     if (!error) {
       toast.success("تم نشر التصويت بنجاح");
       setShowForm(false);
-      setDraft({ title: "", question: "", options: ["", ""], durationHours: "24", isLeadership: false });
+      setDraft({ title: "", question: "", options: ["", ""], durationDays: "1", pollType: "general" });
       onRefresh();
     }
   };
@@ -875,26 +876,43 @@ function PollsManager({ list, meId, onRefresh }: any) {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border/20">
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">مدة التصويت (بالساعات)</label>
+                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">مدة التصويت (بالأيام)</label>
                       <input
                         type="number"
-                        value={draft.durationHours}
-                        onChange={e => setDraft({...draft, durationHours: e.target.value})}
+                        value={draft.durationDays}
+                        onChange={e => setDraft({...draft, durationDays: e.target.value})}
                         className="w-full h-12 px-5 rounded-xl bg-muted/20 border border-border font-bold text-sm"
+                        min="1"
                       />
                    </div>
                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">نوع التصويت</label>
-                      <button
-                        onClick={() => setDraft({...draft, isLeadership: !draft.isLeadership})}
-                        className={cn(
-                          "w-full h-12 rounded-xl font-black text-xs transition-all border flex items-center justify-center gap-2",
-                          draft.isLeadership ? "bg-gold-primary text-white border-gold-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:bg-muted"
-                        )}
-                      >
-                         {draft.isLeadership ? <Crown size={16} /> : <Users size={16} />}
-                         {draft.isLeadership ? "تصويت قيادي (للمسؤولين فقط)" : "تصويت عام (لكافة الأعضاء)"}
-                      </button>
+                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">الفئة المستهدفة بالتصويت</label>
+                      <div className="grid grid-cols-3 gap-2">
+                         <button
+                           type="button"
+                           onClick={() => setDraft({...draft, pollType: "general"})}
+                           className={cn(
+                             "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
+                             draft.pollType === "general" ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border"
+                           )}
+                         >الكل</button>
+                         <button
+                           type="button"
+                           onClick={() => setDraft({...draft, pollType: "manager"})}
+                           className={cn(
+                             "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
+                             draft.pollType === "manager" ? "bg-emerald-600 text-white border-emerald-600 shadow-md" : "bg-card text-muted-foreground border-border"
+                           )}
+                         >المسؤولين</button>
+                         <button
+                           type="button"
+                           onClick={() => setDraft({...draft, pollType: "chairman"})}
+                           className={cn(
+                             "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
+                             draft.pollType === "chairman" ? "bg-gold-primary text-white border-gold-primary shadow-md" : "bg-card text-muted-foreground border-border"
+                           )}
+                         >رئيس المجلس</button>
+                      </div>
                    </div>
                 </div>
 
@@ -905,13 +923,29 @@ function PollsManager({ list, meId, onRefresh }: any) {
        </AnimatePresence>
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {list.map((p: any) => {
-            const isFinalized = p.body?.includes('"status":"finalized"');
+            const bodyStr = p.body || "";
+            const match = bodyStr.match(/---poll:({.*?})---/s);
+            let pollData = null;
+            try { pollData = JSON.parse(match[1]); } catch(e) {}
+
+            const isFinalized = pollData?.status === "finalized";
+            const pType = pollData?.type || "general";
+
             return (
               <div key={p.id} className="card-surface p-6 flex flex-col justify-between group">
                  <div className="space-y-4">
                     <div className="flex justify-between items-start">
                       <div className="space-y-1">
-                        <h4 className="text-lg font-black text-primary leading-tight line-clamp-2">{p.title}</h4>
+                        <div className="flex items-center gap-2">
+                           <h4 className="text-lg font-black text-primary leading-tight line-clamp-2">{p.title}</h4>
+                           <span className={cn(
+                             "text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                             pType === "chairman" ? "bg-gold-primary text-emerald-950" :
+                             pType === "manager" ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
+                           )}>
+                             {pType === "chairman" ? "رئيس المجلس" : pType === "manager" ? "المسؤولين" : "عام"}
+                           </span>
+                        </div>
                         {isFinalized && <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">تم الأرشفة</span>}
                       </div>
                       <div className="flex gap-2">
