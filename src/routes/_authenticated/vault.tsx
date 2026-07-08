@@ -239,6 +239,7 @@ function SecureVaultPage() {
   };
 
   const toggleUserSelection = (userId: string) => {
+    if (!userId) return;
     setSharedWith(prev =>
       prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     );
@@ -443,10 +444,15 @@ function SecureVaultPage() {
                                  <span className="text-[10px] font-black text-gold-primary">{sharedWith.length} عضو مختار</span>
                               </div>
                               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 max-h-48 overflow-y-auto p-4 bg-muted/30 rounded-[32px] border border-border/40 no-scrollbar shadow-inner">
-                                 {allProfiles.filter(p => p.id !== currentUserId).map(p => (
+                                 {allProfiles.filter(p => p && p.id && p.id !== currentUserId).map(p => (
                                     <button
                                       key={p.id}
-                                      onClick={() => toggleUserSelection(p.id)}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        toggleUserSelection(p.id);
+                                      }}
                                       className="flex flex-col items-center gap-2 group/u transition-transform active:scale-90"
                                     >
                                        <div className={cn(
