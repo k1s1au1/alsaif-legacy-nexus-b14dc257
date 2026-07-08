@@ -799,20 +799,42 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
 
 function PollsManager({ list, meId, onRefresh }: any) {
   const [showForm, setShowForm] = useState(false);
-  const [draft, setDraft] = useState({ title: "", question: "", options: ["", ""] });
+  const [draft, setDraft] = useState({
+    title: "",
+    question: "",
+    options: ["", ""],
+    durationHours: "24",
+    isLeadership: false
+  });
   const [finalizing, setFinalizing] = useState<string | null>(null);
   const runFinalize = useServerFn(finalizePoll);
 
   const handleSave = async () => {
     if (!draft.title || !draft.question || draft.options.some(o => !o)) return toast.error("يرجى إكمال البيانات");
-    const pollData = { question: draft.question, options: draft.options };
+
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + parseInt(draft.durationHours || "24"));
+
+    const pollData = {
+      question: draft.question,
+      options: draft.options,
+      expires_at: expiresAt.toISOString(),
+      type: draft.isLeadership ? "leadership_shura" : "general",
+      target_committee_only: draft.isLeadership // Leadership polls are always committee-only by default now
+    };
+
     const { error } = await supabase.from("majlis_posts").insert({
       title: draft.title,
       body: `---poll:${JSON.stringify(pollData)}---`,
       kind: "announcement",
       author_id: meId
     });
-    if (!error) { toast.success("تم نشر التصويت"); setShowForm(false); setDraft({ title: "", question: "", options: ["", ""] }); onRefresh(); }
+    if (!error) {
+      toast.success("تم نشر التصويت بنجاح");
+      setShowForm(false);
+      setDraft({ title: "", question: "", options: ["", ""], durationHours: "24", isLeadership: false });
+      onRefresh();
+    }
   };
 
   const handleFinalize = async (postId: string) => {
@@ -850,6 +872,32 @@ function PollsManager({ list, meId, onRefresh }: any) {
                    ))}
                    <button onClick={() => setDraft({...draft, options: [...draft.options, ""]})} className="text-xs font-black text-primary">+ إضافة خيار</button>
                 </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border/20">
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">مدة التصويت (بالساعات)</label>
+                      <input
+                        type="number"
+                        value={draft.durationHours}
+                        onChange={e => setDraft({...draft, durationHours: e.target.value})}
+                        className="w-full h-12 px-5 rounded-xl bg-muted/20 border border-border font-bold text-sm"
+                      />
+                   </div>
+                   <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">نوع التصويت</label>
+                      <button
+                        onClick={() => setDraft({...draft, isLeadership: !draft.isLeadership})}
+                        className={cn(
+                          "w-full h-12 rounded-xl font-black text-xs transition-all border flex items-center justify-center gap-2",
+                          draft.isLeadership ? "bg-gold-primary text-white border-gold-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:bg-muted"
+                        )}
+                      >
+                         {draft.isLeadership ? <Crown size={16} /> : <Users size={16} />}
+                         {draft.isLeadership ? "تصويت قيادي (للمسؤولين فقط)" : "تصويت عام (لكافة الأعضاء)"}
+                      </button>
+                   </div>
+                </div>
+
                 <button onClick={handleSave} className="w-full btn-gold py-4 rounded-2xl font-black">نشر للجميع</button>
              </div>
            </motion.div>

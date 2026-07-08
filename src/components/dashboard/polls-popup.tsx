@@ -19,6 +19,8 @@ type PollData = {
   target_name?: string;
   threshold?: number;
   status?: string;
+  expires_at?: string;
+  target_committee_only?: boolean;
 };
 type EnrichedPoll = { post: Post; poll: PollData; votes: Comment[]; myVoteIndex: number };
 
@@ -30,8 +32,17 @@ export function PollsPopup({ userId }: { userId: string | null }) {
   const [polls, setPolls] = useState<EnrichedPoll[]>([]);
   const [open, setOpen] = useState(false);
   const [executingId, setExecutingId] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const autoOpenedRef = useRef(false);
   const runTransition = useServerFn(executeLeadershipTransition);
+
+  useEffect(() => {
+    if (userId) {
+      supabase.from("user_roles").select("role").eq("user_id", userId).then(({ data }) => {
+        if (data) setUserRoles(data.map(r => r.role));
+      });
+    }
+  }, [userId]);
 
   const load = async () => {
     const { data: posts } = await supabase
@@ -73,7 +84,24 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const pending = useMemo(() => polls.filter(p => p.myVoteIndex === -1 && p.poll.status !== "finalized"), [polls]);
+  const pending = useMemo(() => {
+    return polls.filter(p => {
+      // 1. Basic Filters
+      if (p.myVoteIndex !== -1) return false;
+      if (p.poll.status === "finalized") return false;
+
+      // 2. Committee Only Check
+      if (p.poll.target_committee_only) {
+        const isCommittee = userRoles.some(r => ["admin", "manager", "chairman"].includes(r));
+        if (!isCommittee) return false;
+      }
+
+      // 3. Expiration Check
+      if (p.poll.expires_at && new Date(p.poll.expires_at) < new Date()) return false;
+
+      return true;
+    });
+  }, [polls, userRoles]);
 
   // Auto-open only once per session, and only if not snoozed
   useEffect(() => {
@@ -195,8 +223,9 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                   const canExecute = isLeadership && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
                   const alreadyExecuted = poll.status === "executed";
                   const finalized = poll.status === "finalized";
+                  const expired = poll.expires_at && new Date(poll.expires_at) < new Date();
 
-                  if ((alreadyExecuted || finalized) && !open) return null; // Don't show finished in bubble button
+                  if ((alreadyExecuted || finalized || expired) && !open) return null; // Don't show finished in bubble button
 
                   return (
                     <motion.div
@@ -207,7 +236,8 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                       exit={{ opacity: 0, scale: 0.95 }}
                       className={cn(
                         "rounded-2xl border-2 p-5 space-y-4 relative overflow-hidden",
-                        isLeadership ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]" : "border-border/40 bg-card"
+                        isLeadership ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]" : "border-border/40 bg-card",
+                        expired && "opacity-60 grayscale-[0.5]"
                       )}
                     >
                       {isLeadership && (
@@ -219,6 +249,7 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                           <div className="flex items-center gap-2 mb-1">
                              {isLeadership && <Crown className="size-4 text-gold-primary" />}
                              <h4 className="font-black text-primary line-clamp-1">{post.title}</h4>
+                             {expired && <span className="text-[9px] font-black bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">انتهى الوقت</span>}
                           </div>
                           <p className="text-sm font-bold text-primary/80">{poll.question}</p>
                         </div>
@@ -240,11 +271,11 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                             <button
                               key={i}
                               onClick={() => vote(post.id, i)}
-                              disabled={voted || alreadyExecuted || finalized}
+                              disabled={voted || alreadyExecuted || finalized || expired}
                               className={cn(
                                 "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all active:scale-[0.98]",
                                 isMyVote ? "border-primary bg-primary/5" : "border-border/40 bg-card hover:border-primary/40",
-                                (alreadyExecuted || finalized) && "opacity-80 cursor-default"
+                                (alreadyExecuted || finalized || expired) && "opacity-80 cursor-default"
                               )}
                             >
                               <div
