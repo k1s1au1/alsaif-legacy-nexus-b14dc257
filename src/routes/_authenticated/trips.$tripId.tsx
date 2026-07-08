@@ -20,7 +20,8 @@ import {
   ListChecks,
   Plus,
   Trash2,
-  UserCheck
+  UserCheck,
+  UserX
 } from "lucide-react";
 import { TripImage } from "@/components/trip-image";
 import { UserAvatar } from "@/components/user-avatar";
@@ -660,7 +661,7 @@ function TripDetail() {
                     <div className="flex flex-col gap-3 mb-2 animate-fade-up bg-white/5 p-5 rounded-3xl border border-white/10">
                        <div className="flex items-center justify-between px-1">
                           <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
-                          <span className="text-[14px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + companionsCount}</span>
+                          <span className="text-[14px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + companionsCount} حاضرين</span>
                        </div>
                        <input
                          type="tel"
@@ -671,7 +672,7 @@ function TripDetail() {
                            setCompanionsCount(val === '' ? 0 : parseInt(val));
                          }}
                          onBlur={() => updateAttendance('going', companionsCount)}
-                         className="w-full h-20 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                         className="w-full h-20 bg-white/10 border-2 border-white/20 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
                          placeholder="٠"
                        />
                     </div>

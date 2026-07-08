@@ -677,7 +677,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                        setCompCount(val === '' ? 0 : parseInt(val));
                      }}
                      onBlur={() => onRsvp(meeting.id, 'going', compCount)}
-                     className="flex-1 h-20 bg-white/10 border-2 border-white/20 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary focus:bg-white/20 transition-all shadow-inner text-white"
+                     className="flex-1 h-20 bg-white/10 border-2 border-white/20 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all shadow-inner text-white"
                      placeholder="٠"
                    />
                 </div>
@@ -715,7 +715,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                   myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white/60"
                 )}
               >
-                {saving && myRsvp === 'not_going' ? <Loader2 size={5} className="animate-spin" /> : <UserX size={22} />}
+                {saving && myRsvp === 'not_going' ? <Loader2 className="size-5 animate-spin" /> : <UserX size={22} />}
                 <span>أعتذر</span>
               </button>
            </div>

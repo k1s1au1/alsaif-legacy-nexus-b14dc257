@@ -346,14 +346,19 @@ export function AppShell({
                (headerCompact)
                  ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
                  : "h-14 bg-emerald-950/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
-               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none flex-row-reverse"
+               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none flex-row"
              )}
+             dir="rtl"
            >
-              {/* Identity Section - Now on the Right */}
-              <div className={cn("relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300 flex-row-reverse order-last", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
+              {/* Identity Section - Right on Mobile (order-first), Left on Desktop (md:order-last) */}
+              <div className={cn(
+                "relative z-10 flex items-center gap-2 md:gap-6 transition-opacity duration-300",
+                headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100",
+                "order-first md:order-last"
+              )}>
                  <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
 
-                 <div className="hidden md:flex items-center gap-3 pl-4 h-10 border-l border-primary/10 flex-row-reverse">
+                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
                     <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
                        {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
                     </div>
@@ -417,21 +422,26 @@ export function AppShell({
                  </AnimatePresence>
               </div>
 
-              <div className={cn("flex items-center gap-2 z-10 transition-opacity duration-300 order-first", headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100")}>
-                 {/* Notifications - Now on the Left */}
+              {/* Menu/Bell Section - Left on Mobile (order-last), Right on Desktop (md:order-first) */}
+              <div className={cn(
+                "flex items-center gap-2 z-10 transition-opacity duration-300",
+                headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100",
+                "order-last md:order-first"
+              )}>
+                 {/* Notifications */}
                  <NotificationsBell />
 
-                 {/* Desktop Clock */}
-                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 mr-4 flex-row-reverse">
+                 {/* Desktop Extra: Clock */}
+                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 ml-4">
                     <Clock className="size-3.5 text-gold-primary" />
-                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary flex-row-reverse">
+                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
                        <LiveClock variant="time" />
                        <div className="w-px h-3 bg-primary/10" />
                        <LiveClock variant="date" />
                     </div>
                  </div>
 
-                 {/* Sidebar Button (Only visible on desktop now) */}
+                 {/* Sidebar Trigger - Right on Desktop */}
                  <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95">
                     <Menu className="size-6" />
                  </button>
