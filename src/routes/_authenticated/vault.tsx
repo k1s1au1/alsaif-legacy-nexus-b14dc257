@@ -83,9 +83,16 @@ function SecureVaultPage() {
   const [newUnlockAt, setNewUnlockAt] = useState("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [sharedWith, setSharedWith] = useState<string[]>([]);
+  const [visibility, setVisibility] = useState<"private" | "all" | "selected">("private");
+  const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").then(({ data }) => {
+      if (data) setAllProfiles(data.sort((a, b) => (a.arabic_name || "").localeCompare(b.arabic_name || "")));
+    });
+
     supabase.auth.getUser().then(({ data }) => {
       setCurrentUserId(data.user?.id || null);
     });
@@ -199,7 +206,8 @@ function SecureVaultPage() {
         storage_path: filePath,
         owner_id: userData.user.id,
         unlock_at: newUnlockAt || null,
-        is_encrypted: true
+        is_encrypted: true,
+        shared_with: visibility === "all" ? ["all"] : visibility === "private" ? [] : sharedWith
       });
 
       if (dbError) {
@@ -226,6 +234,14 @@ function SecureVaultPage() {
     setNewCat("will");
     setNewUnlockAt("");
     setSelectedFile(null);
+    setSharedWith([]);
+    setVisibility("private");
+  };
+
+  const toggleUserSelection = (userId: string) => {
+    setSharedWith(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
+    );
   };
 
   const handleDownload = async (item: VaultItem) => {
@@ -398,6 +414,32 @@ function SecureVaultPage() {
                   </div>
 
                   <div className="space-y-6 relative z-10">
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">عرض الوثيقة لمن؟</label>
+                        <div className="flex gap-2 p-1 bg-muted/40 rounded-2xl border border-border/40">
+                           <button onClick={() => setVisibility("private")} className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", visibility === "private" ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}>خاص بي فقط</button>
+                           <button onClick={() => setVisibility("all")} className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", visibility === "all" ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}>للجميع</button>
+                           <button onClick={() => setVisibility("selected")} className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", visibility === "selected" ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}>أشخاص محددون</button>
+                        </div>
+                     </div>
+
+                     <AnimatePresence>
+                        {visibility === "selected" && (
+                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
+                              <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">اختر المصرح لهم ( {sharedWith.length} )</label>
+                              <div className="max-h-40 overflow-y-auto p-2 bg-muted/30 rounded-2xl border border-border/40 space-y-1 custom-scrollbar">
+                                 {allProfiles.filter(p => p.id !== currentUserId).map(p => (
+                                    <button key={p.id} onClick={() => toggleUserSelection(p.id)} className={cn("w-full flex items-center gap-3 p-2 rounded-xl transition-all", sharedWith.includes(p.id) ? "bg-primary/10 border border-primary/20" : "hover:bg-muted")}>
+                                       <div className="size-8 rounded-lg overflow-hidden border border-border/40"><UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" /></div>
+                                       <span className={cn("text-xs font-bold", sharedWith.includes(p.id) ? "text-primary" : "text-muted-foreground")}>{p.arabic_name || p.full_name}</span>
+                                       {sharedWith.includes(p.id) && <div className="ms-auto size-4 rounded-full bg-primary flex items-center justify-center text-white"><Check size={10} strokeWidth={4} /></div>}
+                                    </button>
+                                 ))}
+                              </div>
+                           </motion.div>
+                        )}
+                     </AnimatePresence>
+
                      <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">عنوان الوثيقة</label>
                         <input
