@@ -661,7 +661,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
         <div className="relative z-10 flex flex-col gap-3 md:gap-4 w-full">
            {myRsvp === 'going' && (
              <div className="flex flex-col gap-2 bg-white/5 p-4 rounded-[22px] border border-white/10 animate-fade-up">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between px-1">
                    <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
                    <div className="text-center bg-gold-primary/20 px-3 py-1 rounded-lg border border-gold-primary/20">
                       <span className="text-[14px] font-black leading-none text-gold-primary">{1 + compCount} حاضرين</span>
@@ -669,48 +669,54 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                 </div>
                 <div className="flex items-center gap-3">
                    <input
-                     type="number"
-                     inputMode="numeric"
-                     value={compCount}
+                     type="tel"
+                     value={compCount === 0 ? "" : compCount}
+                     onFocus={(e) => e.target.select()}
                      onChange={(e) => {
-                       const val = parseInt(e.target.value) || 0;
-                       setCompCount(val);
+                       const val = e.target.value.replace(/[^0-9]/g, '');
+                       setCompCount(val === '' ? 0 : parseInt(val));
                      }}
                      onBlur={() => onRsvp(meeting.id, 'going', compCount)}
-                     className="flex-1 h-14 bg-white/10 border-2 border-white/20 rounded-2xl px-6 font-black text-center text-xl focus:outline-none focus:border-gold-primary transition-all shadow-inner text-white"
+                     className="flex-1 h-20 bg-white/10 border-2 border-white/20 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary focus:bg-white/20 transition-all shadow-inner text-white"
                      placeholder="٠"
                    />
                 </div>
              </div>
            )}
 
-           <div className="relative bg-black/20 backdrop-blur-2xl border border-white/10 p-2 md:p-2.5 rounded-2xl md:rounded-[32px] flex items-center shadow-2xl overflow-hidden">
+           <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[70px]">
+              {/* Animated Background Selector */}
+              <div
+                className={cn(
+                  "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
+                  myRsvp === 'going' ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
+                  myRsvp === 'not_going' ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" :
+                  "opacity-0"
+                )}
+              />
+
               <button
                 onClick={() => onRsvp(meeting.id, 'going', compCount)}
                 disabled={!ready || saving}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 rounded-xl md:rounded-[26px] h-[44px] md:h-[52px] font-black text-xs md:text-sm transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
-                  myRsvp === 'going'
-                    ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                    : "bg-emerald-500/10 text-white/80 hover:bg-emerald-500/20 hover:text-white"
+                  "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-base transition-colors duration-500",
+                  myRsvp === 'going' ? "text-white" : "text-white/40 hover:text-white/60"
                 )}
               >
-                <UserCheck size={18} className="shrink-0" />
-                <span>{saving && myRsvp === 'going' ? "..." : "سأحضر"}</span>
+                {saving && myRsvp === 'going' ? <Loader2 className="size-5 animate-spin" /> : <UserCheck size={22} />}
+                <span>سأحضر</span>
               </button>
 
               <button
                 onClick={() => onRsvp(meeting.id, 'not_going')}
                 disabled={!ready || saving}
                 className={cn(
-                  "flex-1 flex items-center justify-center gap-2 rounded-xl md:rounded-[26px] h-[44px] md:h-[52px] font-black text-xs md:text-sm transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
-                  myRsvp === 'not_going'
-                    ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30"
-                    : "bg-rose-500/10 text-white/80 hover:bg-rose-500/20 hover:text-white"
+                  "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-base transition-colors duration-500",
+                  myRsvp === 'not_going' ? "text-white" : "text-white/40 hover:text-white/60"
                 )}
               >
-                <UserX size={18} className="shrink-0" />
-                <span>{saving && myRsvp === 'not_going' ? "..." : "أعتذر"}</span>
+                {saving && myRsvp === 'not_going' ? <Loader2 size={5} className="animate-spin" /> : <UserX size={22} />}
+                <span>أعتذر</span>
               </button>
            </div>
 

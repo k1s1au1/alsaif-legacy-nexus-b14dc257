@@ -655,60 +655,63 @@ function TripDetail() {
                   </p>
                 </div>
 
-                <div className="relative z-10 flex flex-col gap-3">
+                <div className="relative z-10 flex flex-col gap-4">
                   {attendanceStatus === 'going' && (
-                    <div className="flex flex-col gap-2 mb-2 animate-fade-up">
-                       <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest text-center">عدد المرافقين معك؟</p>
+                    <div className="flex flex-col gap-3 mb-2 animate-fade-up bg-white/5 p-5 rounded-3xl border border-white/10">
+                       <div className="flex items-center justify-between px-1">
+                          <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                          <span className="text-[14px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + companionsCount}</span>
+                       </div>
                        <input
-                         type="number"
-                         inputMode="numeric"
-                         value={companionsCount}
+                         type="tel"
+                         value={companionsCount === 0 ? "" : companionsCount}
+                         onFocus={(e) => e.target.select()}
                          onChange={(e) => {
-                           const val = parseInt(e.target.value) || 0;
-                           setCompanionsCount(val);
+                           const val = e.target.value.replace(/[^0-9]/g, '');
+                           setCompanionsCount(val === '' ? 0 : parseInt(val));
                          }}
                          onBlur={() => updateAttendance('going', companionsCount)}
-                         className="w-full h-14 bg-white/10 border-2 border-white/20 rounded-2xl px-6 font-black text-center text-xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                         className="w-full h-20 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
                          placeholder="٠"
                        />
                     </div>
                   )}
 
-                  <button
-                    onClick={() => updateAttendance('going', companionsCount)}
-                    disabled={saving || !userId || !attendanceLoaded || rolesLoading}
-                    className={cn(
-                      "flex w-full items-center justify-center gap-3 rounded-2xl py-4 font-black text-base transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
-                      attendanceStatus === 'going'
-                        ? "bg-emerald-500 text-white shadow-lg shadow-emerald-500/30"
-                        : "bg-emerald-500/15 text-white ring-1 ring-emerald-400/30 hover:bg-emerald-500/25"
-                    )}
-                  >
-                    {saving && attendanceStatus === 'going' ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <CheckCircle2 size={20} strokeWidth={2.5} />
-                    )}
-                    سأحضر {attendanceStatus === 'going' && `(+${companionsCount})`}
-                  </button>
+                  <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[70px]">
+                    {/* Animated Background Selector */}
+                    <div
+                      className={cn(
+                        "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
+                        attendanceStatus === 'going' ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
+                        attendanceStatus === 'not_going' ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" :
+                        "opacity-0"
+                      )}
+                    />
 
-                  <button
-                    onClick={() => updateAttendance('not_going')}
-                    disabled={saving || !userId || !attendanceLoaded || rolesLoading}
-                    className={cn(
-                      "flex w-full items-center justify-center gap-3 rounded-2xl py-4 font-black text-base transition-all active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
-                      attendanceStatus === 'not_going'
-                        ? "bg-rose-500 text-white shadow-lg shadow-rose-500/30"
-                        : "bg-rose-500/15 text-white ring-1 ring-rose-400/30 hover:bg-rose-500/25"
-                    )}
-                  >
-                    {saving && attendanceStatus === 'not_going' ? (
-                      <Loader2 size={20} className="animate-spin" />
-                    ) : (
-                      <X size={20} strokeWidth={2.5} />
-                    )}
-                    اعتذر
-                  </button>
+                    <button
+                      onClick={() => updateAttendance('going', companionsCount)}
+                      disabled={saving || !userId || !attendanceLoaded || rolesLoading}
+                      className={cn(
+                        "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-base transition-colors duration-500",
+                        attendanceStatus === 'going' ? "text-white" : "text-white/40 hover:text-white/60"
+                      )}
+                    >
+                      {saving && attendanceStatus === 'going' ? <Loader2 size={20} className="animate-spin" /> : <UserCheck size={22} />}
+                      <span>سأحضر</span>
+                    </button>
+
+                    <button
+                      onClick={() => updateAttendance('not_going')}
+                      disabled={saving || !userId || !attendanceLoaded || rolesLoading}
+                      className={cn(
+                        "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-base transition-colors duration-500",
+                        attendanceStatus === 'not_going' ? "text-white" : "text-white/40 hover:text-white/60"
+                      )}
+                    >
+                      {saving && attendanceStatus === 'not_going' ? <Loader2 size={20} className="animate-spin" /> : <UserX size={22} />}
+                      <span>أعتذر</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Decorative watermark */}
