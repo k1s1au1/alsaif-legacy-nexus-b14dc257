@@ -36,6 +36,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { sendFcmNotification } from "@/lib/fcm";
 import { MeetingPresentations } from "@/components/meeting-presentations";
 import { addToCalendar } from "@/lib/calendar";
+import { MeetingCalendar } from "@/components/meetings/meeting-calendar";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -60,7 +61,7 @@ type Meeting = {
   status: "scheduled" | "cancelled" | "completed";
   created_by: string;
 };
-type Attendee = { meeting_id: string; user_id: string; rsvp: Rsvp };
+type Attendee = { meeting_id: string; user_id: string; rsvp: Rsvp; companions_count?: number };
 type ProfileLite = { id: string; arabic_name: string | null; full_name: string | null; avatar_url: string | null };
 
 function formatDate(iso: string) {
@@ -110,18 +111,29 @@ function MeetingsPage() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const [{ data: m }, { data: a }, { data: pr }] = await Promise.all([
+    const [{ data: m }, { data: a }, { data: pr }, { data: ev }] = await Promise.all([
       supabase.from("meetings").select("*").order("scheduled_at", { ascending: true }),
       supabase.from("meeting_attendees").select("*"),
       supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
+      supabase.from("events").select("*"),
     ]);
+
+    // Combine meetings and events for the calendar
+    const calendarItems = [
+      ...((m ?? []) as any[]).map(x => ({ ...x, type: 'meeting', date: x.scheduled_at })),
+      ...((ev ?? []) as any[]).map(x => ({ ...x, type: 'event', date: x.starts_at, scheduled_at: x.starts_at }))
+    ];
+
     setMeetings((m ?? []) as Meeting[]);
     setAttendees((a ?? []) as Attendee[]);
     const map: Record<string, ProfileLite> = {};
     (pr ?? []).forEach((p: any) => { map[p.id] = p; });
     setProfiles(map);
+    setAllCalendarItems(calendarItems);
     setLoading(false);
   }, []);
+
+  const [allCalendarItems, setAllCalendarItems] = useState<any[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -234,19 +246,19 @@ function MeetingsPage() {
     }
   };
 
-  const setRsvp = async (meetingId: string, rsvp: Rsvp) => {
+  const setRsvp = async (meetingId: string, rsvp: Rsvp, companionsCount: number = 0) => {
     if (!userId || savingRsvp === meetingId) return;
 
     const prevAttendees = attendees;
     const current = attendees.find(a => a.meeting_id === meetingId && a.user_id === userId);
-    const isRemoving = current?.rsvp === rsvp;
+    const isRemoving = current?.rsvp === rsvp && current?.companions_count === companionsCount;
 
     setSavingRsvp(meetingId);
 
-    // Optimistic update so toggling between "going" / "not_going" feels instant
+    // Optimistic update
     setAttendees(prev => {
       const without = prev.filter(a => !(a.meeting_id === meetingId && a.user_id === userId));
-      return isRemoving ? without : [...without, { meeting_id: meetingId, user_id: userId, rsvp }];
+      return isRemoving ? without : [...without, { meeting_id: meetingId, user_id: userId, rsvp, companions_count: companionsCount }];
     });
 
     try {
@@ -259,11 +271,10 @@ function MeetingsPage() {
         if (error) throw error;
         toast.success("تم إلغاء الرد");
       } else {
-        // Single atomic write — no delete+insert race when toggling between options
         const { error } = await supabase
           .from("meeting_attendees")
           .upsert(
-            { meeting_id: meetingId, user_id: userId, rsvp },
+            { meeting_id: meetingId, user_id: userId, rsvp, companions_count: companionsCount } as any,
             { onConflict: "meeting_id,user_id" },
           );
         if (error) throw error;
@@ -275,6 +286,26 @@ function MeetingsPage() {
       setAttendees(prevAttendees);
     } finally {
       setSavingRsvp(null);
+    }
+  };
+
+  const handleRemindAll = async (m: Meeting) => {
+    try {
+      toast.loading("جاري إرسال التذكيرات...");
+      const { sendPushNotification } = await import("@/lib/api/push.functions");
+      await sendPushNotification({
+        data: {
+          title: `تذكير: ${m.title}`,
+          body: `نذكركم بموعدنا القريب في: ${formatDate(m.scheduled_at).weekday} الساعة ${formatDate(m.scheduled_at).time}`,
+          type: "meetings",
+          route: "/meetings",
+        },
+      });
+      toast.dismiss();
+      toast.success("تم إرسال التذكير لجميع أفراد العائلة بنجاح ✨");
+    } catch (err) {
+      toast.dismiss();
+      toast.error("فشل إرسال التذكير");
     }
   };
 
@@ -295,10 +326,16 @@ function MeetingsPage() {
     return attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.rsvp ?? null;
   };
 
-  const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
+  const myCompanions = (meetingId: string): number => {
+    if (!userId) return 0;
+    return attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.companions_count ?? 0;
+  };
+
+  const [tab, setTab] = useState<"upcoming" | "calendar" | "past">("upcoming");
 
   const tabs: { key: typeof tab; label: string; count?: number; icon: any }[] = [
     { key: "upcoming", label: "القادمة", count: upcoming.length, icon: Timer },
+    { key: "calendar", label: "التقويم الذكي", icon: CalendarDays },
     { key: "past", label: "الأرشيف", count: past.length, icon: Clock },
   ];
 
@@ -333,7 +370,7 @@ function MeetingsPage() {
         </section>
 
         {/* Tabs */}
-        <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
+        <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
           {tabs.map(t => {
             const Icon = t.icon;
             const active = tab === t.key;
@@ -389,10 +426,12 @@ function MeetingsPage() {
                           attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
                           profiles={profiles}
                           myRsvp={myRsvp(m.id)}
+                          myCompanions={myCompanions(m.id)}
                           onRsvp={setRsvp}
                           canManage={canManage}
                           onEdit={openEdit}
                           onDelete={deleteMeeting}
+                          onRemind={handleRemindAll}
                           saving={savingRsvp === m.id}
                           ready={!rolesLoading && !!userId}
                           dynamicLogo={dynamicLogo}
@@ -409,6 +448,10 @@ function MeetingsPage() {
                   )}
                 </Carousel>
               )
+            )}
+
+            {tab === "calendar" && (
+              <MeetingCalendar meetings={allCalendarItems} />
             )}
 
             {tab === "past" && (
@@ -504,9 +547,18 @@ function MeetingsPage() {
   );
 }
 
-function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, onRsvp, canManage, onEdit, onDelete, saving, ready, dynamicLogo, userId }: any) {
+function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRsvp, myCompanions, onRsvp, canManage, onEdit, onDelete, saving, ready, dynamicLogo, userId, onRemind }: any) {
   const date = formatDate(meeting.scheduled_at);
   const going = attendeesList.filter((a: any) => a.rsvp === 'going').map((a: any) => profiles[a.user_id]).filter(Boolean);
+  const [compCount, setCompCount] = useState(myCompanions || 0);
+
+  useEffect(() => {
+    setCompCount(myCompanions || 0);
+  }, [myCompanions]);
+
+  const totalGoingCount = attendeesList
+    .filter((a: any) => a.rsvp === 'going')
+    .reduce((acc: number, cur: any) => acc + 1 + (cur.companions_count || 0), 0);
 
   return (
     <article className={cn(
@@ -603,8 +655,8 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                    )}
                 </div>
                 <div className="min-w-0 space-y-0.5">
-                   <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">حضور</p>
-                   <p className="text-[10px] md:text-xs font-black text-white">{counts.going}</p>
+                   <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">الإجمالي (بالضيوف)</p>
+                   <p className="text-[10px] md:text-xs font-black text-white">{totalGoingCount} شخص</p>
                 </div>
              </div>
           </div>
@@ -613,9 +665,36 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
 
         {/* Bottom: actions */}
         <div className="relative z-10 flex flex-col gap-3 md:gap-4 w-full">
+           {myRsvp === 'going' && (
+             <div className="flex flex-col gap-2 bg-white/5 p-4 rounded-[22px] border border-white/10 animate-fade-up">
+                <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                <div className="flex items-center gap-3">
+                   <div className="flex-1 grid grid-cols-5 gap-1.5">
+                      {[0, 1, 2, 3, 4].map((num) => (
+                        <button
+                          key={num}
+                          onClick={() => onRsvp(meeting.id, 'going', num)}
+                          className={cn(
+                            "py-2 rounded-xl text-xs font-black transition-all",
+                            compCount === num ? "bg-gold-primary text-black shadow-lg" : "bg-white/5 hover:bg-white/10 text-white/60"
+                          )}
+                        >
+                          {num}
+                        </button>
+                      ))}
+                   </div>
+                   <div className="w-px h-8 bg-white/10" />
+                   <div className="text-center min-w-[40px]">
+                      <p className="text-[14px] font-black leading-none">{1 + compCount}</p>
+                      <p className="text-[7px] font-black text-white/40 uppercase">المجموع</p>
+                   </div>
+                </div>
+             </div>
+           )}
+
            <div className="relative bg-black/20 backdrop-blur-2xl border border-white/10 p-2 md:p-2.5 rounded-2xl md:rounded-[32px] flex items-center shadow-2xl overflow-hidden">
               <button
-                onClick={() => onRsvp(meeting.id, 'going')}
+                onClick={() => onRsvp(meeting.id, 'going', compCount)}
                 disabled={!ready || saving}
                 className={cn(
                   "flex-1 flex items-center justify-center gap-2 rounded-xl md:rounded-[26px] h-[44px] md:h-[52px] font-black text-xs md:text-sm transition-all duration-300 active:scale-95 disabled:opacity-60 disabled:cursor-not-allowed",
@@ -646,7 +725,13 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
            <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
 
            {canManage && (
-              <div className="flex items-center gap-2">
+              <div className="flex flex-wrap items-center gap-2">
+                 <button
+                   onClick={() => onRemind(meeting)}
+                   className="flex-[2] py-2.5 rounded-xl bg-gold-primary text-black hover:bg-gold-primary/90 transition-all text-[10px] font-black flex items-center justify-center gap-1.5 shadow-lg uppercase tracking-widest"
+                 >
+                    <Bell size={12} /> إرسال تذكير للجميع
+                 </button>
                  <button onClick={() => onEdit(meeting)} className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-white/5 uppercase tracking-widest"><Pencil size={12} /> تعديل</button>
                  <button onClick={() => onDelete(meeting.id)} className="flex-1 py-2.5 rounded-xl bg-rose-500/10 text-rose-400 hover:bg-rose-500 hover:text-white transition-all text-[10px] font-black flex items-center justify-center gap-1.5 border border-rose-500/10 uppercase tracking-widest"><Trash2 size={12} /> حذف</button>
               </div>
