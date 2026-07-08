@@ -136,10 +136,17 @@ function SecureVaultPage() {
       // Check if file is selected
       if (!selectedFile) throw new Error("لم يتم اختيار ملف");
 
+      // Get project URL for debugging
+      const projectUrl = (supabase as any).supabaseUrl || "غير معروف";
+      console.log("Connecting to Supabase at:", projectUrl);
+
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `${userData.user.id}/${crypto.randomUUID()}.${fileExt}`;
 
-      console.log("Starting upload to vault-media...", filePath);
+      // Debugging logs to verify project connection
+      console.log("Vault: Attempting upload...");
+      console.log("Bucket Name:", "vault-media");
+      console.log("File Path:", filePath);
 
       // 1. Upload to Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
