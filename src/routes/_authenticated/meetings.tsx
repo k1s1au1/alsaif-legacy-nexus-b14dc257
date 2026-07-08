@@ -640,18 +640,29 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
 
              <div className="flex items-center gap-2 md:gap-4 shrink-0">
                 <div className="flex -space-x-2 md:-space-x-4 space-x-reverse">
-                   {going.slice(0, 4).map((p: any) => (
-                     <div key={p.id} className="size-7 md:size-12 rounded-md md:rounded-[18px] border-2 md:border-4 border-primary overflow-hidden">
-                        <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
-                     </div>
-                   ))}
+                   {going.slice(0, 4).map((p: any) => {
+                     const attendee = attendeesList.find((a: any) => a.user_id === p.id);
+                     const cCount = attendee?.companions_count || 0;
+                     return (
+                        <div key={p.id} className="relative group/avatar">
+                          <div className="size-7 md:size-12 rounded-md md:rounded-[18px] border-2 md:border-4 border-primary overflow-hidden">
+                             <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
+                          </div>
+                          {cCount > 0 && (
+                            <div className="absolute -top-1 -right-1 size-3 md:size-5 bg-gold-primary text-black text-[6px] md:text-[9px] font-black rounded-full flex items-center justify-center border border-primary shadow-sm z-10">
+                               +{cCount}
+                            </div>
+                          )}
+                        </div>
+                     );
+                   })}
                    {going.length > 4 && (
                      <div className="size-7 md:size-12 rounded-md md:rounded-[18px] bg-gold-primary text-black text-[8px] md:text-[10px] font-black flex items-center justify-center border-2 md:border-4 border-primary">+{going.length - 4}</div>
                    )}
                 </div>
                 <div className="min-w-0 space-y-0.5">
                    <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">الإجمالي (بالضيوف)</p>
-                   <p className="text-[10px] md:text-xs font-black text-white">{totalGoingCount} شخص</p>
+                   <p className="text-[10px] md:text-xs font-black text-white">{totalGoingCount} حاضرين</p>
                 </div>
              </div>
           </div>
