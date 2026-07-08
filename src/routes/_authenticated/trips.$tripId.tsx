@@ -344,22 +344,23 @@ function TripDetail() {
         if (error) throw error;
         toast.success("تم إلغاء اختيارك");
       } else {
+        // Attempt upsert with all fields
+        const payload: any = { trip_id: tripId, user_id: userId, status, companions_count: companions };
+
         const { error } = await supabase
           .from("trip_attendees")
-          .upsert(
-            { trip_id: tripId, user_id: userId, status, companions_count: companions } as any,
-            { onConflict: "trip_id,user_id" },
-          );
+          .upsert(payload, { onConflict: "trip_id,user_id" });
+
         if (error) {
-          // Fallback for legacy schema
-          await supabase
+          // Graceful fallback: try without companions_count or status if they are missing from DB
+          console.warn("Retrying trip attendance without extended fields...");
+          const { error: retryError } = await supabase
             .from("trip_attendees")
-            .upsert(
-              { trip_id: tripId, user_id: userId } as any,
-              { onConflict: "trip_id,user_id" },
-            );
+            .upsert({ trip_id: tripId, user_id: userId }, { onConflict: "trip_id,user_id" });
+          if (retryError) throw retryError;
         }
-        if (status === 'going') toast.success("تم تأكيد حضورك");
+
+        if (status === 'going') toast.success("تم تأكيد حضورك ✨");
         else toast.info("تم تسجيل اعتذارك");
       }
 
@@ -659,16 +660,15 @@ function TripDetail() {
                     <div className="flex flex-col gap-2 mb-2 animate-fade-up">
                        <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest text-center">عدد المرافقين معك؟</p>
                        <input
-                         type="text"
+                         type="number"
                          inputMode="numeric"
-                         pattern="[0-9]*"
                          value={companionsCount}
                          onChange={(e) => {
-                           const val = e.target.value.replace(/[^0-9]/g, '');
-                           setCompanionsCount(val === '' ? 0 : parseInt(val));
+                           const val = parseInt(e.target.value) || 0;
+                           setCompanionsCount(val);
                          }}
                          onBlur={() => updateAttendance('going', companionsCount)}
-                         className="w-full h-12 bg-white/10 border border-white/20 rounded-xl px-4 font-black text-center text-lg focus:outline-none focus:border-gold-primary transition-all text-white"
+                         className="w-full h-14 bg-white/10 border-2 border-white/20 rounded-2xl px-6 font-black text-center text-xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
                          placeholder="٠"
                        />
                     </div>

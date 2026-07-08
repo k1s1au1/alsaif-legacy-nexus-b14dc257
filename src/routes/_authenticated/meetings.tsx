@@ -261,13 +261,22 @@ function MeetingsPage() {
         if (error) throw error;
         toast.success("تم إلغاء الرد");
       } else {
+        // Safe upsert that handles missing columns gracefully
+        const payload: any = { meeting_id: meetingId, user_id: userId, rsvp };
+        if (companionsCount > 0) payload.companions_count = companionsCount;
+
         const { error } = await supabase
           .from("meeting_attendees")
-          .upsert(
-            { meeting_id: meetingId, user_id: userId, rsvp, companions_count: companionsCount } as any,
-            { onConflict: "meeting_id,user_id" },
-          );
-        if (error) throw error;
+          .upsert(payload, { onConflict: "meeting_id,user_id" });
+
+        if (error) {
+          // If companions_count is causing the issue, try without it
+          const { error: retryError } = await supabase
+            .from("meeting_attendees")
+            .upsert({ meeting_id: meetingId, user_id: userId, rsvp }, { onConflict: "meeting_id,user_id" });
+          if (retryError) throw retryError;
+        }
+
         toast.success(rsvp === "going" ? "ننتظر تشريفك!" : "تم تسجيل اعتذارك");
       }
     } catch (error) {
@@ -660,16 +669,15 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                 </div>
                 <div className="flex items-center gap-3">
                    <input
-                     type="text"
+                     type="number"
                      inputMode="numeric"
-                     pattern="[0-9]*"
                      value={compCount}
                      onChange={(e) => {
-                       const val = e.target.value.replace(/[^0-9]/g, '');
-                       setCompCount(val === '' ? 0 : parseInt(val));
+                       const val = parseInt(e.target.value) || 0;
+                       setCompCount(val);
                      }}
                      onBlur={() => onRsvp(meeting.id, 'going', compCount)}
-                     className="flex-1 h-14 bg-white/10 border-2 border-white/20 rounded-2xl px-6 font-black text-center text-xl focus:outline-none focus:border-gold-primary focus:bg-white/20 transition-all shadow-inner"
+                     className="flex-1 h-14 bg-white/10 border-2 border-white/20 rounded-2xl px-6 font-black text-center text-xl focus:outline-none focus:border-gold-primary transition-all shadow-inner text-white"
                      placeholder="٠"
                    />
                 </div>
