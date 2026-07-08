@@ -19,7 +19,8 @@ import {
   ShieldAlert,
   Loader2,
   MoreVertical,
-  ChevronLeft
+  ChevronLeft,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -240,12 +241,16 @@ function SecureVaultPage() {
 
   const toggleUserSelection = (userId: string) => {
     if (!userId) return;
-    setSharedWith(prev =>
-      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
-    );
+    setSharedWith(prev => {
+      const current = prev || [];
+      return current.includes(userId)
+        ? current.filter(id => id !== userId)
+        : [...current, userId];
+    });
   };
 
   const handleDownload = async (item: VaultItem) => {
+    if (!item) return;
     if (item.unlock_at && new Date(item.unlock_at) > new Date()) {
       toast.error("هذه الوثيقة لا تزال مقفلة زمنياً");
       return;
@@ -257,14 +262,16 @@ function SecureVaultPage() {
         .createSignedUrl(item.storage_path, 60);
 
       if (error) throw error;
-      window.open(data.signedUrl, '_blank');
+      if (data?.signedUrl) {
+        window.open(data.signedUrl, '_blank');
+      }
     } catch (err) {
       toast.error("تعذر فتح الوثيقة");
     }
   };
 
   const handleDelete = async (item: VaultItem) => {
-    if (!confirm("هل أنت متأكد من حذف هذه الوثيقة نهائياً؟")) return;
+    if (!item || !confirm("هل أنت متأكد من حذف هذه الوثيقة نهائياً؟")) return;
 
     try {
       const { error: dbError } = await supabase.from("secure_vault" as any).delete().eq("id", item.id);
@@ -279,7 +286,13 @@ function SecureVaultPage() {
     }
   };
 
-  const meId = supabase.auth.getUser().then(({data}) => data.user?.id);
+  // Safe user check
+  const [sessionUserId, setSessionUserId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSessionUserId(data.session?.user?.id || null);
+    });
+  }, []);
 
   return (
     <AppShell title="خزنة الوثائق والوصايا" user={{ name: "الخزنة الرقمية", role: "خصوصية فائقة", initial: "خ" }}>
@@ -438,33 +451,52 @@ function SecureVaultPage() {
 
                      <AnimatePresence>
                         {visibility === "selected" && (
-                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-4 overflow-hidden">
-                              <div className="flex items-center justify-between">
-                                 <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">اختر المصرح لهم</label>
-                                 <span className="text-[10px] font-black text-gold-primary">{sharedWith.length} عضو مختار</span>
+                           <motion.div
+                             initial={{ height: 0, opacity: 0 }}
+                             animate={{ height: "auto", opacity: 1 }}
+                             exit={{ height: 0, opacity: 0 }}
+                             className="space-y-4 overflow-hidden"
+                           >
+                              <div className="flex items-center justify-between px-1">
+                                 <label className="text-[10px] font-black uppercase text-primary/40 tracking-[0.2em]">اختر المصرح لهم</label>
+                                 <span className="text-[10px] font-black text-gold-primary">{(sharedWith || []).length} عضو مختار</span>
                               </div>
                               <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 max-h-48 overflow-y-auto p-4 bg-muted/30 rounded-[32px] border border-border/40 no-scrollbar shadow-inner">
-                                 {allProfiles.filter(p => p && p.id && p.id !== currentUserId).map(p => (
-                                    <button
-                                      key={p.id}
-                                      type="button"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        toggleUserSelection(p.id);
-                                      }}
-                                      className="flex flex-col items-center gap-2 group/u transition-transform active:scale-90"
-                                    >
-                                       <div className={cn(
-                                         "size-12 md:size-14 rounded-full p-0.5 border-2 transition-all relative",
-                                         sharedWith.includes(p.id) ? "border-primary bg-primary/10 shadow-lg" : "border-transparent opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
-                                       )}>
-                                          <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full rounded-full" />
-                                          {sharedWith.includes(p.id) && <div className="absolute -top-1 -right-1 size-5 rounded-full bg-primary flex items-center justify-center text-white border-2 border-card"><Check size={10} strokeWidth={4} /></div>}
-                                       </div>
-                                       <span className={cn("text-[8px] font-black truncate w-full text-center", sharedWith.includes(p.id) ? "text-primary" : "text-muted-foreground")}>{p.arabic_name?.split(' ')[0] || p.full_name?.split(' ')[0]}</span>
-                                    </button>
-                                 ))}
+                                 {(allProfiles || [])
+                                   .filter(p => p && p.id && p.id !== currentUserId)
+                                   .map(p => {
+                                     const isSelected = (sharedWith || []).includes(p.id);
+                                     return (
+                                       <button
+                                         key={p.id}
+                                         type="button"
+                                         onClick={(e) => {
+                                           e.preventDefault();
+                                           e.stopPropagation();
+                                           toggleUserSelection(p.id);
+                                         }}
+                                         className="flex flex-col items-center gap-2 group/u transition-transform active:scale-90 outline-none"
+                                       >
+                                          <div className={cn(
+                                            "size-12 md:size-14 rounded-full p-0.5 border-2 transition-all relative",
+                                            isSelected ? "border-primary bg-primary/10 shadow-lg" : "border-transparent opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                                          )}>
+                                             <UserAvatar path={p.avatar_url} name={p.arabic_name || p.full_name || "عضو"} className="size-full rounded-full" />
+                                             {isSelected && (
+                                               <div className="absolute -top-1 -right-1 size-5 rounded-full bg-primary flex items-center justify-center text-white border-2 border-card">
+                                                  <Check size={10} strokeWidth={4} />
+                                               </div>
+                                             )}
+                                          </div>
+                                          <span className={cn(
+                                            "text-[8px] font-black truncate w-full text-center",
+                                            isSelected ? "text-primary" : "text-muted-foreground"
+                                          )}>
+                                            {(p.arabic_name || p.full_name || "عضو").split(' ')[0]}
+                                          </span>
+                                       </button>
+                                     );
+                                   })}
                               </div>
                            </motion.div>
                         )}
