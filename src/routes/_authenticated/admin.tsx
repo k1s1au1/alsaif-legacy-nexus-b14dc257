@@ -44,6 +44,7 @@ import { useSiteLogo } from "@/hooks/use-site-logo";
 
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { sendFcmNotification } from "@/lib/fcm";
+import { finalizePoll } from "@/lib/api/shura.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({
   ssr: false,
@@ -799,6 +800,8 @@ function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssign
 function PollsManager({ list, meId, onRefresh }: any) {
   const [showForm, setShowForm] = useState(false);
   const [draft, setDraft] = useState({ title: "", question: "", options: ["", ""] });
+  const [finalizing, setFinalizing] = useState<string | null>(null);
+  const runFinalize = useServerFn(finalizePoll);
 
   const handleSave = async () => {
     if (!draft.title || !draft.question || draft.options.some(o => !o)) return toast.error("يرجى إكمال البيانات");
@@ -810,6 +813,22 @@ function PollsManager({ list, meId, onRefresh }: any) {
       author_id: meId
     });
     if (!error) { toast.success("تم نشر التصويت"); setShowForm(false); setDraft({ title: "", question: "", options: ["", ""] }); onRefresh(); }
+  };
+
+  const handleFinalize = async (postId: string) => {
+    if (!confirm("هل أنت متأكد من إغلاق التصويت واستخراج المحضر الرسمي؟ سيتم حفظ التقرير في الخزنة.")) return;
+    setFinalizing(postId);
+    try {
+      const res = await runFinalize({ data: { postId } });
+      if (res.success) {
+        toast.success("تم استخراج المحضر وحفظه في الخزنة بنجاح ✨");
+        onRefresh();
+      }
+    } catch (e: any) {
+      toast.error(e.message || "فشل استخراج المحضر");
+    } finally {
+      setFinalizing(null);
+    }
   };
 
   return (
@@ -837,19 +856,37 @@ function PollsManager({ list, meId, onRefresh }: any) {
          )}
        </AnimatePresence>
        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {list.map((p: any) => (
-            <div key={p.id} className="card-surface p-6 flex flex-col justify-between group">
-               <div className="space-y-4">
-                  <div className="flex justify-between items-start">
-                    <h4 className="text-lg font-black text-primary leading-tight line-clamp-2">{p.title}</h4>
-                    <button onClick={() => { if(confirm("حذف؟")) supabase.from("majlis_posts").delete().eq("id", p.id).then(() => onRefresh()) }} className="size-9 rounded-lg bg-rose-500/10 text-rose-500 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"><Trash2 size={16} /></button>
-                  </div>
-                  <div className="flex items-center gap-2 text-gold-primary">
-                    <BarChart3 size={14} /> <span className="text-[10px] font-black uppercase tracking-[0.2em]">تصويت نشط</span>
-                  </div>
-               </div>
-            </div>
-          ))}
+          {list.map((p: any) => {
+            const isFinalized = p.body?.includes('"status":"finalized"');
+            return (
+              <div key={p.id} className="card-surface p-6 flex flex-col justify-between group">
+                 <div className="space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="space-y-1">
+                        <h4 className="text-lg font-black text-primary leading-tight line-clamp-2">{p.title}</h4>
+                        {isFinalized && <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">تم الأرشفة</span>}
+                      </div>
+                      <div className="flex gap-2">
+                         {!isFinalized && (
+                           <button
+                             onClick={() => handleFinalize(p.id)}
+                             disabled={finalizing === p.id}
+                             className="size-9 rounded-lg bg-gold-primary/10 text-gold-primary flex items-center justify-center hover:bg-gold-primary hover:text-white transition-all shadow-sm"
+                             title="استخراج المحضر"
+                           >
+                             {finalizing === p.id ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck size={18} />}
+                           </button>
+                         )}
+                         <button onClick={() => { if(confirm("حذف؟")) supabase.from("majlis_posts").delete().eq("id", p.id).then(() => onRefresh()) }} className="size-9 rounded-lg bg-rose-500/10 text-rose-500 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"><Trash2 size={16} /></button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-gold-primary">
+                      <BarChart3 size={14} /> <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isFinalized ? "تصويت منتهي" : "تصويت نشط"}</span>
+                    </div>
+                 </div>
+              </div>
+            );
+          })}
        </div>
     </div>
   );

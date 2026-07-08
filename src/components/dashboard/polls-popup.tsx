@@ -73,10 +73,11 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const pending = useMemo(() => polls.filter(p => p.myVoteIndex === -1), [polls]);
+  const pending = useMemo(() => polls.filter(p => p.myVoteIndex === -1 && p.poll.status !== "finalized"), [polls]);
 
   // Auto-open only once per session, and only if not snoozed
   useEffect(() => {
+    if (!userId) return; // Don't auto-open if we don't know the user yet (prevents race condition)
     if (autoOpenedRef.current) return;
     if (pending.length === 0) return;
     if (typeof window === "undefined") return;
@@ -86,7 +87,19 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     autoOpenedRef.current = true;
     sessionStorage.setItem(SESSION_SHOWN_KEY, "1");
     setOpen(true);
-  }, [pending.length]);
+  }, [pending.length, userId]);
+
+  // Listen for manual trigger from Dynamic Island
+  useEffect(() => {
+    const handleManualOpen = () => {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(SNOOZE_KEY);
+      }
+      setOpen(true);
+    };
+    window.addEventListener("polls:open", handleManualOpen);
+    return () => window.removeEventListener("polls:open", handleManualOpen);
+  }, []);
 
   const vote = async (post_id: string, idx: number) => {
     if (!userId) return;
@@ -181,8 +194,9 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                   const yesPct = total > 0 ? Math.round((counts[0] / total) * 100) : 0;
                   const canExecute = isLeadership && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
                   const alreadyExecuted = poll.status === "executed";
+                  const finalized = poll.status === "finalized";
 
-                  if (alreadyExecuted && !open) return null; // Don't show finished in bubble button
+                  if ((alreadyExecuted || finalized) && !open) return null; // Don't show finished in bubble button
 
                   return (
                     <motion.div
@@ -226,11 +240,11 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                             <button
                               key={i}
                               onClick={() => vote(post.id, i)}
-                              disabled={voted || alreadyExecuted}
+                              disabled={voted || alreadyExecuted || finalized}
                               className={cn(
                                 "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all active:scale-[0.98]",
                                 isMyVote ? "border-primary bg-primary/5" : "border-border/40 bg-card hover:border-primary/40",
-                                alreadyExecuted && "opacity-80 cursor-default"
+                                (alreadyExecuted || finalized) && "opacity-80 cursor-default"
                               )}
                             >
                               <div
@@ -282,6 +296,13 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                         <div className="flex items-center gap-2 justify-center py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
                            <ShieldCheck className="size-4 text-emerald-600" />
                            <span className="text-xs font-black text-emerald-600">تم تنفيذ القرار وتحديث رئاسة المجلس</span>
+                        </div>
+                      )}
+
+                      {finalized && (
+                        <div className="flex items-center gap-2 justify-center py-2 bg-muted rounded-xl border border-border">
+                           <CheckCircle2 className="size-4 text-muted-foreground" />
+                           <span className="text-xs font-black text-muted-foreground">تم إغلاق التصويت وأرشفة المحضر في الخزنة</span>
                         </div>
                       )}
                     </motion.div>
