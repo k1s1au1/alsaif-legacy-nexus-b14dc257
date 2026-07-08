@@ -61,11 +61,11 @@ interface VaultItem {
   };
 }
 
-const CATEGORIES: { key: VaultCategory; label: string; icon: any; color: string; desc: string }[] = [
-  { key: "will", label: "الوصايا", icon: FileText, color: "bg-amber-600", desc: "رسائل ووصايا موجهة للمستقبل." },
-  { key: "deed", label: "الصكوك والوثائق", icon: ShieldCheck, color: "bg-emerald-700", desc: "صكوك ملكية ووثائق رسمية عائلية." },
-  { key: "heritage", label: "مخطوطات تاريخية", icon: History, color: "bg-gold-primary", desc: "وثائق ومراسلات تاريخية قديمة." },
-  { key: "private", label: "خاص وسري", icon: Lock, color: "bg-rose-800", desc: "مستندات خاصة لا يراها إلا أشخاص محددون." },
+const CATEGORIES: { key: VaultCategory; label: string; icon: any; color: string; gradient: string; desc: string }[] = [
+  { key: "will", label: "الوصايا", icon: FileText, color: "bg-amber-600", gradient: "from-amber-600/20 to-amber-900/10", desc: "رسائل ووصايا موجهة للمستقبل." },
+  { key: "deed", label: "الصكوك والوثائق", icon: ShieldCheck, color: "bg-emerald-700", gradient: "from-emerald-700/20 to-emerald-900/10", desc: "صكوك ملكية ووثائق رسمية عائلية." },
+  { key: "heritage", label: "مخطوطات تاريخية", icon: History, color: "bg-gold-primary", gradient: "from-[#D4AF37]/20 to-[#8E7745]/10", desc: "وثائق ومراسلات تاريخية قديمة." },
+  { key: "private", label: "خاص وسري", icon: Lock, color: "bg-rose-800", gradient: "from-rose-800/20 to-rose-950/10", desc: "مستندات خاصة لا يراها إلا أشخاص محددون." },
 ];
 
 function SecureVaultPage() {
@@ -282,27 +282,31 @@ function SecureVaultPage() {
 
   return (
     <AppShell title="خزنة الوثائق والوصايا" user={{ name: "الخزنة الرقمية", role: "خصوصية فائقة", initial: "خ" }}>
-      <div className="max-w-7xl mx-auto space-y-12 pb-24 px-4 md:px-0" dir="rtl">
+      <div className="max-w-7xl mx-auto space-y-8 md:space-y-12 pb-24 px-4 md:px-0" dir="rtl">
 
-        {/* Prestige Header */}
+        {/* Prestige Header - Responsive Design */}
         <section className="animate-fade-up">
-           <div className="relative overflow-hidden rounded-[40px] md:rounded-[60px] bg-gradient-to-br from-[#0a1a16] via-[#051410] to-black border border-white/5 shadow-2xl p-8 md:p-20 flex flex-col md:flex-row items-center justify-between gap-12 group">
+           <div className="relative overflow-hidden rounded-[32px] md:rounded-[60px] bg-gradient-to-br from-[#0a1a16] via-[#051410] to-black border border-white/5 shadow-2xl p-6 md:p-20 flex flex-col md:flex-row items-center justify-between gap-8 md:gap-12 group">
               <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
                    style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/carbon-fibre.png")` }} />
 
-              <div className="relative z-10 space-y-6 text-center md:text-right flex-1">
-                 <div className="flex items-center justify-center md:justify-start gap-4">
-                    <div className="h-0.5 w-12 bg-gold-primary" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gold-primary">النظام الأمني المشفر</span>
+              {/* Decorative Mesh Blobs */}
+              <div className="absolute -top-24 -right-24 size-64 bg-emerald-500/10 rounded-full blur-[80px] pointer-events-none" />
+              <div className="absolute -bottom-24 -left-24 size-64 bg-gold-primary/5 rounded-full blur-[80px] pointer-events-none" />
+
+              <div className="relative z-10 space-y-4 md:space-y-6 text-center md:text-right flex-1">
+                 <div className="flex items-center justify-center md:justify-start gap-3 md:gap-4">
+                    <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_15px_rgba(212,175,55,0.4)]" />
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary">النظام الأمني المشفر</span>
                  </div>
-                 <div className="space-y-3">
-                    <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-white drop-shadow-2xl">خزنة<br /><span className="text-white/20">الوصايا والوثائق</span></h2>
-                    <p className="text-sm md:text-2xl font-bold text-white/50 max-w-2xl leading-relaxed">المكان الأكثر أماناً لحفظ أسرار العائلة، صكوكها، ووصاياها الموجهة للمستقبل.</p>
+                 <div className="space-y-2 md:space-y-3">
+                    <h2 className="text-3xl md:text-7xl font-black tracking-tighter text-white drop-shadow-2xl leading-none">خزنة<br /><span className="text-white/20">الوصايا والوثائق</span></h2>
+                    <p className="text-xs md:text-2xl font-bold text-white/50 max-w-2xl leading-relaxed">المكان الأكثر أماناً لحفظ أسرار العائلة، صكوكها، ووصاياها الموجهة للمستقبل.</p>
                  </div>
               </div>
 
-              <div className="relative z-10 shrink-0 flex flex-col items-center gap-6">
-                 <div className="relative group/vault">
+              <div className="relative z-10 shrink-0 flex flex-col items-center gap-4 md:gap-6 w-full md:w-auto">
+                 <div className="relative group/vault hidden md:block">
                     <div className="absolute inset-0 bg-gold-primary/20 rounded-full blur-3xl animate-pulse group-hover/vault:bg-gold-primary/40 transition-colors" />
                     <div className="relative size-32 md:size-48 rounded-[48px] bg-white/5 backdrop-blur-2xl border border-white/10 flex items-center justify-center text-gold-primary shadow-2xl transition-transform duration-700 group-hover/vault:rotate-[10deg] group-hover/vault:scale-105">
                        <Lock size={64} strokeWidth={1} className="md:size-24" />
@@ -310,9 +314,9 @@ function SecureVaultPage() {
                  </div>
                  <button
                    onClick={() => setShowAdd(true)}
-                   className="btn-gold px-10 py-5 rounded-[24px] text-lg font-black flex items-center gap-3 shadow-xl hover:scale-105 active:scale-95 transition-all"
+                   className="btn-gold w-full md:w-auto px-8 md:px-12 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(139,107,35,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
                  >
-                    <Plus size={24} strokeWidth={3} /> إضافة وثيقة جديدة
+                    <Plus className="size-5 md:size-6" strokeWidth={4} /> إضافة وثيقة جديدة
                  </button>
               </div>
            </div>
@@ -320,60 +324,60 @@ function SecureVaultPage() {
 
         <QuickActionsBanner />
 
-        {/* Filter & Search */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
-           <div className="flex items-center gap-2 p-1.5 bg-muted/40 backdrop-blur-xl rounded-[28px] border border-border/40 overflow-x-auto no-scrollbar w-full md:w-auto shadow-inner">
+        {/* Filter & Search - Refined Responsive UI */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-4 md:gap-6 animate-fade-up" style={{ animationDelay: "100ms" }}>
+           <div className="flex items-center gap-1.5 md:gap-2 p-1 md:p-1.5 bg-muted/40 backdrop-blur-xl rounded-2xl md:rounded-[28px] border border-border/40 overflow-x-auto no-scrollbar shadow-inner">
               <button
                 onClick={() => setActiveTab("all")}
-                className={cn("px-6 py-3 rounded-2xl text-xs font-black transition-all", activeTab === "all" ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}
+                className={cn("px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl text-[10px] md:text-xs font-black transition-all whitespace-nowrap", activeTab === "all" ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}
               >الكل</button>
               {CATEGORIES.map(c => (
                 <button
                   key={c.key}
                   onClick={() => setActiveTab(c.key)}
-                  className={cn("px-6 py-3 rounded-2xl text-xs font-black transition-all flex items-center gap-2 shrink-0", activeTab === c.key ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}
+                  className={cn("px-4 md:px-6 py-2 md:py-3 rounded-xl md:rounded-2xl text-[10px] md:text-xs font-black transition-all flex items-center gap-2 shrink-0 whitespace-nowrap", activeTab === c.key ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:bg-muted")}
                 >
                   <c.icon size={14} /> {c.label}
                 </button>
               ))}
            </div>
 
-           <div className="relative w-full md:w-80 group">
+           <div className="relative group">
               <Search className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
               <input
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 placeholder="ابحث في الخزنة..."
-                className="w-full bg-card border border-border rounded-2xl pr-12 pl-4 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/10 outline-none transition-all shadow-sm"
+                className="w-full md:w-80 bg-card border border-border rounded-2xl pr-12 pl-4 py-3.5 md:py-4 text-xs md:text-sm font-bold focus:ring-4 focus:ring-primary/5 outline-none transition-all shadow-sm"
               />
            </div>
         </div>
 
-        {/* Instructions/Empty State for Missing Table */}
+        {/* Grid Layout - Optimized for Viewport */}
         {loading ? (
           <div className="py-40 text-center opacity-30">
-             <Loader2 className="size-16 animate-spin mx-auto mb-4" />
-             <p className="font-black uppercase tracking-widest text-xs">جاري فتح الخزنة...</p>
+             <Loader2 className="size-16 animate-spin mx-auto mb-4 text-primary" strokeWidth={3} />
+             <p className="font-black uppercase tracking-[0.3em] text-[10px]">جاري فتح الخزنة...</p>
           </div>
         ) : items.length === 0 ? (
-          <div className="animate-fade-up py-32 md:py-48 flex flex-col items-center text-center gap-8 card-surface border-dashed border-2 p-10">
-             <div className="size-32 rounded-[50px] bg-gold-primary/5 border border-gold-primary/10 flex items-center justify-center text-gold-primary/30">
-                <ShieldAlert size={60} />
+          <div className="animate-fade-up py-20 md:py-48 flex flex-col items-center text-center gap-6 md:gap-8 card-surface border-dashed border-2 p-10 md:p-20 rounded-[40px] md:rounded-[60px]">
+             <div className="size-24 md:size-32 rounded-[40px] md:rounded-[50px] bg-gold-primary/5 border border-gold-primary/10 flex items-center justify-center text-gold-primary/30">
+                <ShieldAlert size={48} className="md:size-60" />
              </div>
-             <div className="space-y-4 max-w-lg">
-                <h3 className="text-3xl font-black text-primary">الخزنة فارغة أو غير مفعلة</h3>
-                <p className="text-muted-foreground font-bold leading-relaxed">
+             <div className="space-y-3 md:space-y-4 max-w-lg">
+                <h3 className="text-2xl md:text-4xl font-black text-primary tracking-tight">الخزنة فارغة حالياً</h3>
+                <p className="text-sm md:text-xl font-bold text-muted-foreground leading-relaxed">
                    لم نجد أي وثائق في خزنتك الخاصة. ابدأ برفع أول وثيقة ملكية أو وصية لتكون محفوظة بأعلى درجات الخصوصية.
                 </p>
-                <div className="pt-6 flex flex-col items-center gap-4">
-                   <div className="flex items-center gap-2 text-[10px] font-black uppercase text-gold-primary tracking-widest opacity-60">
+                <div className="pt-4 flex flex-col items-center gap-2 opacity-50">
+                   <div className="flex items-center gap-2 text-[8px] md:text-[10px] font-black uppercase text-gold-primary tracking-widest">
                       <ShieldCheck size={14} /> حماية مشفرة 256-bit
                    </div>
                 </div>
              </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8 animate-fade-up" style={{ animationDelay: "200ms" }}>
              {filteredItems.map(item => (
                 <VaultCard
                   key={item.id}
@@ -387,12 +391,12 @@ function SecureVaultPage() {
         )}
 
         {/* Security Notice Footer */}
-        <section className="pt-20 opacity-40 hover:opacity-100 transition-opacity">
-           <div className="flex flex-col items-center gap-6 p-10 border-t border-border/40 text-center">
-              <ShieldCheck className="size-12 text-primary" />
-              <div className="space-y-2">
-                 <h4 className="text-sm font-black text-primary uppercase tracking-[0.4em]">Family Security Protocol</h4>
-                 <p className="text-xs font-bold text-muted-foreground max-w-md">كافة الوثائق المرفوعة في هذه الخزنة تخضع لقوانين الخصوصية العائلية المشددة ولا يحق لأي جهة برمجية الاطلاع على محتواها.</p>
+        <section className="pt-10 md:pt-20 opacity-40 hover:opacity-100 transition-opacity">
+           <div className="flex flex-col items-center gap-4 md:gap-6 p-10 border-t border-border/40 text-center">
+              <ShieldCheck className="size-8 md:size-12 text-primary" />
+              <div className="space-y-1 md:space-y-2">
+                 <h4 className="text-[10px] md:text-sm font-black text-primary uppercase tracking-[0.4em]">Family Security Protocol</h4>
+                 <p className="text-[9px] md:text-xs font-bold text-muted-foreground max-w-md leading-relaxed">كافة الوثائق المرفوعة في هذه الخزنة تخضع لقوانين الخصوصية العائلية المشددة ولا يحق لأي جهة برمجية الاطلاع على محتواها.</p>
               </div>
            </div>
         </section>
@@ -401,38 +405,58 @@ function SecureVaultPage() {
 
       <AnimatePresence>
          {showAdd && (
-            <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" dir="rtl">
-               <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="bg-card border border-border rounded-[48px] w-full max-w-xl p-10 space-y-8 shadow-2xl relative overflow-hidden">
-                  <div className="absolute top-0 right-0 size-32 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-2xl" />
+            <div className="fixed inset-0 z-[120] flex items-end md:items-center justify-center p-0 md:p-4 bg-black/90 backdrop-blur-md" dir="rtl">
+               <motion.div
+                 onClick={e => e.stopPropagation()}
+                 initial={typeof window !== 'undefined' && window.innerWidth < 768 ? { y: "100%" } : { scale: 0.9, opacity: 0 }}
+                 animate={typeof window !== 'undefined' && window.innerWidth < 768 ? { y: 0 } : { scale: 1, opacity: 1 }}
+                 exit={typeof window !== 'undefined' && window.innerWidth < 768 ? { y: "100%" } : { scale: 0.9, opacity: 0 }}
+                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+                 className="bg-card border-t md:border border-border rounded-t-[40px] md:rounded-[48px] w-full max-w-2xl p-6 md:p-12 space-y-8 shadow-2xl relative overflow-hidden max-h-[92vh] md:max-h-[85vh] overflow-y-auto no-scrollbar"
+               >
+                  <div className="absolute top-0 right-0 size-48 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl pointer-events-none" />
 
                   <div className="flex items-center justify-between relative z-10">
                      <div className="space-y-1">
-                        <h3 className="text-2xl font-black text-primary tracking-tight">إيداع وثيقة جديدة</h3>
-                        <p className="text-xs font-bold text-muted-foreground opacity-60">سيتم حفظ الملف في الخزنة المشفرة</p>
+                        <h3 className="text-2xl md:text-3xl font-black text-primary tracking-tight">إيداع وثيقة جديدة</h3>
+                        <p className="text-xs font-bold text-muted-foreground opacity-60">سيتم حفظ الملف في الخزنة المشفرة للأبد</p>
                      </div>
-                     <button onClick={() => setShowAdd(false)} className="size-12 rounded-full bg-muted flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm"><X size={24} /></button>
+                     <button onClick={() => setShowAdd(false)} className="size-12 rounded-2xl bg-muted flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shadow-sm active:scale-90"><X size={24} /></button>
                   </div>
 
-                  <div className="space-y-6 relative z-10">
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">عرض الوثيقة لمن؟</label>
-                        <div className="flex gap-2 p-1 bg-muted/40 rounded-2xl border border-border/40">
-                           <button onClick={() => setVisibility("private")} className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", visibility === "private" ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}>خاص بي فقط</button>
-                           <button onClick={() => setVisibility("all")} className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", visibility === "all" ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}>للجميع</button>
-                           <button onClick={() => setVisibility("selected")} className={cn("flex-1 py-3 rounded-xl font-black text-xs transition-all", visibility === "selected" ? "bg-primary text-white shadow-lg" : "text-muted-foreground")}>أشخاص محددون</button>
+                  <div className="space-y-8 relative z-10">
+                     {/* Visibility Selector - Refined */}
+                     <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">عرض الوثيقة لمن؟</label>
+                        <div className="grid grid-cols-3 gap-2 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
+                           <button onClick={() => setVisibility("private")} className={cn("py-3.5 rounded-xl font-black text-[10px] md:text-xs transition-all", visibility === "private" ? "bg-primary text-white shadow-xl scale-[1.02]" : "text-muted-foreground hover:bg-muted")}>خاص بي فقط</button>
+                           <button onClick={() => setVisibility("all")} className={cn("py-3.5 rounded-xl font-black text-[10px] md:text-xs transition-all", visibility === "all" ? "bg-primary text-white shadow-xl scale-[1.02]" : "text-muted-foreground hover:bg-muted")}>للجميع</button>
+                           <button onClick={() => setVisibility("selected")} className={cn("py-3.5 rounded-xl font-black text-[10px] md:text-xs transition-all", visibility === "selected" ? "bg-primary text-white shadow-xl scale-[1.02]" : "text-muted-foreground hover:bg-muted")}>أشخاص محددون</button>
                         </div>
                      </div>
 
                      <AnimatePresence>
                         {visibility === "selected" && (
-                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-3 overflow-hidden">
-                              <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">اختر المصرح لهم ( {sharedWith.length} )</label>
-                              <div className="max-h-40 overflow-y-auto p-2 bg-muted/30 rounded-2xl border border-border/40 space-y-1 custom-scrollbar">
+                           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-4 overflow-hidden">
+                              <div className="flex items-center justify-between">
+                                 <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">اختر المصرح لهم</label>
+                                 <span className="text-[10px] font-black text-gold-primary">{sharedWith.length} عضو مختار</span>
+                              </div>
+                              <div className="grid grid-cols-4 sm:grid-cols-5 md:grid-cols-6 gap-3 max-h-48 overflow-y-auto p-4 bg-muted/30 rounded-[32px] border border-border/40 no-scrollbar shadow-inner">
                                  {allProfiles.filter(p => p.id !== currentUserId).map(p => (
-                                    <button key={p.id} onClick={() => toggleUserSelection(p.id)} className={cn("w-full flex items-center gap-3 p-2 rounded-xl transition-all", sharedWith.includes(p.id) ? "bg-primary/10 border border-primary/20" : "hover:bg-muted")}>
-                                       <div className="size-8 rounded-lg overflow-hidden border border-border/40"><UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" /></div>
-                                       <span className={cn("text-xs font-bold", sharedWith.includes(p.id) ? "text-primary" : "text-muted-foreground")}>{p.arabic_name || p.full_name}</span>
-                                       {sharedWith.includes(p.id) && <div className="ms-auto size-4 rounded-full bg-primary flex items-center justify-center text-white"><Check size={10} strokeWidth={4} /></div>}
+                                    <button
+                                      key={p.id}
+                                      onClick={() => toggleUserSelection(p.id)}
+                                      className="flex flex-col items-center gap-2 group/u transition-transform active:scale-90"
+                                    >
+                                       <div className={cn(
+                                         "size-12 md:size-14 rounded-full p-0.5 border-2 transition-all relative",
+                                         sharedWith.includes(p.id) ? "border-primary bg-primary/10 shadow-lg" : "border-transparent opacity-60 grayscale hover:opacity-100 hover:grayscale-0"
+                                       )}>
+                                          <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full rounded-full" />
+                                          {sharedWith.includes(p.id) && <div className="absolute -top-1 -right-1 size-5 rounded-full bg-primary flex items-center justify-center text-white border-2 border-card"><Check size={10} strokeWidth={4} /></div>}
+                                       </div>
+                                       <span className={cn("text-[8px] font-black truncate w-full text-center", sharedWith.includes(p.id) ? "text-primary" : "text-muted-foreground")}>{p.arabic_name?.split(' ')[0] || p.full_name?.split(' ')[0]}</span>
                                     </button>
                                  ))}
                               </div>
@@ -440,54 +464,54 @@ function SecureVaultPage() {
                         )}
                      </AnimatePresence>
 
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">عنوان الوثيقة</label>
-                        <input
-                          value={newTitle}
-                          onChange={e => setNewTitle(e.target.value)}
-                          placeholder="مثلاً: وصية الجد خالد، صك مزرعة القصيم..."
-                          className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                        />
-                     </div>
-
-                     <div className="space-y-2">
-                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">وصف مختصر (اختياري)</label>
-                        <input
-                          value={newDesc}
-                          onChange={e => setNewDesc(e.target.value)}
-                          placeholder="اكتب وصفاً بسيطاً لمحتوى الوثيقة..."
-                          className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 transition-all outline-none"
-                        />
-                     </div>
-
-                     <div className="grid grid-cols-2 gap-4">
+                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-6">
                         <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">التصنيف</label>
+                           <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">عنوان الوثيقة</label>
+                           <input
+                             value={newTitle}
+                             onChange={e => setNewTitle(e.target.value)}
+                             placeholder="مثلاً: وصية الجد خالد..."
+                             className="w-full h-14 md:h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-xs md:text-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                           />
+                        </div>
+                        <div className="space-y-2">
+                           <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">التصنيف</label>
                            <select
                              value={newCat}
                              onChange={e => setNewCat(e.target.value as VaultCategory)}
-                             className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none"
+                             className="w-full h-14 md:h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-xs md:text-sm focus:ring-4 focus:ring-primary/5 outline-none appearance-none"
                            >
                               {CATEGORIES.map(c => <option key={c.key} value={c.key}>{c.label}</option>)}
                            </select>
                         </div>
-                        <div className="space-y-2">
-                           <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-widest">تاريخ الفتح (اختياري)</label>
-                           <input
-                             type="date"
-                             value={newUnlockAt}
-                             onChange={e => setNewUnlockAt(e.target.value)}
-                             className="w-full h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-sm focus:ring-2 focus:ring-primary/20 outline-none"
-                           />
-                        </div>
                      </div>
 
-                     <label className="flex flex-col items-center justify-center gap-4 p-12 border-2 border-dashed border-border/60 rounded-[32px] cursor-pointer hover:bg-primary/5 transition-all bg-muted/10 group">
-                        <div className="size-16 rounded-2xl bg-white shadow-sm flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-                           <Download size={32} className="rotate-180" />
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">وصف مختصر (اختياري)</label>
+                        <input
+                          value={newDesc}
+                          onChange={e => setNewDesc(e.target.value)}
+                          placeholder="اكتب وصفاً بسيطاً لمحتوى الوثيقة..."
+                          className="w-full h-14 md:h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-xs md:text-sm focus:ring-4 focus:ring-primary/5 transition-all outline-none"
+                        />
+                     </div>
+
+                     <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">تاريخ الفتح (اختياري)</label>
+                        <input
+                          type="date"
+                          value={newUnlockAt}
+                          onChange={e => setNewUnlockAt(e.target.value)}
+                          className="w-full h-14 md:h-16 bg-muted/40 border border-border rounded-2xl px-6 font-bold text-xs md:text-sm focus:ring-4 focus:ring-primary/5 outline-none"
+                        />
+                     </div>
+
+                     <label className="flex flex-col items-center justify-center gap-4 p-8 md:p-14 border-2 border-dashed border-border/60 rounded-[32px] md:rounded-[40px] cursor-pointer hover:bg-primary/5 transition-all bg-muted/10 group relative overflow-hidden">
+                        <div className="size-16 md:size-20 rounded-[24px] bg-white shadow-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform relative z-10">
+                           <Download size={32} className="rotate-180 md:size-40" />
                         </div>
-                        <div className="text-center">
-                           <p className="font-black text-primary">{selectedFile ? selectedFile.name : "اسحب الملف هنا"}</p>
+                        <div className="text-center relative z-10">
+                           <p className="font-black text-primary text-sm md:text-lg">{selectedFile ? selectedFile.name : "اسحب الملف هنا"}</p>
                            <p className="text-[10px] font-bold text-muted-foreground opacity-60 mt-1">{selectedFile ? `(${(selectedFile.size / (1024 * 1024)).toFixed(2)} MB)` : "PDF, JPG, PNG (حد أقصى 20MB)"}</p>
                         </div>
                         <input type="file" hidden accept=".pdf,image/*" onChange={handleFileSelect} />
@@ -497,9 +521,9 @@ function SecureVaultPage() {
                   <button
                     onClick={handleUpload}
                     disabled={isUploading || !newTitle || !selectedFile}
-                    className="w-full btn-gold py-6 rounded-[24px] text-lg font-black shadow-xl shadow-gold-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50"
+                    className="w-full btn-gold py-5 md:py-7 rounded-[24px] md:rounded-[32px] text-base md:text-2xl font-black shadow-[0_20px_50px_rgba(139,107,35,0.4)] hover:scale-[1.01] active:scale-[0.98] transition-all disabled:opacity-50"
                   >
-                     {isUploading ? <Loader2 className="size-6 animate-spin mx-auto" /> : "تأكيد الإيداع في الخزنة"}
+                     {isUploading ? <Loader2 className="size-6 md:size-8 animate-spin mx-auto text-white" strokeWidth={4} /> : "تأكيد الإيداع في الخزنة الملكية"}
                   </button>
                </motion.div>
             </div>
@@ -515,32 +539,35 @@ function VaultCard({ item, onDownload, onDelete, isOwner }: { item: VaultItem, o
 
   return (
     <motion.div
-      whileHover={{ y: -5 }}
+      whileHover={{ y: -8, scale: 1.02 }}
       onClick={onDownload}
-      className="card-surface p-8 space-y-6 group cursor-pointer relative overflow-hidden"
+      className="card-surface p-6 md:p-8 space-y-5 md:space-y-6 group cursor-pointer relative overflow-hidden flex flex-col justify-between h-full group/card transition-all duration-500"
     >
-       <div className={cn("absolute top-0 right-0 w-1.5 h-full", cat.color)} />
+       {/* Background Category Gradient */}
+       <div className={cn("absolute inset-0 bg-gradient-to-br opacity-0 group-hover/card:opacity-100 transition-opacity duration-700 pointer-events-none", cat.gradient)} />
 
-       <div className="flex items-start justify-between">
-          <div className={cn("size-14 rounded-2xl flex items-center justify-center text-white shadow-lg", cat.color)}>
-             {isLocked ? <Clock size={28} /> : <cat.icon size={28} />}
+       <div className={cn("absolute top-0 right-0 w-1 md:w-1.5 h-full opacity-60 transition-all duration-500 group-hover/card:w-2", cat.color)} />
+
+       <div className="flex items-start justify-between relative z-10">
+          <div className={cn("size-12 md:size-16 rounded-[20px] md:rounded-[24px] flex items-center justify-center text-white shadow-xl group-hover/card:rotate-[10deg] transition-all duration-500", cat.color)}>
+             {isLocked ? <Clock className="size-6 md:size-8" /> : <cat.icon className="size-6 md:size-8" />}
           </div>
 
-          <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+          <div className="flex items-center gap-1.5 md:gap-2" onClick={e => e.stopPropagation()}>
             <DropdownMenu>
                <DropdownMenuTrigger asChild>
-                  <button className="size-10 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground transition-all outline-none">
-                     <MoreVertical size={20} />
+                  <button className="size-9 md:size-10 rounded-xl bg-muted/20 hover:bg-muted flex items-center justify-center text-muted-foreground transition-all outline-none active:scale-90 border border-transparent hover:border-border">
+                     <MoreVertical className="size-5 md:size-6" />
                   </button>
                </DropdownMenuTrigger>
-               <DropdownMenuContent align="end" className="w-48 rounded-2xl bg-card/80 backdrop-blur-xl border-border p-1.5 shadow-2xl">
-                  <DropdownMenuItem onClick={onDownload} className="flex items-center justify-end gap-3 p-3 rounded-xl font-bold text-xs cursor-pointer focus:bg-primary focus:text-white transition-all">
-                     <span>فتح ومعاينة</span>
+               <DropdownMenuContent align="end" className="w-56 rounded-2xl bg-card/80 backdrop-blur-2xl border-border p-2 shadow-2xl">
+                  <DropdownMenuItem onClick={onDownload} className="flex items-center justify-end gap-3 p-3.5 rounded-xl font-black text-[11px] cursor-pointer focus:bg-primary focus:text-white transition-all">
+                     <span className="tracking-tight">فتح ومعاينة الوثيقة</span>
                      <Eye size={16} />
                   </DropdownMenuItem>
                   {isOwner && (
-                    <DropdownMenuItem onClick={onDelete} className="flex items-center justify-end gap-3 p-3 rounded-xl font-bold text-xs cursor-pointer text-rose-500 focus:bg-rose-500 focus:text-white transition-all">
-                       <span>حذف نهائياً</span>
+                    <DropdownMenuItem onClick={onDelete} className="flex items-center justify-end gap-3 p-3.5 rounded-xl font-black text-[11px] cursor-pointer text-rose-500 focus:bg-rose-600 focus:text-white transition-all">
+                       <span className="tracking-tight text-right">حذف من الخزنة نهائياً</span>
                        <Trash2 size={16} />
                     </DropdownMenuItem>
                   )}
@@ -549,36 +576,54 @@ function VaultCard({ item, onDownload, onDelete, isOwner }: { item: VaultItem, o
           </div>
        </div>
 
-       <div className="space-y-2">
+       <div className="space-y-2 md:space-y-3 relative z-10">
           <div className="flex items-center gap-2">
-             <h4 className="text-xl font-black text-primary tracking-tight truncate">{item.title}</h4>
-             {item.is_encrypted && <Key size={14} className="text-gold-primary" />}
+             <h4 className="text-lg md:text-2xl font-black text-primary tracking-tighter truncate leading-tight group-hover/card:text-primary transition-colors">{item.title}</h4>
+             {item.is_encrypted && (
+               <div className="size-5 rounded-full bg-gold-primary/10 flex items-center justify-center">
+                 <Key size={10} className="text-gold-primary opacity-60" />
+               </div>
+             )}
           </div>
-          <p className="text-xs font-bold text-muted-foreground opacity-60 line-clamp-2 leading-relaxed">{item.description || "لا يوجد وصف لهذه الوثيقة."}</p>
+          <p className="text-[10px] md:text-sm font-bold text-muted-foreground/60 line-clamp-2 leading-relaxed h-10 group-hover/card:text-muted-foreground transition-colors">{item.description || "لا يوجد وصف إضافي لهذه الوثيقة."}</p>
        </div>
 
-       <div className="pt-4 flex items-center justify-between border-t border-border/40">
-          <div className="flex items-center gap-4">
-             <div className="size-8 rounded-full border border-white/10 overflow-hidden bg-emerald-950">
+       <div className="pt-4 md:pt-6 flex items-center justify-between border-t border-border/20 relative z-10">
+          <div className="flex items-center gap-3">
+             <div className="size-9 md:size-11 rounded-full border-2 border-white shadow-md overflow-hidden bg-emerald-950 shrink-0 transition-transform group-hover/card:scale-110">
                 <img src={item.uploader?.avatar_url || "https://api.dicebear.com/7.x/avataaars/svg?seed=" + (item.uploader?.arabic_name || "V")} alt="" className="size-full object-cover" />
              </div>
-             <div className="text-right">
-                <p className="text-[8px] font-black uppercase text-primary/40 tracking-widest leading-none">المودع</p>
-                <span className="text-[10px] font-black text-primary/70">{item.uploader?.arabic_name || item.uploader?.full_name || "عضو العائلة"}</span>
+             <div className="text-right min-w-0">
+                <p className="text-[7px] md:text-[8px] font-black uppercase text-primary/30 tracking-[0.2em] leading-none mb-1">المودع</p>
+                <h5 className="text-[10px] md:text-[13px] font-black text-primary/70 truncate tracking-tight">{item.uploader?.arabic_name?.split(' ')[0] || item.uploader?.full_name?.split(' ')[0] || "عضو"}</h5>
              </div>
           </div>
-          <div className="flex items-center gap-2 text-gold-primary">
-             <span className="text-[10px] font-black uppercase tracking-widest">{isLocked ? "مغلق" : "عرض"}</span>
-             <ChevronLeft size={14} />
+          <div className="flex items-center gap-2 text-gold-primary group/link">
+             <span className="text-[9px] md:text-[12px] font-black uppercase tracking-[0.2em]">{isLocked ? "مغلق" : "عرض"}</span>
+             <ChevronLeft size={16} className="group-hover/link:-translate-x-1.5 transition-transform duration-300" />
           </div>
        </div>
 
        {isLocked && (
-          <div className="absolute inset-0 bg-[#051410]/95 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center space-y-4 z-20">
-             <Lock size={40} className="text-gold-primary animate-bounce" />
-             <div className="space-y-1">
-                <p className="text-sm font-black text-white">وثيقة موقوتة</p>
-                <p className="text-[10px] font-bold text-white/40">تفتح في: {new Date(item.unlock_at!).toLocaleDateString("ar-SA")}</p>
+          <div className="absolute inset-0 bg-[#051410]/98 backdrop-blur-xl flex flex-col items-center justify-center p-8 text-center space-y-5 z-20">
+             <div className="relative">
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="absolute inset-0 bg-gold-primary rounded-full blur-2xl"
+                />
+                <div className="relative size-16 md:size-20 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center">
+                   <Lock size={32} className="text-gold-primary md:size-40" />
+                </div>
+             </div>
+             <div className="space-y-2">
+                <p className="text-sm md:text-xl font-black text-white tracking-tight">وثيقة موقوتة</p>
+                <div className="inline-flex px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                   <p className="text-[9px] md:text-[11px] font-bold text-white/50 tracking-wider flex items-center gap-2">
+                      <Clock size={12} className="text-gold-primary" />
+                      <span>{new Date(item.unlock_at!).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                   </p>
+                </div>
              </div>
           </div>
        )}
