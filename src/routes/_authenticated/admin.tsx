@@ -925,8 +925,8 @@ function PollsManager({ list, meId, onRefresh }: any) {
           {list.map((p: any) => {
             const bodyStr = p.body || "";
             const match = bodyStr.match(/---poll:({.*?})---/s);
-            let pollData = null;
-            try { pollData = JSON.parse(match[1]); } catch(e) {}
+            let pollData: any = null;
+            try { pollData = JSON.parse(match![1]); } catch(e) {}
 
             const isFinalized = pollData?.status === "finalized";
             const pType = pollData?.type || "general";
