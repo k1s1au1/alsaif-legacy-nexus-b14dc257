@@ -281,7 +281,7 @@ export function PollsPopup({ userId }: { userId: string | null }) {
                             <button
                               key={i}
                               onClick={() => vote(post.id, i)}
-                              disabled={voted || alreadyExecuted || finalized || expired}
+                              disabled={voted || alreadyExecuted || finalized || !!expired}
                               className={cn(
                                 "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all active:scale-[0.98]",
                                 isMyVote ? "border-primary bg-primary/5" : "border-border/40 bg-card hover:border-primary/40",
