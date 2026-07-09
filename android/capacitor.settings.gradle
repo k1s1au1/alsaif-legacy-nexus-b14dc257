@@ -2,7 +2,7 @@
 // Modified to safely handle missing plugin directories.
 
 def includePlugin(String name, String path) {
-    def pluginDir = new File(path)
+    def pluginDir = new File(rootDir, path)
     if (pluginDir.exists()) {
         include name
         project(name).projectDir = pluginDir
