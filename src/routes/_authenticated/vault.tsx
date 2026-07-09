@@ -45,6 +45,9 @@ export const Route = createFileRoute("/_authenticated/vault")({
   component: SecureVaultPage,
 });
 
+type VaultCategory = "will" | "deed" | "heritage" | "private";
+
+
 interface VaultItem {
   id: string;
   title: string;
