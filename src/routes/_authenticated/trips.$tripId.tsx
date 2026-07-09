@@ -813,7 +813,6 @@ function TripDetail() {
     </AppShell>
   );
 }
-}
 
 function SidebarStat({ icon: Icon, label, value }: any) {
   return (
