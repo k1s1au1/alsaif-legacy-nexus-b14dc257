@@ -98,6 +98,16 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
   );
 }
 
+const SPIRITUAL_QUOTES = [
+  { text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا", source: "سورة آل عمران" },
+  { text: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ", source: "سورة المائدة" },
+  { text: "رَبِّ اجْعَلْ هَذَا الْبَلَدَ آمِنًا وَارْزُقْ أَهْلَهُ مِنَ الثَّمَرَاتِ", source: "دعاء سيدنا إبراهيم" },
+  { text: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ", source: "سورة الحجرات" },
+  { text: "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ", source: "حديث شريف" },
+  { text: "الْبَرَكَةُ مَعَ أَكَابِرِكُمْ", source: "أثر مأثور" },
+  { text: "أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ", source: "حديث شريف" }
+];
+
 function Dashboard() {
   const [profile, setProfile] = useState<any>({ name: "تحميل...", role: "عضو", initial: "س" });
   const [fundBalance, setFundBalance] = useState<number>(0);
@@ -422,6 +432,38 @@ function Dashboard() {
                 </div>
              </Link>
            ))}
+        </section>
+
+        {/* SPIRITUAL CORNER - Idea #4 */}
+        <section className="animate-fade-up px-2 md:px-0">
+           <div className="relative overflow-hidden rounded-[40px] bg-white/5 border border-white/10 p-8 md:p-12 text-center group">
+              {/* Background Decoration */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none transition-transform duration-1000 group-hover:scale-110">
+                 <div className="size-64 logo-alsaif-banner" style={{ '--logo-url': dynamicLogo ? `url(${dynamicLogo})` : 'none' } as any} />
+              </div>
+
+              <div className="relative z-10 space-y-6">
+                 <div className="flex items-center justify-center gap-3">
+                    <div className="h-[1px] w-8 md:w-12 bg-gold-primary/30" />
+                    <Sparkles className="size-4 text-gold-primary animate-pulse" />
+                    <span className="text-[10px] md:text-xs font-black text-gold-primary uppercase tracking-[0.4em]">آية وذكر</span>
+                    <Sparkles className="size-4 text-gold-primary animate-pulse" />
+                    <div className="h-[1px] w-8 md:w-12 bg-gold-primary/30" />
+                 </div>
+
+                 <blockquote className="space-y-4">
+                    <p className="text-xl md:text-3xl font-black text-white/90 leading-relaxed font-royal-mode italic">
+                       {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].text}
+                    </p>
+                    <footer className="flex items-center justify-center gap-2 text-gold-primary/60">
+                       <Scroll className="size-3" />
+                       <cite className="text-[10px] md:text-xs font-bold not-italic tracking-wide">
+                          {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].source}
+                       </cite>
+                    </footer>
+                 </blockquote>
+              </div>
+           </div>
         </section>
 
         <section className="pb-20 px-4 md:px-0 animate-fade-up">
