@@ -110,6 +110,7 @@ BEGIN
       ELSE '📎 مرفق'
     END;
 
+    -- Using the centralized helper with correct project URL
     PERFORM public.call_send_push(
       v_sender_name,
       v_preview,
