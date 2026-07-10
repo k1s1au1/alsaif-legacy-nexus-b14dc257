@@ -99,16 +99,60 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
 }
 
 const SPIRITUAL_QUOTES = [
-  { text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا", source: "سورة آل عمران", type: "quran" },
-  { text: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ", source: "سورة المائدة", type: "quran" },
-  { text: "رَبِّ اجْعَلْ هَذَا الْبَلَدَ آمِنًا وَارْزُقْ أَهْلَهُ مِنَ الثَّمَرَاتِ", source: "دعاء سيدنا إبراهيم", type: "dua" },
-  { text: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ", source: "سورة الحجرات", type: "quran" },
-  { text: "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ", source: "حديث شريف", type: "hadith" },
-  { text: "الْبَرَكَةُ مَعَ أَكَابِرِكُمْ", source: "أثر مأثور", type: "wisdom" },
-  { text: "أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ", source: "حديث شريف", type: "hadith" }
+  // Friday Special
+  { text: "يَا أَيُّهَا الَّذِينَ آمَنُوا إِذَا نُودِيَ لِلصَّلَاةِ مِن يَوْمِ الْجُمُعَةِ فَاسْعَوْا إِلَىٰ ذِكْرِ اللَّهِ", source: "سورة الجمعة", type: "quran", category: "friday" },
+  { text: "إِنَّ مِنْ أَفْضَلِ أَيَّامِكُمْ يَوْمَ الْجُمُعَةِ ، فَأَكْثِرُوا عَلَيَّ مِنَ الصَّلَاةِ فِيهِ", source: "حديث شريف (رواه أبو داود)", type: "hadith", category: "friday" },
+
+  // Monday & Thursday
+  { text: "تُعْرَضُ الأَعْمَالُ يَوْمَ الاثْنَيْنِ وَالْخَمِيسِ ، فَأُحِبُّ أَنْ يُعْرَضَ عَمَلِي وَأَنَا صَائِمٌ", source: "حديث شريف (رواه الترمذي)", type: "hadith", category: "mon_thu" },
+
+  // White Days (13, 14, 15 Hijri)
+  { text: "صِيَامُ ثَلاثَةِ أَيَّامٍ مِنْ كُلِّ شَهْرٍ صِيَامُ الدَّهْرِ ، وَهِيَ أَيَّامُ الْبِيضِ", source: "حديث شريف (رواه النسائي)", type: "hadith", category: "white_days" },
+
+  // General Quotes
+  { text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا", source: "سورة آل عمران", type: "quran", category: "general" },
+  { text: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ", source: "سورة المائدة", type: "quran", category: "general" },
+  { text: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ", source: "سورة الحجرات", type: "quran", category: "general" },
+  { text: "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ", source: "حديث شريف", type: "hadith", category: "general" },
+  { text: "الْبَرَكَةُ مَعَ أَكَابِرِكُمْ", source: "أثر مأثور", type: "wisdom", category: "general" },
+  { text: "أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ", source: "حديث شريف", type: "hadith", category: "general" }
 ];
 
 function Dashboard() {
+  const [profile, setProfile] = useState<any>({ name: "تحميل...", role: "عضو", initial: "س" });
+  // ... rest of state
+
+  // Logic to select the quote based on date
+  const spiritualQuote = useMemo(() => {
+    const now = new Date();
+    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 4=Thu, 5=Fri, 6=Sat
+
+    // Detect Hijri Day (Roughly for 13, 14, 15)
+    let hijriDay = 1;
+    try {
+      hijriDay = parseInt(new Intl.DateTimeFormat('en-u-ca-islamic-uma-nu-latn', {day:'numeric'}).format(now));
+    } catch(e) { /* fallback */ }
+
+    // 1. Check for White Days
+    if ([13, 14, 15].includes(hijriDay)) {
+      return SPIRITUAL_QUOTES.find(q => q.category === 'white_days') || SPIRITUAL_QUOTES[0];
+    }
+
+    // 2. Check for Friday
+    if (dayOfWeek === 5) {
+      const fridayQuotes = SPIRITUAL_QUOTES.filter(q => q.category === 'friday');
+      return fridayQuotes[now.getDate() % fridayQuotes.length];
+    }
+
+    // 3. Check for Monday or Thursday
+    if (dayOfWeek === 1 || dayOfWeek === 4) {
+      return SPIRITUAL_QUOTES.find(q => q.category === 'mon_thu') || SPIRITUAL_QUOTES[0];
+    }
+
+    // 4. Default to general quotes
+    const generalQuotes = SPIRITUAL_QUOTES.filter(q => q.category === 'general');
+    return generalQuotes[now.getDate() % generalQuotes.length];
+  }, []);
   const [profile, setProfile] = useState<any>({ name: "تحميل...", role: "عضو", initial: "س" });
   const [fundBalance, setFundBalance] = useState<number>(0);
   const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
@@ -445,7 +489,7 @@ function Dashboard() {
                  <div className="flex items-center justify-center gap-4">
                     <div className="h-[1.5px] w-12 md:w-20 bg-gradient-to-l from-transparent to-gold-primary/40" />
                     <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20">
-                       {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].type === 'quran' ? <Scroll className="size-4 text-gold-primary" /> : <Sparkles className="size-4 text-gold-primary" />}
+                       {spiritualQuote.type === 'quran' ? <Scroll className="size-4 text-gold-primary" /> : <Sparkles className="size-4 text-gold-primary" />}
                        <span className="text-[11px] md:text-xs font-black text-gold-primary uppercase tracking-[0.4em]">نفحات إيمانية</span>
                     </div>
                     <div className="h-[1.5px] w-12 md:w-20 bg-gradient-to-r from-transparent to-gold-primary/40" />
@@ -453,13 +497,13 @@ function Dashboard() {
 
                  <blockquote className="space-y-6">
                     <p className="text-2xl md:text-4xl font-black text-white leading-relaxed drop-shadow-lg" style={{ fontFamily: "'Amiri', serif" }}>
-                       {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].text}
+                       {spiritualQuote.text}
                     </p>
                     <footer className="flex flex-col items-center gap-3">
                        <div className="h-8 w-[1px] bg-gold-primary/20" />
                        <div className="flex items-center gap-2 text-gold-primary/80 bg-black/20 px-5 py-2 rounded-full border border-white/5 backdrop-blur-sm">
                           <span className="text-xs font-black tracking-wide">
-                             {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].source}
+                             {spiritualQuote.source}
                           </span>
                        </div>
                     </footer>
