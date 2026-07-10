@@ -67,12 +67,14 @@ Deno.serve(async (req) => {
       title,
       body,
       url,
+      image,
       user_ids,
       exclude_user_id,
     }: {
       title: string;
       body: string;
       url?: string;
+      image?: string;
       user_ids?: string[];
       exclude_user_id?: string;
     } = await req.json();
@@ -131,15 +133,26 @@ Deno.serve(async (req) => {
         const message = {
           message: {
             token,
-            notification: { title, body },
+            notification: {
+              title,
+              body,
+              image: image || undefined
+            },
             data: url ? { url } : {},
-            webpush: url
-              ? { fcm_options: { link: url }, notification: { title, body } }
-              : { notification: { title, body } },
             android: {
               priority: "HIGH",
-              notification: { sound: "default", click_action: "FLUTTER_NOTIFICATION_CLICK" },
+              notification: {
+                sound: "default",
+                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                color: "#064E3B", // Emerald Green for identity
+                image: image || undefined
+              },
             },
+            webpush: {
+              headers: { image: image || "" },
+              notification: { title, body, icon: "/favicon.ico", image: image || "" },
+              fcm_options: { link: url || "/" }
+            }
           },
         };
         const r = await fetch(fcmUrl, {
