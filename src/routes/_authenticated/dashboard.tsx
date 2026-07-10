@@ -99,13 +99,13 @@ function ImmersiveView({ item, onClose }: { item: { type: 'trip' | 'meeting' | '
 }
 
 const SPIRITUAL_QUOTES = [
-  { text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا", source: "سورة آل عمران" },
-  { text: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ", source: "سورة المائدة" },
-  { text: "رَبِّ اجْعَلْ هَذَا الْبَلَدَ آمِنًا وَارْزُقْ أَهْلَهُ مِنَ الثَّمَرَاتِ", source: "دعاء سيدنا إبراهيم" },
-  { text: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ", source: "سورة الحجرات" },
-  { text: "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ", source: "حديث شريف" },
-  { text: "الْبَرَكَةُ مَعَ أَكَابِرِكُمْ", source: "أثر مأثور" },
-  { text: "أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ", source: "حديث شريف" }
+  { text: "وَاعْتَصِمُوا بِحَبْلِ اللَّهِ جَمِيعًا وَلَا تَفَرَّقُوا", source: "سورة آل عمران", type: "quran" },
+  { text: "وَتَعَاوَنُوا عَلَى الْبِرِّ وَالتَّقْوَىٰ", source: "سورة المائدة", type: "quran" },
+  { text: "رَبِّ اجْعَلْ هَذَا الْبَلَدَ آمِنًا وَارْزُقْ أَهْلَهُ مِنَ الثَّمَرَاتِ", source: "دعاء سيدنا إبراهيم", type: "dua" },
+  { text: "إِنَّمَا الْمُؤْمِنُونَ إِخْوَةٌ", source: "سورة الحجرات", type: "quran" },
+  { text: "خَيْرُكُمْ خَيْرُكُمْ لِأَهْلِهِ", source: "حديث شريف", type: "hadith" },
+  { text: "الْبَرَكَةُ مَعَ أَكَابِرِكُمْ", source: "أثر مأثور", type: "wisdom" },
+  { text: "أَحَبُّ النَّاسِ إِلَى اللَّهِ أَنْفَعُهُمْ لِلنَّاسِ", source: "حديث شريف", type: "hadith" }
 ];
 
 function Dashboard() {
@@ -434,32 +434,34 @@ function Dashboard() {
            ))}
         </section>
 
-        {/* SPIRITUAL CORNER - Idea #4 */}
+        {/* SPIRITUAL CORNER - Enhanced Visibility */}
         <section className="animate-fade-up px-2 md:px-0">
-           <div className="relative overflow-hidden rounded-[40px] bg-white/5 border border-white/10 p-8 md:p-12 text-center group">
-              {/* Background Decoration */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none transition-transform duration-1000 group-hover:scale-110">
-                 <div className="size-64 logo-alsaif-banner" style={{ '--logo-url': dynamicLogo ? `url(${dynamicLogo})` : 'none' } as any} />
-              </div>
+           <div className="relative overflow-hidden rounded-[48px] bg-emerald-950/40 border-2 border-gold-primary/20 p-10 md:p-16 text-center group shadow-2xl">
+              {/* Animated Glowing Orbs */}
+              <div className="absolute -top-20 -right-20 size-64 bg-gold-primary/5 rounded-full blur-[100px] pointer-events-none" />
+              <div className="absolute -bottom-20 -left-20 size-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
 
-              <div className="relative z-10 space-y-6">
-                 <div className="flex items-center justify-center gap-3">
-                    <div className="h-[1px] w-8 md:w-12 bg-gold-primary/30" />
-                    <Sparkles className="size-4 text-gold-primary animate-pulse" />
-                    <span className="text-[10px] md:text-xs font-black text-gold-primary uppercase tracking-[0.4em]">آية وذكر</span>
-                    <Sparkles className="size-4 text-gold-primary animate-pulse" />
-                    <div className="h-[1px] w-8 md:w-12 bg-gold-primary/30" />
+              <div className="relative z-10 space-y-8">
+                 <div className="flex items-center justify-center gap-4">
+                    <div className="h-[1.5px] w-12 md:w-20 bg-gradient-to-l from-transparent to-gold-primary/40" />
+                    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20">
+                       {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].type === 'quran' ? <Scroll className="size-4 text-gold-primary" /> : <Sparkles className="size-4 text-gold-primary" />}
+                       <span className="text-[11px] md:text-xs font-black text-gold-primary uppercase tracking-[0.4em]">نفحات إيمانية</span>
+                    </div>
+                    <div className="h-[1.5px] w-12 md:w-20 bg-gradient-to-r from-transparent to-gold-primary/40" />
                  </div>
 
-                 <blockquote className="space-y-4">
-                    <p className="text-xl md:text-3xl font-black text-white/90 leading-relaxed font-royal-mode italic">
+                 <blockquote className="space-y-6">
+                    <p className="text-2xl md:text-4xl font-black text-white leading-relaxed drop-shadow-lg" style={{ fontFamily: "'Amiri', serif" }}>
                        {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].text}
                     </p>
-                    <footer className="flex items-center justify-center gap-2 text-gold-primary/60">
-                       <Scroll className="size-3" />
-                       <cite className="text-[10px] md:text-xs font-bold not-italic tracking-wide">
-                          {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].source}
-                       </cite>
+                    <footer className="flex flex-col items-center gap-3">
+                       <div className="h-8 w-[1px] bg-gold-primary/20" />
+                       <div className="flex items-center gap-2 text-gold-primary/80 bg-black/20 px-5 py-2 rounded-full border border-white/5 backdrop-blur-sm">
+                          <span className="text-xs font-black tracking-wide">
+                             {SPIRITUAL_QUOTES[new Date().getDay() % SPIRITUAL_QUOTES.length].source}
+                          </span>
+                       </div>
                     </footer>
                  </blockquote>
               </div>
