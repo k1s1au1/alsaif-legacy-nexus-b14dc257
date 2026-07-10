@@ -27,10 +27,9 @@ export async function setupPushNotifications() {
       return;
     }
 
-    console.log("[Push] Registering with FCM...");
-    await PushNotifications.register();
+    console.log("[Push] Setting up listeners...");
 
-    // Listen for registration (getting the token)
+    // 1. Add listeners FIRST
     await PushNotifications.addListener("registration", async (token) => {
       console.log("[Push] Registration successful, token:", token.value);
       const { data: auth } = await supabase.auth.getUser();
@@ -54,10 +53,21 @@ export async function setupPushNotifications() {
     });
 
     await PushNotifications.addListener("registrationError", (err) => {
-      console.error("[Push] registration error:", err);
+      console.error("[Push] FCM Registration error:", err);
     });
 
+    await PushNotifications.addListener("pushNotificationReceived", (notification) => {
+      console.log("[Push] Notification received in foreground:", notification);
+    });
+
+    await PushNotifications.addListener("pushNotificationActionPerformed", (notification) => {
+      console.log("[Push] Notification action performed:", notification);
+    });
+
+    // 2. Register AFTER adding listeners
+    console.log("[Push] Registering with FCM...");
     await PushNotifications.register();
+
   } catch (e) {
     console.error("[Push] setup failed:", e);
   }

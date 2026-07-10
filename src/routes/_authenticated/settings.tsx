@@ -423,6 +423,29 @@ function SettingsPage() {
 
         <NotificationPreferencesSection />
 
+        {isNative && (
+          <section className="space-y-6 animate-fade-up">
+            <div className="flex items-center gap-4">
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">تجربة الإشعارات (تطبيق الجوال)</h3>
+              <div className="h-px flex-1 bg-border/60" />
+            </div>
+            <div className="card-surface p-8 space-y-4">
+              <p className="text-sm font-bold text-muted-foreground">إذا لم تكن الإشعارات تصلك، يمكنك محاولة إعادة طلب الإذن يدوياً من هنا.</p>
+              <button
+                onClick={async () => {
+                  toast.loading("جاري طلب الإذن...");
+                  await setupPushNotifications();
+                  toast.dismiss();
+                  toast.success("تم تشغيل معالج الإشعارات، تأكد من قبول أي طلب يظهر لك.");
+                }}
+                className="w-full btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
+              >
+                <Smartphone className="size-5" /> إعادة طلب إذن الإشعارات
+              </button>
+            </div>
+          </section>
+        )}
+
         {canCustomizeBg && (
           <section className="space-y-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
             <div className="flex items-center gap-4">
@@ -541,6 +564,8 @@ function SettingRow({ icon, title, desc }: any) {
     </div>
   );
 }
+
+import { setupPushNotifications } from "@/lib/pushNotifications";
 
 const NOTIF_OPTIONS: { key: "meetings" | "entertainment" | "tasks" | "chat" | "news"; label: string; desc: string }[] = [
   { key: "meetings", label: "إشعارات الاجتماعات", desc: "تنبيه عند إنشاء اجتماع جديد." },
