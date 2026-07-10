@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">Alsaif Family Hub</string>
-    <string name="title_activity_main">Alsaif Family Hub</string>
+    <string name="app_name">المجلس</string>
+    <string name="title_activity_main">المجلس</string>
     <string name="package_name">com.alsaif.familyhub</string>
     <string name="custom_url_scheme">com.alsaif.familyhub</string>
 </resources>
