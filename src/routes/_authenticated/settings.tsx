@@ -433,10 +433,24 @@ function SettingsPage() {
               <p className="text-sm font-bold text-muted-foreground">إذا لم تكن الإشعارات تصلك، يمكنك محاولة إعادة طلب الإذن يدوياً من هنا.</p>
               <button
                 onClick={async () => {
-                  toast.loading("جاري طلب الإذن...");
-                  await setupPushNotifications();
-                  toast.dismiss();
-                  toast.success("تم تشغيل معالج الإشعارات، تأكد من قبول أي طلب يظهر لك.");
+                  const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
+                  try {
+                    await setupPushNotifications();
+                    // Small delay to allow listener to fire
+                    setTimeout(async () => {
+                       const { data: auth } = await supabase.auth.getUser();
+                       const { data: tokens } = await supabase.from("push_tokens").select("token").eq("user_id", auth.user?.id).limit(1);
+                       toast.dismiss(tId);
+                       if (tokens && tokens.length > 0) {
+                         toast.success("مبروك! جوالك مربوط بنجاح بنظام الإشعارات ✨");
+                       } else {
+                         toast.error("لم يتم تسجيل التوكن بعد. تأكد من تفعيل الإشعارات من إعدادات الجوال يدوياً.");
+                       }
+                    }, 4000);
+                  } catch (e) {
+                    toast.dismiss(tId);
+                    toast.error("فشل الاتصال: " + (e as any).message);
+                  }
                 }}
                 className="w-full btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
               >
