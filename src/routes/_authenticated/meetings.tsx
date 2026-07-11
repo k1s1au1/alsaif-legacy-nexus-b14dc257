@@ -328,13 +328,14 @@ function MeetingsPage() {
         {/* Compact Header */}
         <section className="animate-fade-up">
           <div className="relative overflow-hidden rounded-[28px] md:rounded-[36px] bg-gradient-to-br from-primary via-[#1a2b3c] to-black p-6 md:p-8 text-white shadow-xl border border-white/5">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 opacity-15 pointer-events-none hidden md:block">
               <div className="size-24 md:size-40 logo-alsaif-banner" style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any} />
             </div>
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-2 text-center md:text-right">
                 <div className="flex items-center justify-center md:justify-start gap-2">
                   <div className="h-0.5 w-8 bg-gold-primary" />
+                  <CalendarDays className="size-3 text-gold-primary md:hidden" />
                   <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary">ملتقى العائلة</span>
                 </div>
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight">الاجتماعات</h2>
@@ -673,7 +674,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                        setCompCount(val === '' ? 0 : parseInt(val));
                      }}
                      onBlur={() => onRsvp(meeting.id, 'going', compCount)}
-                     className="flex-1 h-20 bg-white/10 border-2 border-white/20 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all shadow-inner text-white"
+                     className="flex-1 h-14 md:h-20 bg-white/10 border-2 border-white/20 rounded-2xl md:rounded-[24px] px-6 font-black text-center text-2xl md:text-4xl focus:outline-none focus:border-gold-primary transition-all shadow-inner text-white"
                      placeholder="٠"
                    />
                 </div>

@@ -11,6 +11,7 @@ import {
   Archive,
   Users,
   Lock,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
@@ -41,15 +42,16 @@ function QuickAction({ to, label, icon, color }: QuickActionProps) {
 
 export function QuickActionsBanner() {
   return (
-    <section className="animate-fade-up w-full px-4 md:px-0 py-8 hidden md:block">
-       <div className="flex items-center justify-center gap-4 mb-10 opacity-30">
-         <div className="h-[1px] w-12 bg-primary" />
-         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع للمجلس</h3>
-         <div className="h-[1px] w-12 bg-primary" />
+    <section className="animate-fade-up w-full px-4 md:px-0 py-4 md:py-8">
+       <div className="flex items-center justify-center gap-4 mb-6 md:mb-10 opacity-30">
+         <div className="h-[1px] w-8 md:w-12 bg-primary" />
+         <Zap className="size-3 md:size-4 text-primary" />
+         <h3 className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع للمجلس</h3>
+         <div className="h-[1px] w-8 md:w-12 bg-primary" />
        </div>
 
-       {/* Desktop: Centered Row of Actions */}
-       <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 px-4 pb-4">
+       {/* Desktop & Mobile: Grid of Actions */}
+       <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-center justify-center gap-y-8 gap-x-4 md:gap-8 lg:gap-12 px-2 md:px-4 pb-4">
           <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#065F46]" />
           <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#D4AF37]" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1B3022]" />
