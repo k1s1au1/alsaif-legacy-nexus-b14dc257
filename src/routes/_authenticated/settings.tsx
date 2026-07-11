@@ -18,16 +18,12 @@ import {
   Plus,
   Minus,
   ImagePlus,
-  Star,
-  ShieldAlert,
-  Users,
+  Star
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { motion, AnimatePresence } from "framer-motion";
-import { setupPushNotifications } from "@/lib/pushNotifications";
-import { syncFamilyContacts } from "@/lib/contacts";
 
 const FONTS = [
   { id: "Tajawal", name: "تجوال (عصري)", family: "'Tajawal', sans-serif", desc: "خط ناعم وأنيق" },
@@ -46,8 +42,8 @@ const THEME_COLORS = [
     name: "أخضر السيف (الأصلي)",
     primary: "#064E3B",
     secondary: "#D4AF37",
-    darkPrimary: "#10b981", // More vibrant emerald for dark mode
-    darkSecondary: "#fbbf24", // Brighter gold for dark mode
+    darkPrimary: "#10b981",
+    darkSecondary: "#fbbf24",
     foreground: "#FFFFFF",
     isPrimary: true,
     mesh: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"]
@@ -77,7 +73,7 @@ const THEME_COLORS = [
     name: "الكحلي الوقور",
     primary: "#1E293B",
     secondary: "#94A3B8",
-    darkPrimary: "#60a5fa", // Lighter blue for dark mode
+    darkPrimary: "#60a5fa",
     darkSecondary: "#94a3b8",
     foreground: "#FFFFFF",
     mesh: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"]
@@ -87,7 +83,7 @@ const THEME_COLORS = [
     name: "العنابي الفاخر",
     primary: "#4C0519",
     secondary: "#D4AF37",
-    darkPrimary: "#f43f5e", // Lighter rose for dark mode
+    darkPrimary: "#f43f5e",
     darkSecondary: "#fbbf24",
     foreground: "#FFFFFF",
     mesh: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"]
@@ -129,39 +125,21 @@ function SettingsPage() {
   const [isNative, setIsNative] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
-  const [showContactPicker, setShowContactPicker] = useState(false);
   const [canCustomizeBg, setCanCustomizeBg] = useState(false);
-  const [useBiometrics, setUseBiometrics] = useState(false);
-  const [fazaEnabled, setFazaEnabled] = useState(true);
-  const [allProfiles, setAllProfiles] = useState<any[]>([]);
-  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
-
   const dynamicLogo = useSiteLogo();
 
   useEffect(() => {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return;
-
-      const [{ data: roles }, { data: profiles }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", auth.user.id),
-        supabase.from("profiles").select("id, arabic_name, full_name, phone, avatar_url").not("phone", "is", null)
-      ]);
-
+      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
       const rs = (roles ?? []).map(r => r.role);
       setCanCustomizeBg(rs.includes("admin") || rs.includes("chairman"));
-
-      if (profiles) {
-        setAllProfiles(profiles);
-        setSelectedContacts(new Set(profiles.map(p => p.id)));
-      }
     })();
   }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    setUseBiometrics(localStorage.getItem("app-use-biometrics") === "true");
-    setFazaEnabled(localStorage.getItem("app-faza-enabled") !== "false");
 
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) {
@@ -211,7 +189,6 @@ function SettingsPage() {
     const isDark = theme === "dark" || (theme === "system" && window.matchMedia("(prefers-color-scheme: dark)").matches);
     root.classList.toggle("dark", isDark);
 
-    // Refresh theme colors when dark mode changes
     const savedColor = localStorage.getItem("app-theme-color-id") || "emerald";
     const colorObj = THEME_COLORS.find(c => c.id === savedColor);
     if (colorObj) applyThemeColors(colorObj);
@@ -291,18 +268,6 @@ function SettingsPage() {
   const currentThemeObj = THEME_COLORS.find(c => c.id === themeColor) || THEME_COLORS[0];
   const currentFontObj = FONTS.find(f => f.id === font) || FONTS[0];
 
-  const handleToggleBiometrics = (val: boolean) => {
-    setUseBiometrics(val);
-    localStorage.setItem("app-use-biometrics", String(val));
-    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
-  };
-
-  const handleToggleFaza = (val: boolean) => {
-    setFazaEnabled(val);
-    localStorage.setItem("app-faza-enabled", String(val));
-    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
-  };
-
   return (
     <AppShell title="الإعدادات" user={{ name: "إعدادات الأخبار", role: "تخصيص", initial: "إ" }}>
       <div className="max-w-4xl mx-auto space-y-12 pb-24" dir="rtl">
@@ -364,7 +329,6 @@ function SettingsPage() {
                 </div>
              </div>
 
-             {/* Font Size Magnification Slider */}
              <div className="pt-6 border-t border-border/40">
                 <div className="flex items-center justify-between mb-6">
                    <div className="flex items-center gap-3">
@@ -438,67 +402,13 @@ function SettingsPage() {
 
         <section className="space-y-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
           <div className="flex items-center gap-4">
-             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات النظام والأمان</h3>
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات النظام</h3>
              <div className="h-px flex-1 bg-border/60" />
           </div>
           <div className="card-surface overflow-hidden divide-y divide-border/40">
-             <div className="p-6 md:p-8 flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                   <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
-                      <ShieldCheck />
-                   </div>
-                   <div className="text-right">
-                      <p className="font-black text-primary tracking-tight">الدخول بالبصمة / الوجه</p>
-                      <p className="text-xs font-bold text-muted-foreground opacity-60">تأمين التطبيق بالبصمة الحيوية</p>
-                   </div>
-                </div>
-                <button
-                  onClick={() => handleToggleBiometrics(!useBiometrics)}
-                  className={cn(
-                    "relative w-14 h-8 rounded-full transition-colors",
-                    useBiometrics ? "bg-primary" : "bg-muted"
-                  )}
-                >
-                  <span className={cn("absolute top-1 size-6 rounded-full bg-white shadow transition-all", useBiometrics ? "right-1" : "right-7")} />
-                </button>
-             </div>
-
-             <div className="p-6 md:p-8 flex items-center justify-between">
-                <div className="flex items-center gap-6">
-                   <div className="size-12 rounded-2xl bg-rose-500/5 flex items-center justify-center text-rose-600 shadow-inner">
-                      <ShieldAlert className="size-6" />
-                   </div>
-                   <div className="text-right">
-                      <p className="font-black text-primary tracking-tight">نظام "فزعة السيف"</p>
-                      <p className="text-xs font-bold text-muted-foreground opacity-60">تلقي تنبيهات الطوارئ العاجلة من الأقارب</p>
-                   </div>
-                </div>
-                <button
-                  onClick={() => handleToggleFaza(!fazaEnabled)}
-                  className={cn(
-                    "relative w-14 h-8 rounded-full transition-colors",
-                    fazaEnabled ? "bg-rose-600" : "bg-muted"
-                  )}
-                >
-                  <span className={cn("absolute top-1 size-6 rounded-full bg-white shadow transition-all", fazaEnabled ? "right-1" : "right-7")} />
-                </button>
-             </div>
-
-             <div
-               className="p-6 md:p-8 flex items-center justify-between group cursor-pointer hover:bg-primary/5 transition-all"
-               onClick={() => setShowContactPicker(true)}
-             >
-                <div className="flex items-center gap-6">
-                   <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
-                      <Users className="size-6" />
-                   </div>
-                   <div className="text-right">
-                      <p className="font-black text-primary tracking-tight">مزامنة جهات الاتصال</p>
-                      <p className="text-xs font-bold text-muted-foreground opacity-60">اختيار وحفظ أرقام العائلة في جوالك</p>
-                   </div>
-                </div>
-                <ChevronLeft className="size-5 text-muted-foreground/30 group-hover:text-primary transition-all" />
-             </div>
+             <SettingRow icon={<Languages />} title="لغة الواجهة" desc="العربية (الافتراضية)" />
+             <SettingRow icon={<Bell />} title="الإشعارات" desc="مفعلة لكافة الأحداث" />
+             <SettingRow icon={<ShieldCheck />} title="الأمان" desc="التحقق من الهوية مفعل" />
 
              <div className="p-8 flex items-center justify-between text-muted-foreground/40 italic">
                 <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
@@ -525,7 +435,6 @@ function SettingsPage() {
                   const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
                   try {
                     await setupPushNotifications();
-                    // Small delay to allow listener to fire
                     setTimeout(async () => {
                        const { data: auth } = await supabase.auth.getUser();
                        const { data: tokens } = await supabase.from("push_tokens").select("token").eq("user_id", auth.user?.id).limit(1);
@@ -636,73 +545,6 @@ function SettingsPage() {
           </div>
         )}
       </AnimatePresence>
-      <AnimatePresence>
-        {showContactPicker && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl" dir="rtl">
-            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-6 md:p-8 space-y-6 shadow-2xl rounded-[40px] border border-white/10">
-               <div className="flex items-center justify-between border-b border-border/40 pb-4">
-                  <div>
-                    <h3 className="text-xl font-black text-primary tracking-tight">مزامنة سجل العائلة</h3>
-                    <p className="text-[10px] font-bold text-muted-foreground">اختر الأقارب الذين تود حفظ أرقامهم</p>
-                  </div>
-                  <button onClick={() => setShowContactPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><X size={20} /></button>
-               </div>
-
-               <div className="max-h-[50vh] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
-                  {allProfiles.length === 0 ? (
-                    <div className="p-10 text-center opacity-30 italic">لا يوجد أرقام مسجلة حالياً</div>
-                  ) : allProfiles.map(p => (
-                    <div
-                      key={p.id}
-                      onClick={() => {
-                        const next = new Set(selectedContacts);
-                        if (next.has(p.id)) next.delete(p.id);
-                        else next.add(p.id);
-                        setSelectedContacts(next);
-                      }}
-                      className={cn(
-                        "p-4 rounded-2xl border-2 transition-all flex items-center gap-4 cursor-pointer",
-                        selectedContacts.has(p.id) ? "border-primary bg-primary/5" : "border-transparent bg-muted/20 hover:bg-muted/40"
-                      )}
-                    >
-                       <div className="size-10 rounded-xl overflow-hidden bg-primary/10 flex items-center justify-center font-black text-primary">
-                          {p.avatar_url ? <img src={p.avatar_url} className="size-full object-cover" /> : (p.arabic_name?.[0] || "ع")}
-                       </div>
-                       <div className="flex-1 min-w-0">
-                          <p className="font-black text-sm text-primary truncate">{p.arabic_name || p.full_name}</p>
-                          <p className="text-[10px] font-bold text-muted-foreground">{p.phone}</p>
-                       </div>
-                       <div className={cn("size-6 rounded-full border-2 flex items-center justify-center transition-all", selectedContacts.has(p.id) ? "bg-primary border-primary text-white" : "border-muted-foreground/30")}>
-                          {selectedContacts.has(p.id) && <Check size={14} strokeWidth={4} />}
-                       </div>
-                    </div>
-                  ))}
-               </div>
-
-               <div className="pt-4 grid grid-cols-2 gap-4">
-                  <button
-                    onClick={() => setSelectedContacts(new Set(selectedContacts.size === allProfiles.length ? [] : allProfiles.map(p => p.id)))}
-                    className="py-4 rounded-2xl bg-muted font-black text-xs hover:bg-muted/80 transition-all"
-                  >
-                    {selectedContacts.size === allProfiles.length ? "إلغاء الكل" : "تحديد الكل"}
-                  </button>
-                  <button
-                    onClick={async () => {
-                      if (selectedContacts.size === 0) { toast.error("يرجى تحديد اسم واحد على الأقل"); return; }
-                      toast.loading("جاري تجهيز السجل...");
-                      await syncFamilyContacts(Array.from(selectedContacts));
-                      toast.dismiss();
-                      setShowContactPicker(false);
-                    }}
-                    className="py-4 rounded-2xl btn-gold font-black text-xs shadow-xl"
-                  >
-                    حفظ {selectedContacts.size} جهة اتصال
-                  </button>
-               </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </AppShell>
   );
 }
@@ -734,6 +576,8 @@ function SettingRow({ icon, title, desc }: any) {
     </div>
   );
 }
+
+import { setupPushNotifications } from "@/lib/pushNotifications";
 
 const NOTIF_OPTIONS: { key: "meetings" | "entertainment" | "tasks" | "chat" | "news"; label: string; desc: string }[] = [
   { key: "meetings", label: "إشعارات الاجتماعات", desc: "تنبيه عند إنشاء اجتماع جديد." },

@@ -11,27 +11,21 @@ import {
   Archive,
   Users,
   Lock,
-  ShieldAlert,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useServerFn } from "@tanstack/react-start";
-import { sendFazaNotification } from "@/lib/api/push.functions";
-import { toast } from "sonner";
-import { SOS } from "@/lib/native-bridge";
-import * as React from "react";
+import React from "react";
 import { Link } from "@tanstack/react-router";
 
 interface QuickActionProps {
-  to?: string;
+  to: string;
   label: string;
   icon: any;
   color: string;
-  onClick?: () => void;
 }
 
-function QuickAction({ to, label, icon, color, onClick }: QuickActionProps) {
-  const content = (
-    <div className="group flex flex-col items-center gap-3 shrink-0 focus:outline-none cursor-pointer">
+function QuickAction({ to, label, icon, color }: QuickActionProps) {
+  return (
+    <Link to={to} className="group flex flex-col items-center gap-3 shrink-0 focus:outline-none">
        <div className={cn(
          "size-14 md:size-16 rounded-[24px] flex items-center justify-center text-white transition-all duration-500 group-hover:scale-110 group-hover:-translate-y-1.5",
          "shadow-[0_8px_30px_rgb(0,0,0,0.12)] group-hover:shadow-2xl relative overflow-hidden",
@@ -41,52 +35,21 @@ function QuickAction({ to, label, icon, color, onClick }: QuickActionProps) {
           {React.cloneElement(icon, { size: 28, strokeWidth: 1.5 })}
        </div>
        <span className="text-[11px] md:text-[13px] font-black text-primary/80 group-hover:text-primary transition-colors whitespace-nowrap tracking-tight text-center">{label}</span>
-    </div>
+    </Link>
   );
-
-  if (onClick) return <button onClick={onClick} className="focus:outline-none">{content}</button>;
-  return <Link to={to!} className="focus:outline-none">{content}</Link>;
 }
 
 export function QuickActionsBanner() {
-  const runFaza = useServerFn(sendFazaNotification);
-
-  const handleFaza = async () => {
-    if (!confirm("هل أنت متأكد من إرسال نداء 'فزعة' عاجل لجميع أفراد العائلة؟\nيستخدم هذا الخيار في الحالات الطارئة فقط.")) return;
-
-    toast.loading("جاري إرسال نداء الاستغاثة...");
-    try {
-      const res = await runFaza({ data: { message: "أحتاج لمساعدة عاجلة" } });
-
-      // Trigger Native Emergency Notification (on local device for feedback)
-      try {
-        await SOS.showEmergencyNotification({
-          name: "أنت",
-          location: "موقعك الحالي"
-        });
-      } catch (e) { console.error("Native SOS notification failed", e); }
-
-      toast.dismiss();
-      if (res.success) {
-        toast.success("تم إرسال النداء لجميع أفراد العائلة بنجاح 🆘");
-      }
-    } catch {
-      toast.dismiss();
-      toast.error("فشل إرسال النداء");
-    }
-  };
-
   return (
-    <section className="animate-fade-up w-full px-4 md:px-0 py-4 md:py-8">
-       <div className="flex items-center justify-center gap-4 mb-6 md:mb-10 opacity-30">
-         <div className="h-[1px] w-8 md:w-12 bg-primary" />
-         <h3 className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-[0.3em]">الوصول السريع للمجلس</h3>
-         <div className="h-[1px] w-8 md:w-12 bg-primary" />
+    <section className="animate-fade-up w-full px-4 md:px-0 py-8 hidden md:block">
+       <div className="flex items-center justify-center gap-4 mb-10 opacity-30">
+         <div className="h-[1px] w-12 bg-primary" />
+         <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">الوصول السريع للمجلس</h3>
+         <div className="h-[1px] w-12 bg-primary" />
        </div>
 
-       {/* Grid for all platforms */}
-       <div className="grid grid-cols-4 sm:flex sm:flex-wrap items-center justify-center gap-y-8 gap-x-4 md:gap-8 lg:gap-12 px-2 md:px-4 pb-4">
-          <QuickAction onClick={handleFaza} label="فزعة" icon={<ShieldAlert />} color="bg-rose-600 animate-pulse" />
+       {/* Desktop: Centered Row of Actions */}
+       <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12 px-4 pb-4">
           <QuickAction to="/chat" label="محادثة" icon={<MessageCircle />} color="bg-[#065F46]" />
           <QuickAction to="/trips" label="ترفيه" icon={<Ticket />} color="bg-[#D4AF37]" />
           <QuickAction to="/meetings" label="اجتماعات" icon={<CalendarDays />} color="bg-[#1B3022]" />
