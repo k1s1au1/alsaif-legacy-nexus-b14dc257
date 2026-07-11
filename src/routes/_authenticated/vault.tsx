@@ -186,9 +186,28 @@ function SecureVaultPage() {
     setIsScanning(true);
     try {
       const result = await DocumentScanner.scanDocument();
-      if (result && result.path) {
-        const { scannedPathToFile } = await import("@/lib/scanned-doc");
-        const file = await scannedPathToFile(result.path, `scanned_doc_${Date.now()}.jpg`);
+      // Handle the new Base64 response for 100% reliability on Android
+      if (result && (result.base64 || result.path)) {
+        let blob: Blob;
+
+        if (result.base64) {
+          // If we have base64, convert it directly (fastest and most reliable)
+          const base64Data = result.base64.split(',')[1];
+          const byteCharacters = atob(base64Data);
+          const byteNumbers = new Array(byteCharacters.length);
+          for (let i = 0; i < byteCharacters.length; i++) {
+            byteNumbers[i] = byteCharacters.charCodeAt(i);
+          }
+          const byteArray = new Uint8Array(byteNumbers);
+          blob = new Blob([byteArray], { type: 'image/jpeg' });
+        } else {
+          // Fallback to path if base64 is missing
+          const { scannedPathToFile } = await import("@/lib/scanned-doc");
+          blob = await (await scannedPathToFile(result.path, `scanned_doc_${Date.now()}.jpg`)).slice();
+        }
+
+        const file = new File([blob], `scanned_doc_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
         setSelectedFile(file);
         setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
         setShowAdd(true);
