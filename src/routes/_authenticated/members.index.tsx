@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { FamilyContacts } from "@/lib/native-bridge";
 
-export const Route = createFileRoute("/_authenticated/members")({
+export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
   head: () => ({
     meta: [
