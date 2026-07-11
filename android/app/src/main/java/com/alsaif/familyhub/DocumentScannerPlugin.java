@@ -5,21 +5,50 @@ import android.content.IntentSender;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanner;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScannerOptions;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanning;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult;
+import android.Manifest;
 
 import java.util.List;
 
-@CapacitorPlugin(name = "DocumentScanner")
+@CapacitorPlugin(
+    name = "DocumentScanner",
+    permissions = {
+        @Permission(
+            alias = "camera",
+            strings = { Manifest.permission.CAMERA }
+        )
+    }
+)
 public class DocumentScannerPlugin extends Plugin {
     private static final int SCAN_REQUEST_CODE = 10001;
 
     @PluginMethod
     public void scanDocument(PluginCall call) {
+        if (getPermissionState("camera") != PermissionState.GRANTED) {
+            requestPermissionForAlias("camera", call, "checkPermissionCallback");
+        } else {
+            startScan(call);
+        }
+    }
+
+    @PermissionCallback
+    private void checkPermissionCallback(PluginCall call) {
+        if (getPermissionState("camera") == PermissionState.GRANTED) {
+            startScan(call);
+        } else {
+            call.reject("يجب إعطاء إذن الكاميرا لاستخدام الماسح");
+        }
+    }
+
+    private void startScan(PluginCall call) {
         GmsDocumentScannerOptions options = new GmsDocumentScannerOptions.Builder()
                 .setGalleryImportAllowed(true)
                 .setResultFormats(GmsDocumentScannerOptions.RESULT_FORMAT_JPEG, GmsDocumentScannerOptions.RESULT_FORMAT_PDF)
