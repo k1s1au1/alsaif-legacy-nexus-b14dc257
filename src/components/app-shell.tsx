@@ -534,9 +534,9 @@ export function AppShell({
                    if (info.offset.y > 80) setShowMoreHub(false);
                  }}
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "bg-emerald-950/80 backdrop-blur-3xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
+                    "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
                     "touch-none relative overflow-hidden will-change-transform"
                  )}
                  onClick={e => e.stopPropagation()}
@@ -618,9 +618,9 @@ export function AppShell({
                    if (info.offset.y > 80) setShowQuickActions(false);
                  }}
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "bg-emerald-950/90 backdrop-blur-3xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
+                    "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
                     "touch-none relative overflow-hidden will-change-transform"
                  )}
                  onClick={e => e.stopPropagation()}
