@@ -29,6 +29,7 @@ import {
   Archive,
   ChevronLeft,
   Lock,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -490,11 +491,7 @@ export function AppShell({
                       onClick={() => setShowQuickActions(true)}
                       className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-emerald-950/60 p-2 relative z-10 active:scale-90 transition-transform"
                     >
-                       {dynamicLogo ? (
-                         <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} />
-                       ) : (
-                         <Sparkles className="text-gold-primary size-6" />
-                       )}
+                       <LayoutGrid className="text-emerald-950 size-7" strokeWidth={2.5} />
                     </button>
                   </div>
 
