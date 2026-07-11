@@ -320,78 +320,31 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* RESPONSIVE HERO CARD (Mobile Centered / Desktop Side-by-Side) */}
+        {/* RESPONSIVE HERO CARD */}
         <section className="animate-fade-up px-2 md:px-0">
-          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
-
-            {/* Background Texture */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
-                 style={{
-                   backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M40 0l20 40H20zM40 80L20 40h40zM0 40l40-20v40zM80 40L40 60V20z' fill='%23D4AF37' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E")`,
-                   backgroundSize: '80px 80px'
-                 }}
-            />
-
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-16 p-10 md:p-12">
-
-              {/* Profile/Logo Medallion - Desktop: LEFT, Mobile: CENTER */}
-              <div className="shrink-0 flex items-center justify-center">
-                 <div className="relative group/avatar">
-                    <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-2xl animate-pulse" />
-                    <div className="relative size-32 md:size-48 rounded-full p-1.5 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
-                       <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-emerald-950/5">
-                          {dynamicLogo ? (
-                            <div className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]" style={{ backgroundImage: `url(${dynamicLogo})` }} />
-                          ) : (
-                            <Sparkles className="size-16 text-gold-primary animate-pulse" />
-                          )}
-                       </div>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Identity Section - Desktop: RIGHT, Mobile: CENTER */}
-              <div className="flex-1 text-center md:text-right space-y-6 min-w-0">
-                 <div className="space-y-3">
-                    <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
-                       <Sparkles className="size-3 text-gold-primary animate-bounce" />
-                       <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs">
-                          {getGreeting()}، يا أهل الوفاء
-                       </p>
-                    </div>
-
-                    <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-                       {profile.name}
-                    </h2>
-
-                    <div className="flex items-center justify-center md:justify-start gap-4">
-                       <div className="hidden md:block w-1 h-10 bg-gradient-to-b from-gold-primary/70 via-gold-primary/30 to-transparent rounded-full" />
-                       <div className="h-8 overflow-hidden relative w-full md:w-auto">
-                          <AnimatePresence mode="wait">
-                            <motion.p
-                              key={statusIndex}
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              exit={{ opacity: 0, x: 20 }}
-                              className="text-white/60 font-bold text-lg md:text-xl italic leading-none"
-                            >
-                               {statusMessages[statusIndex]}
-                            </motion.p>
-                          </AnimatePresence>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-            </div>
-
-            {/* Corner Ornaments */}
-            <div className="absolute top-0 right-0 size-40 md:size-64 opacity-[0.1] pointer-events-none">
-              <svg viewBox="0 0 100 100" className="size-full fill-gold-primary"><path d="M100,0 L100,30 Q100,0 70,0 L100,0 Z" /></svg>
-            </div>
-          </div>
+          ...
         </section>
 
-
+        {/* SPIRITUAL REMINDER - Now more compact and higher up */}
+        <section className="animate-fade-up px-2 md:px-0">
+           <div className="relative overflow-hidden rounded-[32px] bg-emerald-950/20 border border-gold-primary/10 p-6 md:p-8 text-center group shadow-sm">
+              <div className="relative z-10 space-y-4">
+                 <div className="flex items-center justify-center gap-3 opacity-40">
+                    <div className="h-[px] w-6 bg-gold-primary/50" />
+                    <span className="text-[8px] font-black text-gold-primary uppercase tracking-[0.3em]">نفحات إيمانية</span>
+                    <div className="h-[px] w-6 bg-gold-primary/50" />
+                 </div>
+                 <blockquote className="space-y-2">
+                    <p className="text-lg md:text-2xl font-black text-white/90 leading-tight drop-shadow-sm" style={{ fontFamily: "'Amiri', serif" }}>
+                       {spiritualQuote.text}
+                    </p>
+                    <footer className="text-[9px] font-bold text-gold-primary/50">
+                       {spiritualQuote.source}
+                    </footer>
+                 </blockquote>
+              </div>
+           </div>
+        </section>
 
         <QuickActionsBanner />
         <PollsPopup userId={profile.userId ?? null} />
@@ -475,38 +428,6 @@ function Dashboard() {
            ))}
         </section>
 
-        {/* SPIRITUAL CORNER - Enhanced Visibility */}
-        <section className="animate-fade-up px-2 md:px-0">
-           <div className="relative overflow-hidden rounded-[48px] bg-emerald-950/40 border-2 border-gold-primary/20 p-10 md:p-16 text-center group shadow-2xl">
-              {/* Animated Glowing Orbs */}
-              <div className="absolute -top-20 -right-20 size-64 bg-gold-primary/5 rounded-full blur-[100px] pointer-events-none" />
-              <div className="absolute -bottom-20 -left-20 size-64 bg-emerald-500/5 rounded-full blur-[100px] pointer-events-none" />
-
-              <div className="relative z-10 space-y-8">
-                 <div className="flex items-center justify-center gap-4">
-                    <div className="h-[1.5px] w-12 md:w-20 bg-gradient-to-l from-transparent to-gold-primary/40" />
-                    <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20">
-                       {spiritualQuote.type === 'quran' ? <Scroll className="size-4 text-gold-primary" /> : <Sparkles className="size-4 text-gold-primary" />}
-                       <span className="text-[11px] md:text-xs font-black text-gold-primary uppercase tracking-[0.4em]">نفحات إيمانية</span>
-                    </div>
-                    <div className="h-[1.5px] w-12 md:w-20 bg-gradient-to-r from-transparent to-gold-primary/40" />
-                 </div>
-
-                 <blockquote className="space-y-6">
-                    <p className="text-2xl md:text-4xl font-black text-white leading-relaxed drop-shadow-lg" style={{ fontFamily: "'Amiri', serif" }}>
-                       {spiritualQuote.text}
-                    </p>
-                    <footer className="flex flex-col items-center gap-3">
-                       <div className="h-8 w-[1px] bg-gold-primary/20" />
-                       <div className="flex items-center gap-2 text-gold-primary/80 bg-black/20 px-5 py-2 rounded-full border border-white/5 backdrop-blur-sm">
-                          <span className="text-xs font-black tracking-wide">
-                             {spiritualQuote.source}
-                          </span>
-                       </div>
-                    </footer>
-                 </blockquote>
-              </div>
-           </div>
         </section>
 
         <section className="pb-20 px-4 md:px-0 animate-fade-up">
