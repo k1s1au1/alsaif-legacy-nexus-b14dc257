@@ -318,9 +318,14 @@ function Dashboard() {
 
   return (
     <AppShell title="لوحة العائلة" user={profile}>
-      <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
+      <div className="max-w-6xl mx-auto space-y-8 md:space-y-12 pb-20 px-4 md:px-0">
 
-        {/* RESPONSIVE HERO CARD (Mobile Centered / Desktop Side-by-Side) */}
+        {/* Quick Actions at TOP for mobile visibility */}
+        <div className="md:hidden">
+          <QuickActionsBanner />
+        </div>
+
+        {/* RESPONSIVE HERO CARD */}
         <section className="animate-fade-up px-2 md:px-0">
           <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
 

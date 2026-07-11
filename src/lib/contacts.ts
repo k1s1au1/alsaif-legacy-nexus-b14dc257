@@ -2,20 +2,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 /**
- * Generates a vCard file for all family members and triggers a download.
+ * Generates a vCard file for selected family members and triggers a download.
  * On mobile, this usually opens the contact import screen.
  */
-export async function syncFamilyContacts() {
+export async function syncFamilyContacts(selectedUserIds?: string[]) {
   try {
-    const { data: profiles, error } = await supabase
+    let query = supabase
       .from("profiles")
-      .select("arabic_name, full_name, phone");
+      .select("id, arabic_name, full_name, phone");
 
-    if (error) throw error;
-    if (!profiles || profiles.length === 0) {
-      toast.error("لا يوجد جهات اتصال لتصديرها");
-      return;
+    if (selectedUserIds && selectedUserIds.length > 0) {
+      query = query.in("id", selectedUserIds);
     }
+
+    const { data: profiles, error } = await query;
 
     let vcfContent = "";
 

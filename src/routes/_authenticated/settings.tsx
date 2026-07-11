@@ -129,21 +129,34 @@ function SettingsPage() {
   const [isNative, setIsNative] = useState(false);
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
+  const [showContactPicker, setShowContactPicker] = useState(false);
   const [canCustomizeBg, setCanCustomizeBg] = useState(false);
+  const [useBiometrics, setUseBiometrics] = useState(false);
+  const [fazaEnabled, setFazaEnabled] = useState(true);
+  const [allProfiles, setAllProfiles] = useState<any[]>([]);
+  const [selectedContacts, setSelectedContacts] = useState<Set<string>>(new Set());
+
   const dynamicLogo = useSiteLogo();
 
   useEffect(() => {
     (async () => {
       const { data: auth } = await supabase.auth.getUser();
       if (!auth.user) return;
-      const { data: roles } = await supabase.from("user_roles").select("role").eq("user_id", auth.user.id);
+
+      const [{ data: roles }, { data: profiles }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", auth.user.id),
+        supabase.from("profiles").select("id, arabic_name, full_name, phone, avatar_url").not("phone", "is", null)
+      ]);
+
       const rs = (roles ?? []).map(r => r.role);
       setCanCustomizeBg(rs.includes("admin") || rs.includes("chairman"));
+
+      if (profiles) {
+        setAllProfiles(profiles);
+        setSelectedContacts(new Set(profiles.map(p => p.id)));
+      }
     })();
   }, []);
-
-  const [useBiometrics, setUseBiometrics] = useState(false);
-  const [fazaEnabled, setFazaEnabled] = useState(true);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -473,11 +486,7 @@ function SettingsPage() {
 
              <div
                className="p-6 md:p-8 flex items-center justify-between group cursor-pointer hover:bg-primary/5 transition-all"
-               onClick={async () => {
-                 toast.loading("جاري جلب بيانات العائلة...");
-                 await syncFamilyContacts();
-                 toast.dismiss();
-               }}
+               onClick={() => setShowContactPicker(true)}
              >
                 <div className="flex items-center gap-6">
                    <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
@@ -485,7 +494,7 @@ function SettingsPage() {
                    </div>
                    <div className="text-right">
                       <p className="font-black text-primary tracking-tight">مزامنة جهات الاتصال</p>
-                      <p className="text-xs font-bold text-muted-foreground opacity-60">حفظ أرقام العائلة في سجل جوالك</p>
+                      <p className="text-xs font-bold text-muted-foreground opacity-60">اختيار وحفظ أرقام العائلة في جوالك</p>
                    </div>
                 </div>
                 <ChevronLeft className="size-5 text-muted-foreground/30 group-hover:text-primary transition-all" />
@@ -622,6 +631,73 @@ function SettingsPage() {
                        <span className="text-xl opacity-20 font-black group-hover:opacity-100 transition-opacity shrink-0">أبج</span>
                     </button>
                   ))}
+               </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {showContactPicker && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl" dir="rtl">
+            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="card-surface w-full max-w-lg p-6 md:p-8 space-y-6 shadow-2xl rounded-[40px] border border-white/10">
+               <div className="flex items-center justify-between border-b border-border/40 pb-4">
+                  <div>
+                    <h3 className="text-xl font-black text-primary tracking-tight">مزامنة سجل العائلة</h3>
+                    <p className="text-[10px] font-bold text-muted-foreground">اختر الأقارب الذين تود حفظ أرقامهم</p>
+                  </div>
+                  <button onClick={() => setShowContactPicker(false)} className="size-10 rounded-full bg-muted flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"><X size={20} /></button>
+               </div>
+
+               <div className="max-h-[50vh] overflow-y-auto pr-2 space-y-2 custom-scrollbar">
+                  {allProfiles.length === 0 ? (
+                    <div className="p-10 text-center opacity-30 italic">لا يوجد أرقام مسجلة حالياً</div>
+                  ) : allProfiles.map(p => (
+                    <div
+                      key={p.id}
+                      onClick={() => {
+                        const next = new Set(selectedContacts);
+                        if (next.has(p.id)) next.delete(p.id);
+                        else next.add(p.id);
+                        setSelectedContacts(next);
+                      }}
+                      className={cn(
+                        "p-4 rounded-2xl border-2 transition-all flex items-center gap-4 cursor-pointer",
+                        selectedContacts.has(p.id) ? "border-primary bg-primary/5" : "border-transparent bg-muted/20 hover:bg-muted/40"
+                      )}
+                    >
+                       <div className="size-10 rounded-xl overflow-hidden bg-primary/10 flex items-center justify-center font-black text-primary">
+                          {p.avatar_url ? <img src={p.avatar_url} className="size-full object-cover" /> : (p.arabic_name?.[0] || "ع")}
+                       </div>
+                       <div className="flex-1 min-w-0">
+                          <p className="font-black text-sm text-primary truncate">{p.arabic_name || p.full_name}</p>
+                          <p className="text-[10px] font-bold text-muted-foreground">{p.phone}</p>
+                       </div>
+                       <div className={cn("size-6 rounded-full border-2 flex items-center justify-center transition-all", selectedContacts.has(p.id) ? "bg-primary border-primary text-white" : "border-muted-foreground/30")}>
+                          {selectedContacts.has(p.id) && <Check size={14} strokeWidth={4} />}
+                       </div>
+                    </div>
+                  ))}
+               </div>
+
+               <div className="pt-4 grid grid-cols-2 gap-4">
+                  <button
+                    onClick={() => setSelectedContacts(new Set(selectedContacts.size === allProfiles.length ? [] : allProfiles.map(p => p.id)))}
+                    className="py-4 rounded-2xl bg-muted font-black text-xs hover:bg-muted/80 transition-all"
+                  >
+                    {selectedContacts.size === allProfiles.length ? "إلغاء الكل" : "تحديد الكل"}
+                  </button>
+                  <button
+                    onClick={async () => {
+                      if (selectedContacts.size === 0) { toast.error("يرجى تحديد اسم واحد على الأقل"); return; }
+                      toast.loading("جاري تجهيز السجل...");
+                      await syncFamilyContacts(Array.from(selectedContacts));
+                      toast.dismiss();
+                      setShowContactPicker(false);
+                    }}
+                    className="py-4 rounded-2xl btn-gold font-black text-xs shadow-xl"
+                  >
+                    حفظ {selectedContacts.size} جهة اتصال
+                  </button>
                </div>
             </motion.div>
           </div>
