@@ -180,7 +180,7 @@ function SecureVaultPage() {
       }
     } catch (e: any) {
       if (e.message !== "تم إلغاء العملية") {
-        toast.error("فشل المسح الضوئي");
+        toast.error(e.message || "فشل المسح الضوئي");
       }
     } finally {
       setIsScanning(false);

@@ -10,9 +10,9 @@
               <option name="connection">
                 <ConnectionSetting>
                   <option name="appId" value="com.alsaif.familyhub" />
-                  <option name="mobileSdkAppId" value="1:323002098054:android:c867519e7fe204d5658c07" />
-                  <option name="projectId" value="comalsaiffamilyhub" />
-                  <option name="projectNumber" value="323002098054" />
+                  <option name="mobileSdkAppId" value="1:471598482928:android:78a99aa73db5d26e6ec935" />
+                  <option name="projectId" value="alsaif-family-hub-rsmy" />
+                  <option name="projectNumber" value="471598482928" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
