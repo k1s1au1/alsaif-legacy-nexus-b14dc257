@@ -316,6 +316,7 @@ function Dashboard() {
     finally { setBugSending(false); }
   };
 
+  return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
