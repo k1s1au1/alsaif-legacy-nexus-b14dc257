@@ -35,6 +35,7 @@ import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { TripImage } from "@/components/trip-image";
@@ -427,43 +428,58 @@ function Dashboard() {
           </section>
         )}
 
-        {/* 6. ANNOUNCEMENTS */}
-        {announcements.length > 0 && (() => {
-            const a = announcements[annIndex % announcements.length];
-            return (
-              <section className="animate-fade-up px-2 md:px-0">
-                <Link to="/majlis" className="block group relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[240px] md:min-h-[200px] flex items-stretch">
-                   {a.imageUrl && (
-                      <div className="absolute inset-0 z-0 overflow-hidden">
-                         <img
-                            src={a.imageUrl}
-                            className="size-full object-cover object-left md:object-center transition-all duration-1000 group-hover:scale-105"
-                            alt=""
-                         />
-                         <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black via-black/40 to-transparent" />
-                      </div>
-                   )}
-                   <div className="relative z-10 flex flex-col md:flex-row items-end md:items-center justify-between gap-6 w-full p-6 md:p-12">
-                      <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 text-center md:text-right w-full">
-                         <div className="size-14 md:size-24 rounded-2xl md:rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
-                            <Newspaper size={28} className="md:size-[40px]" />
-                         </div>
-                         <div className="space-y-2 md:space-y-1 w-full">
-                            <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary opacity-80">{a._label}</span>
-                            <h3 className="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">{a.title}</h3>
-                            <p className="text-white/90 font-bold text-sm md:text-lg leading-relaxed max-w-2xl">
-                               {a.cleanBody}
-                            </p>
-                         </div>
-                      </div>
-                      <div className="hidden md:flex shrink-0">
-                         <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
-                      </div>
-                   </div>
-                </Link>
-              </section>
-            );
-        })()}
+        {/* 6. ANNOUNCEMENTS - Now with Carousel and Arrows */}
+        {announcements.length > 0 && (
+          <section className="animate-fade-up px-2 md:px-0">
+             <Carousel
+               opts={{ loop: true, direction: 'rtl' }}
+               plugins={[Autoplay({ delay: 7000 })]}
+               className="w-full group"
+             >
+                <CarouselContent>
+                   {announcements.map((a, i) => (
+                      <CarouselItem key={i}>
+                         <Link to="/majlis" className="block relative overflow-hidden rounded-[32px] md:rounded-[40px] border border-gold-primary/30 bg-gradient-to-br from-primary via-[#0d2620] to-black shadow-2xl min-h-[240px] md:min-h-[200px] flex items-stretch">
+                            {a.imageUrl && (
+                               <div className="absolute inset-0 z-0 overflow-hidden">
+                                  <img
+                                     src={a.imageUrl}
+                                     className="size-full object-cover object-left md:object-center transition-all duration-1000 group-hover:scale-105"
+                                     alt=""
+                                  />
+                                  <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black via-black/40 to-transparent" />
+                               </div>
+                            )}
+                            <div className="relative z-10 flex flex-col md:flex-row items-end md:items-center justify-between gap-6 w-full p-6 md:p-12">
+                               <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-8 text-center md:text-right w-full">
+                                  <div className="size-14 md:size-24 rounded-2xl md:rounded-3xl bg-gold-primary/20 backdrop-blur-xl border border-gold-primary/30 flex items-center justify-center text-gold-primary shrink-0 shadow-2xl group-hover:rotate-6 transition-transform duration-500">
+                                     <Newspaper size={28} className="md:size-[40px]" />
+                                  </div>
+                                  <div className="space-y-2 md:space-y-1 w-full">
+                                     <span className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.4em] text-gold-primary opacity-80">{a._label}</span>
+                                     <h3 className="text-2xl md:text-4xl font-black text-white tracking-tight drop-shadow-lg">{a.title}</h3>
+                                     <p className="text-white/90 font-bold text-sm md:text-lg leading-relaxed max-w-2xl">
+                                        {a.cleanBody}
+                                     </p>
+                                  </div>
+                               </div>
+                               <div className="hidden md:flex shrink-0">
+                                  <ChevronLeft className="size-10 text-gold-primary/40 group-hover:text-gold-primary group-hover:-translate-x-3 transition-all duration-500" />
+                               </div>
+                            </div>
+                         </Link>
+                      </CarouselItem>
+                   ))}
+                </CarouselContent>
+
+                {/* Desktop Arrows */}
+                <div className="hidden md:block">
+                   <CarouselPrevious className="right-4 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all" />
+                   <CarouselNext className="left-4 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all" />
+                </div>
+             </Carousel>
+          </section>
+        )}
 
         {/* 7. STATS GRID */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 px-2 md:px-0">

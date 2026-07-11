@@ -11,8 +11,9 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { TripImage } from "@/components/trip-image";
-import { Carousel, CarouselContent, CarouselItem, type CarouselApi } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext, type CarouselApi } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { ChevronUp, ChevronDown } from "lucide-react";
 
 interface HubProps {
   upcomingMeetings: any[];
@@ -215,6 +216,12 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                               );
                             })}
                          </CarouselContent>
+
+                         {/* Desktop Arrows */}
+                         <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-4 flex-col gap-2 z-20">
+                            <CarouselPrevious className="relative top-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/5 border-white/10 hover:bg-gold-primary hover:text-black text-white" />
+                            <CarouselNext className="relative bottom-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/5 border-white/10 hover:bg-gold-primary hover:text-black text-white" />
+                         </div>
                       </Carousel>
                    ) : (
                       <EmptyHub icon={Plane} message="لا توجد رحلات مجدولة حالياً" />
@@ -271,6 +278,12 @@ export function IntegratedHub({ upcomingMeetings, upcomingTrips, tasksCount, onV
                               );
                             })}
                          </CarouselContent>
+
+                         {/* Desktop Arrows */}
+                         <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-4 flex-col gap-2 z-20">
+                            <CarouselPrevious className="relative top-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/5 border-white/10 hover:bg-gold-primary hover:text-black text-white" />
+                            <CarouselNext className="relative bottom-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/5 border-white/10 hover:bg-gold-primary hover:text-black text-white" />
+                         </div>
                       </Carousel>
                    ) : (
                       <EmptyHub icon={CalendarDays} message="لا توجد اجتماعات قريبة" />
