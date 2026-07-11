@@ -77,8 +77,6 @@ const CATEGORIES: { key: VaultCategory; label: string; icon: any; color: string;
 function SecureVaultPage() {
   const [items, setItems] = useState<VaultItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isUnlocked, setIsUnlocked] = useState(false);
-  const [biometricChecking, setBiometricChecking] = useState(false);
   const [showAdd, setShowAdd] = useState(false);
   const [activeTab, setActiveTab] = useState<VaultCategory | "all">("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -98,31 +96,6 @@ function SecureVaultPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      setBiometricChecking(true);
-      try {
-        const { isAvailable } = await BiometricAuth.checkBiometry();
-        if (isAvailable) {
-          const { success } = await BiometricAuth.authenticate({
-            title: "تأكيد الهوية",
-            subtitle: "يرجى استخدام البصمة للدخول إلى الخزنة"
-          });
-          if (success) setIsUnlocked(true);
-        } else {
-          setIsUnlocked(true);
-        }
-      } catch (e) {
-        console.error("Biometric auth failed", e);
-        toast.error("فشل تأكيد الهوية");
-      } finally {
-        setBiometricChecking(false);
-      }
-    };
-
-    checkAuth();
-  }, []);
-
-  useEffect(() => {
     supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").then(({ data }) => {
       if (data) setAllProfiles(data.sort((a, b) => (a.arabic_name || "").localeCompare(b.arabic_name || "")));
     });
@@ -133,7 +106,6 @@ function SecureVaultPage() {
   }, []);
 
   const load = useCallback(async () => {
-    if (!isUnlocked) return;
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -173,7 +145,7 @@ function SecureVaultPage() {
     }
   }, []);
 
-  useEffect(() => { load(); }, [load, isUnlocked]);
+  useEffect(() => { load(); }, [load]);
 
   const filteredItems = items.filter(it =>
     (activeTab === "all" || it.category === activeTab) &&
@@ -350,14 +322,6 @@ function SecureVaultPage() {
       setSessionUserId(data.session?.user?.id || null);
     });
   }, []);
-
-  if (biometricChecking) {
-    return <AppShell title="جاري التحقق..." user={{ name: "الخزنة", role: "أمان", initial: "خ" }}><div className="py-40 text-center opacity-30"><Loader2 className="size-16 animate-spin mx-auto mb-4 text-primary" strokeWidth={3} /><p className="font-black uppercase tracking-[0.3em] text-[10px]">جاري التحقق من الهوية...</p></div></AppShell>;
-  }
-
-  if (!isUnlocked) {
-    return <AppShell title="الخزنة مقفلة" user={{ name: "الخزنة", role: "أمان", initial: "خ" }}><div className="py-40 text-center space-y-6 flex flex-col items-center justify-center"><Lock className="size-20 text-rose-500 opacity-20" /><h3 className="text-2xl font-black">الخزنة مقفلة</h3><button onClick={() => window.location.reload()} className="btn-gold px-8 py-3 rounded-2xl">حاول مجدداً</button></div></AppShell>;
-  }
 
   return (
     <AppShell title="خزنة الوثائق والوصايا" user={{ name: "الخزنة الرقمية", role: "خصوصية فائقة", initial: "خ" }}>
