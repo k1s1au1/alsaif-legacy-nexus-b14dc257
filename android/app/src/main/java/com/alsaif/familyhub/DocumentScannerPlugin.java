@@ -3,6 +3,7 @@ package com.alsaif.familyhub;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.net.Uri;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
@@ -17,6 +18,10 @@ import com.google.mlkit.vision.documentscanner.GmsDocumentScanning;
 import com.google.mlkit.vision.documentscanner.GmsDocumentScanningResult;
 import android.Manifest;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 @CapacitorPlugin(
