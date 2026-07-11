@@ -536,7 +536,7 @@ export function AppShell({
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "bg-slate-400/95 rounded-t-[40px] border-t border-emerald-900/10 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.3)]",
+                    "bg-emerald-950/80 backdrop-blur-3xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
                     "touch-none relative overflow-hidden will-change-transform"
                  )}
                  onClick={e => e.stopPropagation()}
@@ -550,12 +550,12 @@ export function AppShell({
 
                   {/* User Profile Section */}
                   <div className="relative z-10 flex items-center gap-5 p-2">
-                     <div className="size-16 rounded-full ring-4 ring-emerald-900/5 p-0.5 bg-emerald-950/5 shadow-sm">
+                     <div className="size-16 rounded-full ring-4 ring-white/10 p-0.5 bg-white/5 shadow-sm">
                         <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
                      </div>
                      <div className="space-y-0.5">
-                        <h3 className="text-xl font-black text-emerald-950 leading-tight">{safeUser.name}</h3>
-                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-emerald-600/10 border border-emerald-600/10 text-emerald-700 text-[9px] font-black uppercase tracking-widest">
+                        <h3 className="text-xl font-black text-white leading-tight">{safeUser.name}</h3>
+                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-gold-primary/20 border border-gold-primary/20 text-gold-primary text-[9px] font-black uppercase tracking-widest">
                            {safeUser.role}
                         </div>
                      </div>
@@ -569,14 +569,14 @@ export function AppShell({
                          onClick={() => setShowMoreHub(false)}
                          className={cn(
                            "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
-                           path === to ? "bg-emerald-700 text-white shadow-lg" : "bg-emerald-50/50 text-emerald-900 hover:bg-emerald-100 border border-emerald-900/5"
+                           path === to ? "bg-gold-primary text-emerald-950 shadow-lg" : "bg-white/5 text-white/80 hover:bg-white/10 border border-white/5"
                          )}
                        >
                          <div className="flex items-center gap-4 flex-row-reverse">
                            <Icon size={20} strokeWidth={2.5} />
                            <span className="text-[15px] tracking-tight">{label}</span>
                          </div>
-                         <ChevronLeft size={18} className={path === to ? "opacity-40" : "opacity-20"} />
+                         <ChevronLeft size={18} className={path === to ? "opacity-60" : "opacity-20"} />
                        </Link>
                      ))}
                   </div>
@@ -592,7 +592,7 @@ export function AppShell({
                      </button>
                      <button
                         onClick={() => setShowMoreHub(false)}
-                        className="flex-1 flex items-center justify-center py-4 rounded-[22px] bg-emerald-950/5 text-emerald-900 font-black text-xs border border-emerald-950/10 active:scale-95 transition-all"
+                        className="flex-1 flex items-center justify-center py-4 rounded-[22px] bg-white/10 text-white font-black text-xs border border-white/10 active:scale-95 transition-all"
                      >
                         إغلاق
                      </button>
@@ -620,7 +620,7 @@ export function AppShell({
                  initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
                  transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                  className={cn(
-                    "bg-slate-600/95 rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-10px_40px_rgba(0,0,0,0.4)]",
+                    "bg-emerald-950/90 backdrop-blur-3xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
                     "touch-none relative overflow-hidden will-change-transform"
                  )}
                  onClick={e => e.stopPropagation()}
