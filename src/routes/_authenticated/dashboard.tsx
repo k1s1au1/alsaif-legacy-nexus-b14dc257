@@ -316,9 +316,20 @@ function Dashboard() {
     finally { setBugSending(false); }
   };
 
-  return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
+
+        {/* SPIRITUAL REMINDER - Integrated Sub-Header */}
+        <section className="animate-fade-up px-2 md:px-0">
+           <div className="flex items-center justify-center gap-3 py-1 opacity-80 transition-all duration-700">
+              <Scroll className="size-3 text-gold-primary/60 shrink-0" />
+              <p className="text-[11px] md:text-sm font-black text-gold-primary italic drop-shadow-sm" style={{ fontFamily: "'Amiri', serif" }}>
+                 "{spiritualQuote.text}"
+              </p>
+              <div className="h-2 w-px bg-gold-primary/20 mx-1" />
+              <span className="text-[9px] font-bold text-gold-primary/50">{spiritualQuote.source}</span>
+           </div>
+        </section>
 
         {/* RESPONSIVE HERO CARD (Mobile Centered / Desktop Side-by-Side) */}
         <section className="animate-fade-up px-2 md:px-0">
@@ -391,13 +402,15 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* SPIRITUAL REMINDER - Integrated Slim Banner between Hero and Actions */}
-        <section className="animate-fade-up px-2 md:px-0 -mt-6">
-           <div className="flex items-center justify-center gap-2 opacity-40 hover:opacity-100 transition-opacity duration-500 py-2 border-y border-white/5">
-              <Scroll className="size-3 text-gold-primary/60" />
-              <p className="text-[10px] md:text-xs font-black text-white/70 italic" style={{ fontFamily: "'Amiri', serif" }}>
-                 "{spiritualQuote.text}" — {spiritualQuote.source}
+        {/* SPIRITUAL REMINDER - Now in Gold and fully visible */}
+        <section className="animate-fade-up px-2 md:px-0 -mt-6 mb-4">
+           <div className="flex items-center justify-center gap-2 py-2 border-y border-gold-primary/10">
+              <Scroll className="size-3 text-gold-primary" />
+              <p className="text-[11px] md:text-sm font-black text-gold-primary italic drop-shadow-sm" style={{ fontFamily: "'Amiri', serif" }}>
+                 "{spiritualQuote.text}"
               </p>
+              <div className="h-2 w-px bg-gold-primary/20 mx-1" />
+              <span className="text-[9px] font-bold text-gold-primary/60">{spiritualQuote.source}</span>
            </div>
         </section>
 
