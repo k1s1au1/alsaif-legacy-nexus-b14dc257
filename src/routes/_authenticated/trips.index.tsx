@@ -14,7 +14,7 @@ import { useSiteLogo } from "@/hooks/use-site-logo";
 import { GamesHub } from "@/components/entertainment/games-hub";
 import { sendPushNotification } from "@/lib/api/push.functions";
 
-export const Route = createFileRoute("/_authenticated/trips/")({
+export const Route = createFileRoute("/_authenticated/trips")({
   ssr: false,
   head: () => ({
     meta: [
@@ -69,7 +69,6 @@ function TripsPage() {
   const { userId, canManage: canManageSection, primaryRole } = useUserRole();
   const canManage = canManageSection("trips");
   const dynamicLogo = useSiteLogo();
-  const sendPush = useServerFn(sendPushNotification);
 
   async function loadTrips() {
     const { data, error } = await supabase
@@ -363,6 +362,7 @@ function TripCard({ trip, index, canManage, onEdit, onRefresh }: any) {
 }
 
 function TripDialog({ trip, onClose, onSaved }: any) {
+  const sendPush = useServerFn(sendPushNotification);
   const isEdit = !!trip;
   const [saving, setSaving] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -427,8 +427,7 @@ function TripDialog({ trip, onClose, onSaved }: any) {
       if (!isEdit) {
         // Trigger FCM for new trip
         try {
-          const { sendPushNotification } = await import("@/lib/api/push.functions");
-          await sendPushNotification({
+          await sendPush({
             data: {
               title: "فعالية جديدة",
               body: "تمت إضافة فعالية جديدة في قسم الترفيه.",

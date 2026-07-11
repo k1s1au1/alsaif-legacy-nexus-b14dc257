@@ -119,9 +119,6 @@ const SPIRITUAL_QUOTES = [
 ];
 
 function Dashboard() {
-  const [profile, setProfile] = useState<any>({ name: "تحميل...", role: "عضو", initial: "س" });
-  // ... rest of state
-
   // Logic to select the quote based on date
   const spiritualQuote = useMemo(() => {
     const now = new Date();

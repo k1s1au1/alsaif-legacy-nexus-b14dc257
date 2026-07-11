@@ -41,7 +41,6 @@ export function MeetingDiscussions({ meId, isAdmin, isChairman, canManage }: {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<UiKind | "all">("all");
   const [showAdd, setShowAdd] = useState(false);
-  const sendFcm = useServerFn(sendFcmNotification);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -341,6 +340,7 @@ function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
 }
 
 function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
+  const sendFcm = useServerFn(sendFcmNotification);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", kind: "discussion" as UiKind });
   const [isPoll, setIsPoll] = useState(false);
