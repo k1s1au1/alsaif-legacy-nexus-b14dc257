@@ -18,7 +18,6 @@ import { useServerFn } from "@tanstack/react-start";
 import { sendFazaNotification } from "@/lib/api/push.functions";
 import { toast } from "sonner";
 import { SOS } from "@/lib/native-bridge";
-import React from "react";
 import * as React from "react";
 import { Link } from "@tanstack/react-router";
 
