@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/user-avatar";
 import { BiometricAuth, DocumentScanner } from "@/lib/native-bridge";
+import { Capacitor } from "@capacitor/core";
 
 export const Route = createFileRoute("/_authenticated/vault")({
   ssr: false,
@@ -168,11 +169,13 @@ function SecureVaultPage() {
     setIsScanning(true);
     try {
       const result = await DocumentScanner.scanDocument();
-      if (result.path) {
-        // Create a File object from the URI (simplified logic for native bridge)
-        const response = await fetch(result.path);
+      if (result && result.path) {
+        // Convert Native Path to Web Path for Fetch
+        const webPath = Capacitor.convertFileSrc(result.path);
+        const response = await fetch(webPath);
         const blob = await response.blob();
-        const file = new File([blob], `scanned_doc_${Date.now()}.jpg`, { type: blob.type });
+        const file = new File([blob], `scanned_doc_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
         setSelectedFile(file);
         setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
         setShowAdd(true);

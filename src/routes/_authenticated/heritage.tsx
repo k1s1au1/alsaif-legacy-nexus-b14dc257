@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useUserRole } from "@/hooks/use-user-role";
 import { DocumentScanner } from "@/lib/native-bridge";
+import { Capacitor } from "@capacitor/core";
 
 export const Route = createFileRoute("/_authenticated/heritage")({
   ssr: false,
@@ -144,10 +145,13 @@ function HeritagePage() {
     setIsScanning(true);
     try {
       const result = await DocumentScanner.scanDocument();
-      if (result.path) {
-        const response = await fetch(result.path);
+      if (result && result.path) {
+        // Convert Native Path to Web Path for Fetch
+        const webPath = Capacitor.convertFileSrc(result.path);
+        const response = await fetch(webPath);
         const blob = await response.blob();
-        const file = new File([blob], `heritage_scan_${Date.now()}.jpg`, { type: blob.type });
+        const file = new File([blob], `heritage_scan_${Date.now()}.jpg`, { type: 'image/jpeg' });
+
         setImageFile(file);
         setImagePreview(URL.createObjectURL(file));
         setShowCompose(true);
