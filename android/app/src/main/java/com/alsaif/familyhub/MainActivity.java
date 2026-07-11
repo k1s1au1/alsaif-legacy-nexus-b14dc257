@@ -6,8 +6,8 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        // Explicitly register the custom local plugin
+        // Register plugins BEFORE calling super.onCreate
         registerPlugin(DocumentScannerPlugin.class);
+        super.onCreate(savedInstanceState);
     }
 }
