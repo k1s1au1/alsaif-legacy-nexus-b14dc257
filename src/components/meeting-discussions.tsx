@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useServerFn } from "@tanstack/react-start";
 import { sendFcmNotification } from "@/lib/fcm";
 
 type PostKind = "announcement" | "discussion" | "complaint";
@@ -40,6 +41,7 @@ export function MeetingDiscussions({ meId, isAdmin, isChairman, canManage }: {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<UiKind | "all">("all");
   const [showAdd, setShowAdd] = useState(false);
+  const sendFcm = useServerFn(sendFcmNotification);
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -363,7 +365,7 @@ function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
       const { error } = await supabase.from("majlis_posts").insert({ title, body: finalBody, kind: dbKind, author_id: meId });
       if (!error) {
         toast.success("تم النشر");
-        sendFcmNotification({ data: { title: "نقاش جديد في الاجتماعات", body: title } }).catch(() => {});
+        sendFcm({ data: { title: "نقاش جديد في الاجتماعات", body: title } }).catch(() => {});
         onSaved(); onClose();
       } else toast.error("تعذر النشر: " + error.message);
     } finally { setSaving(false); }

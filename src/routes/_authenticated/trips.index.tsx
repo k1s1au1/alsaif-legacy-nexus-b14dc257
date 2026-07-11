@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState, type FormEvent } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -10,10 +11,10 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import { sendFcmNotification } from "@/lib/fcm";
 import { GamesHub } from "@/components/entertainment/games-hub";
+import { sendPushNotification } from "@/lib/api/push.functions";
 
-export const Route = createFileRoute("/_authenticated/trips/")({
+export const Route = createFileRoute("/_authenticated/trips")({
   ssr: false,
   head: () => ({
     meta: [
@@ -68,6 +69,7 @@ function TripsPage() {
   const { userId, canManage: canManageSection, primaryRole } = useUserRole();
   const canManage = canManageSection("trips");
   const dynamicLogo = useSiteLogo();
+  const sendPush = useServerFn(sendPushNotification);
 
   async function loadTrips() {
     const { data, error } = await supabase

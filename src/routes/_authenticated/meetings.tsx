@@ -20,6 +20,7 @@ import {
   Bell,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -35,7 +36,7 @@ import {
 } from "@/components/ui/carousel";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
-import { sendFcmNotification } from "@/lib/fcm";
+import { sendPushNotification } from "@/lib/api/push.functions";
 import { MeetingPresentations } from "@/components/meeting-presentations";
 import { addToCalendar } from "@/lib/calendar";
 
@@ -100,6 +101,7 @@ function MeetingsPage() {
 
   const canManage = canManageSection("meetings");
   const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
+  const sendPush = useServerFn(sendPushNotification);
 
   const resetForm = useCallback(() => {
     setFTitle("");
@@ -206,8 +208,7 @@ function MeetingsPage() {
 
         // Broadcast notification
         try {
-          const { sendPushNotification } = await import("@/lib/api/push.functions");
-          await sendPushNotification({
+          await sendPush({
             data: {
               title: "اجتماع جديد",
               body: "تم إنشاء اجتماع جديد في مجلس العائلة.",
@@ -292,8 +293,7 @@ function MeetingsPage() {
   const handleRemindAll = async (m: Meeting) => {
     try {
       toast.loading("جاري إرسال التذكيرات...");
-      const { sendPushNotification } = await import("@/lib/api/push.functions");
-      await sendPushNotification({
+      await sendPush({
         data: {
           title: `تذكير: ${m.title}`,
           body: `نذكركم بموعدنا القريب في: ${formatDate(m.scheduled_at).weekday} الساعة ${formatDate(m.scheduled_at).time}`,

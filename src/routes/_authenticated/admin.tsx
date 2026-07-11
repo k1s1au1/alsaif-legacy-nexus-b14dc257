@@ -104,6 +104,7 @@ function AdminPage() {
   const approveFn = useServerFn(approveAccountRequest);
   const deleteMemberFn = useServerFn(deleteMemberAccount);
   const assignRoleFn = useServerFn(assignUserRole);
+  const sendFcm = useServerFn(sendFcmNotification);
 
   const loadData = useCallback(async () => {
     if (!meId) return;
@@ -360,7 +361,7 @@ function AdminPage() {
       toast.success("تم حفظ الإعلان بنجاح");
 
       if (!annDraft.id) {
-        sendFcmNotification({
+        sendFcm({
           data: {
             title: "📢 إعلان رسمي جديد",
             body: annDraft.title,
@@ -422,7 +423,7 @@ function AdminPage() {
             <div className="mt-8 flex justify-center md:justify-end">
                <button
                  onClick={async () => {
-                   const { success, error } = (await sendFcmNotification({
+                    const { success, error } = (await sendFcm({
                      data: {
                        title: "🔔 تجربة إشعارات الأخبار",
                        body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
@@ -448,7 +449,7 @@ function AdminPage() {
              <button
                onClick={async () => {
                  toast.loading("جاري إرسال الإشعار...");
-                  const res = (await sendFcmNotification({
+                   const res = (await sendFcm({
                     data: {
                       title: "🔔 تجربة إشعارات الأخبار",
                       body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
