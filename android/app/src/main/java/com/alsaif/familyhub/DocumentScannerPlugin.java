@@ -90,14 +90,17 @@ public class DocumentScannerPlugin extends Plugin {
                     JSObject ret = new JSObject();
                     List<GmsDocumentScanningResult.Page> pages = scanningResult.getPages();
                     if (pages != null && !pages.isEmpty()) {
-                        ret.put("path", pages.get(0).getImageUri().toString());
+                        Uri src = pages.get(0).getImageUri();
+                        String cached = copyToCache(src, "scan_" + System.currentTimeMillis() + ".jpg");
+                        ret.put("path", cached != null ? cached : src.toString());
                     }
-                    
+
                     GmsDocumentScanningResult.Pdf pdf = scanningResult.getPdf();
                     if (pdf != null) {
-                        ret.put("pdfPath", pdf.getUri().toString());
+                        String cachedPdf = copyToCache(pdf.getUri(), "scan_" + System.currentTimeMillis() + ".pdf");
+                        ret.put("pdfPath", cachedPdf != null ? cachedPdf : pdf.getUri().toString());
                     }
-                    
+
                     call.resolve(ret);
                 } else {
                     call.reject("لم يتم العثور على نتيجة للمسح");
@@ -107,6 +110,22 @@ public class DocumentScannerPlugin extends Plugin {
             } else {
                 call.reject("فشل المسح الضوئي");
             }
+        }
+    }
+
+    private String copyToCache(Uri src, String name) {
+        try {
+            File out = new File(getContext().getCacheDir(), name);
+            try (InputStream in = getContext().getContentResolver().openInputStream(src);
+                 OutputStream os = new FileOutputStream(out)) {
+                if (in == null) return null;
+                byte[] buf = new byte[8192];
+                int n;
+                while ((n = in.read(buf)) > 0) os.write(buf, 0, n);
+            }
+            return Uri.fromFile(out).toString();
+        } catch (Exception e) {
+            return null;
         }
     }
 }
