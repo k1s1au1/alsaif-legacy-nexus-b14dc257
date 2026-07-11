@@ -1,16 +1,13 @@
 package com.alsaif.familyhub;
 
+import android.app.Activity;
 import android.content.Intent;
-import android.net.Uri;
-import androidx.activity.result.ActivityResult;
-import androidx.activity.result.IntentSenderRequest;
-
+import android.content.IntentSender;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
-import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
 import com.getcapacitor.annotation.PermissionCallback;
@@ -32,6 +29,7 @@ import java.util.List;
     }
 )
 public class DocumentScannerPlugin extends Plugin {
+    private static final int SCAN_REQUEST_CODE = 10001;
 
     @PluginMethod
     public void scanDocument(PluginCall call) {
@@ -62,37 +60,48 @@ public class DocumentScannerPlugin extends Plugin {
 
         scanner.getStartScanIntent(getActivity())
                 .addOnSuccessListener(intentSender -> {
-                    IntentSenderRequest request = new IntentSenderRequest.Builder(intentSender).build();
-                    // Using startActivityForResult ensures Capacitor captures the result correctly
-                    startActivityForResult(call, new Intent().putExtra("intent_sender", request), "handleScanResult");
+                    try {
+                        saveCall(call);
+                        // Launch the IntentSender using the standard Activity method
+                        getActivity().startIntentSenderForResult(intentSender, SCAN_REQUEST_CODE, null, 0, 0, 0);
+                    } catch (IntentSender.SendIntentException e) {
+                        call.reject("فشل فتح واجهة الماسح: " + e.getMessage());
+                    }
                 })
                 .addOnFailureListener(e -> call.reject("تأكد من تحديث خدمات جوجل بلاي: " + e.getMessage()));
     }
 
-    @ActivityCallback
-    private void handleScanResult(PluginCall call, ActivityResult result) {
-        if (result.getResultCode() == android.app.Activity.RESULT_OK) {
-            GmsDocumentScanningResult scanningResult = GmsDocumentScanningResult.fromActivityResultIntent(result.getData());
-            if (scanningResult != null) {
-                JSObject ret = new JSObject();
-                List<GmsDocumentScanningResult.Page> pages = scanningResult.getPages();
-                if (pages != null && !pages.isEmpty()) {
-                    ret.put("path", pages.get(0).getImageUri().toString());
+    @Override
+    protected void handleOnActivityResult(int requestCode, int resultCode, Intent data) {
+        super.handleOnActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == SCAN_REQUEST_CODE) {
+            PluginCall call = getSavedCall();
+            if (call == null) return;
+
+            if (resultCode == Activity.RESULT_OK) {
+                GmsDocumentScanningResult scanningResult = GmsDocumentScanningResult.fromActivityResultIntent(data);
+                if (scanningResult != null) {
+                    JSObject ret = new JSObject();
+                    List<GmsDocumentScanningResult.Page> pages = scanningResult.getPages();
+                    if (pages != null && !pages.isEmpty()) {
+                        ret.put("path", pages.get(0).getImageUri().toString());
+                    }
+                    
+                    GmsDocumentScanningResult.Pdf pdf = scanningResult.getPdf();
+                    if (pdf != null) {
+                        ret.put("pdfPath", pdf.getUri().toString());
+                    }
+                    
+                    call.resolve(ret);
+                } else {
+                    call.reject("لم يتم العثور على نتيجة للمسح");
                 }
-                
-                GmsDocumentScanningResult.Pdf pdf = scanningResult.getPdf();
-                if (pdf != null) {
-                    ret.put("pdfPath", pdf.getUri().toString());
-                }
-                
-                call.resolve(ret);
+            } else if (resultCode == Activity.RESULT_CANCELED) {
+                call.reject("تم إلغاء العملية");
             } else {
-                call.reject("لم يتم العثور على نتيجة للمسح");
+                call.reject("فشل المسح الضوئي");
             }
-        } else if (result.getResultCode() == android.app.Activity.RESULT_CANCELED) {
-            call.reject("تم إلغاء العملية");
-        } else {
-            call.reject("فشل المسح الضوئي");
         }
     }
 }
