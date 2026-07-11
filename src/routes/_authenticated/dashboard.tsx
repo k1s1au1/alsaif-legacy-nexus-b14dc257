@@ -353,6 +353,14 @@ function Dashboard() {
               {/* Identity Section - Desktop: RIGHT, Mobile: CENTER */}
               <div className="flex-1 text-center md:text-right space-y-6 min-w-0">
                  <div className="space-y-4">
+                    {/* SUBTLE SPIRITUAL HEADER */}
+                    <div className="flex items-center justify-center md:justify-start gap-2 opacity-60">
+                       <Scroll className="size-3 text-gold-primary" />
+                       <p className="text-[10px] md:text-xs font-black text-white italic" style={{ fontFamily: "'Amiri', serif" }}>
+                          "{spiritualQuote.text}"
+                       </p>
+                    </div>
+
                     <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                        <Sparkles className="size-3 text-gold-primary animate-bounce" />
                        <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs">
@@ -360,21 +368,25 @@ function Dashboard() {
                        </p>
                     </div>
 
-                    <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] leading-tight">
+                    <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                        {profile.name}
                     </h2>
 
-                    {/* SPIRITUAL QUOTE - Integrated Elegantly */}
-                    <div className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-3 md:gap-5 pt-2 opacity-90 transition-all duration-700">
-                       <div className="hidden md:block w-1.5 h-14 bg-gradient-to-b from-gold-primary/50 to-transparent rounded-full shadow-[0_0_15px_rgba(212,175,55,0.2)]" />
-                       <div className="space-y-1.5 max-w-2xl">
-                          <p className="text-lg md:text-3xl font-black text-white leading-[1.2] font-royal-mode italic drop-shadow-sm" style={{ fontFamily: "'Amiri', serif" }}>
-                             "{spiritualQuote.text}"
-                          </p>
-                          <div className="flex items-center justify-center md:justify-start gap-2 text-[10px] md:text-xs font-bold text-gold-primary/70">
-                             <Scroll className="size-3 md:size-4 opacity-50" />
-                             <span className="tracking-wide">{spiritualQuote.source}</span>
-                          </div>
+                    {/* RESTORED STATUS MESSAGES */}
+                    <div className="flex items-center justify-center md:justify-start gap-4">
+                       <div className="hidden md:block w-1 h-10 bg-gradient-to-b from-gold-primary/70 via-gold-primary/30 to-transparent rounded-full" />
+                       <div className="h-8 overflow-hidden relative w-full md:w-auto">
+                          <AnimatePresence mode="wait">
+                            <motion.p
+                              key={statusIndex}
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 20 }}
+                              className="text-white/60 font-bold text-lg md:text-xl italic leading-none"
+                            >
+                               {statusMessages[statusIndex]}
+                            </motion.p>
+                          </AnimatePresence>
                        </div>
                     </div>
                  </div>

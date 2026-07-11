@@ -148,8 +148,20 @@ function HeritagePage() {
       if (result && result.path) {
         // Convert Native Path to Web Path for Fetch
         const webPath = Capacitor.convertFileSrc(result.path);
-        const response = await fetch(webPath);
-        const blob = await response.blob();
+        // Use a more robust way to get blob on native
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.onload = function() {
+            resolve(xhr.response);
+          };
+          xhr.onerror = function() {
+            reject(new Error("تعذر قراءة ملف الوثيقة"));
+          };
+          xhr.responseType = "blob";
+          xhr.open("GET", webPath);
+          xhr.send();
+        });
+
         const file = new File([blob], `heritage_scan_${Date.now()}.jpg`, { type: 'image/jpeg' });
 
         setImageFile(file);
