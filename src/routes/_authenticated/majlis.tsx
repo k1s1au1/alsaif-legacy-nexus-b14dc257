@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -11,7 +12,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSiteLogo } from "@/hooks/use-site-logo";
-import { sendFcmNotification } from "@/lib/fcm";
+import { sendPushNotification } from "@/lib/api/push.functions";
 import { useUserRole } from "@/hooks/use-user-role";
 
 export const Route = createFileRoute("/_authenticated/majlis")({
@@ -318,6 +319,7 @@ function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
 }
 
 function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any) {
+  const sendPush = useServerFn(sendPushNotification);
   const isEdit = !!editPost;
   const isAnn = isEdit
     ? (editPost.kind === "announcement" || editPost.uiKind === "announcement") && canManageNews
@@ -381,16 +383,14 @@ function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any)
         });
         if (!error) {
           toast.success(isAnn ? "تم نشر الإعلان" : "تم النشر بنجاح");
-          import("@/lib/api/push.functions").then(({ sendPushNotification }) =>
-            sendPushNotification({
-              data: {
-                title: "خبر جديد",
-                body: "تم نشر خبر جديد في مجلس العائلة.",
-                type: "news",
-                route: isAnn ? "/majlis" : "/majlis",
-              },
-            }).catch(() => {}),
-          );
+          sendPush({
+            data: {
+              title: "خبر جديد",
+              body: "تم نشر خبر جديد في مجلس العائلة.",
+              type: "news",
+              route: "/majlis",
+            },
+          }).catch(() => {});
           onSaved(); onClose();
         } else toast.error("تعذر النشر: " + error.message);
       }

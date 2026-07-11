@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useServerFn } from "@tanstack/react-start";
 import { sendFcmNotification } from "@/lib/fcm";
 
 type PostKind = "announcement" | "discussion" | "complaint";
@@ -339,6 +340,7 @@ function CommentsSection({ post, meId, isChairman, comments, onRefresh }: any) {
 }
 
 function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
+  const sendFcm = useServerFn(sendFcmNotification);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ title: "", body: "", kind: "discussion" as UiKind });
   const [isPoll, setIsPoll] = useState(false);
@@ -363,7 +365,7 @@ function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
       const { error } = await supabase.from("majlis_posts").insert({ title, body: finalBody, kind: dbKind, author_id: meId });
       if (!error) {
         toast.success("تم النشر");
-        sendFcmNotification({ data: { title: "نقاش جديد في الاجتماعات", body: title } }).catch(() => {});
+        sendFcm({ data: { title: "نقاش جديد في الاجتماعات", body: title } }).catch(() => {});
         onSaved(); onClose();
       } else toast.error("تعذر النشر: " + error.message);
     } finally { setSaving(false); }

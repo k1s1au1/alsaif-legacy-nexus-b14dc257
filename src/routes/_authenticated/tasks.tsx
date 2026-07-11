@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -24,6 +25,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
+import { sendPushNotification } from "@/lib/api/push.functions";
 
 export const Route = createFileRoute("/_authenticated/tasks")({
   ssr: false,
@@ -462,6 +464,7 @@ function StatusStep({ active, disabled, onClick, label }: any) {
 }
 
 function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
+  const sendPush = useServerFn(sendPushNotification);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: task?.title ?? "",
@@ -503,17 +506,15 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
       const assigneeId = payload.assignee_id;
       const assigneeChanged = task ? task.assignee_id !== assigneeId : true;
       if (assigneeId && assigneeId !== userId && (isCreate || assigneeChanged)) {
-        import("@/lib/api/push.functions").then(({ sendPushNotification }) =>
-          sendPushNotification({
-            data: {
-              title: "مهمة جديدة",
-              body: "تم تكليفك بمهمة جديدة.",
-              type: "tasks",
-              target_user_ids: [assigneeId],
-              route: "/tasks",
-            },
-          }).catch(() => {}),
-        );
+        sendPush({
+          data: {
+            title: "مهمة جديدة",
+            body: "تم تكليفك بمهمة جديدة.",
+            type: "tasks",
+            target_user_ids: [assigneeId],
+            route: "/tasks",
+          },
+        }).catch(() => {});
       }
       onSaved();
       onClose();
