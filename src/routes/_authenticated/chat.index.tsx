@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { MessageCircle } from "lucide-react";
 
-export const Route = createFileRoute("/_authenticated/chat/")({
+export const Route = createFileRoute("/_authenticated/chat")({
   ssr: false,
   component: ChatEmpty,
 });

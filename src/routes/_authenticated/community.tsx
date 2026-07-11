@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
@@ -12,6 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole } from "@/hooks/use-user-role";
+import { sendFcmNotification } from "@/lib/fcm";
 
 export const Route = createFileRoute("/_authenticated/community")({
   ssr: false,
@@ -405,6 +407,7 @@ function CommentsSection({ post, meId, isHead, comments, onRefresh }: any) {
 }
 
 function AddPostDialog({ meId, onClose, onSaved }: any) {
+  const sendFcm = useServerFn(sendFcmNotification);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [kind, setKind] = useState<"diary" | "photo" | "question" | "request">("diary");
@@ -445,15 +448,12 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
     else {
       toast.success("تم النشر");
       if (kind === "request") {
-        try {
-          const { sendFcmNotification } = await import("@/lib/fcm");
-          sendFcmNotification({
-            data: {
-              title: "📩 طلب جديد من عضو",
-              body: title.trim(),
-            },
-          }).catch(() => {});
-        } catch {}
+        sendFcm({
+          data: {
+            title: "📩 طلب جديد من عضو",
+            body: title.trim(),
+          },
+        }).catch(() => {});
       }
       onSaved();
       onClose();

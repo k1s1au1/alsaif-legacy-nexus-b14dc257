@@ -14,7 +14,7 @@ import { useSiteLogo } from "@/hooks/use-site-logo";
 import { GamesHub } from "@/components/entertainment/games-hub";
 import { sendPushNotification } from "@/lib/api/push.functions";
 
-export const Route = createFileRoute("/_authenticated/trips/")({
+export const Route = createFileRoute("/_authenticated/trips")({
   ssr: false,
   head: () => ({
     meta: [
