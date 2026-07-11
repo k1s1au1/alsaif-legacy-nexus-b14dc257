@@ -31,9 +31,7 @@ public class DocumentScannerPlugin extends Plugin {
         scanner.getStartScanIntent(getActivity())
                 .addOnSuccessListener(intentSender -> {
                     try {
-                        // Save the call to resolve it later
                         saveCall(call);
-                        // Start the intent sender directly from the activity
                         getActivity().startIntentSenderForResult(intentSender, SCAN_REQUEST_CODE, null, 0, 0, 0);
                     } catch (IntentSender.SendIntentException e) {
                         call.reject("فشل فتح واجهة الماسح: " + e.getMessage());
@@ -71,7 +69,7 @@ public class DocumentScannerPlugin extends Plugin {
             } else if (resultCode == android.app.Activity.RESULT_CANCELED) {
                 call.reject("تم إلغاء العملية");
             } else {
-                call.reject("فشل المسح الضوئي، تأكد من إعطاء الصلاحيات الكافية");
+                call.reject("فشل المسح الضوئي");
             }
         }
     }
