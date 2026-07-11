@@ -25,7 +25,7 @@ export const sendFazaNotification = createServerFn({ method: "POST" })
       if (recipientIds.length > 0) {
         // We call the send-push logic here (simulated as we don't have direct access to the helper in server-fn easily,
         // but we assume the DB trigger will handle it or we use the call_send_push via RPC)
-        await admin.rpc('call_send_push', {
+        await (admin as any).rpc('call_send_push', {
           _title: `🆘 فزعة عاجلة من: ${senderName}`,
           _body: data.message || "أحتاج لمساعدة عاجلة من الأقارب",
           _url: "/chat",
