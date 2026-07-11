@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { Loader2, Search, Users, ShieldCheck, Mail, MapPin, ChevronLeft, Trash2 } from "lucide-react";
+import { Loader2, Search, Users, ShieldCheck, Mail, MapPin, ChevronLeft, Trash2, UserPlus, Save } from "lucide-react";
 import { PresenceDot, presenceFromLastSeen, type PresenceState } from "@/lib/presence";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,6 +12,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
+import { FamilyContacts } from "@/lib/native-bridge";
 
 export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
@@ -30,6 +31,7 @@ type MemberRow = {
   full_name: string | null;
   avatar_url: string | null;
   father_name?: string | null;
+  phone?: string | null;
 };
 
 function MembersPage() {
@@ -67,7 +69,7 @@ function MembersPage() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, arabic_name, full_name, avatar_url, father_name")
+        .select("id, arabic_name, full_name, avatar_url, father_name, phone")
         .order("arabic_name", { ascending: true });
 
       if (!error && data) setMembers(data as MemberRow[]);
@@ -111,6 +113,34 @@ function MembersPage() {
     };
   }, [userId, primaryRole]);
 
+  const handleSyncAll = async () => {
+    const hasPhone = members.filter(m => m.phone);
+    if (hasPhone.length === 0) {
+      toast.error("لا يوجد أرقام هواتف متوفرة للحفظ.");
+      return;
+    }
+
+    if (!confirm(`هل تود حفظ ${hasPhone.length} رقم من أرقام العائلة في جوالك؟`)) return;
+
+    const toastId = toast.loading("جاري حفظ جهات الاتصال...");
+    let successCount = 0;
+
+    for (const m of hasPhone) {
+      try {
+        await FamilyContacts.saveContact({
+          name: m.arabic_name || m.full_name || "عضو",
+          phone: m.phone!,
+          prefix: "السيف - المجلس"
+        });
+        successCount++;
+      } catch (e) {
+        console.error("Failed to save contact", m.id, e);
+      }
+    }
+
+    toast.success(`تم حفظ ${successCount} جهة اتصال بنجاح ✨`, { id: toastId });
+  };
+
   const filtered = members.filter((m) => {
     if (!debouncedQ.trim()) return true;
     const needle = debouncedQ.trim().toLowerCase();
@@ -134,9 +164,18 @@ function MembersPage() {
             <h2 className="text-4xl md:text-5xl font-black tracking-tight text-primary">أعضاء مجلس السيف</h2>
             <p className="text-muted-foreground font-bold text-lg opacity-70">تعرف على أفراد عائلتك وتواصل معهم في مجلسنا الرقمي.</p>
           </div>
-          <div className="flex items-center gap-3 bg-primary/5 px-6 py-3 rounded-full border border-primary/10 shadow-inner">
-             <Users className="size-6 text-primary" />
-             <span className="text-xl font-black text-primary tracking-tighter">{members.length} عضو مسجل</span>
+          <div className="flex flex-col md:flex-row items-center gap-4">
+             <button
+               onClick={handleSyncAll}
+               className="btn-gold px-6 py-3 rounded-full flex items-center gap-3 shadow-lg hover:scale-105 active:scale-95 transition-all"
+             >
+                <Save className="size-5" />
+                <span className="text-sm font-black">حفظ جميع الأرقام</span>
+             </button>
+             <div className="flex items-center gap-3 bg-primary/5 px-6 py-3 rounded-full border border-primary/10 shadow-inner">
+                <Users className="size-6 text-primary" />
+                <span className="text-xl font-black text-primary tracking-tighter">{members.length} عضو مسجل</span>
+             </div>
           </div>
         </section>
 
@@ -215,6 +254,25 @@ function MemberCard({ member, index, presenceTime, meId, canDelete, dynamicLogo,
   const state: PresenceState = presenceFromLastSeen(presenceTime);
   const isMe = member.id === meId;
 
+  const handleSaveContact = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!member.phone) {
+      toast.error("رقم الهاتف غير متوفر لهذا العضو.");
+      return;
+    }
+    try {
+      await FamilyContacts.saveContact({
+        name: displayName,
+        phone: member.phone,
+        prefix: "السيف - المجلس"
+      });
+      toast.success("تم حفظ جهة الاتصال ✨");
+    } catch (err: any) {
+      toast.error("فشل الحفظ");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -256,6 +314,15 @@ function MemberCard({ member, index, presenceTime, meId, canDelete, dynamicLogo,
             <div className="space-y-1 w-full">
                 <h4 className="text-lg font-black text-primary truncate group-hover:text-gold-primary transition-colors">{displayName}</h4>
                 <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground opacity-60">عضو مجلس العائلة</p>
+                {member.phone && (
+                  <button
+                    onClick={handleSaveContact}
+                    className="mt-2 inline-flex items-center gap-2 text-[9px] font-black text-gold-primary hover:text-gold-primary/80 transition-all bg-gold-primary/5 px-3 py-1.5 rounded-full border border-gold-primary/10"
+                  >
+                    <UserPlus size={12} />
+                    حفظ في الجوال
+                  </button>
+                )}
             </div>
 
             <div className="w-full h-px bg-border/40 my-2" />

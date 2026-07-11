@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
+import { BiometricGate } from "@/components/biometric-gate";
 
 function NotFoundComponent() {
   return (
@@ -168,7 +169,9 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <Outlet />
+      <BiometricGate>
+        <Outlet />
+      </BiometricGate>
       <Toaster theme="dark" position="top-center" richColors />
     </QueryClientProvider>
   );

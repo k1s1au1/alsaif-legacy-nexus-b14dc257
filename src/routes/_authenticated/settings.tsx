@@ -138,8 +138,13 @@ function SettingsPage() {
     })();
   }, []);
 
+  const [useBiometrics, setUseBiometrics] = useState(false);
+  const [fazaEnabled, setFazaEnabled] = useState(true);
+
   useEffect(() => {
     if (typeof window === "undefined") return;
+    setUseBiometrics(localStorage.getItem("app-use-biometrics") === "true");
+    setFazaEnabled(localStorage.getItem("app-faza-enabled") !== "false");
 
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | "system" | null;
     if (savedTheme) {
@@ -268,6 +273,18 @@ function SettingsPage() {
 
   const currentThemeObj = THEME_COLORS.find(c => c.id === themeColor) || THEME_COLORS[0];
   const currentFontObj = FONTS.find(f => f.id === font) || FONTS[0];
+
+  const handleToggleBiometrics = (val: boolean) => {
+    setUseBiometrics(val);
+    localStorage.setItem("app-use-biometrics", String(val));
+    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
+  };
+
+  const handleToggleFaza = (val: boolean) => {
+    setFazaEnabled(val);
+    localStorage.setItem("app-faza-enabled", String(val));
+    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
+  };
 
   return (
     <AppShell title="الإعدادات" user={{ name: "إعدادات الأخبار", role: "تخصيص", initial: "إ" }}>
@@ -404,13 +421,72 @@ function SettingsPage() {
 
         <section className="space-y-6 animate-fade-up" style={{ animationDelay: "200ms" }}>
           <div className="flex items-center gap-4">
-             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات النظام</h3>
+             <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">إعدادات النظام والأمان</h3>
              <div className="h-px flex-1 bg-border/60" />
           </div>
           <div className="card-surface overflow-hidden divide-y divide-border/40">
-             <SettingRow icon={<Languages />} title="لغة الواجهة" desc="العربية (الافتراضية)" />
-             <SettingRow icon={<Bell />} title="الإشعارات" desc="مفعلة لكافة الأحداث" />
-             <SettingRow icon={<ShieldCheck />} title="الأمان" desc="التحقق من الهوية مفعل" />
+             <div className="p-6 md:p-8 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                   <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
+                      <ShieldCheck />
+                   </div>
+                   <div className="text-right">
+                      <p className="font-black text-primary tracking-tight">الدخول بالبصمة / الوجه</p>
+                      <p className="text-xs font-bold text-muted-foreground opacity-60">تأمين التطبيق بالبصمة الحيوية</p>
+                   </div>
+                </div>
+                <button
+                  onClick={() => handleToggleBiometrics(!useBiometrics)}
+                  className={cn(
+                    "relative w-14 h-8 rounded-full transition-colors",
+                    useBiometrics ? "bg-primary" : "bg-muted"
+                  )}
+                >
+                  <span className={cn("absolute top-1 size-6 rounded-full bg-white shadow transition-all", useBiometrics ? "right-1" : "right-7")} />
+                </button>
+             </div>
+
+             <div className="p-6 md:p-8 flex items-center justify-between">
+                <div className="flex items-center gap-6">
+                   <div className="size-12 rounded-2xl bg-rose-500/5 flex items-center justify-center text-rose-600 shadow-inner">
+                      <ShieldAlert className="size-6" />
+                   </div>
+                   <div className="text-right">
+                      <p className="font-black text-primary tracking-tight">نظام "فزعة السيف"</p>
+                      <p className="text-xs font-bold text-muted-foreground opacity-60">تلقي تنبيهات الطوارئ العاجلة من الأقارب</p>
+                   </div>
+                </div>
+                <button
+                  onClick={() => handleToggleFaza(!fazaEnabled)}
+                  className={cn(
+                    "relative w-14 h-8 rounded-full transition-colors",
+                    fazaEnabled ? "bg-rose-600" : "bg-muted"
+                  )}
+                >
+                  <span className={cn("absolute top-1 size-6 rounded-full bg-white shadow transition-all", fazaEnabled ? "right-1" : "right-7")} />
+                </button>
+             </div>
+
+             <div
+               className="p-6 md:p-8 flex items-center justify-between group cursor-pointer hover:bg-primary/5 transition-all"
+               onClick={async () => {
+                 toast.loading("جاري جلب بيانات العائلة...");
+                 await syncFamilyContacts();
+                 toast.dismiss();
+               }}
+             >
+                <div className="flex items-center gap-6">
+                   <div className="size-12 rounded-2xl bg-primary/5 flex items-center justify-center text-primary shadow-inner">
+                      <Users className="size-6" />
+                   </div>
+                   <div className="text-right">
+                      <p className="font-black text-primary tracking-tight">مزامنة جهات الاتصال</p>
+                      <p className="text-xs font-bold text-muted-foreground opacity-60">حفظ أرقام العائلة في سجل جوالك</p>
+                   </div>
+                </div>
+                <ChevronLeft className="size-5 text-muted-foreground/30 group-hover:text-primary transition-all" />
+             </div>
+
              <div className="p-8 flex items-center justify-between text-muted-foreground/40 italic">
                 <span className="text-[10px] font-black uppercase tracking-widest">Version {appVersion}</span>
                 <div
@@ -552,6 +628,18 @@ function SettingsPage() {
 }
 
 function ThemeCard({ active, label, icon, onClick }: any) {
+  const handleToggleBiometrics = (val: boolean) => {
+    setUseBiometrics(val);
+    localStorage.setItem("app-use-biometrics", String(val));
+    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
+  };
+
+  const handleToggleFaza = (val: boolean) => {
+    setFazaEnabled(val);
+    localStorage.setItem("app-faza-enabled", String(val));
+    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
+  };
+
   return (
     <button onClick={onClick} className={cn("p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-4 transition-all duration-500 flex flex-col items-center gap-3 md:gap-4 text-center", active ? "bg-primary border-gold-primary text-primary-foreground shadow-2xl scale-105" : "bg-card border-transparent text-muted-foreground hover:bg-muted")}>
        <div className={cn("size-12 md:size-16 rounded-[22px] md:rounded-[28px] flex items-center justify-center transition-all duration-700", active ? "bg-white/10 text-gold-primary rotate-12" : "bg-muted text-primary")}>
@@ -563,6 +651,18 @@ function ThemeCard({ active, label, icon, onClick }: any) {
 }
 
 function SettingRow({ icon, title, desc }: any) {
+  const handleToggleBiometrics = (val: boolean) => {
+    setUseBiometrics(val);
+    localStorage.setItem("app-use-biometrics", String(val));
+    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
+  };
+
+  const handleToggleFaza = (val: boolean) => {
+    setFazaEnabled(val);
+    localStorage.setItem("app-faza-enabled", String(val));
+    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
+  };
+
   return (
     <div className="p-8 flex items-center justify-between group transition-all">
        <div className="flex items-center gap-6">
@@ -580,6 +680,7 @@ function SettingRow({ icon, title, desc }: any) {
 }
 
 import { setupPushNotifications } from "@/lib/pushNotifications";
+import { syncFamilyContacts } from "@/lib/contacts";
 
 const NOTIF_OPTIONS: { key: "meetings" | "entertainment" | "tasks" | "chat" | "news"; label: string; desc: string }[] = [
   { key: "meetings", label: "إشعارات الاجتماعات", desc: "تنبيه عند إنشاء اجتماع جديد." },
@@ -622,6 +723,18 @@ function NotificationPreferencesSection() {
       toast.error("تعذّر حفظ الإعداد");
       setPrefs(prefs);
     }
+  };
+
+  const handleToggleBiometrics = (val: boolean) => {
+    setUseBiometrics(val);
+    localStorage.setItem("app-use-biometrics", String(val));
+    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
+  };
+
+  const handleToggleFaza = (val: boolean) => {
+    setFazaEnabled(val);
+    localStorage.setItem("app-faza-enabled", String(val));
+    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
   };
 
   return (

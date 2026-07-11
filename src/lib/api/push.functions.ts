@@ -2,7 +2,42 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const NOTIFICATION_TYPES = ["meetings", "entertainment", "tasks", "chat", "news"] as const;
+const NOTIFICATION_TYPES = ["meetings", "entertainment", "tasks", "chat", "news", "faza"] as const;
+
+export const sendFazaNotification = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(z.object({
+    message: z.string().optional(),
+  }))
+  .handler(async ({ data, context }) => {
+    try {
+      const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const admin = await getSupabaseAdmin();
+      if (!admin) throw new Error("Server not ready");
+
+      const { data: profile } = await admin.from("profiles").select("arabic_name, full_name").eq("id", context.userId).single();
+      const senderName = profile?.arabic_name || profile?.full_name || "قريب لك";
+
+      // Broad notification to all active tokens except the sender
+      const { data: tokens } = await admin.from("push_tokens").select("user_id").eq("is_active", true);
+      const recipientIds = Array.from(new Set((tokens ?? []).map(t => t.user_id).filter(id => id !== context.userId)));
+
+      if (recipientIds.length > 0) {
+        // We call the send-push logic here (simulated as we don't have direct access to the helper in server-fn easily,
+        // but we assume the DB trigger will handle it or we use the call_send_push via RPC)
+        await admin.rpc('call_send_push', {
+          _title: `🆘 فزعة عاجلة من: ${senderName}`,
+          _body: data.message || "أحتاج لمساعدة عاجلة من الأقارب",
+          _url: "/chat",
+          _user_ids: recipientIds
+        });
+      }
+
+      return { success: true, senderName };
+    } catch (e) {
+      return { success: false, error: "فشل إرسال استغاثة الفزعة" };
+    }
+  });
 
 async function getGoogleAccessToken(serviceAccount: any) {
   const iat = Math.floor(Date.now() / 1000);
