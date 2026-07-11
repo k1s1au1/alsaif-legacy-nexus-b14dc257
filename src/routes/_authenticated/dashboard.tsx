@@ -320,7 +320,19 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* RESPONSIVE HERO CARD (Mobile Centered / Desktop Side-by-Side) */}
+        {/* SPIRITUAL REMINDER - Slim Top Bar */}
+        <section className="animate-fade-up px-2 md:px-0">
+           <div className="bg-emerald-950/20 border border-gold-primary/10 rounded-2xl p-2.5 flex items-center justify-center gap-3 backdrop-blur-sm shadow-sm overflow-hidden">
+              <Scroll className="size-3 text-gold-primary/60 shrink-0" />
+              <p className="text-[10px] md:text-sm font-black text-white/80 italic truncate" style={{ fontFamily: "'Amiri', serif" }}>
+                 "{spiritualQuote.text}"
+              </p>
+              <div className="h-3 w-px bg-gold-primary/20" />
+              <span className="text-[8px] font-bold text-gold-primary/40 whitespace-nowrap">{spiritualQuote.source}</span>
+           </div>
+        </section>
+
+        {/* RESPONSIVE HERO CARD */}
         <section className="animate-fade-up px-2 md:px-0">
           <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
 
@@ -353,14 +365,6 @@ function Dashboard() {
               {/* Identity Section - Desktop: RIGHT, Mobile: CENTER */}
               <div className="flex-1 text-center md:text-right space-y-6 min-w-0">
                  <div className="space-y-4">
-                    {/* SUBTLE SPIRITUAL HEADER */}
-                    <div className="flex items-center justify-center md:justify-start gap-2 opacity-60">
-                       <Scroll className="size-3 text-gold-primary" />
-                       <p className="text-[10px] md:text-xs font-black text-white italic" style={{ fontFamily: "'Amiri', serif" }}>
-                          "{spiritualQuote.text}"
-                       </p>
-                    </div>
-
                     <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
                        <Sparkles className="size-3 text-gold-primary animate-bounce" />
                        <p className="text-gold-primary font-black uppercase tracking-[0.4em] text-[9px] md:text-xs">
