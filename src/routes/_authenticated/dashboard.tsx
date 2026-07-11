@@ -320,7 +320,7 @@ function Dashboard() {
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
 
-        {/* SPIRITUAL REMINDER - Integrated Sub-Header */}
+        {/* 1. SPIRITUAL REMINDER - Integrated as a subtle top bar */}
         <section className="animate-fade-up px-2 md:px-0">
            <div className="flex items-center justify-center gap-3 py-1 opacity-80 transition-all duration-700">
               <Scroll className="size-3 text-gold-primary/60 shrink-0" />
@@ -332,7 +332,7 @@ function Dashboard() {
            </div>
         </section>
 
-        {/* RESPONSIVE HERO CARD (Mobile Centered / Desktop Side-by-Side) */}
+        {/* 2. RESPONSIVE HERO CARD */}
         <section className="animate-fade-up px-2 md:px-0">
           <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
 
@@ -346,7 +346,7 @@ function Dashboard() {
 
             <div className="relative z-10 flex flex-col md:flex-row items-center gap-8 md:gap-16 p-10 md:p-12">
 
-              {/* Profile/Logo Medallion - Desktop: LEFT, Mobile: CENTER */}
+              {/* Profile/Logo Medallion */}
               <div className="shrink-0 flex items-center justify-center">
                  <div className="relative group/avatar">
                     <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-2xl animate-pulse" />
@@ -362,7 +362,7 @@ function Dashboard() {
                  </div>
               </div>
 
-              {/* Identity Section - Desktop: RIGHT, Mobile: CENTER */}
+              {/* Identity Section */}
               <div className="flex-1 text-center md:text-right space-y-6 min-w-0">
                  <div className="space-y-4">
                     <div className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md">
@@ -403,24 +403,14 @@ function Dashboard() {
           </div>
         </section>
 
-        {/* SPIRITUAL REMINDER - Now in Gold and fully visible */}
-        <section className="animate-fade-up px-2 md:px-0 -mt-6 mb-4">
-           <div className="flex items-center justify-center gap-2 py-2 border-y border-gold-primary/10">
-              <Scroll className="size-3 text-gold-primary" />
-              <p className="text-[11px] md:text-sm font-black text-gold-primary italic drop-shadow-sm" style={{ fontFamily: "'Amiri', serif" }}>
-                 "{spiritualQuote.text}"
-              </p>
-              <div className="h-2 w-px bg-gold-primary/20 mx-1" />
-              <span className="text-[9px] font-bold text-gold-primary/60">{spiritualQuote.source}</span>
-           </div>
-        </section>
-
+        {/* 3. QUICK ACTIONS BANNER - ONLY ONE INSTANCE */}
         <QuickActionsBanner />
 
-        <QuickActionsBanner />
+        {/* 4. CONTENT HUB & POLLS */}
         <PollsPopup userId={profile.userId ?? null} />
         <IntegratedHub upcomingMeetings={upcomingMeetings} upcomingTrips={upcomingTrips} tasksCount={counts.tasks} onViewTrip={t => setImmersiveItem({ type: 'trip', data: t })} onViewMeeting={m => setImmersiveItem({ type: 'meeting', data: m })} />
 
+        {/* 5. HERITAGE SNIPPET */}
         {heritageSnippet && (
           <section className="animate-fade-up px-4 md:px-0">
              <Link to="/heritage" className="block group card-surface p-8 transition-all hover:scale-[1.01]">
@@ -437,6 +427,7 @@ function Dashboard() {
           </section>
         )}
 
+        {/* 6. ANNOUNCEMENTS */}
         {announcements.length > 0 && (() => {
             const a = announcements[annIndex % announcements.length];
             return (
@@ -449,7 +440,6 @@ function Dashboard() {
                             className="size-full object-cover object-left md:object-center transition-all duration-1000 group-hover:scale-105"
                             alt=""
                          />
-                         {/* Dynamic Mask: Bottom-to-top on mobile, Right-to-left on desktop */}
                          <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black via-black/40 to-transparent" />
                       </div>
                    )}
@@ -475,6 +465,7 @@ function Dashboard() {
             );
         })()}
 
+        {/* 7. STATS GRID */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 px-2 md:px-0">
            {stats.map((s, i) => (
              <Link key={i} to={s.link} className="block group">
@@ -499,6 +490,7 @@ function Dashboard() {
            ))}
          </section>
 
+        {/* 8. SUPPORT SECTION */}
         <section className="pb-20 px-4 md:px-0 animate-fade-up">
            <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right relative overflow-hidden group">
               <div className="space-y-4 relative z-10">
