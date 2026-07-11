@@ -426,9 +426,7 @@ function Dashboard() {
                 </div>
              </Link>
            ))}
-        </section>
-
-        </section>
+         </section>
 
         <section className="pb-20 px-4 md:px-0 animate-fade-up">
            <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right relative overflow-hidden group">
