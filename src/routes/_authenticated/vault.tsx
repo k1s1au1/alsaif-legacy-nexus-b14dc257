@@ -20,7 +20,8 @@ import {
   Loader2,
   MoreVertical,
   ChevronLeft,
-  Check
+  Check,
+  Camera,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,7 +34,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/user-avatar";
-import { BiometricAuth } from "@/lib/native-bridge";
+import { BiometricAuth, DocumentScanner } from "@/lib/native-bridge";
 
 export const Route = createFileRoute("/_authenticated/vault")({
   ssr: false,
@@ -92,6 +93,7 @@ function SecureVaultPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [sharedWith, setSharedWith] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<"private" | "all" | "selected">("private");
+  const [isScanning, setIsScanning] = useState(false);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -187,6 +189,29 @@ function SecureVaultPage() {
         return;
       }
       setSelectedFile(file);
+    }
+  };
+
+  const handleScan = async () => {
+    setIsScanning(true);
+    try {
+      const result = await DocumentScanner.scanDocument();
+      if (result.path) {
+        // Create a File object from the URI (simplified logic for native bridge)
+        const response = await fetch(result.path);
+        const blob = await response.blob();
+        const file = new File([blob], `scanned_doc_${Date.now()}.jpg`, { type: blob.type });
+        setSelectedFile(file);
+        setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
+        setShowAdd(true);
+        toast.success("تم مسح الوثيقة بنجاح ✨");
+      }
+    } catch (e: any) {
+      if (e.message !== "تم إلغاء العملية") {
+        toast.error("فشل المسح الضوئي");
+      }
+    } finally {
+      setIsScanning(false);
     }
   };
 
@@ -366,12 +391,24 @@ function SecureVaultPage() {
                        <Lock size={64} strokeWidth={1} className="md:size-24" />
                     </div>
                  </div>
-                 <button
-                   onClick={() => setShowAdd(true)}
-                   className="btn-gold w-full md:w-auto px-8 md:px-12 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(139,107,35,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-                 >
-                    <Plus className="size-5 md:size-6" strokeWidth={4} /> إضافة وثيقة جديدة
-                 </button>
+
+                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+                    <button
+                      onClick={handleScan}
+                      disabled={isScanning}
+                      className="btn-gold flex-1 md:flex-none px-8 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all bg-emerald-600 border-emerald-500"
+                    >
+                       {isScanning ? <Loader2 className="size-5 animate-spin" /> : <Camera className="size-5 md:size-6" strokeWidth={3} />}
+                       مسح وثيقة
+                    </button>
+
+                    <button
+                      onClick={() => setShowAdd(true)}
+                      className="btn-gold flex-1 md:flex-none px-8 md:px-12 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(139,107,35,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                    >
+                       <Plus className="size-5 md:size-6" strokeWidth={4} /> إضافة ملف
+                    </button>
+                 </div>
               </div>
            </div>
         </section>

@@ -19,6 +19,12 @@ export interface SOSPlugin {
   showEmergencyNotification(options: { name?: string; location?: string }): Promise<void>;
 }
 
+export interface DocumentScannerPlugin {
+  scanDocument(): Promise<{ path: string }>;
+}
+
+export const DocumentScanner = registerPlugin<DocumentScannerPlugin>('DocumentScanner');
+
 const FamilySharingRaw = registerPlugin<FamilySharingPlugin>('FamilySharing');
 export const FamilyContacts = registerPlugin<FamilyContactsPlugin>('FamilyContacts');
 export const SOS = registerPlugin<SOSPlugin>('SOS');
