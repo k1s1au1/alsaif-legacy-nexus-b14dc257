@@ -9,7 +9,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
-import { sendFcmNotification } from "@/lib/fcm";
+import { sendFcmNotification } from "@/lib/fcm.functions";
 
 type PostKind = "announcement" | "discussion" | "complaint";
 type UiKind = "event" | "complaint" | "discussion";
