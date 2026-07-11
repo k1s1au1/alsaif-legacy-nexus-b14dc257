@@ -20,8 +20,7 @@ import {
   Loader2,
   MoreVertical,
   ChevronLeft,
-  Check,
-  Camera,
+  Check
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -34,8 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { UserAvatar } from "@/components/user-avatar";
-import { BiometricAuth, DocumentScanner } from "@/lib/native-bridge";
-import { Capacitor } from "@capacitor/core";
+import { BiometricAuth } from "@/lib/native-bridge";
 
 export const Route = createFileRoute("/_authenticated/vault")({
   ssr: false,
@@ -92,7 +90,6 @@ function SecureVaultPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [sharedWith, setSharedWith] = useState<string[]>([]);
   const [visibility, setVisibility] = useState<"private" | "all" | "selected">("private");
-  const [isScanning, setIsScanning] = useState(false);
   const [allProfiles, setAllProfiles] = useState<any[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -165,64 +162,6 @@ function SecureVaultPage() {
     }
   };
 
-  const handleScan = async () => {
-    // Web / tablets without the native scanner: fallback to camera capture via file input.
-    if (!Capacitor.isNativePlatform()) {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      (input as any).capture = "environment";
-      input.onchange = () => {
-        const f = input.files?.[0];
-        if (f) {
-          setSelectedFile(f);
-          setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
-          setShowAdd(true);
-        }
-      };
-      input.click();
-      return;
-    }
-    setIsScanning(true);
-    try {
-      const result = await DocumentScanner.scanDocument();
-      // Handle the new Base64 response for 100% reliability on Android
-      if (result && (result.base64 || result.path)) {
-        let blob: Blob;
-
-        if (result.base64) {
-          // If we have base64, convert it directly (fastest and most reliable)
-          const base64Data = result.base64.split(',')[1];
-          const byteCharacters = atob(base64Data);
-          const byteNumbers = new Array(byteCharacters.length);
-          for (let i = 0; i < byteCharacters.length; i++) {
-            byteNumbers[i] = byteCharacters.charCodeAt(i);
-          }
-          const byteArray = new Uint8Array(byteNumbers);
-          blob = new Blob([byteArray], { type: 'image/jpeg' });
-        } else {
-          // Fallback to path if base64 is missing
-          const { scannedPathToFile } = await import("@/lib/scanned-doc");
-          blob = await (await scannedPathToFile(result.path, `scanned_doc_${Date.now()}.jpg`)).slice();
-        }
-
-        const file = new File([blob], `scanned_doc_${Date.now()}.jpg`, { type: 'image/jpeg' });
-
-        setSelectedFile(file);
-        setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
-        setShowAdd(true);
-        toast.success("تم مسح الوثيقة بنجاح ✨");
-      }
-    } catch (e: any) {
-      if (e.message !== "تم إلغاء العملية") {
-        console.error("Scan processing error", e);
-        toast.error(e.message || "فشل معالجة الوثيقة");
-      }
-    } finally {
-      setIsScanning(false);
-    }
-  };
-
   const handleUpload = async () => {
     if (!newTitle || !selectedFile) {
       toast.error("يرجى إكمال البيانات واختيار ملف");
@@ -239,17 +178,8 @@ function SecureVaultPage() {
       // Check if file is selected
       if (!selectedFile) throw new Error("لم يتم اختيار ملف");
 
-      // Get project URL for debugging
-      const projectUrl = (supabase as any).supabaseUrl || "غير معروف";
-      console.log("Connecting to Supabase at:", projectUrl);
-
       const fileExt = selectedFile.name.split('.').pop();
       const filePath = `${userData.user.id}/${crypto.randomUUID()}.${fileExt}`;
-
-      // Debugging logs to verify project connection
-      console.log("Vault: Attempting upload...");
-      console.log("Bucket Name:", "vault-media");
-      console.log("File Path:", filePath);
 
       // 1. Upload to Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
@@ -392,23 +322,12 @@ function SecureVaultPage() {
                     </div>
                  </div>
 
-                 <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
-                    <button
-                      onClick={handleScan}
-                      disabled={isScanning}
-                      className="btn-gold flex-1 md:flex-none px-8 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all bg-emerald-600 border-emerald-500"
-                    >
-                       {isScanning ? <Loader2 className="size-5 animate-spin" /> : <Camera className="size-5 md:size-6" strokeWidth={3} />}
-                       مسح وثيقة
-                    </button>
-
-                    <button
-                      onClick={() => setShowAdd(true)}
-                      className="btn-gold flex-1 md:flex-none px-8 md:px-12 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(139,107,35,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
-                    >
-                       <Plus className="size-5 md:size-6" strokeWidth={4} /> إضافة ملف
-                    </button>
-                 </div>
+                 <button
+                   onClick={() => setShowAdd(true)}
+                   className="btn-gold w-full md:w-auto px-8 md:px-12 py-4 md:py-6 rounded-[20px] md:rounded-[28px] text-base md:text-xl font-black flex items-center justify-center gap-3 shadow-[0_20px_40px_rgba(139,107,35,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+                 >
+                    <Plus className="size-5 md:size-6" strokeWidth={4} /> إضافة وثيقة جديدة
+                 </button>
               </div>
            </div>
         </section>

@@ -17,8 +17,7 @@ import {
   Image as ImageIcon,
   Trash2,
   Pencil,
-  Upload,
-  Camera,
+  Upload
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
@@ -26,8 +25,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { useUserRole } from "@/hooks/use-user-role";
-import { DocumentScanner } from "@/lib/native-bridge";
-import { Capacitor } from "@capacitor/core";
 
 export const Route = createFileRoute("/_authenticated/heritage")({
   ssr: false,
@@ -74,7 +71,6 @@ function HeritagePage() {
   const [submitting, setSubmitting] = useState(false);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isScanning, setIsScanning] = useState(false);
 
   const [draft, setDraft] = useState({
     kind: "poem" as HeritageKind,
@@ -140,43 +136,6 @@ function HeritagePage() {
       await loadAll();
     })();
   }, [loadAll, userId, isAdmin, isChairman]);
-
-  const handleScan = async () => {
-    if (!Capacitor.isNativePlatform()) {
-      const input = document.createElement("input");
-      input.type = "file";
-      input.accept = "image/*";
-      (input as any).capture = "environment";
-      input.onchange = () => {
-        const f = input.files?.[0];
-        if (f) {
-          setImageFile(f);
-          setImagePreview(URL.createObjectURL(f));
-          setShowCompose(true);
-        }
-      };
-      input.click();
-      return;
-    }
-    setIsScanning(true);
-    try {
-      const result = await DocumentScanner.scanDocument();
-      if (result && result.path) {
-        const { scannedPathToFile } = await import("@/lib/scanned-doc");
-        const file = await scannedPathToFile(result.path, `heritage_scan_${Date.now()}.jpg`);
-        setImageFile(file);
-        setImagePreview(URL.createObjectURL(file));
-        setShowCompose(true);
-        toast.success("تم مسح الوثيقة التاريخية بنجاح ✨");
-      }
-    } catch (e: any) {
-      if (e.message !== "تم إلغاء العملية") {
-        toast.error(e.message || "فشل المسح الضوئي");
-      }
-    } finally {
-      setIsScanning(false);
-    }
-  };
 
   const submitHeritage = async () => {
     if (!userId) return;
@@ -268,23 +227,13 @@ function HeritagePage() {
               </div>
 
               {canManage && (
-                <div className="flex flex-col sm:flex-row gap-3 self-center md:self-auto shrink-0">
-                  <button
-                    onClick={handleScan}
-                    disabled={isScanning}
-                    className="btn-gold relative px-8 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-emerald-900/30 text-sm md:text-xl font-black bg-emerald-600 border-emerald-500 active:scale-95 transition-all"
-                  >
-                    {isScanning ? <Loader2 className="size-5 md:size-7 animate-spin" /> : <Camera className="size-5 md:size-7" strokeWidth={3} />}
-                    <span>مسح وثيقة</span>
-                  </button>
-                  <button
-                    onClick={() => setShowCompose(true)}
-                    className="btn-gold relative px-8 py-4 md:px-10 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn active:scale-95 transition-all"
-                  >
-                    <Scroll className="size-5 md:size-7 group-hover:rotate-12 transition-transform duration-500" />
-                    <span>إضافة موروث</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowCompose(true)}
+                  className="btn-gold relative px-8 py-4 md:px-12 md:py-6 rounded-2xl md:rounded-[32px] flex items-center justify-center gap-3 shadow-2xl shadow-gold-primary/30 text-sm md:text-xl font-black group/btn self-center md:self-auto shrink-0 active:scale-95 transition-all"
+                >
+                  <Scroll className="size-5 md:size-7 group-hover:rotate-12 transition-transform duration-500" />
+                  <span>إضافة موروث</span>
+                </button>
               )}
             </div>
           </div>
