@@ -43,7 +43,9 @@ type MajlisPost = {
 
 function MajlisPage() {
   const { userId: meId, isAdmin, isChairman, canManage: canManageSection } = useUserRole();
-  const canManage = canManageSection("news");
+
+  // Restricted access: Only Chairman, Technical Admin, or News Section Head
+  const canPostNews = isChairman || isAdmin || canManageSection("news");
 
   const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
   const [posts, setPosts] = useState<MajlisPost[]>([]);
@@ -57,15 +59,24 @@ function MajlisPage() {
     if (!meId) return;
     setLoading(true);
     try {
-      const [{ data: p }, { data: roles }] = await Promise.all([
+      const [{ data: p }, { data: roles }, { data: sectionHeads }] = await Promise.all([
         supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").eq("id", meId).maybeSingle(),
         supabase.from("user_roles").select("role").eq("user_id", meId),
+        supabase.from("section_heads" as any).select("section").eq("user_id", meId),
       ]);
       const rs = (roles ?? []).map(r => r.role);
+      const sh = (sectionHeads ?? []).map((s: any) => s.section);
+
       if (p) {
+        let displayRole = "عضو";
+        if (rs.includes("chairman")) displayRole = "رئيس المجلس";
+        else if (rs.includes("admin")) displayRole = "المسؤول التقني";
+        else if (sh.includes("majlis") || sh.includes("news")) displayRole = "مسؤول قسم الأخبار";
+        else if (rs.includes("manager")) displayRole = "مسؤول قسم";
+
         setProfile({
           name: p.arabic_name || p.full_name || "عضو",
-          role: rs.includes("chairman") ? "رئيس المجلس" : rs.includes("admin") ? "مسؤول تقني" : rs.includes("manager") ? "مسؤول قسم" : "عضو",
+          role: displayRole,
           initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
           avatarPath: p.avatar_url,
         });
@@ -171,7 +182,7 @@ function MajlisPage() {
           </div>
         </section>
 
-        {canManage && (
+        {canPostNews && (
           <div className="px-4 md:px-0 flex justify-end">
             <button onClick={() => setShowAdd(true)} className="btn-gold px-8 py-3.5 rounded-2xl flex items-center justify-center gap-3 shadow-xl text-sm font-black active:scale-95 transition-all">
               <Plus size={20} strokeWidth={3} /> <span>إضافة منشور</span>
@@ -181,14 +192,14 @@ function MajlisPage() {
 
         <div className="grid grid-cols-1 gap-8 px-4 md:px-0">
           {loading ? <div className="py-20 text-center"><Loader2 className="animate-spin size-12 mx-auto text-primary opacity-20" /></div> :
-            posts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canManage || p.author_id === meId} canEdit={canManage || p.author_id === meId} onEdit={() => setEditingPost(p)} onRefresh={loadData} comments={comments} />)}
+            posts.map(p => <PostCard key={p.id} post={p} meId={meId} isChairman={isAdmin || isChairman} canDelete={canPostNews || p.author_id === meId} canEdit={canPostNews || p.author_id === meId} onEdit={() => setEditingPost(p)} onRefresh={loadData} comments={comments} />)}
           {!loading && posts.length === 0 && <div className="p-20 text-center bg-muted/20 rounded-[48px] border-4 border-dashed italic text-muted-foreground">لا توجد منشورات حالياً.</div>}
         </div>
       </div>
 
       <AnimatePresence>
-        {showAdd && <AddPostDialog meId={meId} canManageNews={canManage} onClose={() => setShowAdd(false)} onSaved={loadData} />}
-        {editingPost && <AddPostDialog meId={meId} canManageNews={canManage} editPost={editingPost} onClose={() => setEditingPost(null)} onSaved={loadData} />}
+        {showAdd && <AddPostDialog meId={meId} canManageNews={canPostNews} onClose={() => setShowAdd(false)} onSaved={loadData} />}
+        {editingPost && <AddPostDialog meId={meId} canManageNews={canPostNews} editPost={editingPost} onClose={() => setEditingPost(null)} onSaved={loadData} />}
       </AnimatePresence>
     </AppShell>
   );

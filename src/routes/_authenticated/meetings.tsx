@@ -424,8 +424,8 @@ function MeetingsPage() {
                   </CarouselContent>
                   {upcoming.length > 1 && (
                     <div className="hidden md:block">
-                      <CarouselPrevious className="right-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black" />
-                      <CarouselNext className="left-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black" />
+                      <CarouselPrevious className="right-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black transition-all" />
+                      <CarouselNext className="left-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black transition-all" />
                     </div>
                   )}
                 </Carousel>
