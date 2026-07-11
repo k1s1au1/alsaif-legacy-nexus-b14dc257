@@ -166,29 +166,29 @@ function SecureVaultPage() {
   };
 
   const handleScan = async () => {
+    // Web / tablets without the native scanner: fallback to camera capture via file input.
+    if (!Capacitor.isNativePlatform()) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      (input as any).capture = "environment";
+      input.onchange = () => {
+        const f = input.files?.[0];
+        if (f) {
+          setSelectedFile(f);
+          setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
+          setShowAdd(true);
+        }
+      };
+      input.click();
+      return;
+    }
     setIsScanning(true);
     try {
       const result = await DocumentScanner.scanDocument();
       if (result && result.path) {
-        // Convert Native Path to Web Path
-        const webPath = Capacitor.convertFileSrc(result.path);
-
-        // Use a more robust way to get blob on native
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.onload = function() {
-            resolve(xhr.response);
-          };
-          xhr.onerror = function() {
-            reject(new Error("تعذر قراءة ملف الوثيقة"));
-          };
-          xhr.responseType = "blob";
-          xhr.open("GET", webPath);
-          xhr.send();
-        });
-
-        const file = new File([blob], `scanned_doc_${Date.now()}.jpg`, { type: 'image/jpeg' });
-
+        const { scannedPathToFile } = await import("@/lib/scanned-doc");
+        const file = await scannedPathToFile(result.path, `scanned_doc_${Date.now()}.jpg`);
         setSelectedFile(file);
         setNewTitle(`وثيقة ممسوحة - ${new Date().toLocaleDateString("ar-SA")}`);
         setShowAdd(true);
