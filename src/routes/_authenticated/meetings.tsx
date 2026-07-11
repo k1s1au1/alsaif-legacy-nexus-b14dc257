@@ -21,7 +21,6 @@ import {
   Share2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useServerFn } from "@tanstack/react-start";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -37,10 +36,8 @@ import {
 } from "@/components/ui/carousel";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
-import { sendPushNotification } from "@/lib/api/push.functions";
 import { MeetingPresentations } from "@/components/meeting-presentations";
 import { addToCalendar } from "@/lib/calendar";
-import { FamilySharing } from "@/lib/native-bridge";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -103,7 +100,6 @@ function MeetingsPage() {
 
   const canManage = canManageSection("meetings");
   const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
-  const sendPush = useServerFn(sendPushNotification);
 
   const resetForm = useCallback(() => {
     setFTitle("");
@@ -207,21 +203,6 @@ function MeetingsPage() {
       if (error) toast.error("تعذر الإنشاء");
       else {
         toast.success("تم الإنشاء");
-
-        // Broadcast notification
-        try {
-          await sendPush({
-            data: {
-              title: "اجتماع جديد",
-              body: "تم إنشاء اجتماع جديد في مجلس العائلة.",
-              type: "meetings",
-              route: "/meetings",
-            },
-          });
-        } catch (fcmErr) {
-          console.warn("Push broadcast failed:", fcmErr);
-        }
-
         setShowForm(false);
         resetForm();
         loadAll();
@@ -265,7 +246,6 @@ function MeetingsPage() {
         if (error) throw error;
         toast.success("تم إلغاء الرد");
       } else {
-        // Safe upsert that handles missing columns gracefully
         const payload: any = { meeting_id: meetingId, user_id: userId, rsvp };
         if (companionsCount > 0) payload.companions_count = companionsCount;
 
@@ -274,7 +254,6 @@ function MeetingsPage() {
           .upsert(payload, { onConflict: "meeting_id,user_id" });
 
         if (error) {
-          // If companions_count is causing the issue, try without it
           const { error: retryError } = await supabase
             .from("meeting_attendees")
             .upsert({ meeting_id: meetingId, user_id: userId, rsvp }, { onConflict: "meeting_id,user_id" });
@@ -295,7 +274,8 @@ function MeetingsPage() {
   const handleRemindAll = async (m: Meeting) => {
     try {
       toast.loading("جاري إرسال التذكيرات...");
-      await sendPush({
+      const { sendPushNotification } = await import("@/lib/api/push.functions");
+      await sendPushNotification({
         data: {
           title: `تذكير: ${m.title}`,
           body: `نذكركم بموعدنا القريب في: ${formatDate(m.scheduled_at).weekday} الساعة ${formatDate(m.scheduled_at).time}`,
@@ -506,7 +486,7 @@ function MeetingsPage() {
                   <div className="grid gap-6">
                     <div className="space-y-2">
                        <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">عنوان الاجتماع</label>
-                       <input value={fTitle} onChange={(e) => setFTitle(e.target.value)} required placeholder="مثال: اجتماع العائلة السنوي" className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-lg focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm" />
+                       <input value={fTitle} onChange={(e) => setFTitle(e.target.value)} required placeholder="مثال: اجتماع العائلة السنوي" className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm" />
                     </div>
                     <div className="space-y-2">
                        <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">وصف موجز</label>
@@ -559,7 +539,7 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
 
   return (
     <article className={cn(
-      "relative min-h-[460px] md:min-h-[500px] overflow-hidden rounded-[28px] md:rounded-[60px] text-white p-5 md:p-16 flex flex-col justify-between gap-6 md:gap-10 group cursor-grab active:cursor-grabbing border border-white/5 md:border-4 shadow-2xl mx-1 md:mx-0 transition-all duration-700",
+      "relative min-h-[420px] md:min-h-[520px] lg:min-h-[580px] overflow-hidden rounded-[32px] md:rounded-[48px] lg:rounded-[64px] text-white p-6 md:p-12 lg:p-20 flex flex-col justify-between gap-6 md:gap-10 group cursor-grab active:cursor-grabbing border border-white/10 shadow-2xl mx-1 md:mx-0 transition-all duration-700",
       myRsvp === 'going' ? "bg-emerald-950" : myRsvp === 'not_going' ? "bg-rose-950" : "bg-primary"
     )}>
        <div className={cn(
@@ -572,12 +552,12 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
        <div className="absolute -top-40 -right-40 size-[300px] md:size-[500px] bg-gold-primary/10 rounded-full blur-[100px] pointer-events-none" />
 
        {/* Top: title + date stack */}
-       <div className="relative z-10 grid grid-cols-[minmax(0,1fr)_auto] gap-4 md:gap-8 items-start w-full">
-          <div className="min-w-0 space-y-2 md:space-y-4">
-             <div className="flex flex-wrap items-center gap-1.5 md:gap-3">
-                <span className="px-2.5 py-1 md:px-4 md:py-1.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md">قادم</span>
-                <span className="px-2.5 py-1 md:px-4 md:py-1.5 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1">
-                   <Clock className="size-2.5 md:size-3 shrink-0" /> {meeting.duration_minutes || "—"} د
+       <div className="relative z-10 flex flex-col md:flex-row justify-between items-start gap-6 md:gap-10 w-full">
+          <div className="min-w-0 space-y-4 md:space-y-6 flex-1">
+             <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                <span className="px-3 py-1 md:px-5 md:py-2 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[9px] md:text-xs font-black uppercase tracking-widest backdrop-blur-md">قادم</span>
+                <span className="px-3 py-1 md:px-5 md:py-2 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] md:text-xs font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1.5">
+                   <Clock className="size-3 md:size-4 shrink-0" /> {meeting.duration_minutes || "—"} دقيقة
                 </span>
                 <button
                   onClick={() => addToCalendar({
@@ -587,41 +567,31 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                     startTime: meeting.scheduled_at,
                     durationMinutes: meeting.duration_minutes || 60
                   })}
-                  className="px-2.5 py-1 md:px-4 md:py-1.5 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1 hover:bg-gold-primary hover:text-black transition-all"
+                  className="px-3 py-1 md:px-5 md:py-2 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] md:text-xs font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1.5 hover:bg-gold-primary hover:text-black transition-all shadow-lg"
                 >
-                   <CalendarDays className="size-2.5 md:size-3 shrink-0" /> تقويم الجوال
-                </button>
-                <button
-                  onClick={async () => {
-                    await FamilySharing.shareInvitation({
-                      title: meeting.title,
-                      date: `${date.weekday} ${date.day} ${date.month} ${date.year}`,
-                      location: meeting.location || "غير محدد"
-                    });
-                  }}
-                  className="px-2.5 py-1 md:px-4 md:py-1.5 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md flex items-center gap-1 hover:bg-gold-primary hover:text-black transition-all"
-                >
-                   <Share2 className="size-2.5 md:size-3 shrink-0" /> مشاركة بطاقة
+                   <CalendarDays className="size-3 md:size-4 shrink-0" /> تقويم الجوال
                 </button>
              </div>
-             <h3 className="text-xl sm:text-2xl md:text-6xl font-black tracking-tight leading-tight drop-shadow-2xl break-words line-clamp-3">{meeting.title}</h3>
+             <h3 className="text-2xl sm:text-3xl md:text-5xl lg:text-7xl font-black tracking-tighter leading-[1.1] drop-shadow-2xl break-words line-clamp-3 md:line-clamp-none">{meeting.title}</h3>
           </div>
 
-          <div className="shrink-0 flex flex-col items-center md:items-end gap-2 md:gap-3">
-             <div className="text-center md:text-right">
-                <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[8px] md:text-[10px] block">{date.weekday}</span>
-                <span className="text-3xl sm:text-4xl md:text-9xl font-black tracking-tighter text-white leading-none block">{date.day}</span>
-                <span className="text-[10px] sm:text-xs md:text-3xl font-black text-white/40 uppercase tracking-widest block">{date.month}</span>
+          <div className="shrink-0 flex flex-row md:flex-col items-center md:items-end gap-4 md:gap-4 w-full md:w-auto justify-between md:justify-start border-t border-white/10 pt-4 md:border-none md:pt-0">
+             <div className="text-right">
+                <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-sm block">{date.weekday}</span>
+                <div className="flex items-baseline md:block">
+                   <span className="text-4xl sm:text-5xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white leading-none block">{date.day}</span>
+                   <span className="text-sm sm:text-base md:text-2xl lg:text-4xl font-black text-white/40 uppercase tracking-widest block mr-2 md:mr-0">{date.month}</span>
+                </div>
              </div>
 
              {new Date(meeting.scheduled_at).getTime() > new Date().getTime() && (
-               <div className="flex items-center gap-1.5 px-2.5 py-1.5 md:px-4 md:py-2 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl md:rounded-2xl">
-                  <Timer className="size-3 md:size-5 text-gold-primary animate-pulse shrink-0" />
-                  <div className="leading-tight text-center">
-                    <span className="text-sm md:text-2xl font-black text-white block">
+               <div className="flex items-center gap-2 md:gap-3 px-4 py-2 md:px-6 md:py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl md:rounded-[24px] shadow-xl">
+                  <Timer className="size-4 md:size-7 text-gold-primary animate-pulse shrink-0" />
+                  <div className="leading-tight text-center md:text-right">
+                    <span className="text-xl md:text-4xl font-black text-white block leading-none">
                       {Math.ceil((new Date(meeting.scheduled_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))}
                     </span>
-                    <span className="text-[7px] md:text-[9px] font-black uppercase tracking-widest text-white/40 block">يوم</span>
+                    <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/40 block">يوم متبقي</span>
                   </div>
                </div>
              )}
@@ -629,41 +599,41 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
        </div>
 
        {/* Middle: description + meta */}
-       <div className="relative z-10 space-y-4 md:space-y-8">
-          <p className="text-sm md:text-xl font-bold text-white/70 leading-relaxed border-r-2 md:border-r-4 border-gold-primary/30 pr-3 md:pr-8 line-clamp-3 md:line-clamp-none">{meeting.description || "لا يوجد وصف لهذه المناسبة."}</p>
+       <div className="relative z-10 space-y-6 md:space-y-10">
+          <p className="text-base md:text-xl lg:text-2xl font-bold text-white/70 leading-relaxed border-r-4 border-gold-primary/30 pr-4 md:pr-10 line-clamp-3 md:line-clamp-none">{meeting.description || "لا يوجد وصف لهذه المناسبة العائلية."}</p>
 
-          <div className="flex flex-wrap items-center gap-3 md:gap-10">
+          <div className="flex flex-col md:flex-row flex-wrap items-start md:items-center gap-6 md:gap-12 lg:gap-20">
              {meeting.location && (
-               <div className="flex items-center gap-2 md:gap-4 min-w-0 max-w-full">
-                  <div className="size-9 md:size-14 shrink-0 rounded-xl md:rounded-[24px] bg-white/5 flex items-center justify-center text-gold-primary border border-white/10">
-                     <MapPin className="size-4 md:size-6" />
+               <div className="flex items-center gap-3 md:gap-5 min-w-0 max-w-full group/loc">
+                  <div className="size-11 md:size-16 shrink-0 rounded-[18px] md:rounded-[28px] bg-white/5 flex items-center justify-center text-gold-primary border border-white/10 shadow-xl transition-transform group-hover/loc:scale-110">
+                     <MapPin className="size-5 md:size-8" />
                   </div>
-                  <div className="min-w-0 space-y-0.5">
-                     <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">الموقع</p>
+                  <div className="min-w-0 space-y-1">
+                     <p className="text-[9px] md:text-[11px] font-black uppercase tracking-widest text-white/30">المكان والموقع</p>
                      {meeting.location_url ? (
-                        <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-xs md:text-lg font-black hover:text-gold-primary transition-all flex items-center gap-1.5 truncate">
+                        <a href={meeting.location_url} target="_blank" rel="noreferrer" className="text-sm md:text-xl lg:text-2xl font-black hover:text-gold-primary transition-all flex items-center gap-2 truncate">
                           <span className="truncate">{meeting.location}</span>
-                          <Navigation size={10} className="opacity-40 shrink-0" />
+                          <Navigation size={14} className="opacity-40 shrink-0" />
                         </a>
                      ) : (
-                        <p className="text-xs md:text-lg font-black truncate">{meeting.location}</p>
+                        <p className="text-sm md:text-xl lg:text-2xl font-black truncate">{meeting.location}</p>
                      )}
                   </div>
                </div>
              )}
 
-             <div className="flex items-center gap-2 md:gap-4 shrink-0">
-                <div className="flex -space-x-2 md:-space-x-4 space-x-reverse">
+             <div className="flex items-center gap-3 md:gap-5 shrink-0">
+                <div className="flex -space-x-3 md:-space-x-5 space-x-reverse">
                    {going.slice(0, 4).map((p: any) => {
                      const attendee = attendeesList.find((a: any) => a.user_id === p.id);
                      const cCount = attendee?.companions_count || 0;
                      return (
                         <div key={p.id} className="relative group/avatar">
-                          <div className="size-7 md:size-12 rounded-md md:rounded-[18px] border-2 md:border-4 border-primary overflow-hidden">
+                          <div className="size-9 md:size-16 rounded-xl md:rounded-[24px] border-2 md:border-4 border-primary/50 overflow-hidden shadow-2xl transition-transform hover:scale-110 duration-500">
                              <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
                           </div>
                           {cCount > 0 && (
-                            <div className="absolute -top-1 -right-1 size-3 md:size-5 bg-gold-primary text-black text-[6px] md:text-[9px] font-black rounded-full flex items-center justify-center border border-primary shadow-sm z-10">
+                            <div className="absolute -top-1.5 -right-1.5 size-4 md:size-7 bg-gold-primary text-black text-[8px] md:text-[12px] font-black rounded-full flex items-center justify-center border-2 border-primary shadow-xl z-10 tabular-nums">
                                +{cCount}
                             </div>
                           )}
@@ -671,12 +641,12 @@ function MeetingInteractiveCard({ meeting, counts, attendeesList, profiles, myRs
                      );
                    })}
                    {going.length > 4 && (
-                     <div className="size-7 md:size-12 rounded-md md:rounded-[18px] bg-gold-primary text-black text-[8px] md:text-[10px] font-black flex items-center justify-center border-2 md:border-4 border-primary">+{going.length - 4}</div>
+                     <div className="size-9 md:size-16 rounded-xl md:rounded-[24px] bg-gold-primary text-black text-[10px] md:text-sm font-black flex items-center justify-center border-2 md:border-4 border-primary shadow-2xl">+{going.length - 4}</div>
                    )}
                 </div>
-                <div className="min-w-0 space-y-0.5">
-                   <p className="text-[8px] md:text-[10px] font-black uppercase tracking-widest text-white/30">الإجمالي (بالضيوف)</p>
-                   <p className="text-[10px] md:text-xs font-black text-white">{totalGoingCount} حاضرين</p>
+                <div className="min-w-0 space-y-1">
+                   <p className="text-[9px] md:text-[11px] font-black uppercase tracking-widest text-white/30">إجمالي الحضور</p>
+                   <p className="text-sm md:text-xl font-black text-white tabular-nums">{totalGoingCount} حاضر</p>
                 </div>
              </div>
           </div>
