@@ -43,7 +43,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
-import { sendFcmNotification } from "@/lib/fcm";
+import { sendFcmNotification } from "@/lib/fcm.functions";
 import { finalizePoll } from "@/lib/api/shura.functions";
 
 export const Route = createFileRoute("/_authenticated/admin")({

@@ -2,8 +2,6 @@ import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { z } from "zod";
 
-const NOTIFICATION_TYPES = ["meetings", "entertainment", "tasks", "chat", "news", "faza"] as const;
-
 export const sendFazaNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(z.object({
@@ -25,7 +23,7 @@ export const sendFazaNotification = createServerFn({ method: "POST" })
       if (recipientIds.length > 0) {
         // We call the send-push logic here (simulated as we don't have direct access to the helper in server-fn easily,
         // but we assume the DB trigger will handle it or we use the call_send_push via RPC)
-        await admin.rpc('call_send_push', {
+        await (admin as any).rpc('call_send_push', {
           _title: `🆘 فزعة عاجلة من: ${senderName}`,
           _body: data.message || "أحتاج لمساعدة عاجلة من الأقارب",
           _url: "/chat",
@@ -39,56 +37,12 @@ export const sendFazaNotification = createServerFn({ method: "POST" })
     }
   });
 
-async function getGoogleAccessToken(serviceAccount: any) {
-  const iat = Math.floor(Date.now() / 1000);
-  const claim = {
-    iss: serviceAccount.client_email,
-    scope: "https://www.googleapis.com/auth/firebase.messaging",
-    aud: "https://oauth2.googleapis.com/token",
-    exp: iat + 3600,
-    iat,
-  };
-  const b64 = (o: any) =>
-    btoa(JSON.stringify(o)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-  const unsigned = `${b64({ alg: "RS256", typ: "JWT" })}.${b64(claim)}`;
-  const pem = serviceAccount.private_key
-    .replace("-----BEGIN PRIVATE KEY-----", "")
-    .replace("-----END PRIVATE KEY-----", "")
-    .replace(/\s/g, "");
-  const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
-  const key = await (globalThis as any).crypto.subtle.importKey(
-    "pkcs8",
-    der,
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await (globalThis as any).crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    key,
-    new TextEncoder().encode(unsigned),
-  );
-  const b64sig = btoa(String.fromCharCode(...new Uint8Array(sig)))
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-  const jwt = `${unsigned}.${b64sig}`;
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
-  });
-  const data = await res.json();
-  if (data.error) throw new Error(data.error_description || data.error);
-  return data.access_token as string;
-}
-
 export const sendPushNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator(z.object({
     title: z.string().min(1).max(150),
     body: z.string().min(1).max(300),
-    type: z.enum(NOTIFICATION_TYPES).optional(),
+    type: z.enum(["meetings", "entertainment", "tasks", "chat", "news", "faza"]).optional(),
     target_user_ids: z.array(z.string().uuid()).max(2000).optional(),
     route: z.string().max(200).optional(),
   }))

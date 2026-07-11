@@ -3,6 +3,7 @@ import { Capacitor } from "@capacitor/core";
 import { motion, AnimatePresence } from "framer-motion";
 import { ShieldCheck, Fingerprint, Lock, ShieldAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BiometricAuth } from "@/lib/native-bridge";
 
 /**
  * A gate component that requires biometric authentication if enabled.
@@ -25,10 +26,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      // Dynamic import to avoid issues on web
-      const { NativeBiometric } = await import("capacitor-native-biometric");
-
-      const result = await NativeBiometric.isAvailable();
+      const result = await BiometricAuth.checkBiometry();
       if (!result.isAvailable) {
         setChecking(false);
         return;
@@ -37,14 +35,12 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
       setLocked(true);
       setChecking(false);
 
-      const authResult = await NativeBiometric.verifyIdentity({
-        reason: "يرجى تأكيد هويتك للدخول للمجلس",
+      const authResult = await BiometricAuth.authenticate({
         title: "تأكيد الهوية",
         subtitle: "استخدم البصمة أو الوجه",
-        description: "حفاظاً على خصوصية بيانات العائلة",
       }).catch(() => null);
 
-      if (authResult) {
+      if (authResult?.success) {
         setLocked(false);
       } else {
         setError("فشل التحقق من الهوية");

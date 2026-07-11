@@ -13,7 +13,7 @@ import {
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUserRole } from "@/hooks/use-user-role";
-import { sendFcmNotification } from "@/lib/fcm";
+import { sendFcmNotification } from "@/lib/fcm.functions";
 
 export const Route = createFileRoute("/_authenticated/community")({
   ssr: false,

@@ -18,12 +18,16 @@ import {
   Plus,
   Minus,
   ImagePlus,
-  Star
+  Star,
+  ShieldAlert,
+  Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { motion, AnimatePresence } from "framer-motion";
+import { setupPushNotifications } from "@/lib/pushNotifications";
+import { syncFamilyContacts } from "@/lib/contacts";
 
 const FONTS = [
   { id: "Tajawal", name: "تجوال (عصري)", family: "'Tajawal', sans-serif", desc: "خط ناعم وأنيق" },
@@ -628,18 +632,6 @@ function SettingsPage() {
 }
 
 function ThemeCard({ active, label, icon, onClick }: any) {
-  const handleToggleBiometrics = (val: boolean) => {
-    setUseBiometrics(val);
-    localStorage.setItem("app-use-biometrics", String(val));
-    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
-  };
-
-  const handleToggleFaza = (val: boolean) => {
-    setFazaEnabled(val);
-    localStorage.setItem("app-faza-enabled", String(val));
-    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
-  };
-
   return (
     <button onClick={onClick} className={cn("p-6 md:p-8 rounded-[32px] md:rounded-[40px] border-4 transition-all duration-500 flex flex-col items-center gap-3 md:gap-4 text-center", active ? "bg-primary border-gold-primary text-primary-foreground shadow-2xl scale-105" : "bg-card border-transparent text-muted-foreground hover:bg-muted")}>
        <div className={cn("size-12 md:size-16 rounded-[22px] md:rounded-[28px] flex items-center justify-center transition-all duration-700", active ? "bg-white/10 text-gold-primary rotate-12" : "bg-muted text-primary")}>
@@ -651,18 +643,6 @@ function ThemeCard({ active, label, icon, onClick }: any) {
 }
 
 function SettingRow({ icon, title, desc }: any) {
-  const handleToggleBiometrics = (val: boolean) => {
-    setUseBiometrics(val);
-    localStorage.setItem("app-use-biometrics", String(val));
-    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
-  };
-
-  const handleToggleFaza = (val: boolean) => {
-    setFazaEnabled(val);
-    localStorage.setItem("app-faza-enabled", String(val));
-    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
-  };
-
   return (
     <div className="p-8 flex items-center justify-between group transition-all">
        <div className="flex items-center gap-6">
@@ -678,9 +658,6 @@ function SettingRow({ icon, title, desc }: any) {
     </div>
   );
 }
-
-import { setupPushNotifications } from "@/lib/pushNotifications";
-import { syncFamilyContacts } from "@/lib/contacts";
 
 const NOTIF_OPTIONS: { key: "meetings" | "entertainment" | "tasks" | "chat" | "news"; label: string; desc: string }[] = [
   { key: "meetings", label: "إشعارات الاجتماعات", desc: "تنبيه عند إنشاء اجتماع جديد." },
@@ -723,18 +700,6 @@ function NotificationPreferencesSection() {
       toast.error("تعذّر حفظ الإعداد");
       setPrefs(prefs);
     }
-  };
-
-  const handleToggleBiometrics = (val: boolean) => {
-    setUseBiometrics(val);
-    localStorage.setItem("app-use-biometrics", String(val));
-    if (val) toast.success("تم تفعيل الدخول بالبصمة للمرات القادمة 🔒");
-  };
-
-  const handleToggleFaza = (val: boolean) => {
-    setFazaEnabled(val);
-    localStorage.setItem("app-faza-enabled", String(val));
-    toast.info(val ? "نظام الفزعة مفعل" : "تم إيقاف تنبيهات الفزعة");
   };
 
   return (

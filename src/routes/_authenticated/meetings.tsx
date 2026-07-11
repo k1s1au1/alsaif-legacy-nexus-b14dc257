@@ -18,6 +18,7 @@ import {
   Timer,
   Navigation,
   Bell,
+  Share2,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
