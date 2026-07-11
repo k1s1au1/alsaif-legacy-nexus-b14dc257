@@ -142,28 +142,28 @@ function HeritagePage() {
   }, [loadAll, userId, isAdmin, isChairman]);
 
   const handleScan = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      const input = document.createElement("input");
+      input.type = "file";
+      input.accept = "image/*";
+      (input as any).capture = "environment";
+      input.onchange = () => {
+        const f = input.files?.[0];
+        if (f) {
+          setImageFile(f);
+          setImagePreview(URL.createObjectURL(f));
+          setShowCompose(true);
+        }
+      };
+      input.click();
+      return;
+    }
     setIsScanning(true);
     try {
       const result = await DocumentScanner.scanDocument();
       if (result && result.path) {
-        // Convert Native Path to Web Path for Fetch
-        const webPath = Capacitor.convertFileSrc(result.path);
-        // Use a more robust way to get blob on native
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          const xhr = new XMLHttpRequest();
-          xhr.onload = function() {
-            resolve(xhr.response);
-          };
-          xhr.onerror = function() {
-            reject(new Error("تعذر قراءة ملف الوثيقة"));
-          };
-          xhr.responseType = "blob";
-          xhr.open("GET", webPath);
-          xhr.send();
-        });
-
-        const file = new File([blob], `heritage_scan_${Date.now()}.jpg`, { type: 'image/jpeg' });
-
+        const { scannedPathToFile } = await import("@/lib/scanned-doc");
+        const file = await scannedPathToFile(result.path, `heritage_scan_${Date.now()}.jpg`);
         setImageFile(file);
         setImagePreview(URL.createObjectURL(file));
         setShowCompose(true);
