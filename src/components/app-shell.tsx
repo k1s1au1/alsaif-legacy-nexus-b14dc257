@@ -103,20 +103,25 @@ function QuickActionItem({ to, label, icon, color, onClick }: any) {
   );
 }
 
-function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut }: any) {
+function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) {
   return (
     <DropdownMenu>
        <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
-             <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative">
-                <UserAvatar
-                  path={myAvatarPath}
-                  name={safeUser.name}
-                  initial={safeUser.initial}
-                  className="size-full rounded-full"
-                  userId={myUserId}
-                  presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
-                />
+             <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center">
+                <div className="md:hidden size-full p-1 flex items-center justify-center">
+                   {logo ? <img src={logo} className="size-full object-contain" /> : <Sparkles className="size-4 text-gold-primary" />}
+                </div>
+                <div className="hidden md:block size-full">
+                   <UserAvatar
+                     path={myAvatarPath}
+                     name={safeUser.name}
+                     initial={safeUser.initial}
+                     className="size-full rounded-full"
+                     userId={myUserId}
+                     presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
+                   />
+                </div>
              </div>
              <span className="text-[11px] md:text-[14px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
              <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
@@ -371,7 +376,7 @@ export function AppShell({
                     <NotificationsBell />
                  </div>
 
-                 <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} />
+                 <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} logo={dynamicLogo} />
               </div>
 
               {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
@@ -406,8 +411,8 @@ export function AppShell({
                              </div>
                           </div>
 
-                          {/* Family Presence Radar - Floating Faces */}
-                          <div className="flex -space-x-2 mt-2">
+                          {/* Family Presence Radar - Floating Faces (Desktop only) */}
+                          <div className="hidden md:flex -space-x-2 mt-2">
                              {onlineProfiles.slice(0, 5).map((p, i) => (
                                 <motion.div
                                   key={p.id}
@@ -489,7 +494,7 @@ export function AppShell({
                     />
                     <button
                       onClick={() => setShowQuickActions(true)}
-                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-10 border-[5px] border-emerald-950/60 p-2 relative z-10 active:scale-90 transition-transform"
+                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-6 border-[5px] border-emerald-950/60 p-2 relative z-10 active:scale-90 transition-transform"
                     >
                        <LayoutGrid className="text-emerald-950 size-7" strokeWidth={2.5} />
                     </button>
