@@ -13,7 +13,7 @@ import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
-export const Route = createFileRoute("/_authenticated/members/")({
+export const Route = createFileRoute("/_authenticated/members")({
   ssr: false,
   head: () => ({
     meta: [
