@@ -893,6 +893,7 @@ function MeetingInteractiveCard({
 
               {canManage && (
                 <div className="flex items-center gap-2 w-full sm:w-auto">
+                   {/* This button is now strictly tied to canManage which only includes Chairman, Technical Admin, and Meeting Head */}
                    <button onClick={() => onRemind(meeting)} className="h-14 px-6 rounded-2xl bg-gold-primary text-emerald-950 font-black text-xs shadow-xl flex items-center gap-2 active:scale-95 transition-all"><Bell size={18} /> تذكير الجميع</button>
                    <button onClick={() => onEdit(meeting)} className="h-14 w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"><Pencil size={20} /></button>
                    <button onClick={() => onDelete(meeting.id)} className="h-14 w-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"><Trash2 size={20} /></button>
