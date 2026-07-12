@@ -709,34 +709,55 @@ function MeetingInteractiveCard({
     <div className="flex flex-col gap-4">
       <article
         className={cn(
-          "relative overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
-          myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]",
-          "min-h-[520px] md:min-h-[600px]"
+          "relative overflow-hidden rounded-[48px] md:rounded-[56px] text-white flex flex-col md:flex-row border-4 border-white/5 shadow-2xl transition-all duration-700",
+          myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#051410]",
+          "min-h-[580px] md:min-h-[600px]"
         )}
       >
-        {/* Mobile Tab Switcher - More compact */}
-        <div className="md:hidden absolute top-3 left-3 right-3 z-50 flex p-1 bg-black/60 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl">
+        {/* Background Decorations - Mobile Radical */}
+        <div className="md:hidden absolute inset-0 z-0">
+           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none -rotate-12">
+             <Calendar size={300} strokeWidth={0.5} />
+           </div>
+           <div
+             className="absolute bottom-[-10%] left-[-10%] size-[80%] opacity-[0.04] pointer-events-none logo-alsaif-banner"
+             style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
+           />
+        </div>
+
+        {/* Floating Date Stamp - Mobile Only */}
+        <div className="md:hidden absolute top-8 right-8 z-20 flex flex-col items-center">
+           <div className="bg-gold-primary/10 backdrop-blur-md border-2 border-gold-primary/30 rounded-3xl p-4 min-w-[80px] text-center shadow-2xl">
+              <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest mb-1">{date.month}</p>
+              <p className="text-4xl font-black text-white leading-none">{date.day}</p>
+              <div className="h-0.5 w-6 bg-gold-primary/40 mx-auto my-1" />
+              <p className="text-[9px] font-bold text-white/60">{date.weekday}</p>
+           </div>
+        </div>
+
+        {/* Mobile Modern Navigation - Floating at bottom */}
+        <div className="md:hidden absolute bottom-6 left-6 right-6 z-50 flex p-1.5 bg-black/60 backdrop-blur-3xl rounded-[28px] border border-white/10 shadow-2xl">
           <button
             onClick={() => setActiveTab("info")}
             className={cn(
-              "flex-1 py-2 rounded-xl text-[11px] font-black transition-all duration-300",
-              activeTab === "info" ? "bg-gold-primary text-emerald-950 shadow-lg scale-[1.02]" : "text-white/40"
+              "flex-1 py-3.5 rounded-[22px] text-xs font-black transition-all duration-500 flex items-center justify-center gap-2",
+              activeTab === "info" ? "bg-gold-primary text-emerald-950 shadow-xl scale-[1.02]" : "text-white/40"
             )}
           >
-            تفاصيل اللقاء
+            <HelpCircle size={14} /> تفاصيل اللقاء
           </button>
           <button
             onClick={() => setActiveTab("rsvp")}
             className={cn(
-              "flex-1 py-2 rounded-xl text-[11px] font-black transition-all duration-300",
-              activeTab === "rsvp" ? "bg-gold-primary text-emerald-950 shadow-lg scale-[1.02]" : "text-white/40"
+              "flex-1 py-3.5 rounded-[22px] text-xs font-black transition-all duration-500 flex items-center justify-center gap-2",
+              activeTab === "rsvp" ? "bg-gold-primary text-emerald-950 shadow-xl scale-[1.02]" : "text-white/40"
             )}
           >
-            تأكيد الحضور
+            <UserCheck size={14} /> الحضور ({totalGoingCount})
           </button>
         </div>
 
-        {/* Background Ornaments - Desktop Only */}
+        {/* Desktop Background Ornaments */}
         <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
           <CalendarDays size={240} className="text-white" />
         </div>
@@ -745,204 +766,168 @@ function MeetingInteractiveCard({
           style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
         />
 
-        {/* RSVP SECTION (Left on Desktop, Tabbed on Mobile) */}
+        {/* CONTENT PANE (Adaptive) */}
         <AnimatePresence mode="wait">
-          {(activeTab === "rsvp" || window.innerWidth >= 768) && (
+          {/* INFO VIEW */}
+          {(activeTab === "info" || (typeof window !== 'undefined' && window.innerWidth >= 768)) && (
             <motion.div
-              key="rsvp-pane"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
+              key="info-mobile"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.5 }}
               className={cn(
-                "md:w-1/3 p-8 md:p-14 flex flex-col justify-between space-y-10 relative z-10 shrink-0",
-                "bg-white/5 backdrop-blur-md md:border-l border-white/10 h-full",
-                activeTab === "rsvp" ? "flex" : "hidden md:flex"
-              )}
-            >
-              <div className="space-y-6 pt-10 md:pt-0">
-                 <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20">
-                       <Timer size={14} className="text-gold-primary animate-pulse" />
-                       <span className="text-[10px] font-black text-gold-primary uppercase tracking-widest">تأكيد الحضور</span>
-                    </div>
-                    <h3 className="text-2xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستشرفنا بالحضور؟</h3>
-                 </div>
-
-                 <div className="space-y-4">
-                    {myRsvp === "going" && (
-                      <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-4 md:p-5 rounded-[28px] md:rounded-[32px] border border-white/10 shadow-inner">
-                        <div className="flex items-center justify-between px-1">
-                          <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">المرافقين؟</p>
-                          <span className="text-[11px] md:text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + compCount}</span>
-                        </div>
-                        <input
-                          type="tel"
-                          value={compCount === 0 ? "" : compCount}
-                          onFocus={(e) => e.target.select()}
-                          onChange={(e) => {
-                            const val = e.target.value.replace(/[^0-9]/g, "");
-                            setCompCount(val === "" ? 0 : parseInt(val));
-                          }}
-                          onBlur={() => onRsvp(meeting.id, "going", compCount)}
-                          className="w-full h-12 md:h-16 bg-black/20 border-2 border-white/10 rounded-[20px] md:rounded-[24px] px-6 font-black text-center text-xl md:text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
-                          placeholder="٠"
-                        />
-                      </div>
-                    )}
-
-                    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[64px] md:h-[74px]">
-                      <div
-                        className={cn(
-                          "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
-                          myRsvp === "going" ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
-                          myRsvp === "not_going" ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
-                        )}
-                      />
-                      <button
-                        onClick={() => onRsvp(meeting.id, "going", compCount)}
-                        disabled={!ready || saving}
-                        className={cn(
-                          "relative z-10 flex items-center justify-center gap-3 font-black text-xs transition-colors duration-500",
-                          myRsvp === "going" ? "text-white" : "text-white/40 hover:text-white/60"
-                        )}
-                      >
-                        {saving && myRsvp === "going" ? <Loader2 size={16} className="animate-spin" /> : <UserCheck size={20} />}
-                        <span>سأحضر</span>
-                      </button>
-                      <button
-                        onClick={() => onRsvp(meeting.id, "not_going")}
-                        disabled={!ready || saving}
-                        className={cn(
-                          "relative z-10 flex items-center justify-center gap-3 font-black text-xs transition-colors duration-500",
-                          myRsvp === "not_going" ? "text-white" : "text-white/40 hover:text-white/60"
-                        )}
-                      >
-                        {saving && myRsvp === "not_going" ? <Loader2 size={16} className="animate-spin" /> : <UserX size={20} />}
-                        <span>أعتذر</span>
-                      </button>
-                    </div>
-                 </div>
-              </div>
-
-              <div className="space-y-4 pt-8 border-t border-white/10">
-                 <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
-                       <Users size={14} /> الحضور المؤكد
-                    </div>
-                    <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{totalGoingCount} حاضر</span>
-                 </div>
-                 <div className="flex flex-wrap gap-2">
-                    {(going || []).slice(0, 5).map((p: any) => (
-                      <div key={p.id} className="relative group/avatar">
-                        <div className="size-10 rounded-xl ring-2 ring-white/10 overflow-hidden shadow-lg">
-                          <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
-                        </div>
-                      </div>
-                    ))}
-                    {going.length > 5 && (
-                      <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">+{going.length - 5}</div>
-                    )}
-                 </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* INFO SECTION (Right on Desktop, Tabbed on Mobile) */}
-        <AnimatePresence mode="wait">
-          {(activeTab === "info" || window.innerWidth >= 768) && (
-            <motion.div
-              key="info-pane"
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className={cn(
-                "flex-1 p-8 md:p-14 flex flex-col justify-between space-y-12 relative z-10 h-full",
+                "flex-1 p-8 md:p-14 flex flex-col justify-start md:justify-between space-y-12 relative z-10 h-full",
                 activeTab === "info" ? "flex" : "hidden md:flex"
               )}
             >
-              <div className="space-y-6 pt-10 md:pt-0">
-                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6">
-                    <div className="space-y-3 md:space-y-4 flex-1">
-                       <div className="flex flex-wrap items-center gap-2 md:gap-3">
-                          <span className="px-3 py-0.5 md:px-4 md:py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة عائلية</span>
-                          <span className="px-3 py-0.5 md:px-4 md:py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                             <Clock size={12} md:size={14} /> {meeting.duration_minutes || 60} د
-                          </span>
-                       </div>
-                       <h2 className="text-2xl md:text-6xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl line-clamp-2 md:line-clamp-none">{meeting.title}</h2>
-                    </div>
+               <div className="space-y-8 pt-4 md:pt-0">
+                  <div className="space-y-4 max-w-[70%] md:max-w-none">
+                     <div className="flex flex-wrap items-center gap-2">
+                        <span className="px-3 py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة رسمية</span>
+                        <span className="px-3 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
+                           <Clock size={12} /> {meeting.duration_minutes || 60} د
+                        </span>
+                     </div>
+                     <h2 className="text-2xl md:text-7xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl line-clamp-2 md:line-clamp-none">{meeting.title}</h2>
+                  </div>
 
-                    <div className="text-right shrink-0">
-                       <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs block mb-1">{date.weekday}</span>
-                       <div className="flex items-baseline gap-2">
-                          <span className="text-4xl md:text-8xl font-black tracking-tighter text-white leading-none">{date.day}</span>
-                          <span className="text-lg md:text-3xl font-black text-white/40 uppercase tracking-widest">{date.month}</span>
-                       </div>
-                    </div>
-                 </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+                     <div className="space-y-4">
+                        <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px]">
+                           <HelpCircle size={16} /> أجندة اللقاء
+                        </div>
+                        <p className="text-base md:text-2xl font-medium text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-6 line-clamp-3 md:line-clamp-none">
+                           {meeting.description || "نتطلع للقائكم في رحاب المجلس."}
+                        </p>
+                     </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
-                    <div className="space-y-3 md:space-y-5">
-                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-[11px]">
-                          <HelpCircle size={14} md:size={16} /> أجندة اللقاء
-                       </div>
-                       <div className="text-sm md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-4 md:pr-6 line-clamp-3 md:line-clamp-none">
-                          {meeting.description || "لا يوجد وصف لهذه المناسبة العائلية."}
-                       </div>
-                    </div>
+                     <div className="space-y-6">
+                        <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px]">
+                           <MapPin size={16} /> الموقع
+                        </div>
+                        <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10 backdrop-blur-sm">
+                           <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><MapPin size={24} /></div>
+                           <p className="text-sm md:text-xl font-black text-white truncate">{meeting.location || "مجلس العائلة"}</p>
+                        </div>
+                     </div>
+                  </div>
+               </div>
 
-                    <div className="space-y-4 md:space-y-6">
-                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-[11px]">
-                          <MapPin size={14} md:size={16} /> الموقع
-                       </div>
-                       <div className="grid gap-3">
-                          <div className="flex items-center gap-3 bg-white/5 p-3 md:p-5 rounded-[20px] md:rounded-[28px] border border-white/10">
-                             <div className="size-10 md:size-14 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><MapPin size={20} md:size={28} /></div>
-                             <div className="min-w-0">
-                                <p className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">المكان</p>
-                                <p className="text-xs md:text-xl font-black text-white truncate">{meeting.location || "مجلس العائلة"}</p>
-                             </div>
-                          </div>
-                       </div>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Bottom Actions Bar */}
-              <div className="pt-4 md:pt-10 space-y-4">
-                 <div className="flex flex-row items-center gap-3">
-                    <button
-                       onClick={() => addToCalendar({
-                         title: meeting.title,
-                         description: meeting.description || "",
-                         location: meeting.location || "",
-                         startTime: meeting.scheduled_at,
-                         durationMinutes: meeting.duration_minutes || 60
-                       })}
-                       className="flex-1 flex items-center justify-center gap-3 h-12 md:h-14 rounded-2xl bg-white/5 text-white/60 font-black text-xs border border-white/10 hover:bg-white/10 transition-all shadow-xl"
-                    >
-                       <CalendarDays size={18} /> التقويم
+               {/* Action Buttons for Info View */}
+               <div className="pt-4 flex items-center gap-3">
+                  <button
+                    onClick={() => addToCalendar({ title: meeting.title, description: meeting.description || "", location: meeting.location || "", startTime: meeting.scheduled_at })}
+                    className="flex-1 flex items-center justify-center gap-3 h-14 rounded-2xl bg-white/10 text-white font-black text-xs hover:bg-white/20 transition-all border border-white/10"
+                  >
+                    <CalendarDays size={18} /> التقويم
+                  </button>
+                  {canManage && (
+                    <button onClick={() => onEdit(meeting)} className="size-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
+                      <Pencil size={20} />
                     </button>
+                  )}
+                  <button
+                    onClick={() => FamilySharing.shareInvitation({ title: meeting.title, date: `${date.weekday} ${date.day} ${date.month}`, location: meeting.location || "المجلس" })}
+                    className="size-14 rounded-2xl bg-gold-primary text-emerald-950 flex items-center justify-center shadow-xl active:scale-95 transition-all"
+                  >
+                    <Share2 size={20} />
+                  </button>
+               </div>
+            </motion.div>
+          )}
 
-                    {canManage && (
-                      <div className="flex items-center gap-2">
-                         <button onClick={() => onRemind(meeting)} className="h-12 px-4 md:h-14 md:px-6 rounded-2xl bg-gold-primary text-emerald-950 font-black text-xs shadow-xl active:scale-95 transition-all"><Bell size={18} /></button>
-                         <button
-                           onClick={() => FamilySharing.shareInvitation({
-                             title: meeting.title,
-                             date: `${date.weekday} ${date.day} ${date.month} - ${date.time}`,
-                             location: meeting.location || "مجلس العائلة"
-                           })}
-                           className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"
-                         >
-                           <Share2 size={20} />
-                         </button>
-                         <button onClick={() => onEdit(meeting)} className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"><Pencil size={20} /></button>
-                      </div>
-                    )}
-                 </div>
-              </div>
+          {/* RSVP VIEW */}
+          {(activeTab === "rsvp" || (typeof window !== 'undefined' && window.innerWidth >= 768)) && (
+            <motion.div
+              key="rsvp-mobile"
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className={cn(
+                "md:w-1/3 p-8 md:p-14 flex flex-col justify-between space-y-10 relative z-10 shrink-0 h-full",
+                activeTab === "rsvp" ? "flex" : "hidden md:flex"
+              )}
+            >
+               <div className="space-y-8">
+                  <div className="space-y-4">
+                     <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20">
+                        <Timer size={14} className="text-gold-primary animate-pulse" />
+                        <span className="text-[10px] font-black text-gold-primary uppercase tracking-widest">التواجد</span>
+                     </div>
+                     <h3 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستشرفنا بالحضور؟</h3>
+                  </div>
+
+                  <div className="space-y-6">
+                     {myRsvp === "going" && (
+                       <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-6 rounded-[32px] border border-white/10 shadow-inner">
+                         <div className="flex items-center justify-between px-1">
+                           <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين؟</p>
+                           <span className="text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">المجموع: {1 + compCount}</span>
+                         </div>
+                         <input
+                           type="tel"
+                           value={compCount === 0 ? "" : compCount}
+                           onFocus={(e) => e.target.select()}
+                           onChange={(e) => {
+                             const val = e.target.value.replace(/[^0-9]/g, "");
+                             setCompCount(val === "" ? 0 : parseInt(val));
+                           }}
+                           onBlur={() => onRsvp(meeting.id, "going", compCount)}
+                           className="w-full h-16 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-3xl focus:outline-none focus:border-gold-primary transition-all text-white"
+                           placeholder="٠"
+                         />
+                       </div>
+                     )}
+
+                     <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-2 rounded-[32px] grid grid-cols-2 gap-2 shadow-2xl h-[80px]">
+                        <div
+                          className={cn(
+                            "absolute inset-y-2 w-[calc(50%-12px)] rounded-[26px] transition-all duration-500 shadow-lg",
+                            myRsvp === "going" ? "right-2 bg-emerald-500 shadow-emerald-500/40" :
+                            myRsvp === "not_going" ? "right-[calc(50%+4px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
+                          )}
+                        />
+                        <button
+                          onClick={() => onRsvp(meeting.id, "going", compCount)}
+                          className={cn(
+                            "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                            myRsvp === "going" ? "text-white" : "text-white/30"
+                          )}
+                        >
+                          <UserCheck size={22} /> سأحضر
+                        </button>
+                        <button
+                          onClick={() => onRsvp(meeting.id, "not_going")}
+                          className={cn(
+                            "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                            myRsvp === "not_going" ? "text-white" : "text-white/30"
+                          )}
+                        >
+                          <UserX size={22} /> أعتذر
+                        </button>
+                     </div>
+                  </div>
+
+                  <div className="space-y-4 pt-8 border-t border-white/10">
+                     <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
+                           <Users size={14} /> الحضور المؤكد
+                        </div>
+                        <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{totalGoingCount} حاضر</span>
+                     </div>
+                     <div className="flex flex-wrap gap-2">
+                        {(going || []).slice(0, 8).map((p: any) => (
+                          <div key={p.id} className="size-11 rounded-2xl ring-2 ring-white/10 overflow-hidden shadow-lg border-2 border-emerald-950">
+                             <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
+                          </div>
+                        ))}
+                        {going.length > 8 && (
+                          <div className="size-11 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">+{going.length - 8}</div>
+                        )}
+                     </div>
+                  </div>
+               </div>
             </motion.div>
           )}
         </AnimatePresence>
