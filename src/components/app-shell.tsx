@@ -144,9 +144,6 @@ function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) 
               />
             </div>
           </div>
-              />
-            </div>
-          </div>
           <span className="text-[11px] md:text-[14px] font-black text-primary tracking-tight">
             {safeUser.name.split(" ")[0]}
           </span>
