@@ -133,16 +133,7 @@ function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) 
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
           <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center">
-            <div className="md:hidden size-full p-0.5 flex items-center justify-center rounded-full bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary">
-              <div className="size-full rounded-full bg-[#fdfcf7] p-1 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
-                {logo ? (
-                  <img src={logo} className="size-full object-contain" />
-                ) : (
-                  <Sparkles className="size-4 text-gold-primary" />
-                )}
-              </div>
-            </div>
-            <div className="hidden md:block size-full">
+            <div className="size-full">
               <UserAvatar
                 path={myAvatarPath}
                 name={safeUser.name}
@@ -150,6 +141,9 @@ function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) 
                 className="size-full rounded-full"
                 userId={myUserId}
                 presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
+              />
+            </div>
+          </div>
               />
             </div>
           </div>
@@ -561,9 +555,9 @@ export function AppShell({
                 <Menu className="size-6" />
               </button>
 
-              <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
-                <div className="size-10 rounded-full p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-lg transition-transform duration-500 hover:scale-110">
-                  <div className="size-full rounded-full bg-[#fdfcf7] p-1.5 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
+              <div className="flex items-center gap-2 md:gap-3 pr-2 md:pr-4 h-10 border-r border-primary/10">
+                <div className="size-8 md:size-10 rounded-full p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-lg transition-transform duration-500 hover:scale-110">
+                  <div className="size-full rounded-full bg-[#fdfcf7] p-1 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
                     {dynamicLogo ? (
                       <div
                         className="size-full bg-contain bg-no-repeat bg-center"
@@ -574,7 +568,7 @@ export function AppShell({
                     )}
                   </div>
                 </div>
-                <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
+                <h1 className="text-sm md:text-lg font-black text-primary uppercase line-clamp-1">{title}</h1>
               </div>
 
               {/* Mobile Notifications Bell (Left side) */}
