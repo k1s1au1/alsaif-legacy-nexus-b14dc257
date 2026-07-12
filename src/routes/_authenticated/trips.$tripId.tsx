@@ -399,8 +399,8 @@ function TripDetail() {
         </div>
 
         <article className="space-y-8">
-          {/* Hero Header */}
-          <div className="relative h-[400px] md:h-[500px] w-full overflow-hidden rounded-[48px] shadow-2xl border-4 border-white/5 group">
+          {/* Hero Header - Square on Mobile */}
+          <div className="relative aspect-square md:aspect-auto md:h-[500px] w-full overflow-hidden rounded-[32px] md:rounded-[48px] shadow-2xl border-4 border-white/5 group">
             <TripImage
               path={trip.image_url}
               alt={trip.title}
@@ -445,8 +445,8 @@ function TripDetail() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-3 space-y-6 md:space-y-8">
-              {/* MERGED PREMIUM TRIP HUB BANNER */}
-              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-emerald-950 shadow-2xl border border-white/10 group min-h-fit md:min-h-[500px] flex flex-col md:flex-row">
+              {/* MERGED PREMIUM TRIP HUB BANNER - Square-ish on Mobile */}
+              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-emerald-950 shadow-2xl border border-white/10 group aspect-square md:aspect-auto md:min-h-[500px] flex flex-col md:flex-row">
                 {/* Background Decoration */}
                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
                   <Tent size={240} className="text-white" />

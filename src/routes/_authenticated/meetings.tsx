@@ -700,7 +700,7 @@ function MeetingInteractiveCard({
   return (
     <article
       className={cn(
-        "relative min-h-[600px] overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
+        "relative aspect-square md:aspect-auto md:min-h-[600px] overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
         myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
       )}
     >
