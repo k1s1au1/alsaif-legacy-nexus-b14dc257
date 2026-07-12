@@ -777,7 +777,7 @@ function MeetingInteractiveCard({
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.5 }}
               className={cn(
-                "flex-1 p-8 md:p-14 flex flex-col justify-start md:justify-between space-y-12 relative z-10 h-full",
+                "flex-1 p-8 md:p-14 flex flex-col justify-start md:justify-between space-y-10 relative z-10 h-full pb-32 md:pb-14",
                 activeTab === "info" ? "flex" : "hidden md:flex"
               )}
             >
@@ -845,7 +845,7 @@ function MeetingInteractiveCard({
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
               className={cn(
-                "md:w-1/3 p-8 md:p-14 flex flex-col justify-between space-y-10 relative z-10 shrink-0 h-full",
+                "md:w-1/3 p-8 md:p-14 flex flex-col justify-between space-y-10 relative z-10 shrink-0 h-full pb-32 md:pb-14",
                 activeTab === "rsvp" ? "flex" : "hidden md:flex"
               )}
             >
