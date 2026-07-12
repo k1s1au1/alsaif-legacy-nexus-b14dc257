@@ -714,13 +714,13 @@ function MeetingInteractiveCard({
           "min-h-[580px] md:min-h-[600px]"
         )}
       >
-        {/* Background Decorations - Mobile Radical */}
-        <div className="md:hidden absolute inset-0 z-0">
-           <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none -rotate-12">
-             <Calendar size={300} strokeWidth={0.5} />
+        {/* Universal Background Decorations (Mobile & Desktop) */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+           <div className="absolute top-0 right-0 p-8 md:p-16 opacity-[0.04] pointer-events-none -rotate-12">
+             <Calendar size={400} strokeWidth={0.5} className="md:size-[600px]" />
            </div>
            <div
-             className="absolute bottom-[-10%] left-[-10%] size-[80%] opacity-[0.04] pointer-events-none logo-alsaif-banner"
+             className="absolute bottom-[-5%] left-[-5%] size-[70%] md:size-[50%] opacity-[0.05] pointer-events-none logo-alsaif-banner"
              style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
            />
         </div>
@@ -757,14 +757,6 @@ function MeetingInteractiveCard({
           </button>
         </div>
 
-        {/* Desktop Background Ornaments */}
-        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
-          <CalendarDays size={240} className="text-white" />
-        </div>
-        <div
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none scale-[2] logo-alsaif-banner z-0 hidden md:block"
-          style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
-        />
 
         {/* CONTENT PANE (Adaptive) */}
         <AnimatePresence mode="wait">
