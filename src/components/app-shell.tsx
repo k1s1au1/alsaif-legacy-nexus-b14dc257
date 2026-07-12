@@ -552,8 +552,9 @@ export function AppShell({
                 <Menu className="size-6" />
               </button>
 
-              <div className="flex items-center gap-2 md:gap-3 pr-2 md:pr-4 h-10 border-primary/10">
-                <div className="hidden md:flex size-10 rounded-full p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-lg transition-transform duration-500 hover:scale-110 border-r border-primary/10 pr-4">
+              <div className="flex items-center gap-3 pr-2 md:pr-4 h-10">
+                {/* Desktop Medallion Logo - Hidden on Mobile */}
+                <div className="hidden md:flex size-10 rounded-full p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-lg transition-transform duration-500 hover:scale-110">
                   <div className="size-full rounded-full bg-[#fdfcf7] p-1.5 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
                     {dynamicLogo ? (
                       <div
@@ -565,7 +566,10 @@ export function AppShell({
                     )}
                   </div>
                 </div>
-                <h1 className="text-sm md:text-lg font-black text-primary uppercase line-clamp-1">{title}</h1>
+
+                <div className="md:pr-4 md:border-r md:border-primary/10 flex items-center h-full">
+                  <h1 className="text-sm md:text-lg font-black text-primary uppercase line-clamp-1">{title}</h1>
+                </div>
               </div>
 
               {/* Mobile Notifications Bell (Left side) */}
