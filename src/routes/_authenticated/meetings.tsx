@@ -20,6 +20,7 @@ import {
   Bell,
   Share2,
   Calendar,
+  Users,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
