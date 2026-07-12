@@ -444,32 +444,32 @@ function TripDetail() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-3 space-y-8">
+            <div className="lg:col-span-3 space-y-6 md:space-y-8">
               {/* MERGED PREMIUM TRIP HUB BANNER */}
-              <div className="relative overflow-hidden rounded-[48px] bg-emerald-950 shadow-2xl border border-white/10 group min-h-[500px] flex flex-col md:flex-row">
+              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-emerald-950 shadow-2xl border border-white/10 group min-h-fit md:min-h-[500px] flex flex-col md:flex-row">
                 {/* Background Decoration */}
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
+                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
                   <Tent size={240} className="text-white" />
                 </div>
-                <div className="absolute bottom-0 left-0 p-12 opacity-5 pointer-events-none -rotate-12">
+                <div className="absolute bottom-0 left-0 p-12 opacity-5 pointer-events-none -rotate-12 hidden md:block">
                   <Compass size={180} className="text-white" />
                 </div>
 
                 {/* Left Side (or Top on Mobile): Attendance & Participants */}
-                <div className="md:w-1/3 p-8 md:p-12 bg-white/5 backdrop-blur-sm border-b md:border-b-0 md:border-l border-white/10 flex flex-col justify-between space-y-10 relative z-10">
-                  <div className="space-y-6">
-                    <div className="space-y-3">
-                      <h3 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستنضم إلينا؟</h3>
-                      <p className="text-sm font-bold leading-relaxed text-emerald-100/60">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
+                <div className="md:w-1/3 p-6 md:p-12 bg-white/5 backdrop-blur-sm border-b md:border-b-0 md:border-l border-white/10 flex flex-col justify-between space-y-6 md:space-y-10 relative z-10">
+                  <div className="space-y-4 md:space-y-6">
+                    <div className="space-y-2 md:space-y-3">
+                      <h3 className="text-2xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستنضم إلينا؟</h3>
+                      <p className="text-xs md:text-sm font-bold leading-relaxed text-emerald-100/60">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
                     </div>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3 md:gap-4">
                       {attendanceStatus === "going" && (
-                        <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-5 rounded-[32px] border border-white/10 shadow-inner">
+                        <div className="flex flex-col gap-2 md:gap-3 animate-fade-up bg-white/10 p-4 md:p-5 rounded-[24px] md:rounded-[32px] border border-white/10 shadow-inner">
                           <div className="flex items-center justify-between px-1">
-                            <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
-                            <div className="text-center bg-gold-primary/20 px-3 py-1 rounded-lg border border-gold-primary/20">
-                              <span className="text-[14px] font-black leading-none text-gold-primary">{1 + companionsCount} حاضرين</span>
+                            <p className="text-[9px] md:text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                            <div className="text-center bg-gold-primary/20 px-2 py-0.5 md:px-3 md:py-1 rounded-lg border border-gold-primary/20">
+                              <span className="text-[12px] md:text-[14px] font-black leading-none text-gold-primary">{1 + companionsCount} حاضرين</span>
                             </div>
                           </div>
                           <input
@@ -481,119 +481,126 @@ function TripDetail() {
                               setCompanionsCount(val === "" ? 0 : parseInt(val));
                             }}
                             onBlur={() => updateAttendance("going", companionsCount)}
-                            className="w-full h-16 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                            className="w-full h-12 md:h-16 bg-black/20 border-2 border-white/10 rounded-[18px] md:rounded-[24px] px-6 font-black text-center text-2xl md:text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
                             placeholder="٠"
                           />
                         </div>
                       )}
 
-                      <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[70px]">
+                      <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1 rounded-[22px] md:rounded-[28px] grid grid-cols-2 gap-1 shadow-2xl overflow-hidden h-[60px] md:h-[70px]">
                         <div
                           className={cn(
-                            "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
-                            attendanceStatus === "going" ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
-                            attendanceStatus === "not_going" ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
+                            "absolute inset-y-1 w-[calc(50%-4px)] rounded-[18px] md:rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
+                            attendanceStatus === "going" ? "right-1 bg-emerald-500 shadow-emerald-500/40" :
+                            attendanceStatus === "not_going" ? "right-[calc(50%+1px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
                           )}
                         />
                         <button
                           onClick={() => updateAttendance("going", companionsCount, true)}
                           disabled={saving || !userId || !attendanceLoaded}
                           className={cn(
-                            "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                            "relative z-10 flex items-center justify-center gap-2 md:gap-3 font-black text-xs md:text-sm transition-colors duration-500",
                             attendanceStatus === "going" ? "text-white" : "text-white/40 hover:text-white/60"
                           )}
                         >
-                          {saving && attendanceStatus === "going" ? <Loader2 size={18} className="animate-spin" /> : <UserCheck size={20} />}
+                          {saving && attendanceStatus === "going" ? <Loader2 size={16} md:size={18} className="animate-spin" /> : <UserCheck size={18} md:size={20} />}
                           <span>سأحضر</span>
                         </button>
                         <button
                           onClick={() => updateAttendance("not_going", 0, true)}
                           disabled={saving || !userId || !attendanceLoaded}
                           className={cn(
-                            "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                            "relative z-10 flex items-center justify-center gap-2 md:gap-3 font-black text-xs md:text-sm transition-colors duration-500",
                             attendanceStatus === "not_going" ? "text-white" : "text-white/40 hover:text-white/60"
                           )}
                         >
-                          {saving && attendanceStatus === "not_going" ? <Loader2 size={18} className="animate-spin" /> : <UserX size={20} />}
+                          {saving && attendanceStatus === "not_going" ? <Loader2 size={16} md:size={18} className="animate-spin" /> : <UserX size={18} md:size={20} />}
                           <span>أعتذر</span>
                         </button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between border-t border-white/10 pt-6">
-                      <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
-                        <Users size={16} /> المشاركون
+                  <div className="space-y-3 md:space-y-4 pt-4 md:pt-0">
+                    <div className="flex items-center justify-between border-t border-white/10 pt-4 md:pt-6">
+                      <div className="flex items-center gap-2 text-gold-primary font-black uppercase tracking-[0.2em] text-[9px] md:text-[10px]">
+                        <Users size={14} md:size={16} /> المشاركون
                       </div>
-                      <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{(() => {
-                        const base = attendees.reduce((acc, curr) => acc + 1 + (curr.user_id === userId ? 0 : curr.companions_count), 0);
-                        const meInList = attendees.some(a => a.user_id === userId);
-                        if (attendanceStatus === "going") {
-                          return (meInList ? base : base + 1) + companionsCount;
-                        }
-                        return base + (meInList ? attendees.find(a => a.user_id === userId)?.companions_count || 0 : 0);
-                      })()} حاضرين</span>
+                      <span className="text-[9px] md:text-[10px] font-black bg-white/10 text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full">
+                        {(() => {
+                           const meInList = attendees.some(a => a.user_id === userId);
+                           const othersSum = attendees
+                             .filter(a => a.user_id !== userId)
+                             .reduce((acc, curr) => acc + 1 + (curr.companions_count || 0), 0);
+
+                           if (attendanceStatus === "going") {
+                             return othersSum + 1 + companionsCount;
+                           }
+
+                           // If not going but was in list (unlikely with delete logic but safe)
+                           return othersSum + (meInList ? 1 + (attendees.find(a => a.user_id === userId)?.companions_count || 0) : 0);
+                        })()} حاضرين
+                      </span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
                        {attendees.slice(0, 5).map(a => (
                          <div key={a.user_id} className="relative group/avatar">
-                            <div className="size-10 rounded-xl overflow-hidden ring-2 ring-white/10 shadow-lg transition-transform hover:scale-110">
+                            <div className="size-8 md:size-10 rounded-lg md:rounded-xl overflow-hidden ring-2 ring-white/10 shadow-lg transition-transform hover:scale-110">
                                <UserAvatar path={a.avatarPath} name={a.name} initial={a.initial} className="size-full" userId={a.user_id} />
                             </div>
-                            {a.companions_count > 0 && (
-                              <div className="absolute -top-1.5 -right-1.5 size-5 bg-gold-primary text-black text-[9px] font-black rounded-full flex items-center justify-center border-2 border-emerald-950 z-10 shadow-lg">
-                                +{a.companions_count}
+                            {(a.user_id === userId ? companionsCount : a.companions_count) > 0 && (
+                              <div className="absolute -top-1 -right-1 size-4 md:size-5 bg-gold-primary text-black text-[7px] md:text-[9px] font-black rounded-full flex items-center justify-center border border-emerald-950 z-10 shadow-lg">
+                                +{a.user_id === userId ? companionsCount : a.companions_count}
                               </div>
                             )}
                          </div>
                        ))}
                        {attendees.length > 5 && (
-                         <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">+{attendees.length - 5}</div>
+                         <div className="size-8 md:size-10 rounded-lg md:rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[9px] md:text-[10px] font-black text-white">+{attendees.length - 5}</div>
                        )}
-                       {attendees.length === 0 && <p className="text-[10px] font-bold text-white/30 italic">لا يوجد حضور مؤكد بعد</p>}
+                       {attendees.length === 0 && <p className="text-[9px] md:text-[10px] font-bold text-white/30 italic">لا يوجد حضور مؤكد بعد</p>}
                     </div>
                   </div>
                 </div>
 
                 {/* Right Side (or Bottom on Mobile): Info & Description */}
-                <div className="flex-1 p-8 md:p-12 space-y-12 relative z-10">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div className="space-y-6">
-                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
-                          <Compass size={18} /> وصف الرحلة
+                <div className="flex-1 p-6 md:p-14 space-y-8 md:space-y-12 relative z-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                    <div className="space-y-4 md:space-y-6">
+                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">
+                          <Compass size={16} md:size={18} /> وصف الرحلة
                        </div>
-                       <p className="text-base md:text-xl font-medium text-emerald-50/90 leading-relaxed whitespace-pre-line drop-shadow-sm">
+                       <p className="text-sm md:text-xl font-medium text-emerald-50/90 leading-relaxed whitespace-pre-line drop-shadow-sm">
                           {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
                        </p>
                     </div>
 
-                    <div className="space-y-8">
-                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
-                          <Info size={18} /> تفاصيل إضافية
+                    <div className="space-y-6 md:space-y-8">
+                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">
+                          <Info size={16} md:size={18} /> تفاصيل إضافية
                        </div>
-                       <div className="grid grid-cols-1 gap-6">
-                          <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
-                             <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Tent size={22} /></div>
+                       <div className="grid grid-cols-1 gap-3 md:gap-6">
+                          <div className="flex items-center gap-3 md:gap-4 bg-white/5 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-white/10">
+                             <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Tent size={18} md:size={22} /></div>
                              <div>
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">نوع الإقامة</p>
-                                <p className="text-sm font-black text-white">مخيم عائلي فاخر</p>
+                                <p className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">نوع الإقامة</p>
+                                <p className="text-xs md:text-sm font-black text-white">مخيم عائلي فاخر</p>
                              </div>
                           </div>
-                          <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
-                             <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Clock size={22} /></div>
+                          <div className="flex items-center gap-3 md:gap-4 bg-white/5 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-white/10">
+                             <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Clock size={18} md:size={22} /></div>
                              <div>
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">آخر موعد للتسجيل</p>
-                                <p className="text-sm font-black text-white">{formatDate(trip.start_date)}</p>
+                                <p className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">آخر موعد للتسجيل</p>
+                                <p className="text-xs md:text-sm font-black text-white">{formatDate(trip.start_date)}</p>
                              </div>
                           </div>
                           {trip.location_url && (
-                            <a href={trip.location_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-3xl bg-gold-primary text-emerald-950 font-black shadow-xl hover:scale-[1.02] transition-all">
+                            <a href={trip.location_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3.5 md:p-5 rounded-2xl md:rounded-[28px] bg-gold-primary text-emerald-950 font-black shadow-xl hover:scale-[1.02] transition-all">
                                <div className="flex items-center gap-3">
-                                  <MapPin size={22} strokeWidth={2.5} />
-                                  <span className="text-sm">موقع الوجهة على الخريطة</span>
+                                  <MapPin size={18} md:size={22} strokeWidth={2.5} />
+                                  <span className="text-xs md:text-base">موقع الوجهة على الخريطة</span>
                                </div>
-                               <ChevronLeft size={18} strokeWidth={3} />
+                               <ChevronLeft size={16} md:size={20} strokeWidth={3} />
                             </a>
                           )}
                        </div>
