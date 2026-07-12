@@ -353,6 +353,8 @@ function Dashboard() {
 
   // Memoize carousel plugins to prevent recreation on every render (causes Embla crash)
   const announcementsAutoplay = useRef(Autoplay({ delay: 7000, stopOnInteraction: true }));
+  const announcementsPlugins = useMemo(() => [announcementsAutoplay.current], []);
+  const announcementsOpts = useMemo(() => ({ loop: true, direction: "rtl" as const }), []);
 
   const loadData = useCallback(async () => {
     const supabase = getSupabase();
@@ -790,8 +792,8 @@ function Dashboard() {
         {announcements.length > 0 && (
           <section className="animate-fade-up px-2 md:px-0">
             <Carousel
-              opts={{ loop: true, direction: "rtl" }}
-              plugins={[announcementsAutoplay.current]}
+              opts={announcementsOpts}
+              plugins={announcementsPlugins}
               className="w-full group"
             >
               <CarouselContent>
