@@ -201,7 +201,7 @@ function RootComponent() {
     // Initialize native push notifications (no-op on web)
     import("@/lib/pushNotifications")
       .then(({ setupPushNotifications }) => {
-        setupPushNotifications();
+        setupPushNotifications((opts) => router.navigate(opts));
       })
       .catch((e) => console.error("[Push] import failed:", e));
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {

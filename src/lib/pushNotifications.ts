@@ -1,44 +1,31 @@
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 /**
  * Sets up native push notifications (Android/iOS via Capacitor).
  * No-op when running on the web.
  */
-export async function setupPushNotifications() {
+export async function setupPushNotifications(navigate?: (options: { to: string }) => void) {
   if (!Capacitor.isNativePlatform()) {
-    console.log("[Push] Not a native platform, skipping setup.");
     return;
   }
 
   try {
     const { PushNotifications } = await import("@capacitor/push-notifications");
 
-    console.log("[Push] Checking permissions...");
     let perm = await PushNotifications.checkPermissions();
-
     if (perm.receive === "prompt" || perm.receive === "denied") {
-      console.log("[Push] Requesting permissions...");
       perm = await PushNotifications.requestPermissions();
     }
-
-    if (perm.receive !== "granted") {
-      console.warn("[Push] Permission not granted:", perm.receive);
-      return;
-    }
-
-    console.log("[Push] Setting up listeners...");
+    if (perm.receive !== "granted") return;
 
     // 1. Add listeners FIRST
     await PushNotifications.addListener("registration", async (token) => {
-      console.log("[Push] Registration successful, token:", token.value);
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) {
-        console.warn("[Push] No user logged in, cannot save token.");
-        return;
-      }
+      if (!auth?.user) return;
 
-      const { error } = await supabase.from("push_tokens").upsert(
+      await supabase.from("push_tokens").upsert(
         {
           user_id: auth.user.id,
           token: token.value,
@@ -47,25 +34,58 @@ export async function setupPushNotifications() {
         },
         { onConflict: "token" },
       );
-
-      if (error) console.error("[Push] Error saving token to Supabase:", error);
-      else console.log("[Push] Token saved successfully.");
     });
 
-    await PushNotifications.addListener("registrationError", (err) => {
-      console.error("[Push] FCM Registration error:", err);
+    await PushNotifications.addListener("pushNotificationActionPerformed", async (notification: any) => {
+      const { actionId, notification: data } = notification;
+      const meetingId = data.data?.meeting_id;
+      const url = data.data?.url;
+
+      // 1.1 Handle Interactive Actions (Buttons)
+      if (meetingId && (actionId === "going" || actionId === "not_going")) {
+        try {
+          const { data: auth } = await supabase.auth.getUser();
+          if (!auth.user) return;
+
+          const rsvp = actionId === "going" ? "going" : "not_going";
+          await supabase
+            .from("meeting_attendees")
+            .upsert(
+              { meeting_id: meetingId, user_id: auth.user.id, rsvp },
+              { onConflict: "meeting_id,user_id" },
+            );
+
+          if (rsvp === "going") toast.success("تم تأكيد حضورك ✨");
+          else toast.info("تم تسجيل اعتذارك.");
+        } catch (e) {
+          console.error("Background action error:", e);
+        }
+      }
+
+      // 1.2 Handle Deep Linking (Redirection)
+      if (url && navigate) {
+        if (url.startsWith("/")) {
+          navigate({ to: url as any });
+        } else if (url.startsWith("http")) {
+          window.open(url, "_blank");
+        }
+      }
     });
 
-    await PushNotifications.addListener("pushNotificationReceived", (notification) => {
-      console.log("[Push] Notification received in foreground:", notification);
+    // 2. Register ACTION TYPES (The buttons)
+    await PushNotifications.registerActionTypes({
+      types: [
+        {
+          id: "MEETING_INVITE",
+          actions: [
+            { id: "going", title: "سأحضر ✅", foreground: false },
+            { id: "not_going", title: "أعتذر ❌", foreground: false, destructive: true },
+          ],
+        },
+      ],
     });
 
-    await PushNotifications.addListener("pushNotificationActionPerformed", (notification) => {
-      console.log("[Push] Notification action performed:", notification);
-    });
-
-    // 2. Register AFTER adding listeners
-    console.log("[Push] Registering with FCM...");
+    // 3. Register AFTER adding listeners
     await PushNotifications.register();
   } catch (e) {
     console.error("[Push] setup failed:", e);
