@@ -71,14 +71,20 @@ type ProfileLite = {
 };
 
 function formatDate(iso: string) {
-  const d = new Date(iso);
-  return {
-    day: d.getDate(),
-    month: d.toLocaleString("ar-SA", { month: "long" }),
-    weekday: d.toLocaleString("ar-SA", { weekday: "long" }),
-    time: d.toLocaleString("ar-SA", { hour: "numeric", minute: "2-digit" }),
-    year: d.getFullYear(),
-  };
+  if (!iso) return { day: "", month: "", weekday: "", time: "", year: "" };
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return { day: "??", month: "??", weekday: "??", time: "??", year: "????" };
+    return {
+      day: d.getDate(),
+      month: d.toLocaleString("ar-SA", { month: "long" }),
+      weekday: d.toLocaleString("ar-SA", { weekday: "long" }),
+      time: d.toLocaleString("ar-SA", { hour: "numeric", minute: "2-digit" }),
+      year: d.getFullYear(),
+    };
+  } catch {
+    return { day: "??", month: "??", weekday: "??", time: "??", year: "????" };
+  }
 }
 
 function MeetingsPage() {
@@ -160,7 +166,7 @@ function MeetingsPage() {
         setProfile({
           name: p?.arabic_name || p?.full_name || "عضو العائلة",
           role: rs.includes("admin")
-            ? "مسؤول النظام"
+            ? "المسؤول التقني"
             : rs.includes("chairman")
               ? "رئيس المجلس"
               : "عضو",
@@ -464,7 +470,6 @@ function MeetingsPage() {
                       <CarouselItem key={m.id}>
                         <MeetingInteractiveCard
                           meeting={m}
-                          counts={countsFor(m.id)}
                           attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
                           profiles={profiles}
                           myRsvp={myRsvp(m.id)}
@@ -657,9 +662,8 @@ function MeetingsPage() {
 
 function MeetingInteractiveCard({
   meeting,
-  counts,
-  attendeesList,
-  profiles,
+  attendeesList = [],
+  profiles = {},
   myRsvp,
   myCompanions,
   onRsvp,
@@ -672,8 +676,8 @@ function MeetingInteractiveCard({
   userId,
   onRemind,
 }: any) {
-  const date = formatDate(meeting.scheduled_at);
-  const going = attendeesList
+  const date = formatDate(meeting?.scheduled_at);
+  const going = (attendeesList || [])
     .filter((a: any) => a.rsvp === "going")
     .map((a: any) => profiles[a.user_id])
     .filter(Boolean);
@@ -683,9 +687,11 @@ function MeetingInteractiveCard({
     setCompCount(myCompanions || 0);
   }, [myCompanions]);
 
-  const totalGoingCount = attendeesList
+  const totalGoingCount = (attendeesList || [])
     .filter((a: any) => a.rsvp === "going")
     .reduce((acc: number, cur: any) => acc + 1 + (cur.companions_count || 0), 0);
+
+  if (!meeting) return null;
 
   return (
     <article
@@ -779,8 +785,9 @@ function MeetingInteractiveCard({
               <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{totalGoingCount} حاضر</span>
            </div>
            <div className="flex flex-wrap gap-2">
-              {going.slice(0, 5).map((p: any) => {
-                const attendee = attendeesList.find((a: any) => a.user_id === p.id);
+              {(going || []).slice(0, 5).map((p: any) => {
+                if (!p) return null;
+                const attendee = (attendeesList || []).find((a: any) => a.user_id === p.id);
                 const cCount = attendee?.companions_count || 0;
                 return (
                   <div key={p.id} className="relative group/avatar">
