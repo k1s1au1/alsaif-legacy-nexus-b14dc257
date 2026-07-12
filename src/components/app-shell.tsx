@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers } from "@/lib/presence";
+import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers, usePresenceFor } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
@@ -226,6 +226,7 @@ export function AppShell({
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
   const onlineCount = useOnlineCount();
+  const myPresenceState = usePresenceFor(myUserId);
   const onlineUserIds = useOnlineUsers();
   const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
   useFcm();
@@ -378,7 +379,7 @@ export function AppShell({
           <div className="text-center md:text-right flex-1 min-w-0">
             <div className="flex items-center justify-center md:justify-start gap-2">
                <h3 className="text-xl font-black text-primary tracking-tight truncate">{safeUser.name}</h3>
-               {usePresenceFor(myUserId) === 'online' && (
+               {myPresenceState === 'online' && (
                  <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm animate-fade-up">
                     <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">متصل</span>
