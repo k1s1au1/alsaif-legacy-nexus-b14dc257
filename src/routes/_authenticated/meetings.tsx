@@ -707,7 +707,7 @@ function MeetingInteractiveCard({
     <div className="flex flex-col gap-4 md:gap-0">
       <article
         className={cn(
-          "relative overflow-hidden rounded-[32px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
+          "relative overflow-hidden rounded-[32px] md:rounded-[56px] text-white flex flex-col-reverse md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
           myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]",
           "md:min-h-[600px]"
         )}
@@ -724,7 +724,7 @@ function MeetingInteractiveCard({
         {/* TOP/LEFT SECTION (Attendance & Participants) */}
         <div className={cn(
           "md:w-1/3 p-6 md:p-14 flex flex-col justify-between space-y-8 md:space-y-10 relative z-10 shrink-0",
-          "bg-white/5 backdrop-blur-md border-b md:border-b-0 md:border-l border-white/10 rounded-[32px] md:rounded-none m-2 md:m-0 shadow-xl md:shadow-none"
+          "bg-white/5 backdrop-blur-md md:border-l border-white/10 rounded-[32px] md:rounded-none m-2 md:m-0 shadow-xl md:shadow-none"
         )}>
           <div className="space-y-6 md:space-y-8">
              <div className="space-y-3 md:space-y-4">

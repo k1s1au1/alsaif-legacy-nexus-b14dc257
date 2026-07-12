@@ -447,7 +447,7 @@ function TripDetail() {
             <div className="lg:col-span-3 space-y-6 md:space-y-8">
               {/* MERGED PREMIUM TRIP HUB BANNER - Separated on Mobile */}
               <div className={cn(
-                "relative overflow-hidden rounded-[32px] md:rounded-[48px] shadow-2xl border border-white/10 group md:min-h-[500px] flex flex-col md:flex-row transition-all duration-700",
+                "relative overflow-hidden rounded-[32px] md:rounded-[48px] shadow-2xl border border-white/10 group md:min-h-[500px] flex flex-col-reverse md:flex-row transition-all duration-700",
                 attendanceStatus === "going" ? "bg-emerald-950" : attendanceStatus === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
               )}>
                 {/* Background Decoration - Desktop Only */}
@@ -461,7 +461,7 @@ function TripDetail() {
                 {/* Left Side (or Top on Mobile): Attendance & Participants */}
                 <div className={cn(
                   "md:w-1/3 p-6 md:p-12 flex flex-col justify-between space-y-6 md:space-y-10 relative z-10",
-                  "bg-white/5 backdrop-blur-sm border-b md:border-b-0 md:border-l border-white/10 rounded-[28px] md:rounded-none m-2 md:m-0 shadow-xl md:shadow-none"
+                  "bg-white/5 backdrop-blur-sm md:border-l border-white/10 rounded-[28px] md:rounded-none m-2 md:m-0 shadow-xl md:shadow-none"
                 )}>
                   <div className="space-y-4 md:space-y-6">
                     <div className="space-y-2 md:space-y-3">
