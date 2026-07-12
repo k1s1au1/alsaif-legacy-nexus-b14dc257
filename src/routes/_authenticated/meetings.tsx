@@ -725,13 +725,13 @@ function MeetingInteractiveCard({
            />
         </div>
 
-        {/* Floating Date Stamp - Mobile Only */}
-        <div className="md:hidden absolute top-8 right-8 z-20 flex flex-col items-center">
-           <div className="bg-gold-primary/10 backdrop-blur-md border-2 border-gold-primary/30 rounded-3xl p-4 min-w-[80px] text-center shadow-2xl">
-              <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest mb-1">{date.month}</p>
-              <p className="text-4xl font-black text-white leading-none">{date.day}</p>
-              <div className="h-0.5 w-6 bg-gold-primary/40 mx-auto my-1" />
-              <p className="text-[9px] font-bold text-white/60">{date.weekday}</p>
+        {/* Floating Date Stamp - Mobile Only - Positioned on the left to avoid Arabic text overlap */}
+        <div className="md:hidden absolute top-6 left-6 z-20 flex flex-col items-center">
+           <div className="bg-gold-primary/20 backdrop-blur-xl border-2 border-gold-primary/40 rounded-[24px] p-3 min-w-[70px] text-center shadow-2xl scale-90 sm:scale-100">
+              <p className="text-[9px] font-black text-gold-primary uppercase tracking-widest mb-1">{date.month}</p>
+              <p className="text-3xl font-black text-white leading-none">{date.day}</p>
+              <div className="h-0.5 w-5 bg-gold-primary/40 mx-auto my-1" />
+              <p className="text-[8px] font-bold text-white/60">{date.weekday}</p>
            </div>
         </div>
 
@@ -782,7 +782,7 @@ function MeetingInteractiveCard({
               )}
             >
                <div className="space-y-8 pt-4 md:pt-0">
-                  <div className="space-y-4 max-w-[70%] md:max-w-none">
+                  <div className="space-y-4 max-w-[75%] md:max-w-none pr-2">
                      <div className="flex flex-wrap items-center gap-2">
                         <span className="px-3 py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة رسمية</span>
                         <span className="px-3 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] font-black uppercase tracking-widest flex items-center gap-2">
