@@ -15,6 +15,7 @@ import {
   User,
   Sparkles,
   ImagePlus,
+  ChevronDown,
 } from "lucide-react";
 import palmWatermark from "@/assets/palm-watermark.png";
 import authBgAsset from "@/assets/alsaif-auth-bg.png.asset.json";
@@ -168,7 +169,7 @@ function AuthPage() {
 
   return (
     <div
-      className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-hidden"
+      className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-y-auto"
       dir="rtl"
     >
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
@@ -369,89 +370,99 @@ function AuthPage() {
                 </button>
               </motion.form>
             ) : (
-              <motion.form
-                key="request"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
+              <motion.div
+                key="request-container"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                onSubmit={onRequest}
-                className="w-full space-y-5 h-[450px] overflow-y-auto pr-3 no-scrollbar custom-scrollbar-pane"
-                dir="rtl"
+                className="relative w-full"
               >
-                <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#0d0f17] z-10 py-2">
-                  <h3 className="text-2xl font-black text-gold-primary tracking-tight">
-                    طلب عضوية
-                  </h3>
-                  <button
-                    type="button"
-                    onClick={() => setAuthMode("login")}
-                    className="size-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all"
-                  >
-                    <X size={22} />
-                  </button>
-                </div>
+                <form
+                  onSubmit={onRequest}
+                  className="w-full space-y-5 max-h-[500px] overflow-y-auto pr-3 scrollbar-thin scrollbar-thumb-gold-primary/20 hover:scrollbar-thumb-gold-primary/40 scrollbar-track-transparent custom-scrollbar-pane"
+                  dir="rtl"
+                  id="auth-request-form"
+                >
+                  <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#0d0f17] z-10 py-2">
+                    <h3 className="text-2xl font-black text-gold-primary tracking-tight">
+                      طلب عضوية
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => setAuthMode("login")}
+                      className="size-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all"
+                    >
+                      <X size={22} />
+                    </button>
+                  </div>
 
-                <div className="grid grid-cols-1 gap-5">
-                  <AuthField
-                    label="الاسم الأول"
-                    value={reqForm.firstName}
-                    onChange={(v: string) => setReqForm({ ...reqForm, firstName: v })}
-                    placeholder="الاسم الشخصي"
-                    icon={<User size={18} />}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-5">
                     <AuthField
-                      label="اسم الأب"
-                      value={reqForm.fatherName}
-                      onChange={(v: string) => setReqForm({ ...reqForm, fatherName: v })}
-                      placeholder="الأب"
+                      label="الاسم الأول"
+                      value={reqForm.firstName}
+                      onChange={(v: string) => setReqForm({ ...reqForm, firstName: v })}
+                      placeholder="الاسم الشخصي"
+                      icon={<User size={18} />}
+                    />
+                    <div className="grid grid-cols-2 gap-4">
+                      <AuthField
+                        label="اسم الأب"
+                        value={reqForm.fatherName}
+                        onChange={(v: string) => setReqForm({ ...reqForm, fatherName: v })}
+                        placeholder="الأب"
+                      />
+                      <AuthField
+                        label="اسم الجد"
+                        value={reqForm.grandFatherName}
+                        onChange={(v: string) => setReqForm({ ...reqForm, grandFatherName: v })}
+                        placeholder="الجد"
+                      />
+                    </div>
+                    <AuthField
+                      label="رقم الجوال"
+                      value={reqForm.phone}
+                      onChange={(v: string) => setReqForm({ ...reqForm, phone: v })}
+                      placeholder="05xxxxxxxx"
+                      icon={<Phone size={18} />}
                     />
                     <AuthField
-                      label="اسم الجد"
-                      value={reqForm.grandFatherName}
-                      onChange={(v: string) => setReqForm({ ...reqForm, grandFatherName: v })}
-                      placeholder="الجد"
+                      label="البريد الإلكتروني"
+                      type="email"
+                      value={reqForm.email}
+                      onChange={(v: string) => setReqForm({ ...reqForm, email: v })}
+                      placeholder="mail@example.com"
+                      icon={<Mail size={18} />}
+                    />
+                    <AuthField
+                      label="كلمة المرور"
+                      type="password"
+                      value={reqForm.password}
+                      onChange={(v: string) => setReqForm({ ...reqForm, password: v })}
+                      placeholder="••••••••"
+                      icon={<Lock size={18} />}
                     />
                   </div>
-                  <AuthField
-                    label="رقم الجوال"
-                    value={reqForm.phone}
-                    onChange={(v: string) => setReqForm({ ...reqForm, phone: v })}
-                    placeholder="05xxxxxxxx"
-                    icon={<Phone size={18} />}
-                  />
-                  <AuthField
-                    label="البريد الإلكتروني"
-                    type="email"
-                    value={reqForm.email}
-                    onChange={(v: string) => setReqForm({ ...reqForm, email: v })}
-                    placeholder="mail@example.com"
-                    icon={<Mail size={18} />}
-                  />
-                  <AuthField
-                    label="كلمة المرور"
-                    type="password"
-                    value={reqForm.password}
-                    onChange={(v: string) => setReqForm({ ...reqForm, password: v })}
-                    placeholder="••••••••"
-                    icon={<Lock size={18} />}
-                  />
-                </div>
 
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full h-16 bg-gold-primary text-emerald-950 font-black rounded-2xl shadow-xl mt-6 flex items-center justify-center gap-3"
-                >
-                  {loading ? (
-                    <Loader2 className="size-6 animate-spin" />
-                  ) : (
-                    <>
-                      <Send size={20} /> <span>إرسال الطلب</span>
-                    </>
-                  )}
-                </button>
-              </motion.form>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full h-16 bg-gold-primary text-emerald-950 font-black rounded-2xl shadow-xl mt-6 flex items-center justify-center gap-3 mb-10"
+                  >
+                    {loading ? (
+                      <Loader2 className="size-6 animate-spin" />
+                    ) : (
+                      <>
+                        <Send size={20} /> <span>إرسال الطلب</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+
+                {/* Floating Scroll Indicator for long forms */}
+                <div className="absolute bottom-20 left-1/2 -translate-x-1/2 pointer-events-none animate-bounce opacity-40">
+                  <ChevronDown className="size-5 text-gold-primary" />
+                </div>
+              </motion.div>
             )}
           </AnimatePresence>
 
