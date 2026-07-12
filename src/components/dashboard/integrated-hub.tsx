@@ -204,10 +204,10 @@ export function IntegratedHub({
                 {upcomingTrips.length > 0 ? (
                   <Carousel
                     orientation="vertical"
-                    plugins={[tripsPlugin.current]}
+                    plugins={tripsPlugins}
                     setApi={setTripApi}
                     className="w-full"
-                    opts={{ loop: true }}
+                    opts={carouselOpts}
                   >
                     <CarouselContent className="h-[280px] md:h-[250px]">
                       {upcomingTrips.map((trip) => {
@@ -285,9 +285,9 @@ export function IntegratedHub({
                 {upcomingMeetings.length > 0 ? (
                   <Carousel
                     orientation="vertical"
-                    plugins={[meetingsPlugin.current]}
+                    plugins={meetingsPlugins}
                     className="w-full"
-                    opts={{ loop: true }}
+                    opts={carouselOpts}
                   >
                     <CarouselContent className="h-[280px] md:h-[250px]">
                       {(upcomingMeetings || []).map((meeting) => {
