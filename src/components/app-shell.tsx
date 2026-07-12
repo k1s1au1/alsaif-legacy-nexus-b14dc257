@@ -560,15 +560,17 @@ export function AppShell({
               </button>
 
               <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
-                <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
-                  {dynamicLogo ? (
-                    <div
-                      className="size-full bg-contain bg-no-repeat bg-center"
-                      style={{ backgroundImage: `url(${dynamicLogo})` }}
-                    />
-                  ) : (
-                    <Sparkles className="size-4 text-gold-primary" />
-                  )}
+                <div className="size-10 rounded-full p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-lg transition-transform duration-500 hover:scale-110">
+                  <div className="size-full rounded-full bg-[#fdfcf7] p-1.5 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
+                    {dynamicLogo ? (
+                      <div
+                        className="size-full bg-contain bg-no-repeat bg-center"
+                        style={{ backgroundImage: `url(${dynamicLogo})` }}
+                      />
+                    ) : (
+                      <Sparkles className="size-4 text-gold-primary animate-pulse" />
+                    )}
+                  </div>
                 </div>
                 <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
               </div>
