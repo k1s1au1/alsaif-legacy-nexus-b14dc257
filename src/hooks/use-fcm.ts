@@ -1,9 +1,12 @@
 import { useEffect } from "react";
+import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { FCM_VAPID_KEY, FIREBASE_CONFIG } from "@/lib/fcm-config";
 import { toast } from "sonner";
 
 export function useFcm() {
+  const navigate = useNavigate();
+
   useEffect(() => {
     const win = window as any;
 
@@ -69,13 +72,15 @@ export function useFcm() {
             ],
           });
 
-          // 1.2 Handle Action Performed (Clicking a button)
+          // 1.2 Handle Action Performed (Clicking a button or the notification itself)
           PushNotifications.addListener(
             "pushNotificationActionPerformed",
             async (notification: any) => {
               const { actionId, notification: data } = notification;
               const meetingId = data.data?.meeting_id;
+              const url = data.data?.url;
 
+              // 1.2.1 Handle specific button actions
               if (meetingId && (actionId === "going" || actionId === "not_going")) {
                 try {
                   const { data: auth } = await supabase.auth.getUser();
@@ -100,6 +105,16 @@ export function useFcm() {
                   }
                 } catch (e) {
                   console.error("Background RSVP error:", e);
+                }
+              }
+
+              // 1.2.2 Handle Deep Linking (if user tapped the notification or if URL is provided)
+              if (url) {
+                // If it's a relative path, navigate to it
+                if (url.startsWith("/")) {
+                  navigate({ to: url as any });
+                } else if (url.startsWith("http")) {
+                  window.open(url, "_blank");
                 }
               }
             },
