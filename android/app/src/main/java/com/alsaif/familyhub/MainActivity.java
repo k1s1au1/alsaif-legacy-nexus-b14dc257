@@ -6,9 +6,11 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        // Register plugins BEFORE calling super.onCreate
-        registerPlugin(DocumentScannerPlugin.class);
         registerPlugin(WidgetPlugin.class);
+        registerPlugin(SharingPlugin.class);
+        registerPlugin(ContactsPlugin.class);
+        registerPlugin(SOSPlugin.class);
+        registerPlugin(BiometricPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

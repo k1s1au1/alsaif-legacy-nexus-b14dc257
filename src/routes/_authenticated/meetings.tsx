@@ -40,6 +40,7 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 
 import { MeetingPresentations } from "@/components/meeting-presentations";
 import { addToCalendar } from "@/lib/calendar";
+import { FamilySharing } from "@/lib/native-bridge";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -927,6 +928,16 @@ function MeetingInteractiveCard({
                     {canManage && (
                       <div className="flex items-center gap-2">
                          <button onClick={() => onRemind(meeting)} className="h-12 px-4 md:h-14 md:px-6 rounded-2xl bg-gold-primary text-emerald-950 font-black text-xs shadow-xl active:scale-95 transition-all"><Bell size={18} /></button>
+                         <button
+                           onClick={() => FamilySharing.shareInvitation({
+                             title: meeting.title,
+                             date: `${date.weekday} ${date.day} ${date.month} - ${date.time}`,
+                             location: meeting.location || "مجلس العائلة"
+                           })}
+                           className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"
+                         >
+                           <Share2 size={20} />
+                         </button>
                          <button onClick={() => onEdit(meeting)} className="h-12 w-12 md:h-14 md:w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"><Pencil size={20} /></button>
                       </div>
                     )}

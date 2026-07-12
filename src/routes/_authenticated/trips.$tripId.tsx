@@ -32,6 +32,7 @@ import { useSiteLogo } from "@/hooks/use-site-logo";
 import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { addToCalendar } from "@/lib/calendar";
+import { FamilySharing } from "@/lib/native-bridge";
 
 export const Route = createFileRoute("/_authenticated/trips/$tripId")({
   ssr: false,
@@ -392,7 +393,14 @@ function TripDetail() {
             >
               <Calendar size={14} /> إضافة للتقويم
             </button>
-            <button className="size-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-gold-primary/20 transition-all text-gold-primary">
+            <button
+              onClick={() => trip && FamilySharing.shareInvitation({
+                title: trip.title,
+                date: formatRange(trip.start_date, trip.end_date),
+                location: trip.location || "وجهة عائلية"
+              })}
+              className="size-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-gold-primary/20 transition-all text-gold-primary"
+            >
               <Share2 size={18} />
             </button>
           </div>
