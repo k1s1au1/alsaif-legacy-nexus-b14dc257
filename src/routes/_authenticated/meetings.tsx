@@ -725,13 +725,13 @@ function MeetingInteractiveCard({
            />
         </div>
 
-        {/* Floating Date Stamp - Mobile Only - Positioned on the left to avoid Arabic text overlap */}
-        <div className="md:hidden absolute top-6 left-6 z-20 flex flex-col items-center">
-           <div className="bg-gold-primary/20 backdrop-blur-xl border-2 border-gold-primary/40 rounded-[24px] p-3 min-w-[70px] text-center shadow-2xl scale-90 sm:scale-100">
-              <p className="text-[9px] font-black text-gold-primary uppercase tracking-widest mb-1">{date.month}</p>
-              <p className="text-3xl font-black text-white leading-none">{date.day}</p>
-              <div className="h-0.5 w-5 bg-gold-primary/40 mx-auto my-1" />
-              <p className="text-[8px] font-bold text-white/60">{date.weekday}</p>
+        {/* Floating Date Stamp - Mobile & Desktop Positioned Smartly */}
+        <div className="absolute top-6 left-6 md:top-14 md:left-14 z-20 flex flex-col items-center">
+           <div className="bg-gold-primary/20 backdrop-blur-xl border-2 border-gold-primary/40 rounded-[24px] md:rounded-[32px] p-3 md:p-5 min-w-[70px] md:min-w-[110px] text-center shadow-2xl scale-90 sm:scale-100 transition-transform hover:scale-110 duration-500">
+              <p className="text-[9px] md:text-sm font-black text-gold-primary uppercase tracking-widest mb-1">{date.month}</p>
+              <p className="text-3xl md:text-6xl font-black text-white leading-none">{date.day}</p>
+              <div className="h-0.5 w-5 md:w-10 bg-gold-primary/40 mx-auto my-1 md:my-2" />
+              <p className="text-[8px] md:text-xs font-bold text-white/60">{date.weekday}</p>
            </div>
         </div>
 
