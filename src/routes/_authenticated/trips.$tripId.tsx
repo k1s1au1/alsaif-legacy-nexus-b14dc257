@@ -526,7 +526,14 @@ function TripDetail() {
                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
                         <Users size={16} /> المشاركون
                       </div>
-                      <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)} حاضرين</span>
+                      <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{(() => {
+                        const base = attendees.reduce((acc, curr) => acc + 1 + (curr.user_id === userId ? 0 : curr.companions_count), 0);
+                        const meInList = attendees.some(a => a.user_id === userId);
+                        if (attendanceStatus === "going") {
+                          return (meInList ? base : base + 1) + companionsCount;
+                        }
+                        return base + (meInList ? attendees.find(a => a.user_id === userId)?.companions_count || 0 : 0);
+                      })()} حاضرين</span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                        {attendees.slice(0, 5).map(a => (
