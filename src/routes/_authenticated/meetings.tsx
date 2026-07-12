@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState, type FormEvent, useCallback, useRef } from "react";
+import { useEffect, useState, type FormEvent, useCallback, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
 import {
@@ -126,6 +126,7 @@ function MeetingsPage() {
 
   const canManage = canManageSection("meetings");
   const carouselPlugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
+  const carouselPlugins = useMemo(() => [carouselPlugin.current], []);
 
   const resetForm = useCallback(() => {
     setFTitle("");
@@ -368,6 +369,11 @@ function MeetingsPage() {
 
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
 
+  const carouselOpts = useMemo(
+    () => ({ loop: upcoming.length > 1, direction: "rtl" as const }),
+    [upcoming.length],
+  );
+
   const tabs: { key: typeof tab; label: string; count?: number; icon: any }[] = [
     { key: "upcoming", label: "القادمة", count: upcoming.length, icon: Timer },
     { key: "past", label: "الأرشيف", count: past.length, icon: Clock },
@@ -464,9 +470,9 @@ function MeetingsPage() {
                 </div>
               ) : (
                 <Carousel
-                  plugins={[carouselPlugin.current]}
+                  plugins={carouselPlugins}
                   className="w-full"
-                  opts={{ loop: upcoming.length > 1, direction: 'rtl' }}
+                  opts={carouselOpts}
                 >
                   <CarouselContent>
                     {(upcoming || []).map((m) => (
@@ -912,6 +918,5 @@ function MeetingInteractiveCard({
         </div>
       </article>
     </div>
-  );
   );
 }

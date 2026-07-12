@@ -73,7 +73,21 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
     });
 
     // 2. Register ACTION TYPES (The buttons)
-    await PushNotifications.registerActionTypes({
+    const pushNotificationsWithActions = PushNotifications as typeof PushNotifications & {
+      registerActionTypes?: (options: {
+        types: Array<{
+          id: string;
+          actions: Array<{
+            id: string;
+            title: string;
+            foreground?: boolean;
+            destructive?: boolean;
+          }>;
+        }>;
+      }) => Promise<void>;
+    };
+
+    await pushNotificationsWithActions.registerActionTypes?.({
       types: [
         {
           id: "MEETING_INVITE",

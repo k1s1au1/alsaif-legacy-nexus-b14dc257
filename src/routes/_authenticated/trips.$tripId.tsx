@@ -509,7 +509,7 @@ function TripDetail() {
                             attendanceStatus === "going" ? "text-white" : "text-white/40 hover:text-white/60"
                           )}
                         >
-                          {saving && attendanceStatus === "going" ? <Loader2 size={16} md:size={18} className="animate-spin" /> : <UserCheck size={18} md:size={20} />}
+                          {saving && attendanceStatus === "going" ? <Loader2 className="size-4 md:size-[18px] animate-spin" /> : <UserCheck className="size-[18px] md:size-5" />}
                           <span>سأحضر</span>
                         </button>
                         <button
@@ -520,7 +520,7 @@ function TripDetail() {
                             attendanceStatus === "not_going" ? "text-white" : "text-white/40 hover:text-white/60"
                           )}
                         >
-                          {saving && attendanceStatus === "not_going" ? <Loader2 size={16} md:size={18} className="animate-spin" /> : <UserX size={18} md:size={20} />}
+                          {saving && attendanceStatus === "not_going" ? <Loader2 className="size-4 md:size-[18px] animate-spin" /> : <UserX className="size-[18px] md:size-5" />}
                           <span>أعتذر</span>
                         </button>
                       </div>
@@ -530,7 +530,7 @@ function TripDetail() {
                   <div className="space-y-3 md:space-y-4 pt-4 md:pt-0">
                     <div className="flex items-center justify-between border-t border-white/10 pt-4 md:pt-6">
                       <div className="flex items-center gap-2 text-gold-primary font-black uppercase tracking-[0.2em] text-[9px] md:text-[10px]">
-                        <Users size={14} md:size={16} /> المشاركون
+                        <Users className="size-3.5 md:size-4" /> المشاركون
                       </div>
                       <span className="text-[9px] md:text-[10px] font-black bg-white/10 text-white px-2 py-0.5 md:px-3 md:py-1 rounded-full">
                         {(() => {
@@ -577,7 +577,7 @@ function TripDetail() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                     <div className="space-y-4 md:space-y-6">
                        <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">
-                          <Compass size={16} md:size={18} /> وصف الرحلة
+                          <Compass className="size-4 md:size-[18px]" /> وصف الرحلة
                        </div>
                        <p className="text-sm md:text-xl font-medium text-emerald-50/90 leading-relaxed whitespace-pre-line drop-shadow-sm">
                           {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
@@ -586,18 +586,18 @@ function TripDetail() {
 
                     <div className="space-y-6 md:space-y-8">
                        <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">
-                          <Info size={16} md:size={18} /> تفاصيل إضافية
+                          <Info className="size-4 md:size-[18px]" /> تفاصيل إضافية
                        </div>
                        <div className="grid grid-cols-1 gap-3 md:gap-6">
                           <div className="flex items-center gap-3 md:gap-4 bg-white/5 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-white/10">
-                             <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Tent size={18} md:size={22} /></div>
+                             <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Tent className="size-[18px] md:size-[22px]" /></div>
                              <div>
                                 <p className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">نوع الإقامة</p>
                                 <p className="text-xs md:text-sm font-black text-white">مخيم عائلي فاخر</p>
                              </div>
                           </div>
                           <div className="flex items-center gap-3 md:gap-4 bg-white/5 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-white/10">
-                             <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Clock size={18} md:size={22} /></div>
+                             <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Clock className="size-[18px] md:size-[22px]" /></div>
                              <div>
                                 <p className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">آخر موعد للتسجيل</p>
                                 <p className="text-xs md:text-sm font-black text-white">{formatDate(trip.start_date)}</p>
@@ -606,10 +606,10 @@ function TripDetail() {
                           {trip.location_url && (
                             <a href={trip.location_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-3.5 md:p-5 rounded-2xl md:rounded-[28px] bg-gold-primary text-emerald-950 font-black shadow-xl hover:scale-[1.02] transition-all">
                                <div className="flex items-center gap-3">
-                                  <MapPin size={18} md:size={22} strokeWidth={2.5} />
+                                  <MapPin className="size-[18px] md:size-[22px]" strokeWidth={2.5} />
                                   <span className="text-xs md:text-base">موقع الوجهة على الخريطة</span>
                                </div>
-                               <ChevronLeft size={16} md:size={20} strokeWidth={3} />
+                               <ChevronLeft className="size-4 md:size-5" strokeWidth={3} />
                             </a>
                           )}
                        </div>
