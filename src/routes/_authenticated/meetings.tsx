@@ -84,7 +84,8 @@ function formatDate(iso: string) {
       time: d.toLocaleString("ar-SA", { hour: "numeric", minute: "2-digit" }),
       year: d.getFullYear(),
     };
-  } catch {
+  } catch (e) {
+    console.error("formatDate error", e);
     return { day: "??", month: "??", weekday: "??", time: "??", year: "????" };
   }
 }
