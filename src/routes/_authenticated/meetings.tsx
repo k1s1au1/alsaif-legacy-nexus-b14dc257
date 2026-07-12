@@ -726,7 +726,7 @@ function MeetingInteractiveCard({
         </div>
 
         {/* Floating Date Stamp - Mobile & Desktop Positioned Smartly */}
-        <div className="absolute top-6 left-6 md:top-14 md:left-14 z-20 flex flex-col items-center">
+        <div className="absolute top-6 left-6 md:top-10 md:right-10 z-20 flex flex-col items-center">
            <div className="bg-gold-primary/20 backdrop-blur-xl border-2 border-gold-primary/40 rounded-[24px] md:rounded-[32px] p-3 md:p-5 min-w-[70px] md:min-w-[110px] text-center shadow-2xl scale-90 sm:scale-100 transition-transform hover:scale-110 duration-500">
               <p className="text-[9px] md:text-sm font-black text-gold-primary uppercase tracking-widest mb-1">{date.month}</p>
               <p className="text-3xl md:text-6xl font-black text-white leading-none">{date.day}</p>
@@ -773,7 +773,7 @@ function MeetingInteractiveCard({
                 activeTab === "info" ? "flex" : "hidden md:flex"
               )}
             >
-               <div className="space-y-8 pt-4 md:pt-0">
+               <div className="space-y-8 pt-4 md:pt-32">
                   <div className="space-y-4 max-w-[75%] md:max-w-none pr-2">
                      <div className="flex flex-wrap items-center gap-2">
                         <span className="px-3 py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة رسمية</span>
