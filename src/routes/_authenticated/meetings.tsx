@@ -19,6 +19,7 @@ import {
   Navigation,
   Bell,
   Share2,
+  Calendar,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
@@ -122,7 +123,7 @@ function MeetingsPage() {
   const [fDuration, setFDuration] = useState("");
 
   const canManage = canManageSection("meetings");
-  const plugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
+  const carouselPlugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
 
   const resetForm = useCallback(() => {
     setFTitle("");
@@ -135,44 +136,55 @@ function MeetingsPage() {
   }, []);
 
   const loadAll = useCallback(async () => {
-    const [{ data: m }, { data: a }, { data: pr }] = await Promise.all([
-      supabase.from("meetings").select("*").order("scheduled_at", { ascending: true }),
-      supabase.from("meeting_attendees").select("*"),
-      supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
-    ]);
+    setLoading(true);
+    try {
+      const [{ data: m }, { data: a }, { data: pr }] = await Promise.all([
+        supabase.from("meetings").select("*").order("scheduled_at", { ascending: true }),
+        supabase.from("meeting_attendees").select("*"),
+        supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
+      ]);
 
-    setMeetings((m ?? []) as Meeting[]);
-    setAttendees((a ?? []) as Attendee[]);
-    const map: Record<string, ProfileLite> = {};
-    (pr ?? []).forEach((p: any) => {
-      map[p.id] = p;
-    });
-    setProfiles(map);
-    setLoading(false);
+      setMeetings((m ?? []) as Meeting[]);
+      setAttendees((a ?? []) as Attendee[]);
+      const map: Record<string, ProfileLite> = {};
+      (pr ?? []).forEach((p: any) => {
+        if (p?.id) map[p.id] = p;
+      });
+      setProfiles(map);
+    } catch (err) {
+      console.error("Meetings load error:", err);
+      toast.error("فشل في تحميل بيانات الاجتماعات");
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
     (async () => {
       if (userId) {
-        const [{ data: p }, { data: r }] = await Promise.all([
-          supabase
-            .from("profiles")
-            .select("arabic_name, full_name, avatar_url")
-            .eq("id", userId)
-            .maybeSingle(),
-          supabase.from("user_roles").select("role").eq("user_id", userId),
-        ]);
-        const rs = (r ?? []).map((x) => x.role);
-        setProfile({
-          name: p?.arabic_name || p?.full_name || "عضو العائلة",
-          role: rs.includes("admin")
-            ? "المسؤول التقني"
-            : rs.includes("chairman")
-              ? "رئيس المجلس"
-              : "عضو",
-          initial: "ع",
-          avatarPath: p?.avatar_url || null,
-        });
+        try {
+          const [{ data: p }, { data: r }] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("arabic_name, full_name, avatar_url")
+              .eq("id", userId)
+              .maybeSingle(),
+            supabase.from("user_roles").select("role").eq("user_id", userId),
+          ]);
+          const rs = (r ?? []).map((x) => x.role);
+          setProfile({
+            name: p?.arabic_name || p?.full_name || "عضو العائلة",
+            role: rs.includes("admin")
+              ? "المسؤول التقني"
+              : rs.includes("chairman")
+                ? "رئيس المجلس"
+                : "عضو",
+            initial: "ع",
+            avatarPath: p?.avatar_url || null,
+          });
+        } catch (err) {
+          console.warn("Profile fetch error in meetings:", err);
+        }
       }
       await loadAll();
     })();
@@ -226,26 +238,24 @@ function MeetingsPage() {
       scheduled_at: new Date(fWhen).toISOString(),
       duration_minutes: fDuration ? Number(fDuration) : null,
     };
-    if (editing) {
-      const { error } = await supabase.from("meetings").update(payload).eq("id", editing.id);
-      if (error) toast.error("تعذر التحديث");
-      else {
+    try {
+      if (editing) {
+        const { error } = await supabase.from("meetings").update(payload).eq("id", editing.id);
+        if (error) throw error;
         toast.success("تم التحديث");
-        setShowForm(false);
-        resetForm();
-        loadAll();
-      }
-    } else {
-      const { error } = await supabase.from("meetings").insert({ ...payload, created_by: userId });
-      if (error) toast.error("تعذر الإنشاء");
-      else {
+      } else {
+        const { error } = await supabase.from("meetings").insert({ ...payload, created_by: userId });
+        if (error) throw error;
         toast.success("تم الإنشاء");
-        setShowForm(false);
-        resetForm();
-        loadAll();
       }
+      setShowForm(false);
+      resetForm();
+      loadAll();
+    } catch (err: any) {
+      toast.error("حدث خطأ أثناء الحفظ");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const deleteMeeting = async (id: string) => {
@@ -336,27 +346,18 @@ function MeetingsPage() {
     }
   };
 
-  const upcoming = meetings.filter((m) => new Date(m.scheduled_at) >= new Date());
-  const past = meetings.filter((m) => new Date(m.scheduled_at) < new Date());
-
-  const countsFor = (meetingId: string) => {
-    const list = attendees.filter((a) => a.meeting_id === meetingId);
-    return {
-      going: list.filter((a) => a.rsvp === "going").length,
-      not_going: list.filter((a) => a.rsvp === "not_going").length,
-      maybe: list.filter((a) => a.rsvp === "maybe").length,
-    };
-  };
+  const upcoming = (meetings || []).filter((m) => m && m.scheduled_at && new Date(m.scheduled_at) >= new Date());
+  const past = (meetings || []).filter((m) => m && m.scheduled_at && new Date(m.scheduled_at) < new Date());
 
   const myRsvp = (meetingId: string): Rsvp | null => {
     if (!userId) return null;
-    return attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.rsvp ?? null;
+    return (attendees || []).find((a) => a.meeting_id === meetingId && a.user_id === userId)?.rsvp ?? null;
   };
 
   const myCompanions = (meetingId: string): number => {
     if (!userId) return 0;
     return (
-      attendees.find((a) => a.meeting_id === meetingId && a.user_id === userId)?.companions_count ??
+      (attendees || []).find((a) => a.meeting_id === meetingId && a.user_id === userId)?.companions_count ??
       0
     );
   };
@@ -459,13 +460,11 @@ function MeetingsPage() {
                 </div>
               ) : (
                 <Carousel
-                  plugins={[plugin.current]}
-                  className="w-full touch-pan-y"
-                  onMouseEnter={plugin.current.stop}
-                  onMouseLeave={plugin.current.reset}
-                  opts={{ direction: "rtl", loop: upcoming.length > 1, watchDrag: true }}
+                  plugins={[carouselPlugin.current]}
+                  className="w-full"
+                  opts={{ loop: upcoming.length > 1 }}
                 >
-                  <CarouselContent className="touch-pan-y">
+                  <CarouselContent>
                     {upcoming.map((m) => (
                       <CarouselItem key={m.id}>
                         <MeetingInteractiveCard
@@ -487,10 +486,11 @@ function MeetingsPage() {
                       </CarouselItem>
                     ))}
                   </CarouselContent>
+
                   {upcoming.length > 1 && (
-                    <div className="hidden md:block">
-                      <CarouselPrevious className="right-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black transition-all" />
-                      <CarouselNext className="left-4 bg-white/20 border-white/40 text-white hover:bg-gold-primary hover:text-black transition-all" />
+                    <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-8 flex-col gap-3 z-20">
+                      <CarouselPrevious className="relative top-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
+                      <CarouselNext className="relative bottom-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
                     </div>
                   )}
                 </Carousel>
@@ -696,7 +696,7 @@ function MeetingInteractiveCard({
   return (
     <article
       className={cn(
-        "relative min-h-[500px] overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
+        "relative min-h-[600px] overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
         myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
       )}
     >
@@ -838,9 +838,9 @@ function MeetingInteractiveCard({
                  <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
                     <HelpCircle size={16} /> أجندة اللقاء
                  </div>
-                 <p className="text-lg md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-6">
+                 <div className="text-lg md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-6">
                     {meeting.description || "لا يوجد وصف لهذه المناسبة العائلية."}
-                 </p>
+                 </div>
               </div>
 
               <div className="space-y-6">
