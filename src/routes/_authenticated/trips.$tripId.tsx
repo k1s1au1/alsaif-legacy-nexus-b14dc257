@@ -445,9 +445,12 @@ function TripDetail() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-3 space-y-6 md:space-y-8">
-              {/* MERGED PREMIUM TRIP HUB BANNER - Compact on Mobile */}
-              <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-emerald-950 shadow-2xl border border-white/10 group min-h-fit md:min-h-[500px] flex flex-col md:flex-row">
-                {/* Background Decoration */}
+              {/* MERGED PREMIUM TRIP HUB BANNER - Separated on Mobile */}
+              <div className={cn(
+                "relative overflow-hidden rounded-[32px] md:rounded-[48px] shadow-2xl border border-white/10 group md:min-h-[500px] flex flex-col md:flex-row transition-all duration-700",
+                attendanceStatus === "going" ? "bg-emerald-950" : attendanceStatus === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
+              )}>
+                {/* Background Decoration - Desktop Only */}
                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
                   <Tent size={240} className="text-white" />
                 </div>
@@ -456,7 +459,10 @@ function TripDetail() {
                 </div>
 
                 {/* Left Side (or Top on Mobile): Attendance & Participants */}
-                <div className="md:w-1/3 p-6 md:p-12 bg-white/5 backdrop-blur-sm border-b md:border-b-0 md:border-l border-white/10 flex flex-col justify-between space-y-6 md:space-y-10 relative z-10">
+                <div className={cn(
+                  "md:w-1/3 p-6 md:p-12 flex flex-col justify-between space-y-6 md:space-y-10 relative z-10",
+                  "bg-white/5 backdrop-blur-sm border-b md:border-b-0 md:border-l border-white/10 rounded-[28px] md:rounded-none m-2 md:m-0 shadow-xl md:shadow-none"
+                )}>
                   <div className="space-y-4 md:space-y-6">
                     <div className="space-y-2 md:space-y-3">
                       <h3 className="text-2xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستنضم إلينا؟</h3>
@@ -564,7 +570,10 @@ function TripDetail() {
                 </div>
 
                 {/* Right Side (or Bottom on Mobile): Info & Description */}
-                <div className="flex-1 p-6 md:p-14 space-y-8 md:space-y-12 relative z-10">
+                <div className={cn(
+                  "flex-1 p-6 md:p-14 space-y-8 md:space-y-12 relative z-10",
+                  "rounded-[28px] md:rounded-none m-2 md:m-0 bg-white/[0.02] md:bg-transparent border border-white/5 md:border-none shadow-xl md:shadow-none"
+                )}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
                     <div className="space-y-4 md:space-y-6">
                        <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs">

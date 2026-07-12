@@ -698,210 +698,220 @@ function MeetingInteractiveCard({
   if (!meeting) return null;
 
   return (
-    <article
-      className={cn(
-        "relative min-h-fit md:min-h-[600px] overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
-        myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
-      )}
-    >
-      {/* Background Ornaments */}
-      <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-        <CalendarDays size={240} className="text-white" />
-      </div>
-      <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none scale-[2] logo-alsaif-banner z-0"
-        style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
-      />
+    <div className="flex flex-col gap-4 md:gap-0">
+      <article
+        className={cn(
+          "relative overflow-hidden rounded-[32px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
+          myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]",
+          "md:min-h-[600px]"
+        )}
+      >
+        {/* Background Ornaments - Desktop Only for full banner */}
+        <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
+          <CalendarDays size={240} className="text-white" />
+        </div>
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.03] pointer-events-none scale-[2] logo-alsaif-banner z-0 hidden md:block"
+          style={{ "--logo-url": dynamicLogo ? `url(${dynamicLogo})` : "none" } as any}
+        />
 
-      {/* LEFT SIDE (Attendance & Participants) */}
-      <div className="md:w-1/3 p-8 md:p-14 bg-white/5 backdrop-blur-md border-b md:border-b-0 md:border-l border-white/10 flex flex-col justify-between space-y-10 relative z-10">
-        <div className="space-y-8">
-           <div className="space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20">
-                 <Timer size={14} className="text-gold-primary animate-pulse" />
-                 <span className="text-[10px] font-black text-gold-primary uppercase tracking-widest">تأكيد الحضور</span>
-              </div>
-              <h3 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستشرفنا بالحضور؟</h3>
-              <p className="text-sm font-bold text-white/50 leading-relaxed">ردك يساعدنا في إعداد الضيافة وترتيب المجلس بما يليق بكم.</p>
-           </div>
+        {/* TOP/LEFT SECTION (Attendance & Participants) */}
+        <div className={cn(
+          "md:w-1/3 p-6 md:p-14 flex flex-col justify-between space-y-8 md:space-y-10 relative z-10 shrink-0",
+          "bg-white/5 backdrop-blur-md border-b md:border-b-0 md:border-l border-white/10 rounded-[32px] md:rounded-none m-2 md:m-0 shadow-xl md:shadow-none"
+        )}>
+          <div className="space-y-6 md:space-y-8">
+             <div className="space-y-3 md:space-y-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20">
+                   <Timer size={14} className="text-gold-primary animate-pulse" />
+                   <span className="text-[10px] font-black text-gold-primary uppercase tracking-widest">تأكيد الحضور</span>
+                </div>
+                <h3 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستشرفنا بالحضور؟</h3>
+                <p className="text-sm font-bold text-white/50 leading-relaxed">ردك يساعدنا في إعداد الضيافة وترتيب المجلس بما يليق بكم.</p>
+             </div>
 
-           <div className="space-y-4">
-              {myRsvp === "going" && (
-                <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-5 rounded-[32px] border border-white/10 shadow-inner">
-                  <div className="flex items-center justify-between px-1">
-                    <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
-                    <span className="text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + compCount}</span>
+             <div className="space-y-4">
+                {myRsvp === "going" && (
+                  <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-5 rounded-[32px] border border-white/10 shadow-inner">
+                    <div className="flex items-center justify-between px-1">
+                      <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                      <span className="text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + compCount}</span>
+                    </div>
+                    <input
+                      type="tel"
+                      value={compCount === 0 ? "" : compCount}
+                      onFocus={(e) => e.target.select()}
+                      onChange={(e) => {
+                        const val = e.target.value.replace(/[^0-9]/g, "");
+                        setCompCount(val === "" ? 0 : parseInt(val));
+                      }}
+                      onBlur={() => onRsvp(meeting.id, "going", compCount)}
+                      className="w-full h-16 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                      placeholder="٠"
+                    />
                   </div>
-                  <input
-                    type="tel"
-                    value={compCount === 0 ? "" : compCount}
-                    onFocus={(e) => e.target.select()}
-                    onChange={(e) => {
-                      const val = e.target.value.replace(/[^0-9]/g, "");
-                      setCompCount(val === "" ? 0 : parseInt(val));
-                    }}
-                    onBlur={() => onRsvp(meeting.id, "going", compCount)}
-                    className="w-full h-16 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
-                    placeholder="٠"
+                )}
+
+                <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[74px]">
+                  <div
+                    className={cn(
+                      "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
+                      myRsvp === "going" ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
+                      myRsvp === "not_going" ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
+                    )}
                   />
+                  <button
+                    onClick={() => onRsvp(meeting.id, "going", compCount)}
+                    disabled={!ready || saving}
+                    className={cn(
+                      "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                      myRsvp === "going" ? "text-white" : "text-white/40 hover:text-white/60"
+                    )}
+                  >
+                    {saving && myRsvp === "going" ? <Loader2 size={18} className="animate-spin" /> : <UserCheck size={22} />}
+                    <span>سأحضر</span>
+                  </button>
+                  <button
+                    onClick={() => onRsvp(meeting.id, "not_going")}
+                    disabled={!ready || saving}
+                    className={cn(
+                      "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                      myRsvp === "not_going" ? "text-white" : "text-white/40 hover:text-white/60"
+                    )}
+                  >
+                    {saving && myRsvp === "not_going" ? <Loader2 size={18} className="animate-spin" /> : <UserX size={22} />}
+                    <span>أعتذر</span>
+                  </button>
                 </div>
-              )}
+             </div>
+          </div>
 
-              <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[74px]">
-                <div
-                  className={cn(
-                    "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
-                    myRsvp === "going" ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
-                    myRsvp === "not_going" ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
-                  )}
-                />
-                <button
-                  onClick={() => onRsvp(meeting.id, "going", compCount)}
-                  disabled={!ready || saving}
-                  className={cn(
-                    "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
-                    myRsvp === "going" ? "text-white" : "text-white/40 hover:text-white/60"
-                  )}
-                >
-                  {saving && myRsvp === "going" ? <Loader2 size={18} className="animate-spin" /> : <UserCheck size={22} />}
-                  <span>سأحضر</span>
-                </button>
-                <button
-                  onClick={() => onRsvp(meeting.id, "not_going")}
-                  disabled={!ready || saving}
-                  className={cn(
-                    "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
-                    myRsvp === "not_going" ? "text-white" : "text-white/40 hover:text-white/60"
-                  )}
-                >
-                  {saving && myRsvp === "not_going" ? <Loader2 size={18} className="animate-spin" /> : <UserX size={22} />}
-                  <span>أعتذر</span>
-                </button>
-              </div>
-           </div>
-        </div>
-
-        <div className="space-y-4 pt-8 border-t border-white/10">
-           <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
-                 <Users size={14} /> الحضور المؤكد
-              </div>
-              <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{totalGoingCount} حاضر</span>
-           </div>
-           <div className="flex flex-wrap gap-2">
-              {(going || []).slice(0, 5).map((p: any) => {
-                if (!p) return null;
-                const attendee = (attendeesList || []).find((a: any) => a.user_id === p.id);
-                const cCount = attendee?.companions_count || 0;
-                return (
-                  <div key={p.id} className="relative group/avatar">
-                    <div className="size-11 rounded-xl ring-2 ring-white/10 overflow-hidden shadow-lg transition-transform hover:scale-110">
-                      <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
-                    </div>
-                    {cCount > 0 && (
-                      <div className="absolute -top-1.5 -right-1.5 size-5 bg-gold-primary text-black text-[9px] font-black rounded-full flex items-center justify-center border-2 border-emerald-950 z-10">
-                        +{cCount}
+          <div className="space-y-4 pt-8 border-t border-white/10">
+             <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
+                   <Users size={14} /> الحضور المؤكد
+                </div>
+                <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{totalGoingCount} حاضر</span>
+             </div>
+             <div className="flex flex-wrap gap-2">
+                {(going || []).slice(0, 5).map((p: any) => {
+                  if (!p) return null;
+                  const attendee = (attendeesList || []).find((a: any) => a.user_id === p.id);
+                  const cCount = attendee?.companions_count || 0;
+                  return (
+                    <div key={p.id} className="relative group/avatar">
+                      <div className="size-11 rounded-xl ring-2 ring-white/10 overflow-hidden shadow-lg transition-transform hover:scale-110">
+                        <UserAvatar path={p.avatar_url} name={p.arabic_name} className="size-full" userId={p.id} />
                       </div>
-                    )}
-                  </div>
-                );
-              })}
-              {going.length > 5 && (
-                <div className="size-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">+{going.length - 5}</div>
-              )}
-              {going.length === 0 && <p className="text-[10px] font-bold text-white/20 italic">لا يوجد حضور مؤكد بعد</p>}
-           </div>
-        </div>
-      </div>
-
-      {/* RIGHT SIDE (Meeting Content & Info) */}
-      <div className="flex-1 p-8 md:p-14 space-y-12 relative z-10 flex flex-col justify-between">
-        <div className="space-y-10">
-           <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-              <div className="space-y-4 flex-1">
-                 <div className="flex flex-wrap items-center gap-3">
-                    <span className="px-4 py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة عائلية</span>
-                    <span className="px-4 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                       <Clock size={14} /> {meeting.duration_minutes || 60} دقيقة
-                    </span>
-                 </div>
-                 <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h2>
-              </div>
-
-              <div className="text-right shrink-0">
-                 <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-xs block mb-1">{date.weekday}</span>
-                 <div className="flex items-baseline gap-2">
-                    <span className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-none">{date.day}</span>
-                    <span className="text-xl md:text-3xl font-black text-white/40 uppercase tracking-widest">{date.month}</span>
-                 </div>
-              </div>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-              <div className="space-y-5">
-                 <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
-                    <HelpCircle size={16} /> أجندة اللقاء
-                 </div>
-                 <div className="text-lg md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-6">
-                    {meeting.description || "لا يوجد وصف لهذه المناسبة العائلية."}
-                 </div>
-              </div>
-
-              <div className="space-y-6">
-                 <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
-                    <MapPin size={16} /> تفاصيل الموقع
-                 </div>
-                 <div className="grid gap-4">
-                    <div className="flex items-center gap-4 bg-white/5 p-5 rounded-[28px] border border-white/10">
-                       <div className="size-14 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><MapPin size={28} /></div>
-                       <div className="min-w-0">
-                          <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">المكان</p>
-                          <p className="text-base md:text-xl font-black text-white truncate">{meeting.location || "مجلس العائلة"}</p>
-                       </div>
+                      {cCount > 0 && (
+                        <div className="absolute -top-1.5 -right-1.5 size-5 bg-gold-primary text-black text-[9px] font-black rounded-full flex items-center justify-center border-2 border-emerald-950 z-10">
+                          +{cCount}
+                        </div>
+                      )}
                     </div>
-                    {meeting.location_url && (
-                      <a href={meeting.location_url} target="_blank" rel="noreferrer" className="flex items-center justify-between p-5 rounded-[28px] bg-gold-primary text-emerald-950 font-black shadow-xl hover:scale-[1.02] transition-all">
-                         <div className="flex items-center gap-3">
-                            <Navigation size={24} strokeWidth={2.5} />
-                            <span className="text-base">فتح الموقع على الخريطة</span>
-                         </div>
-                         <ChevronLeft size={20} strokeWidth={3} />
-                      </a>
-                    )}
-                 </div>
-              </div>
-           </div>
+                  );
+                })}
+                {going.length > 5 && (
+                  <div className="size-11 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">+{going.length - 5}</div>
+                )}
+                {going.length === 0 && <p className="text-[10px] font-bold text-white/20 italic">لا يوجد حضور مؤكد بعد</p>}
+             </div>
+          </div>
         </div>
 
-        {/* Bottom Actions Bar */}
-        <div className="pt-10 space-y-4">
-           <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
-
-           <div className="flex flex-col sm:flex-row items-center gap-3">
-              <button
-                 onClick={() => addToCalendar({
-                   title: meeting.title,
-                   description: meeting.description || "",
-                   location: meeting.location || "",
-                   startTime: meeting.scheduled_at,
-                   durationMinutes: meeting.duration_minutes || 60
-                 })}
-                 className="flex-1 w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-white/5 text-white/60 font-black text-xs border border-white/10 hover:bg-white/10 hover:text-white transition-all shadow-xl"
-              >
-                 <CalendarDays size={18} /> إضافة لتقويم الجوال
-              </button>
-
-              {canManage && (
-                <div className="flex items-center gap-2 w-full sm:w-auto">
-                   {/* This button is now strictly tied to canManage which only includes Chairman, Technical Admin, and Meeting Head */}
-                   <button onClick={() => onRemind(meeting)} className="h-14 px-6 rounded-2xl bg-gold-primary text-emerald-950 font-black text-xs shadow-xl flex items-center gap-2 active:scale-95 transition-all"><Bell size={18} /> تذكير الجميع</button>
-                   <button onClick={() => onEdit(meeting)} className="h-14 w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"><Pencil size={20} /></button>
-                   <button onClick={() => onDelete(meeting.id)} className="h-14 w-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"><Trash2 size={20} /></button>
+        {/* BOTTOM/RIGHT SECTION (Meeting Content & Info) */}
+        <div className={cn(
+          "flex-1 p-6 md:p-14 flex flex-col justify-between space-y-10 relative z-10",
+          "rounded-[32px] md:rounded-none m-2 md:m-0 bg-white/[0.02] md:bg-transparent border border-white/5 md:border-none shadow-xl md:shadow-none"
+        )}>
+          <div className="space-y-10">
+             <div className="flex flex-col md:flex-row justify-between items-start gap-6">
+                <div className="space-y-4 flex-1">
+                   <div className="flex flex-wrap items-center gap-3">
+                      <span className="px-4 py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة عائلية</span>
+                      <span className="px-4 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                         <Clock size={14} /> {meeting.duration_minutes || 60} دقيقة
+                      </span>
+                   </div>
+                   <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h2>
                 </div>
-              )}
-           </div>
+
+                <div className="text-right shrink-0">
+                   <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-xs block mb-1">{date.weekday}</span>
+                   <div className="flex items-baseline gap-2">
+                      <span className="text-6xl md:text-8xl font-black tracking-tighter text-white leading-none">{date.day}</span>
+                      <span className="text-xl md:text-3xl font-black text-white/40 uppercase tracking-widest">{date.month}</span>
+                   </div>
+                </div>
+             </div>
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                <div className="space-y-5">
+                   <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
+                      <HelpCircle size={16} /> أجندة اللقاء
+                   </div>
+                   <div className="text-lg md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-6">
+                      {meeting.description || "لا يوجد وصف لهذه المناسبة العائلية."}
+                   </div>
+                </div>
+
+                <div className="space-y-6">
+                   <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
+                      <MapPin size={16} /> تفاصيل الموقع
+                   </div>
+                   <div className="grid gap-4">
+                      <div className="flex items-center gap-4 bg-white/5 p-5 rounded-[28px] border border-white/10">
+                         <div className="size-14 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><MapPin size={28} /></div>
+                         <div className="min-w-0">
+                            <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">المكان</p>
+                            <p className="text-base md:text-xl font-black text-white truncate">{meeting.location || "مجلس العائلة"}</p>
+                         </div>
+                      </div>
+                      {meeting.location_url && (
+                        <a href={meeting.location_url} target="_blank" rel="noreferrer" className="flex items-center justify-between p-5 rounded-[28px] bg-gold-primary text-emerald-950 font-black shadow-xl hover:scale-[1.02] transition-all">
+                           <div className="flex items-center gap-3">
+                              <Navigation size={24} strokeWidth={2.5} />
+                              <span className="text-base">فتح الموقع على الخريطة</span>
+                           </div>
+                           <ChevronLeft size={20} strokeWidth={3} />
+                        </a>
+                      )}
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          {/* Bottom Actions Bar */}
+          <div className="pt-10 space-y-4">
+             <MeetingPresentations meetingId={meeting.id} canManage={canManage} userId={userId} />
+
+             <div className="flex flex-col sm:flex-row items-center gap-3">
+                <button
+                   onClick={() => addToCalendar({
+                     title: meeting.title,
+                     description: meeting.description || "",
+                     location: meeting.location || "",
+                     startTime: meeting.scheduled_at,
+                     durationMinutes: meeting.duration_minutes || 60
+                   })}
+                   className="flex-1 w-full flex items-center justify-center gap-3 h-14 rounded-2xl bg-white/5 text-white/60 font-black text-xs border border-white/10 hover:bg-white/10 hover:text-white transition-all shadow-xl"
+                >
+                   <CalendarDays size={18} /> إضافة لتقويم الجوال
+                </button>
+
+                {canManage && (
+                  <div className="flex items-center gap-2 w-full sm:w-auto">
+                     {/* This button is now strictly tied to canManage which only includes Chairman, Technical Admin, and Meeting Head */}
+                     <button onClick={() => onRemind(meeting)} className="h-14 px-6 rounded-2xl bg-gold-primary text-emerald-950 font-black text-xs shadow-xl flex items-center gap-2 active:scale-95 transition-all"><Bell size={18} /> تذكير الجميع</button>
+                     <button onClick={() => onEdit(meeting)} className="h-14 w-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10"><Pencil size={20} /></button>
+                     <button onClick={() => onDelete(meeting.id)} className="h-14 w-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all border border-rose-500/10"><Trash2 size={20} /></button>
+                  </div>
+                )}
+             </div>
+          </div>
         </div>
-      </div>
-    </article>
+      </article>
+    </div>
+  );
   );
 }
