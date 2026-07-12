@@ -468,7 +468,9 @@ function TripDetail() {
                         <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-5 rounded-[32px] border border-white/10 shadow-inner">
                           <div className="flex items-center justify-between px-1">
                             <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
-                            <span className="text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + companionsCount}</span>
+                            <div className="text-center bg-gold-primary/20 px-3 py-1 rounded-lg border border-gold-primary/20">
+                              <span className="text-[14px] font-black leading-none text-gold-primary">{1 + companionsCount} حاضرين</span>
+                            </div>
                           </div>
                           <input
                             type="tel"
@@ -528,8 +530,15 @@ function TripDetail() {
                     </div>
                     <div className="flex flex-wrap gap-2">
                        {attendees.slice(0, 5).map(a => (
-                         <div key={a.user_id} className="size-10 rounded-xl overflow-hidden ring-2 ring-white/10 shadow-lg transition-transform hover:scale-110">
-                            <UserAvatar path={a.avatarPath} name={a.name} initial={a.initial} className="size-full" userId={a.user_id} />
+                         <div key={a.user_id} className="relative group/avatar">
+                            <div className="size-10 rounded-xl overflow-hidden ring-2 ring-white/10 shadow-lg transition-transform hover:scale-110">
+                               <UserAvatar path={a.avatarPath} name={a.name} initial={a.initial} className="size-full" userId={a.user_id} />
+                            </div>
+                            {a.companions_count > 0 && (
+                              <div className="absolute -top-1.5 -right-1.5 size-5 bg-gold-primary text-black text-[9px] font-black rounded-full flex items-center justify-center border-2 border-emerald-950 z-10 shadow-lg">
+                                +{a.companions_count}
+                              </div>
+                            )}
                          </div>
                        ))}
                        {attendees.length > 5 && (
