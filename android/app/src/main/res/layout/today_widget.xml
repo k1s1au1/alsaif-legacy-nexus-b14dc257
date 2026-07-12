@@ -6,63 +6,48 @@
     android:background="@drawable/widget_background"
     android:padding="16dp">
 
-    <!-- Decorative Top Ornament -->
-    <View
+    <ImageView
+        android:id="@+id/widget_logo"
         android:layout_width="40dp"
-        android:layout_height="1dp"
-        android:background="#33D4AF37"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentStart="true" />
+        android:layout_height="40dp"
+        android:layout_alignParentEnd="true"
+        android:layout_centerVertical="true"
+        android:src="@mipmap/ic_launcher_round"
+        android:contentDescription="Logo" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_toStartOf="@id/widget_logo"
         android:orientation="vertical"
-        android:layout_centerInParent="true">
+        android:layout_marginEnd="12dp">
 
         <TextView
             android:id="@+id/widget_label"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="الحدث القادم"
+            android:text="المجلس"
             android:textColor="#D4AF37"
             android:textSize="10sp"
-            android:fontFamily="serif"
-            android:textStyle="bold"
-            android:textAllCaps="true"
-            android:letterSpacing="0.1" />
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/widget_title"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="المجلس العائلي"
+            android:text="افتح التطبيق"
             android:textColor="#FFFFFF"
             android:textStyle="bold"
-            android:textSize="18sp"
-            android:layout_marginTop="2dp"
-            android:maxLines="2"
-            android:ellipsize="end" />
+            android:textSize="14sp" />
 
         <TextView
             android:id="@+id/widget_date"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="يوم الجمعة، ١٢ يوليو"
+            android:text="يرحب بكم"
             android:textColor="#99FFFFFF"
-            android:textSize="12sp"
-            android:layout_marginTop="4dp" />
-
+            android:textSize="11sp" />
     </LinearLayout>
-
-    <ImageView
-        android:id="@+id/widget_logo"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:src="@mipmap/ic_launcher_round"
-        android:alpha="0.3"
-        android:contentDescription="Family Logo" />
 
 </RelativeLayout>
