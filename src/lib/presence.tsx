@@ -28,13 +28,8 @@ export function PresenceDot({
   withRing?: boolean;
 }) {
   const color =
-    state === "online"
-      ? "bg-emerald-500"
-      : state === "idle"
-        ? "bg-amber-500"
-        : "bg-red-500";
-  const label =
-    state === "online" ? "متصل" : state === "idle" ? "خامل" : "غير متصل";
+    state === "online" ? "bg-emerald-500" : state === "idle" ? "bg-amber-500" : "bg-red-500";
+  const label = state === "online" ? "متصل" : state === "idle" ? "خامل" : "غير متصل";
   return (
     <span
       title={label}
@@ -152,21 +147,18 @@ function ensurePresenceSubscription() {
   refreshPresenceAll();
   presenceChannel = supabase
     .channel("global-user-presence")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "user_presence" },
-      (payload) => {
-        const row = (payload.new ?? payload.old) as
-          | { user_id?: string; last_seen_at?: string }
-          | null;
-        if (row?.user_id && row.last_seen_at) {
-          presenceStore.map = { ...presenceStore.map, [row.user_id]: row.last_seen_at };
-          emitPresence();
-        } else {
-          refreshPresenceAll();
-        }
-      },
-    )
+    .on("postgres_changes", { event: "*", schema: "public", table: "user_presence" }, (payload) => {
+      const row = (payload.new ?? payload.old) as {
+        user_id?: string;
+        last_seen_at?: string;
+      } | null;
+      if (row?.user_id && row.last_seen_at) {
+        presenceStore.map = { ...presenceStore.map, [row.user_id]: row.last_seen_at };
+        emitPresence();
+      } else {
+        refreshPresenceAll();
+      }
+    })
     .subscribe();
   // Re-emit every 30s so dots transition online -> idle -> offline over time.
   presenceTickTimer = window.setInterval(emitPresence, 30_000);
@@ -194,7 +186,9 @@ export function usePresenceFor(userId: string | null | undefined): PresenceState
 /** Get the total number of users currently online (auto-refreshing). */
 export function useOnlineCount(): number {
   useSyncExternalStore(subscribePresence, getPresenceSnapshot, () => 0);
-  return Object.values(presenceStore.map).filter(lastSeen => presenceFromLastSeen(lastSeen) === "online").length;
+  return Object.values(presenceStore.map).filter(
+    (lastSeen) => presenceFromLastSeen(lastSeen) === "online",
+  ).length;
 }
 
 /** Get the list of user IDs currently online (auto-refreshing). */
@@ -204,4 +198,3 @@ export function useOnlineUsers(): string[] {
     .filter(([_, lastSeen]) => presenceFromLastSeen(lastSeen) === "online")
     .map(([uid, _]) => uid);
 }
-

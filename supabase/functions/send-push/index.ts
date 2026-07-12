@@ -11,10 +11,7 @@ const CORS = {
 };
 
 function b64url(input: ArrayBuffer | string) {
-  const bytes =
-    typeof input === "string"
-      ? new TextEncoder().encode(input)
-      : new Uint8Array(input);
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : new Uint8Array(input);
   let str = "";
   for (const b of bytes) str += String.fromCharCode(b);
   return btoa(str).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
@@ -102,15 +99,12 @@ Deno.serve(async (req) => {
     if (user_ids && user_ids.length > 0) {
       params.append("user_id", `in.(${user_ids.join(",")})`);
     }
-    const tokRes = await fetch(
-      `${SUPABASE_URL}/rest/v1/push_tokens?${params.toString()}`,
-      {
-        headers: {
-          apikey: SERVICE_KEY,
-          Authorization: `Bearer ${SERVICE_KEY}`,
-        },
+    const tokRes = await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?${params.toString()}`, {
+      headers: {
+        apikey: SERVICE_KEY,
+        Authorization: `Bearer ${SERVICE_KEY}`,
       },
-    );
+    });
     const rows: { token: string; user_id: string }[] = await tokRes.json();
     const tokens = rows
       .filter((r) => (exclude_user_id ? r.user_id !== exclude_user_id : true))
@@ -136,7 +130,7 @@ Deno.serve(async (req) => {
             notification: {
               title,
               body,
-              image: image || undefined
+              image: image || undefined,
             },
             data: url ? { url } : {},
             android: {
@@ -145,14 +139,14 @@ Deno.serve(async (req) => {
                 sound: "default",
                 click_action: "FLUTTER_NOTIFICATION_CLICK",
                 color: "#064E3B", // Emerald Green for identity
-                image: image || undefined
+                image: image || undefined,
               },
             },
             webpush: {
               headers: { image: image || "" },
               notification: { title, body, icon: "/favicon.ico", image: image || "" },
-              fcm_options: { link: url || "/" }
-            }
+              fcm_options: { link: url || "/" },
+            },
           },
         };
         const r = await fetch(fcmUrl, {
@@ -167,7 +161,11 @@ Deno.serve(async (req) => {
           sent++;
         } else {
           const errText = await r.text();
-          if (r.status === 404 || errText.includes("UNREGISTERED") || errText.includes("INVALID_ARGUMENT")) {
+          if (
+            r.status === 404 ||
+            errText.includes("UNREGISTERED") ||
+            errText.includes("INVALID_ARGUMENT")
+          ) {
             invalidTokens.push(token);
           }
           console.warn("FCM send failed", r.status, errText);
@@ -192,7 +190,12 @@ Deno.serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, sent, total: tokens.length, invalidated: invalidTokens.length }),
+      JSON.stringify({
+        success: true,
+        sent,
+        total: tokens.length,
+        invalidated: invalidTokens.length,
+      }),
       { headers: { ...CORS, "Content-Type": "application/json" } },
     );
   } catch (e: any) {

@@ -60,7 +60,9 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
   if (locked) {
     return (
       <div className="fixed inset-0 z-[999] bg-emerald-950 flex flex-col items-center justify-center p-8 text-white">
-        <div className="mesh-gradient-container opacity-20"><div className="mesh-blob-1" /></div>
+        <div className="mesh-gradient-container opacity-20">
+          <div className="mesh-blob-1" />
+        </div>
 
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
@@ -68,19 +70,21 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
           className="text-center space-y-8 relative z-10"
         >
           <div className="size-32 rounded-[40px] bg-white/10 flex items-center justify-center mx-auto border border-white/20 shadow-2xl relative">
-             <Lock className="size-12 text-gold-primary" />
-             <div className="absolute inset-0 bg-gold-primary/20 blur-2xl animate-pulse" />
+            <Lock className="size-12 text-gold-primary" />
+            <div className="absolute inset-0 bg-gold-primary/20 blur-2xl animate-pulse" />
           </div>
 
           <div className="space-y-2">
-             <h2 className="text-3xl font-black tracking-tight italic font-royal-mode">المجلس مؤمن</h2>
-             <p className="text-white/60 font-bold">يرجى استخدام البصمة للفتح</p>
+            <h2 className="text-3xl font-black tracking-tight italic font-royal-mode">
+              المجلس مؤمن
+            </h2>
+            <p className="text-white/60 font-bold">يرجى استخدام البصمة للفتح</p>
           </div>
 
           {error && (
             <div className="flex items-center gap-2 text-rose-400 bg-rose-500/10 px-4 py-2 rounded-xl border border-rose-500/20">
-               <ShieldAlert size={16} />
-               <span className="text-xs font-black">{error}</span>
+              <ShieldAlert size={16} />
+              <span className="text-xs font-black">{error}</span>
             </div>
           )}
 

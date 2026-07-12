@@ -34,11 +34,10 @@ function ResetPasswordPage() {
       try {
         const url = new URL(window.location.href);
         const code = url.searchParams.get("code");
-        const hash = window.location.hash.startsWith("#")
-          ? window.location.hash.slice(1)
-          : "";
+        const hash = window.location.hash.startsWith("#") ? window.location.hash.slice(1) : "";
         const hashParams = new URLSearchParams(hash);
-        const errDesc = url.searchParams.get("error_description") || hashParams.get("error_description");
+        const errDesc =
+          url.searchParams.get("error_description") || hashParams.get("error_description");
         if (errDesc) {
           if (!cancelled) setError(decodeURIComponent(errDesc));
           return;
@@ -113,16 +112,12 @@ function ResetPasswordPage() {
       <div
         className="relative w-full max-w-md p-10 rounded-2xl backdrop-blur-xl"
         style={{
-          background:
-            "linear-gradient(160deg, rgba(38,26,14,0.78) 0%, rgba(24,16,8,0.88) 100%)",
+          background: "linear-gradient(160deg, rgba(38,26,14,0.78) 0%, rgba(24,16,8,0.88) 100%)",
           border: "1px solid rgba(212,175,90,0.35)",
-          boxShadow:
-            "0 30px 80px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,222,179,0.18)",
+          boxShadow: "0 30px 80px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(245,222,179,0.18)",
         }}
       >
-        <h1 className="text-xl font-medium text-ivory text-center mb-2">
-          إعادة تعيين كلمة المرور
-        </h1>
+        <h1 className="text-xl font-medium text-ivory text-center mb-2">إعادة تعيين كلمة المرور</h1>
         <p className="text-sm text-muted-foreground text-center mb-6">
           أدخل كلمة مرور جديدة للحساب
         </p>

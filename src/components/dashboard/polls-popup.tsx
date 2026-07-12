@@ -1,15 +1,35 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import { BarChart3, CheckCircle2, ArrowLeft, Sparkles, Crown, Loader2, ShieldCheck } from "lucide-react";
+import {
+  BarChart3,
+  CheckCircle2,
+  ArrowLeft,
+  Sparkles,
+  Crown,
+  Loader2,
+  ShieldCheck,
+} from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useServerFn } from "@tanstack/react-start";
 import { executeLeadershipTransition } from "@/lib/api/shura.functions";
 
-type Post = { id: string; title: string; body: string | null; author_id: string; created_at: string };
+type Post = {
+  id: string;
+  title: string;
+  body: string | null;
+  author_id: string;
+  created_at: string;
+};
 type Comment = { id: string; post_id: string; author_id: string; body: string };
 type PollData = {
   question: string;
@@ -38,9 +58,13 @@ export function PollsPopup({ userId }: { userId: string | null }) {
 
   useEffect(() => {
     if (userId) {
-      supabase.from("user_roles").select("role").eq("user_id", userId).then(({ data }) => {
-        if (data) setUserRoles(data.map(r => r.role));
-      });
+      supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .then(({ data }) => {
+          if (data) setUserRoles(data.map((r) => r.role));
+        });
     }
   }, [userId]);
 
@@ -52,11 +76,17 @@ export function PollsPopup({ userId }: { userId: string | null }) {
       .order("created_at", { ascending: false })
       .limit(10);
     const list = (posts ?? []) as Post[];
-    if (list.length === 0) { setPolls([]); return; }
+    if (list.length === 0) {
+      setPolls([]);
+      return;
+    }
     const { data: cs } = await supabase
       .from("majlis_comments")
       .select("id,post_id,author_id,body")
-      .in("post_id", list.map(p => p.id));
+      .in(
+        "post_id",
+        list.map((p) => p.id),
+      );
     const allComments = (cs ?? []) as Comment[];
     const enriched: EnrichedPoll[] = [];
     for (const post of list) {
@@ -64,11 +94,15 @@ export function PollsPopup({ userId }: { userId: string | null }) {
       if (!match) continue;
       try {
         const poll = JSON.parse(match[1]) as PollData;
-        const votes = allComments.filter(c => c.post_id === post.id && c.body.startsWith("[VOTE]:"));
-        const mine = userId ? votes.find(v => v.author_id === userId) : undefined;
+        const votes = allComments.filter(
+          (c) => c.post_id === post.id && c.body.startsWith("[VOTE]:"),
+        );
+        const mine = userId ? votes.find((v) => v.author_id === userId) : undefined;
         const myVoteIndex = mine ? parseInt(mine.body.split(":")[1]) : -1;
         enriched.push({ post, poll, votes, myVoteIndex });
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
     setPolls(enriched);
   };
@@ -78,24 +112,30 @@ export function PollsPopup({ userId }: { userId: string | null }) {
     const ch = supabase
       .channel("dash-polls-popup-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () =>
+        load(),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const pending = useMemo(() => {
-    return polls.filter(p => {
+    return polls.filter((p) => {
       // 1. Basic Filters
       if (p.myVoteIndex !== -1) return false;
       if (p.poll.status === "finalized") return false;
 
       // 2. Role-based Visibility Check
       if (p.poll.type === "chairman") {
-        const isCommittee = userRoles.some(r => ["admin", "chairman"].includes(r));
+        const isCommittee = userRoles.some((r) => ["admin", "chairman"].includes(r));
         if (!isCommittee) return false;
       } else if (p.poll.type === "manager") {
-        const isManagerOrHigher = userRoles.some(r => ["admin", "chairman", "manager"].includes(r));
+        const isManagerOrHigher = userRoles.some((r) =>
+          ["admin", "chairman", "manager"].includes(r),
+        );
         if (!isManagerOrHigher) return false;
       }
 
@@ -135,7 +175,9 @@ export function PollsPopup({ userId }: { userId: string | null }) {
   const vote = async (post_id: string, idx: number) => {
     if (!userId) return;
     const { error } = await supabase.from("majlis_comments").insert({
-      post_id, author_id: userId, body: `[VOTE]:${idx}`,
+      post_id,
+      author_id: userId,
+      body: `[VOTE]:${idx}`,
     });
     if (error) return toast.error("تعذر تسجيل الصوت");
     toast.success("تم تسجيل صوتك");
@@ -189,14 +231,19 @@ export function PollsPopup({ userId }: { userId: string | null }) {
       )}
 
       <Dialog open={open} onOpenChange={handleClose}>
-        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-primary/20" dir="rtl">
+        <DialogContent
+          className="max-w-2xl max-h-[85vh] overflow-y-auto bg-card/95 backdrop-blur-xl border-primary/20"
+          dir="rtl"
+        >
           <DialogHeader>
             <div className="flex items-center gap-3">
               <div className="size-11 rounded-2xl bg-primary/10 flex items-center justify-center text-primary">
                 <BarChart3 size={22} />
               </div>
               <div className="text-right">
-                <DialogTitle className="text-xl font-black text-primary">اقتراحات و تصويتات</DialogTitle>
+                <DialogTitle className="text-xl font-black text-primary">
+                  اقتراحات و تصويتات
+                </DialogTitle>
                 <DialogDescription className="text-xs font-bold text-muted-foreground">
                   {pending.length > 0
                     ? `${pending.length} ${pending.length === 1 ? "اقتراح" : "اقتراحات"} بانتظار رأيك`
@@ -209,151 +256,204 @@ export function PollsPopup({ userId }: { userId: string | null }) {
           {pending.length === 0 ? (
             <div className="py-10 text-center space-y-3">
               <CheckCircle2 className="mx-auto text-emerald-500/40" size={32} />
-              <p className="text-sm font-bold text-muted-foreground">لقد شاركت في جميع التصويتات الحالية. شكراً لك!</p>
+              <p className="text-sm font-bold text-muted-foreground">
+                لقد شاركت في جميع التصويتات الحالية. شكراً لك!
+              </p>
             </div>
           ) : (
-              <AnimatePresence mode="popLayout">
-                {polls.map(({ post, poll, votes, myVoteIndex }) => {
-                  const counts = new Array(poll.options.length).fill(0);
-                  votes.forEach(v => {
-                    const i = parseInt(v.body.split(":")[1]);
-                    if (i >= 0 && i < counts.length) counts[i]++;
-                  });
-                  const total = counts.reduce((a, b) => a + b, 0);
-                  const voted = myVoteIndex !== -1;
-                  const isChairmanPoll = poll.type === "chairman";
-                  const isManagerPoll = poll.type === "manager";
-                  const yesPct = total > 0 ? Math.round((counts[0] / total) * 100) : 0;
-                  const canExecute = isChairmanPoll && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
-                  const alreadyExecuted = poll.status === "executed";
-                  const finalized = poll.status === "finalized";
-                  const expired = poll.expires_at && new Date(poll.expires_at) < new Date();
+            <AnimatePresence mode="popLayout">
+              {polls.map(({ post, poll, votes, myVoteIndex }) => {
+                const counts = new Array(poll.options.length).fill(0);
+                votes.forEach((v) => {
+                  const i = parseInt(v.body.split(":")[1]);
+                  if (i >= 0 && i < counts.length) counts[i]++;
+                });
+                const total = counts.reduce((a, b) => a + b, 0);
+                const voted = myVoteIndex !== -1;
+                const isChairmanPoll = poll.type === "chairman";
+                const isManagerPoll = poll.type === "manager";
+                const yesPct = total > 0 ? Math.round((counts[0] / total) * 100) : 0;
+                const canExecute =
+                  isChairmanPoll && yesPct >= (poll.threshold || 70) && poll.status !== "executed";
+                const alreadyExecuted = poll.status === "executed";
+                const finalized = poll.status === "finalized";
+                const expired = poll.expires_at && new Date(poll.expires_at) < new Date();
 
-                  if ((alreadyExecuted || finalized || expired) && !open) return null; // Don't show finished in bubble button
+                if ((alreadyExecuted || finalized || expired) && !open) return null; // Don't show finished in bubble button
 
-                  return (
-                    <motion.div
-                      key={post.id}
-                      layout
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95 }}
-                      className={cn(
-                        "rounded-2xl border-2 p-5 space-y-4 relative overflow-hidden",
-                        isChairmanPoll ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]" :
-                        isManagerPoll ? "border-emerald-500/30 bg-emerald-500/5" : "border-border/40 bg-card",
-                        expired && "opacity-60 grayscale-[0.5]"
-                      )}
-                    >
-                      {(isChairmanPoll || isManagerPoll) && (
-                        <div className={cn(
+                return (
+                  <motion.div
+                    key={post.id}
+                    layout
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className={cn(
+                      "rounded-2xl border-2 p-5 space-y-4 relative overflow-hidden",
+                      isChairmanPoll
+                        ? "border-gold-primary/30 bg-gold-primary/5 shadow-[0_0_20px_rgba(212,175,55,0.05)]"
+                        : isManagerPoll
+                          ? "border-emerald-500/30 bg-emerald-500/5"
+                          : "border-border/40 bg-card",
+                      expired && "opacity-60 grayscale-[0.5]",
+                    )}
+                  >
+                    {(isChairmanPoll || isManagerPoll) && (
+                      <div
+                        className={cn(
                           "absolute -top-6 -left-6 size-20 rounded-full blur-xl",
-                          isChairmanPoll ? "bg-gold-primary/10" : "bg-emerald-500/10"
-                        )} />
-                      )}
+                          isChairmanPoll ? "bg-gold-primary/10" : "bg-emerald-500/10",
+                        )}
+                      />
+                    )}
 
-                      <div className="flex items-start justify-between gap-3 relative z-10">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                             {isChairmanPoll && <Crown className="size-4 text-gold-primary" />}
-                             {isManagerPoll && <ShieldCheck className="size-4 text-emerald-600" />}
-                             <h4 className="font-black text-primary line-clamp-1">{post.title}</h4>
-                             {expired && <span className="text-[9px] font-black bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">انتهى الوقت</span>}
-                          </div>
-                          <p className="text-sm font-bold text-primary/80">{poll.question}</p>
+                    <div className="flex items-start justify-between gap-3 relative z-10">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          {isChairmanPoll && <Crown className="size-4 text-gold-primary" />}
+                          {isManagerPoll && <ShieldCheck className="size-4 text-emerald-600" />}
+                          <h4 className="font-black text-primary line-clamp-1">{post.title}</h4>
+                          {expired && (
+                            <span className="text-[9px] font-black bg-rose-500/10 text-rose-600 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                              انتهى الوقت
+                            </span>
+                          )}
                         </div>
-                        <div className="flex flex-col items-end gap-1 shrink-0">
-                          <span className={cn(
+                        <p className="text-sm font-bold text-primary/80">{poll.question}</p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span
+                          className={cn(
                             "text-[10px] font-black px-2 py-1 rounded-full",
-                            isChairmanPoll ? "bg-gold-primary text-emerald-950" :
-                            isManagerPoll ? "bg-emerald-600 text-white" : "bg-primary/10 text-primary"
-                          )}>
-                            {total} صوت
+                            isChairmanPoll
+                              ? "bg-gold-primary text-emerald-950"
+                              : isManagerPoll
+                                ? "bg-emerald-600 text-white"
+                                : "bg-primary/10 text-primary",
+                          )}
+                        >
+                          {total} صوت
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2 relative z-10">
+                      {poll.options.map((opt, i) => {
+                        const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
+                        const isMyVote = myVoteIndex === i;
+                        return (
+                          <button
+                            key={i}
+                            onClick={() => vote(post.id, i)}
+                            disabled={voted || alreadyExecuted || finalized || !!expired}
+                            className={cn(
+                              "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all active:scale-[0.98]",
+                              isMyVote
+                                ? "border-primary bg-primary/5"
+                                : "border-border/40 bg-card hover:border-primary/40",
+                              (alreadyExecuted || finalized || expired) &&
+                                "opacity-80 cursor-default",
+                            )}
+                          >
+                            <div
+                              className={cn(
+                                "absolute inset-y-0 right-0 transition-all duration-700",
+                                (isChairmanPoll || isManagerPoll) && i === 0
+                                  ? "bg-gold-primary/10"
+                                  : "bg-primary/5",
+                              )}
+                              style={{ width: `${pct}%` }}
+                            />
+                            <div className="relative z-10 flex justify-between items-center text-sm">
+                              <div className="flex items-center gap-2">
+                                {isMyVote ? (
+                                  <CheckCircle2 className="size-3.5 text-primary" />
+                                ) : (
+                                  <div className="size-3.5 rounded-full border-2 border-current opacity-30" />
+                                )}
+                                <span className={cn(isMyVote && "text-primary")}>{opt}</span>
+                              </div>
+                              <span className="opacity-60 text-xs tabular-nums">{pct}%</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {isChairmanPoll && !alreadyExecuted && (
+                      <div className="pt-2">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-[10px] font-black uppercase text-gold-primary tracking-widest">
+                            مستوى التأييد الحالي لرئاسة المجلس
+                          </span>
+                          <span className="text-xs font-black text-primary tabular-nums">
+                            {yesPct}% / {poll.threshold || 70}%
                           </span>
                         </div>
+                        <div className="h-1.5 bg-gold-primary/10 rounded-full overflow-hidden">
+                          <motion.div
+                            initial={{ width: 0 }}
+                            animate={{
+                              width: `${Math.min(100, (yesPct / (poll.threshold || 70)) * 100)}%`,
+                            }}
+                            className={cn(
+                              "h-full transition-colors",
+                              yesPct >= (poll.threshold || 70)
+                                ? "bg-emerald-500"
+                                : "bg-gold-primary",
+                            )}
+                          />
+                        </div>
+
+                        {canExecute && (
+                          <motion.button
+                            initial={{ y: 10, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            onClick={() => handleExecuteTransition(post.id)}
+                            disabled={executingId === post.id}
+                            className="w-full mt-4 btn-gold py-3 rounded-xl flex items-center justify-center gap-2 shadow-2xl shadow-gold-primary/30"
+                          >
+                            {executingId === post.id ? (
+                              <Loader2 className="animate-spin size-4" />
+                            ) : (
+                              <ShieldCheck size={18} />
+                            )}
+                            <span className="text-sm font-black text-emerald-950">
+                              تنفيذ قرار الشورى (تغيير الرئيس)
+                            </span>
+                          </motion.button>
+                        )}
                       </div>
+                    )}
 
-                      <div className="grid gap-2 relative z-10">
-                        {poll.options.map((opt, i) => {
-                          const pct = total > 0 ? Math.round((counts[i] / total) * 100) : 0;
-                          const isMyVote = myVoteIndex === i;
-                          return (
-                            <button
-                              key={i}
-                              onClick={() => vote(post.id, i)}
-                              disabled={voted || alreadyExecuted || finalized || !!expired}
-                              className={cn(
-                                "relative p-3 rounded-xl text-right font-black overflow-hidden border-2 transition-all active:scale-[0.98]",
-                                isMyVote ? "border-primary bg-primary/5" : "border-border/40 bg-card hover:border-primary/40",
-                                (alreadyExecuted || finalized || expired) && "opacity-80 cursor-default"
-                              )}
-                            >
-                              <div
-                                className={cn("absolute inset-y-0 right-0 transition-all duration-700", (isChairmanPoll || isManagerPoll) && i === 0 ? "bg-gold-primary/10" : "bg-primary/5")}
-                                style={{ width: `${pct}%` }}
-                              />
-                              <div className="relative z-10 flex justify-between items-center text-sm">
-                                <div className="flex items-center gap-2">
-                                  {isMyVote ? <CheckCircle2 className="size-3.5 text-primary" /> : <div className="size-3.5 rounded-full border-2 border-current opacity-30" />}
-                                  <span className={cn(isMyVote && "text-primary")}>{opt}</span>
-                                </div>
-                                <span className="opacity-60 text-xs tabular-nums">{pct}%</span>
-                              </div>
-                            </button>
-                          );
-                        })}
+                    {alreadyExecuted && (
+                      <div className="flex items-center gap-2 justify-center py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
+                        <ShieldCheck className="size-4 text-emerald-600" />
+                        <span className="text-xs font-black text-emerald-600">
+                          تم تنفيذ القرار وتحديث رئاسة المجلس
+                        </span>
                       </div>
+                    )}
 
-                      {isChairmanPoll && !alreadyExecuted && (
-                        <div className="pt-2">
-                           <div className="flex items-center justify-between mb-2">
-                              <span className="text-[10px] font-black uppercase text-gold-primary tracking-widest">مستوى التأييد الحالي لرئاسة المجلس</span>
-                              <span className="text-xs font-black text-primary tabular-nums">{yesPct}% / {poll.threshold || 70}%</span>
-                           </div>
-                           <div className="h-1.5 bg-gold-primary/10 rounded-full overflow-hidden">
-                              <motion.div
-                                initial={{ width: 0 }}
-                                animate={{ width: `${Math.min(100, (yesPct / (poll.threshold || 70)) * 100)}%` }}
-                                className={cn("h-full transition-colors", yesPct >= (poll.threshold || 70) ? "bg-emerald-500" : "bg-gold-primary")}
-                              />
-                           </div>
-
-                           {canExecute && (
-                              <motion.button
-                                initial={{ y: 10, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                onClick={() => handleExecuteTransition(post.id)}
-                                disabled={executingId === post.id}
-                                className="w-full mt-4 btn-gold py-3 rounded-xl flex items-center justify-center gap-2 shadow-2xl shadow-gold-primary/30"
-                              >
-                                {executingId === post.id ? <Loader2 className="animate-spin size-4" /> : <ShieldCheck size={18} />}
-                                <span className="text-sm font-black text-emerald-950">تنفيذ قرار الشورى (تغيير الرئيس)</span>
-                              </motion.button>
-                           )}
-                        </div>
-                      )}
-
-                      {alreadyExecuted && (
-                        <div className="flex items-center gap-2 justify-center py-2 bg-emerald-500/10 rounded-xl border border-emerald-500/20">
-                           <ShieldCheck className="size-4 text-emerald-600" />
-                           <span className="text-xs font-black text-emerald-600">تم تنفيذ القرار وتحديث رئاسة المجلس</span>
-                        </div>
-                      )}
-
-                      {finalized && (
-                        <div className="flex items-center gap-2 justify-center py-2 bg-muted rounded-xl border border-border">
-                           <CheckCircle2 className="size-4 text-muted-foreground" />
-                           <span className="text-xs font-black text-muted-foreground">تم إغلاق التصويت وأرشفة المحضر في الخزنة</span>
-                        </div>
-                      )}
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                    {finalized && (
+                      <div className="flex items-center gap-2 justify-center py-2 bg-muted rounded-xl border border-border">
+                        <CheckCircle2 className="size-4 text-muted-foreground" />
+                        <span className="text-xs font-black text-muted-foreground">
+                          تم إغلاق التصويت وأرشفة المحضر في الخزنة
+                        </span>
+                      </div>
+                    )}
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           )}
 
           <div className="flex items-center justify-center pt-2 border-t border-border/30">
-            <button onClick={() => handleClose(false)} className="text-xs font-black text-muted-foreground hover:text-primary transition-colors">
+            <button
+              onClick={() => handleClose(false)}
+              className="text-xs font-black text-muted-foreground hover:text-primary transition-colors"
+            >
               إغلاق النافذة
             </button>
           </div>

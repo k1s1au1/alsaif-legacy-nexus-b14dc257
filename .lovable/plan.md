@@ -43,6 +43,7 @@ The old `messages.tsx` and `messages.$roomId.tsx` files are deleted and `AppShel
 ## UI (WhatsApp-style)
 
 **Layout** — two-pane desktop, single-pane mobile:
+
 - **Left pane (conversation list)**: search box, "new chat" + "new group" buttons, list sorted by `last_message_at`, each row shows avatar, name, last message preview, time, unread badge, mute icon, ✓/✓✓/✓✓-blue mini-indicator on your last sent message. Long-press / kebab → archive / delete / mute.
 - **Right pane (conversation view)**:
   - Header: avatar, name, presence ("online" / "last seen ...") for direct chats, or "N members" for groups; clicking opens an info drawer (members, admin controls for groups: add/remove, promote/demote, rename, change avatar).
@@ -57,6 +58,7 @@ The old `messages.tsx` and `messages.$roomId.tsx` files are deleted and `AppShel
 **Archive view**: filter toggle at top of list ("نشطة" / "أرشيف"). Archived conversations are hidden from the main list and surface in the archive view.
 
 **Notifications**:
+
 - Sound + visible toast for incoming messages when window is hidden or the chat isn't focused.
 - Browser `Notification` permission requested on first chat open; falls back silently if denied.
 - Per-conversation mute respected.

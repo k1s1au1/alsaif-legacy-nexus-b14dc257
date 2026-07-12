@@ -15,14 +15,16 @@ export function WelcomeScreen({ onComplete }: { onComplete: () => void }) {
     },
     {
       title: "خصوصية وأمان تام",
-      description: "مساحة آمنة وحصرية لأفراد العائلة فقط، حيث نشارك أخبارنا ومناسباتنا بكل طمأنينة.",
+      description:
+        "مساحة آمنة وحصرية لأفراد العائلة فقط، حيث نشارك أخبارنا ومناسباتنا بكل طمأنينة.",
       icon: <Shield className="size-12 text-[#D4AF37]" />,
     },
     {
       title: "ترابط الأجيال",
-      description: "من شجرة العائلة إلى سجلات المجلس، نبني جسور التواصل بين الماضي والحاضر والمستقبل.",
+      description:
+        "من شجرة العائلة إلى سجلات المجلس، نبني جسور التواصل بين الماضي والحاضر والمستقبل.",
       icon: <Users className="size-12 text-[#D4AF37]" />,
-    }
+    },
   ];
 
   const handleNext = () => {
@@ -63,7 +65,13 @@ export function WelcomeScreen({ onComplete }: { onComplete: () => void }) {
 
       <div className="flex gap-2 mb-10">
         {steps.map((_, i) => (
-          <div key={i} className={cn("h-1.5 transition-all duration-300 rounded-full", i === step ? "w-8 bg-[#D4AF37]" : "w-1.5 bg-[#D4AF37]/20")} />
+          <div
+            key={i}
+            className={cn(
+              "h-1.5 transition-all duration-300 rounded-full",
+              i === step ? "w-8 bg-[#D4AF37]" : "w-1.5 bg-[#D4AF37]/20",
+            )}
+          />
         ))}
       </div>
 

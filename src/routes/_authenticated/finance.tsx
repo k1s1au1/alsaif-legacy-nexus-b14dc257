@@ -65,7 +65,12 @@ function fmt(n: number) {
 
 function FinancePage() {
   const [profile, setProfile] = useState({ name: "عضو العائلة", role: "عضو", initial: "س" });
-  const { userId, isLoading: rolesLoading, canManage: canManageSection, primaryRole } = useUserRole();
+  const {
+    userId,
+    isLoading: rolesLoading,
+    canManage: canManageSection,
+    primaryRole,
+  } = useUserRole();
   const canManage = canManageSection("finance");
   const dynamicLogo = useSiteLogo();
   const [rows, setRows] = useState<Tx[]>([]);
@@ -116,7 +121,7 @@ function FinancePage() {
     ]);
     const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
     const { data: r } = await supabase.from("user_roles").select("role").eq("user_id", u.user.id);
-    const rs = (r ?? []).map(x => x.role);
+    const rs = (r ?? []).map((x) => x.role);
     setProfile({
       name,
       role: rs.includes("admin") ? "مسؤول النظام" : rs.includes("chairman") ? "رئيس المجلس" : "عضو",
@@ -239,7 +244,7 @@ function FinancePage() {
   }
 
   async function reviewTransfer(id: string, status: "approved" | "rejected") {
-    const note = status === "rejected" ? prompt("سبب الرفض (اختياري):") ?? "" : "";
+    const note = status === "rejected" ? (prompt("سبب الرفض (اختياري):") ?? "") : "";
     if (!userId) return;
     const { error } = await supabase
       .from("bank_transfers")
@@ -336,7 +341,11 @@ function FinancePage() {
             <Wallet className="size-4" strokeWidth={2} />
             <span>المعاملات</span>
           </TabPill>
-          <TabPill active={tab === "transfers"} onClick={() => setTab("transfers")} badge={pendingCount}>
+          <TabPill
+            active={tab === "transfers"}
+            onClick={() => setTab("transfers")}
+            badge={pendingCount}
+          >
             <Landmark className="size-4" strokeWidth={2} />
             <span>التحويلات البنكية</span>
           </TabPill>
@@ -345,7 +354,6 @@ function FinancePage() {
             <span>مشاريع العائلة</span>
           </TabPill>
         </div>
-
 
         {/* TRANSACTIONS TAB */}
         {tab === "transactions" && (
@@ -414,10 +422,15 @@ function FinancePage() {
                 <span className="text-[11px] text-muted-foreground">{rows.length} معاملة</span>
               </div>
               {loading ? (
-                <div className="card-surface p-8 text-center text-muted-foreground text-sm">جاري التحميل...</div>
+                <div className="card-surface p-8 text-center text-muted-foreground text-sm">
+                  جاري التحميل...
+                </div>
               ) : rows.length === 0 ? (
                 <div className="card-surface p-10 text-center">
-                  <Wallet className="size-10 text-muted-foreground/40 mx-auto mb-3" strokeWidth={1.2} />
+                  <Wallet
+                    className="size-10 text-muted-foreground/40 mx-auto mb-3"
+                    strokeWidth={1.2}
+                  />
                   <p className="text-muted-foreground text-sm">لا توجد معاملات بعد</p>
                 </div>
               ) : (
@@ -450,7 +463,11 @@ function FinancePage() {
                           <div className="min-w-0">
                             <p className="text-sm font-bold text-ivory truncate">{r.description}</p>
                             <p className="text-[11px] text-muted-foreground mt-0.5">
-                              {new Date(r.occurred_at).toLocaleDateString("ar-SA", { day: "numeric", month: "long", year: "numeric" })}
+                              {new Date(r.occurred_at).toLocaleDateString("ar-SA", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}
                             </p>
                           </div>
                         </div>
@@ -482,7 +499,6 @@ function FinancePage() {
                 </ul>
               )}
             </div>
-
           </>
         )}
 
@@ -689,9 +705,7 @@ function StatusBadge({ status }: { status: BankTransfer["status"] }) {
     rejected: { label: "مرفوض", cls: "bg-rose-500/10 text-rose-400" },
   } as const;
   const { label, cls } = map[status];
-  return (
-    <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cls}`}>{label}</span>
-  );
+  return <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${cls}`}>{label}</span>;
 }
 
 function TabPill({
@@ -749,4 +763,3 @@ function CountUp({ value, duration = 1000 }: { value: number; duration?: number 
   }, [value]);
   return <>{fmt(Math.round(display))}</>;
 }
-

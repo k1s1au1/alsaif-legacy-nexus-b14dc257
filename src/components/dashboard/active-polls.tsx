@@ -45,7 +45,10 @@ export function ActivePolls({ userId }: { userId: string | null }) {
     const { data: cs } = await supabase
       .from("majlis_comments")
       .select("id,post_id,author_id,body")
-      .in("post_id", list.map(p => p.id));
+      .in(
+        "post_id",
+        list.map((p) => p.id),
+      );
     const allComments = (cs ?? []) as Comment[];
 
     const enriched: EnrichedPoll[] = [];
@@ -54,11 +57,15 @@ export function ActivePolls({ userId }: { userId: string | null }) {
       if (!match) continue;
       try {
         const poll = JSON.parse(match[1]) as PollData;
-        const votes = allComments.filter(c => c.post_id === post.id && c.body.startsWith("[VOTE]:"));
-        const mine = userId ? votes.find(v => v.author_id === userId) : undefined;
+        const votes = allComments.filter(
+          (c) => c.post_id === post.id && c.body.startsWith("[VOTE]:"),
+        );
+        const mine = userId ? votes.find((v) => v.author_id === userId) : undefined;
         const myVoteIndex = mine ? parseInt(mine.body.split(":")[1]) : -1;
         enriched.push({ post, poll, votes, myVoteIndex });
-      } catch { /* skip */ }
+      } catch {
+        /* skip */
+      }
     }
     setPolls(enriched);
     setLoading(false);
@@ -69,18 +76,24 @@ export function ActivePolls({ userId }: { userId: string | null }) {
     const ch = supabase
       .channel("dash-polls-rt")
       .on("postgres_changes", { event: "*", schema: "public", table: "majlis_posts" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "majlis_comments" }, () =>
+        load(),
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  const pending = useMemo(() => polls.filter(p => p.myVoteIndex === -1), [polls]);
+  const pending = useMemo(() => polls.filter((p) => p.myVoteIndex === -1), [polls]);
 
   const vote = async (post_id: string, idx: number) => {
     if (!userId) return;
     const { error } = await supabase.from("majlis_comments").insert({
-      post_id, author_id: userId, body: `[VOTE]:${idx}`,
+      post_id,
+      author_id: userId,
+      body: `[VOTE]:${idx}`,
     });
     if (error) return toast.error("تعذر تسجيل الصوت");
     toast.success("تم تسجيل صوتك");
@@ -102,7 +115,10 @@ export function ActivePolls({ userId }: { userId: string | null }) {
             </p>
           </div>
         </div>
-        <Link to="/majlis" className="text-xs font-black text-primary inline-flex items-center gap-1 hover:gap-2 transition-all">
+        <Link
+          to="/majlis"
+          className="text-xs font-black text-primary inline-flex items-center gap-1 hover:gap-2 transition-all"
+        >
           المجلس <ArrowLeft size={14} />
         </Link>
       </div>
@@ -111,7 +127,7 @@ export function ActivePolls({ userId }: { userId: string | null }) {
         <AnimatePresence mode="popLayout">
           {pending.slice(0, 4).map(({ post, poll, votes, myVoteIndex }) => {
             const counts = new Array(poll.options.length).fill(0);
-            votes.forEach(v => {
+            votes.forEach((v) => {
               const i = parseInt(v.body.split(":")[1]);
               if (i >= 0 && i < counts.length) counts[i]++;
             });
@@ -151,12 +167,19 @@ export function ActivePolls({ userId }: { userId: string | null }) {
                         )}
                       >
                         <div
-                          className={cn("absolute inset-y-0 right-0 transition-all duration-700", isMine ? "bg-white/10" : "bg-primary/5")}
+                          className={cn(
+                            "absolute inset-y-0 right-0 transition-all duration-700",
+                            isMine ? "bg-white/10" : "bg-primary/5",
+                          )}
                           style={{ width: `${pct}%` }}
                         />
                         <div className="relative z-10 flex justify-between items-center text-sm">
                           <div className="flex items-center gap-2">
-                            {isMine ? <CheckCircle2 size={16} /> : <div className="size-3.5 rounded-full border-2 border-current opacity-30" />}
+                            {isMine ? (
+                              <CheckCircle2 size={16} />
+                            ) : (
+                              <div className="size-3.5 rounded-full border-2 border-current opacity-30" />
+                            )}
                             <span>{opt}</span>
                           </div>
                           <span className="opacity-60 text-xs">{pct}%</span>

@@ -67,7 +67,6 @@ export async function setupPushNotifications() {
     // 2. Register AFTER adding listeners
     console.log("[Push] Registering with FCM...");
     await PushNotifications.register();
-
   } catch (e) {
     console.error("[Push] setup failed:", e);
   }

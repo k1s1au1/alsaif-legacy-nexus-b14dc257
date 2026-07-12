@@ -10,7 +10,10 @@ export const assignUserRole = createServerFn({ method: "POST" })
     const admin = await getSupabaseAdmin();
     if (!admin) throw new Error("Server error");
 
-    const { data: roles } = await admin.from("user_roles").select("role").eq("user_id", context.userId);
+    const { data: roles } = await admin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", context.userId);
     const isPriv = (roles ?? []).some((r: any) => ["admin", "chairman"].includes(r.role));
     if (!isPriv) throw new Error("Unauthorized");
 

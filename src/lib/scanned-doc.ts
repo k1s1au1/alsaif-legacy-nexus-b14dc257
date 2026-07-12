@@ -5,14 +5,9 @@ import { Capacitor } from "@capacitor/core";
  * into a File the app can upload. Always resolves within a bounded time
  * so the UI can never hang after a successful scan.
  */
-export async function scannedPathToFile(
-  path: string,
-  filename: string,
-): Promise<File> {
+export async function scannedPathToFile(path: string, filename: string): Promise<File> {
   // Prefer converted URL on native; on web, use as-is.
-  const webPath = Capacitor.isNativePlatform()
-    ? Capacitor.convertFileSrc(path)
-    : path;
+  const webPath = Capacitor.isNativePlatform() ? Capacitor.convertFileSrc(path) : path;
 
   const blob = await fetchBlobWithTimeout(webPath, 20000).catch(async () => {
     // Fallback to XHR (some tablets fail fetch on content:// bridged URLs)

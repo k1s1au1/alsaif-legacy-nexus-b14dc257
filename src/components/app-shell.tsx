@@ -59,28 +59,49 @@ const navItems: { to: string; label: string; icon: any; adminOnly?: boolean }[] 
   { to: "/profile", label: "ملفي الشخصي", icon: User },
 ];
 
-function BottomNavItem({ to, label, icon, active, onClick }: { to: string, label: string, icon: any, active?: boolean, onClick?: () => void }) {
+function BottomNavItem({
+  to,
+  label,
+  icon,
+  active,
+  onClick,
+}: {
+  to: string;
+  label: string;
+  icon: any;
+  active?: boolean;
+  onClick?: () => void;
+}) {
   const content = (
     <>
-       {icon}
-       <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
+      {icon}
+      <span className="text-[9px] font-black uppercase tracking-widest">{label}</span>
     </>
   );
 
   if (onClick) {
     return (
-      <button onClick={onClick} className={cn("flex flex-col items-center gap-1 transition-all duration-300", active ? "text-gold-primary" : "text-white/40")}>
+      <button
+        onClick={onClick}
+        className={cn(
+          "flex flex-col items-center gap-1 transition-all duration-300",
+          active ? "text-gold-primary" : "text-white/40",
+        )}
+      >
         {content}
       </button>
     );
   }
 
   return (
-    <Link to={to} className={cn(
-      "flex flex-col items-center gap-1 transition-all duration-300",
-      active ? "text-gold-primary" : "text-white/40"
-    )}>
-       {content}
+    <Link
+      to={to}
+      className={cn(
+        "flex flex-col items-center gap-1 transition-all duration-300",
+        active ? "text-gold-primary" : "text-white/40",
+      )}
+    >
+      {content}
     </Link>
   );
 }
@@ -92,13 +113,17 @@ function QuickActionItem({ to, label, icon, color, onClick }: any) {
       onClick={onClick}
       className="flex flex-col items-center gap-3 group animate-fade-up"
     >
-       <div className={cn(
-         "size-16 rounded-[24px] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:scale-110",
-         color
-       )}>
-          {icon}
-       </div>
-       <span className="text-xs font-black text-white/70 group-hover:text-gold-primary transition-colors text-center leading-tight">{label}</span>
+      <div
+        className={cn(
+          "size-16 rounded-[24px] flex items-center justify-center text-white shadow-xl transition-all duration-500 group-hover:scale-110",
+          color,
+        )}
+      >
+        {icon}
+      </div>
+      <span className="text-xs font-black text-white/70 group-hover:text-gold-primary transition-colors text-center leading-tight">
+        {label}
+      </span>
     </Link>
   );
 }
@@ -106,57 +131,69 @@ function QuickActionItem({ to, label, icon, color, onClick }: any) {
 function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) {
   return (
     <DropdownMenu>
-       <DropdownMenuTrigger asChild>
-          <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
-             <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center">
-                <div className="md:hidden size-full p-1 flex items-center justify-center">
-                   {logo ? <img src={logo} className="size-full object-contain" /> : <Sparkles className="size-4 text-gold-primary" />}
-                </div>
-                <div className="hidden md:block size-full">
-                   <UserAvatar
-                     path={myAvatarPath}
-                     name={safeUser.name}
-                     initial={safeUser.initial}
-                     className="size-full rounded-full"
-                     userId={myUserId}
-                     presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
-                   />
-                </div>
-             </div>
-             <span className="text-[11px] md:text-[14px] font-black text-primary tracking-tight">{safeUser.name.split(' ')[0]}</span>
-             <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
-          </button>
-       </DropdownMenuTrigger>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
+          <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center">
+            <div className="md:hidden size-full p-1 flex items-center justify-center">
+              {logo ? (
+                <img src={logo} className="size-full object-contain" />
+              ) : (
+                <Sparkles className="size-4 text-gold-primary" />
+              )}
+            </div>
+            <div className="hidden md:block size-full">
+              <UserAvatar
+                path={myAvatarPath}
+                name={safeUser.name}
+                initial={safeUser.initial}
+                className="size-full rounded-full"
+                userId={myUserId}
+                presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
+              />
+            </div>
+          </div>
+          <span className="text-[11px] md:text-[14px] font-black text-primary tracking-tight">
+            {safeUser.name.split(" ")[0]}
+          </span>
+          <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
+        </button>
+      </DropdownMenuTrigger>
 
-       <DropdownMenuContent align="end" sideOffset={15} className="min-w-[240px] rounded-[24px] border-border bg-card/80 backdrop-blur-2xl p-2 text-right shadow-2xl">
-          <DropdownMenuLabel className="px-5 py-5 border-b border-muted mb-2">
-            <p className="text-[16px] font-black text-primary leading-tight">{safeUser.name}</p>
-            <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">{safeUser.role}</p>
-          </DropdownMenuLabel>
+      <DropdownMenuContent
+        align="end"
+        sideOffset={15}
+        className="min-w-[240px] rounded-[24px] border-border bg-card/80 backdrop-blur-2xl p-2 text-right shadow-2xl"
+      >
+        <DropdownMenuLabel className="px-5 py-5 border-b border-muted mb-2">
+          <p className="text-[16px] font-black text-primary leading-tight">{safeUser.name}</p>
+          <p className="text-[10px] text-muted-foreground uppercase font-black tracking-widest mt-1">
+            {safeUser.role}
+          </p>
+        </DropdownMenuLabel>
 
-          <Link to="/profile">
-            <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
-              <User size={18} />
-              <span>ملفي الشخصي</span>
-            </DropdownMenuItem>
-          </Link>
-          <Link to="/settings">
-            <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
-              <Settings size={18} />
-              <span>الإعدادات</span>
-            </DropdownMenuItem>
-          </Link>
-
-          <DropdownMenuSeparator className="bg-muted my-1" />
-
-          <DropdownMenuItem
-            onClick={signOut}
-            className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-50 focus:text-white cursor-pointer transition-all"
-          >
-            <LogOut size={18} />
-            <span>تسجيل الخروج</span>
+        <Link to="/profile">
+          <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
+            <User size={18} />
+            <span>ملفي الشخصي</span>
           </DropdownMenuItem>
-       </DropdownMenuContent>
+        </Link>
+        <Link to="/settings">
+          <DropdownMenuItem className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-foreground focus:bg-primary focus:text-white cursor-pointer transition-all">
+            <Settings size={18} />
+            <span>الإعدادات</span>
+          </DropdownMenuItem>
+        </Link>
+
+        <DropdownMenuSeparator className="bg-muted my-1" />
+
+        <DropdownMenuItem
+          onClick={signOut}
+          className="rounded-xl px-5 py-4 flex flex-row-reverse justify-between gap-3 text-[14px] font-bold text-red-600 focus:bg-red-50 focus:text-white cursor-pointer transition-all"
+        >
+          <LogOut size={18} />
+          <span>تسجيل الخروج</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
     </DropdownMenu>
   );
 }
@@ -203,9 +240,13 @@ export function AppShell({
 
   useEffect(() => {
     if (onlineUserIds.length > 0) {
-      supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", onlineUserIds).then(({ data }) => {
-        if (data) setOnlineUserProfiles(data);
-      });
+      supabase
+        .from("profiles")
+        .select("id, arabic_name, full_name, avatar_url")
+        .in("id", onlineUserIds)
+        .then(({ data }) => {
+          if (data) setOnlineUserProfiles(data);
+        });
     } else {
       setOnlineUserProfiles([]);
     }
@@ -214,7 +255,9 @@ export function AppShell({
   useEffect(() => {
     if (sidebarOpen || showQuickActions || showMoreHub) {
       document.body.style.overflow = "hidden";
-      return () => { document.body.style.overflow = "unset"; };
+      return () => {
+        document.body.style.overflow = "unset";
+      };
     }
   }, [sidebarOpen, showQuickActions, showMoreHub]);
 
@@ -245,13 +288,21 @@ export function AppShell({
 
         const [{ data: rolesData }, { data: profileData }] = await Promise.all([
           supabase.from("user_roles").select("role").eq("user_id", uid),
-          supabase.from("profiles").select("arabic_name, full_name, avatar_url").eq("id", uid).maybeSingle()
+          supabase
+            .from("profiles")
+            .select("arabic_name, full_name, avatar_url")
+            .eq("id", uid)
+            .maybeSingle(),
         ]);
 
-        const rs = (rolesData ?? []).map(x => x.role);
+        const rs = (rolesData ?? []).map((x) => x.role);
         setIsAdmin(rs.includes("admin") || rs.includes("manager") || rs.includes("chairman"));
 
-        const name = profileData?.arabic_name || profileData?.full_name || authData.user.email?.split("@")[0] || "عضو العائلة";
+        const name =
+          profileData?.arabic_name ||
+          profileData?.full_name ||
+          authData.user.email?.split("@")[0] ||
+          "عضو العائلة";
         setMyName(name);
 
         let roleLabelStr = "عضو";
@@ -283,7 +334,7 @@ export function AppShell({
     name: myName || "جاري التحميل...",
     role: myRole || "عضو",
     initial: (myName || "ع")[0].toUpperCase(),
-    avatarPath: myAvatarPath
+    avatarPath: myAvatarPath,
   };
 
   return (
@@ -291,7 +342,12 @@ export function AppShell({
       <div className="mesh-gradient-container">
         <div className="mesh-blob-1" />
         <div className="mesh-blob-2" />
-        <div className="absolute inset-0 opacity-[0.015] pointer-events-none" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/asfalt-dark.png")' }} />
+        <div
+          className="absolute inset-0 opacity-[0.015] pointer-events-none"
+          style={{
+            backgroundImage: 'url("https://www.transparenttextures.com/patterns/asfalt-dark.png")',
+          }}
+        />
       </div>
 
       <DynamicIsland />
@@ -299,7 +355,9 @@ export function AppShell({
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
             className="fixed inset-0 z-[110] bg-black/60 backdrop-blur-sm"
           />
@@ -317,22 +375,45 @@ export function AppShell({
       >
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative">
           <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
-            <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
+            <UserAvatar
+              path={myAvatarPath}
+              name={safeUser.name}
+              initial={safeUser.initial}
+              className="size-full rounded-full"
+              userId={myUserId}
+            />
           </div>
           <div className="text-center md:text-right">
             <h3 className="text-xl font-black text-primary tracking-tight">{safeUser.name}</h3>
-            <p className="text-[11px] text-gold-primary font-black uppercase tracking-[0.2em] mt-1">{safeUser.role}</p>
+            <p className="text-[11px] text-gold-primary font-black uppercase tracking-[0.2em] mt-1">
+              {safeUser.role}
+            </p>
           </div>
-          <button onClick={() => setSidebarOpen(false)} className="absolute top-4 left-4 p-2 text-primary"><X size={24} /></button>
+          <button
+            onClick={() => setSidebarOpen(false)}
+            className="absolute top-4 left-4 p-2 text-primary"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         <nav className="flex-1 px-4 py-8 space-y-2 overflow-y-auto no-scrollbar">
-          {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
-            <Link key={to} to={to} onClick={() => setSidebarOpen(false)} className={cn("flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[16px] font-bold gap-4", path === to ? "bg-primary text-white" : "text-foreground hover:bg-muted")}>
-              <Icon size={20} />
-              <span className="mr-auto">{label}</span>
-            </Link>
-          ))}
+          {navItems
+            .filter((item) => !item.adminOnly || isAdmin)
+            .map(({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                onClick={() => setSidebarOpen(false)}
+                className={cn(
+                  "flex flex-row-reverse items-center px-5 py-4 rounded-2xl text-[16px] font-bold gap-4",
+                  path === to ? "bg-primary text-white" : "text-foreground hover:bg-muted",
+                )}
+              >
+                <Icon size={20} />
+                <span className="mr-auto">{label}</span>
+              </Link>
+            ))}
         </nav>
       </motion.aside>
 
@@ -341,130 +422,172 @@ export function AppShell({
           initial={false}
           animate={{
             y: 0,
-            scale: (typeof window !== 'undefined' && window.innerWidth < 768 && headerCompact) ? 0.85 : 1
+            scale:
+              typeof window !== "undefined" && window.innerWidth < 768 && headerCompact ? 0.85 : 1,
           }}
-          className={cn("z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center")}
+          className={cn(
+            "z-[80] fixed top-4 inset-x-0 px-4 md:sticky md:top-0 md:inset-x-0 md:px-0 flex justify-center",
+          )}
         >
-           <header
-             onClick={() => headerCompact && setHeaderCompact(false)}
-             className={cn(
-               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
-               (headerCompact)
-                 ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                 : "h-14 bg-emerald-950/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
-               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none flex-row"
-             )}
-             dir="rtl"
-           >
-              {/* Identity Section (Mobile: Right/Start, Desktop: Left/End) */}
-              <div className={cn(
+          <header
+            onClick={() => headerCompact && setHeaderCompact(false)}
+            className={cn(
+              "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
+              headerCompact
+                ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                : "h-14 bg-emerald-950/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
+              "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none flex-row",
+            )}
+            dir="rtl"
+          >
+            {/* Identity Section (Mobile: Right/Start, Desktop: Left/End) */}
+            <div
+              className={cn(
                 "relative z-10 flex items-center gap-2 md:gap-4 transition-opacity duration-300",
-                headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100",
-                "order-first md:order-last"
-              )}>
-                 {/* Desktop specific: Clock -> Bell -> Profile */}
-                 <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 mr-2">
-                    <Clock className="size-3.5 text-gold-primary" />
-                    <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
-                       <LiveClock variant="time" />
-                       <div className="w-px h-3 bg-primary/10" />
-                       <LiveClock variant="date" />
+                headerCompact
+                  ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto"
+                  : "opacity-100",
+                "order-first md:order-last",
+              )}
+            >
+              {/* Desktop specific: Clock -> Bell -> Profile */}
+              <div className="hidden lg:flex items-center gap-3 px-4 py-1.5 rounded-full bg-primary/5 border border-primary/5 mr-2">
+                <Clock className="size-3.5 text-gold-primary" />
+                <div className="flex items-baseline gap-2 text-[11px] font-black text-primary">
+                  <LiveClock variant="time" />
+                  <div className="w-px h-3 bg-primary/10" />
+                  <LiveClock variant="date" />
+                </div>
+              </div>
+
+              <div className="hidden md:block mr-2">
+                <NotificationsBell />
+              </div>
+
+              <UserDropdown
+                safeUser={safeUser}
+                myAvatarPath={myAvatarPath}
+                myUserId={myUserId}
+                signOut={signOut}
+                logo={dynamicLogo}
+              />
+            </div>
+
+            {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
+              <AnimatePresence mode="wait">
+                {headerCompact ? (
+                  <motion.div
+                    key="compact"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
+                  >
+                    <Clock className="size-3 text-gold-primary" />
+                    <LiveClock variant="time" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="expanded"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -5 }}
+                    className="flex flex-col items-center gap-0.5 drop-shadow-lg"
+                  >
+                    <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
+                      <LiveClock variant="time" />
                     </div>
-                 </div>
+                    <div className="flex items-center gap-2">
+                      <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
+                        <LiveClock variant="date" />
+                      </div>
+                      <div className="h-2 w-px bg-white/20 md:hidden" />
+                      <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
+                        <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
+                        <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">
+                          {onlineCount} متصل الآن
+                        </span>
+                      </div>
+                    </div>
 
-                 <div className="hidden md:block mr-2">
-                    <NotificationsBell />
-                 </div>
+                    {/* Family Presence Radar - Floating Faces (Desktop only) */}
+                    <div className="hidden md:flex -space-x-2 mt-2">
+                      {onlineProfiles.slice(0, 5).map((p, i) => (
+                        <motion.div
+                          key={p.id}
+                          initial={{ scale: 0, x: 10 }}
+                          animate={{ scale: 1, x: 0 }}
+                          transition={{ delay: i * 0.1 }}
+                          className="size-5 rounded-full border border-white/20 overflow-hidden bg-emerald-950"
+                        >
+                          <UserAvatar
+                            path={p.avatar_url}
+                            name={p.arabic_name || p.full_name}
+                            className="size-full"
+                          />
+                        </motion.div>
+                      ))}
+                      {onlineCount > 5 && (
+                        <div className="size-5 rounded-full bg-emerald-900 border border-white/20 flex items-center justify-center text-[7px] font-black text-white">
+                          +{onlineCount - 5}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-                 <UserDropdown safeUser={safeUser} myAvatarPath={myAvatarPath} myUserId={myUserId} signOut={signOut} logo={dynamicLogo} />
-              </div>
-
-              {/* DYNAMIC ISLAND CENTER CONTENT - Hidden on Desktop */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none md:hidden">
-                 <AnimatePresence mode="wait">
-                    {headerCompact ? (
-                       <motion.div
-                         key="compact"
-                         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }}
-                         className="flex items-center gap-2 text-[13px] font-black text-white tabular-nums tracking-widest drop-shadow-md"
-                       >
-                          <Clock className="size-3 text-gold-primary" />
-                          <LiveClock variant="time" />
-                       </motion.div>
-                    ) : (
-                       <motion.div
-                         key="expanded"
-                         initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
-                         className="flex flex-col items-center gap-0.5 drop-shadow-lg"
-                       >
-                          <div className="text-[16px] font-black text-white tabular-nums leading-none tracking-tight">
-                             <LiveClock variant="time" />
-                          </div>
-                          <div className="flex items-center gap-2">
-                             <div className="text-[9px] font-bold text-gold-primary uppercase tracking-[0.2em] leading-none opacity-90">
-                                <LiveClock variant="date" />
-                             </div>
-                             <div className="h-2 w-px bg-white/20 md:hidden" />
-                             <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
-                                <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
-                                <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">{onlineCount} متصل الآن</span>
-                             </div>
-                          </div>
-
-                          {/* Family Presence Radar - Floating Faces (Desktop only) */}
-                          <div className="hidden md:flex -space-x-2 mt-2">
-                             {onlineProfiles.slice(0, 5).map((p, i) => (
-                                <motion.div
-                                  key={p.id}
-                                  initial={{ scale: 0, x: 10 }}
-                                  animate={{ scale: 1, x: 0 }}
-                                  transition={{ delay: i * 0.1 }}
-                                  className="size-5 rounded-full border border-white/20 overflow-hidden bg-emerald-950"
-                                >
-                                   <UserAvatar path={p.avatar_url} name={p.arabic_name || p.full_name} className="size-full" />
-                                </motion.div>
-                             ))}
-                             {onlineCount > 5 && (
-                                <div className="size-5 rounded-full bg-emerald-900 border border-white/20 flex items-center justify-center text-[7px] font-black text-white">
-                                   +{onlineCount - 5}
-                                </div>
-                             )}
-                          </div>
-                       </motion.div>
-                    )}
-                 </AnimatePresence>
-              </div>
-
-              {/* Sidebar/Logo Section (Mobile: Left/End, Desktop: Right/Start) */}
-              <div className={cn(
+            {/* Sidebar/Logo Section (Mobile: Left/End, Desktop: Right/Start) */}
+            <div
+              className={cn(
                 "flex items-center gap-2 md:gap-4 z-10 transition-opacity duration-300",
-                headerCompact ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto" : "opacity-100",
-                "order-last md:order-first"
-              )}>
-                 {/* Desktop: Sidebar (Far Right) -> Logo -> Title */}
-                 <button onClick={(e) => { e.stopPropagation(); setSidebarOpen(true); }} className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95 ml-2">
-                    <Menu className="size-6" />
-                 </button>
+                headerCompact
+                  ? "opacity-0 md:opacity-100 pointer-events-none md:pointer-events-auto"
+                  : "opacity-100",
+                "order-last md:order-first",
+              )}
+            >
+              {/* Desktop: Sidebar (Far Right) -> Logo -> Title */}
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSidebarOpen(true);
+                }}
+                className="hidden md:flex size-12 items-center justify-center rounded-2xl bg-primary text-primary-foreground hover:scale-105 transition-all shadow-lg active:scale-95 ml-2"
+              >
+                <Menu className="size-6" />
+              </button>
 
-                 <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
-                    <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
-                       {dynamicLogo ? <div className="size-full bg-contain bg-no-repeat bg-center" style={{ backgroundImage: `url(${dynamicLogo})` }} /> : <Sparkles className="size-4 text-gold-primary" />}
-                    </div>
-                    <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
-                 </div>
-
-                 {/* Mobile Notifications Bell (Left side) */}
-                 <div className="md:hidden">
-                    <NotificationsBell />
-                 </div>
+              <div className="hidden md:flex items-center gap-3 pr-4 h-10 border-r border-primary/10">
+                <div className="size-9 rounded-full bg-gold-primary/10 border border-gold-primary/20 flex items-center justify-center p-1.5">
+                  {dynamicLogo ? (
+                    <div
+                      className="size-full bg-contain bg-no-repeat bg-center"
+                      style={{ backgroundImage: `url(${dynamicLogo})` }}
+                    />
+                  ) : (
+                    <Sparkles className="size-4 text-gold-primary" />
+                  )}
+                </div>
+                <h1 className="text-lg font-black text-primary uppercase">{title}</h1>
               </div>
-           </header>
+
+              {/* Mobile Notifications Bell (Left side) */}
+              <div className="md:hidden">
+                <NotificationsBell />
+              </div>
+            </div>
+          </header>
         </motion.div>
 
-        <div className={cn(
-          "p-4 md:p-8 lg:p-12 pt-24 md:pt-6 mx-auto",
-          fullWidth ? "max-w-none w-full" : "max-w-7xl"
-        )}>
+        <div
+          className={cn(
+            "p-4 md:p-8 lg:p-12 pt-24 md:pt-6 mx-auto",
+            fullWidth ? "max-w-none w-full" : "max-w-7xl",
+          )}
+        >
           {children}
         </div>
 
@@ -478,42 +601,65 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-               <nav className="h-16 w-full max-w-sm bg-emerald-950/95 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
-                  {/* Subtle Sheen Effect */}
-                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+              <nav className="h-16 w-full max-w-sm bg-emerald-950/95 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
+                {/* Subtle Sheen Effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
-                  <BottomNavItem to="/dashboard" label="الرئيسية" icon={<Home size={20} />} active={path === "/dashboard"} />
-                  <BottomNavItem to="/settings" label="الأعدادات" icon={<Settings size={20} />} active={path === "/settings"} />
+                <BottomNavItem
+                  to="/dashboard"
+                  label="الرئيسية"
+                  icon={<Home size={20} />}
+                  active={path === "/dashboard"}
+                />
+                <BottomNavItem
+                  to="/settings"
+                  label="الأعدادات"
+                  icon={<Settings size={20} />}
+                  active={path === "/settings"}
+                />
 
-                  {/* PULSING CENTRAL LOGO */}
-                  <div className="relative">
-                    <motion.div
-                      animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
-                      transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                      className="absolute inset-0 rounded-full bg-gold-primary blur-md"
-                    />
-                    <button
-                      onClick={() => setShowQuickActions(true)}
-                      className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-6 border-[5px] border-emerald-950/60 p-2 relative z-10 active:scale-90 transition-transform"
-                    >
-                       <LayoutGrid className="text-emerald-950 size-7" strokeWidth={2.5} />
-                    </button>
-                  </div>
-
-                  {isAdmin ? (
-                    <BottomNavItem to="/admin" label="الإدارة" icon={<ShieldCheck size={20} />} active={path === "/admin"} />
-                  ) : (
-                    <BottomNavItem to="/majlis" label="الأخبار" icon={<Newspaper size={20} />} active={path === "/majlis"} />
-                  )}
-
+                {/* PULSING CENTRAL LOGO */}
+                <div className="relative">
+                  <motion.div
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                    className="absolute inset-0 rounded-full bg-gold-primary blur-md"
+                  />
                   <button
-                    onClick={() => setShowMoreHub(true)}
-                    className={cn("flex flex-col items-center gap-1 transition-all duration-300", showMoreHub ? "text-gold-primary" : "text-white/40")}
+                    onClick={() => setShowQuickActions(true)}
+                    className="size-14 rounded-full bg-white shadow-2xl flex items-center justify-center -mt-6 border-[5px] border-emerald-950/60 p-2 relative z-10 active:scale-90 transition-transform"
                   >
-                     <MoreHorizontal size={20} />
-                     <span className="text-[9px] font-black uppercase">المزيد</span>
+                    <LayoutGrid className="text-emerald-950 size-7" strokeWidth={2.5} />
                   </button>
-               </nav>
+                </div>
+
+                {isAdmin ? (
+                  <BottomNavItem
+                    to="/admin"
+                    label="الإدارة"
+                    icon={<ShieldCheck size={20} />}
+                    active={path === "/admin"}
+                  />
+                ) : (
+                  <BottomNavItem
+                    to="/majlis"
+                    label="الأخبار"
+                    icon={<Newspaper size={20} />}
+                    active={path === "/majlis"}
+                  />
+                )}
+
+                <button
+                  onClick={() => setShowMoreHub(true)}
+                  className={cn(
+                    "flex flex-col items-center gap-1 transition-all duration-300",
+                    showMoreHub ? "text-gold-primary" : "text-white/40",
+                  )}
+                >
+                  <MoreHorizontal size={20} />
+                  <span className="text-[9px] font-black uppercase">المزيد</span>
+                </button>
+              </nav>
             </motion.div>
           )}
         </AnimatePresence>
@@ -522,82 +668,104 @@ export function AppShell({
         <AnimatePresence>
           {showMoreHub && (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/40 md:backdrop-blur-sm"
               onClick={() => setShowMoreHub(false)}
             >
-               <motion.div
-                 drag="y"
-                 dragConstraints={{ top: 0 }}
-                 dragElastic={0.1}
-                 onDragEnd={(_, info) => {
-                   if (info.offset.y > 80) setShowMoreHub(false);
-                 }}
-                 initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-                 className={cn(
-                    "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
-                    "touch-none relative overflow-hidden will-change-transform"
-                 )}
-                 onClick={e => e.stopPropagation()}
-                 dir="rtl"
-               >
-                  {/* Subtle Texture */}
-                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-multiply"
-                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")` }} />
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0 }}
+                dragElastic={0.1}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 80) setShowMoreHub(false);
+                }}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+                className={cn(
+                  "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
+                  "touch-none relative overflow-hidden will-change-transform",
+                )}
+                onClick={(e) => e.stopPropagation()}
+                dir="rtl"
+              >
+                {/* Subtle Texture */}
+                <div
+                  className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-multiply"
+                  style={{
+                    backgroundImage: `url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")`,
+                  }}
+                />
 
-                  <div className="relative z-10 w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-2 opacity-50" />
+                <div className="relative z-10 w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-2 opacity-50" />
 
-                  {/* User Profile Section */}
-                  <div className="relative z-10 flex items-center gap-5 p-2">
-                     <div className="size-16 rounded-full ring-4 ring-white/10 p-0.5 bg-white/5 shadow-sm">
-                        <UserAvatar path={myAvatarPath} name={safeUser.name} initial={safeUser.initial} className="size-full rounded-full" userId={myUserId} />
-                     </div>
-                     <div className="space-y-0.5">
-                        <h3 className="text-xl font-black text-white leading-tight">{safeUser.name}</h3>
-                        <div className="inline-flex px-2.5 py-0.5 rounded-full bg-gold-primary/20 border border-gold-primary/20 text-gold-primary text-[9px] font-black uppercase tracking-widest">
-                           {safeUser.role}
-                        </div>
-                     </div>
+                {/* User Profile Section */}
+                <div className="relative z-10 flex items-center gap-5 p-2">
+                  <div className="size-16 rounded-full ring-4 ring-white/10 p-0.5 bg-white/5 shadow-sm">
+                    <UserAvatar
+                      path={myAvatarPath}
+                      name={safeUser.name}
+                      initial={safeUser.initial}
+                      className="size-full rounded-full"
+                      userId={myUserId}
+                    />
                   </div>
-
-                  {/* Navigation Links Grid */}
-                  <div className="relative z-10 grid grid-cols-1 gap-2.5">
-                     {navItems.filter(item => !item.adminOnly || isAdmin).map(({ to, label, icon: Icon }) => (
-                       <Link
-                         key={to} to={to}
-                         onClick={() => setShowMoreHub(false)}
-                         className={cn(
-                           "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
-                           path === to ? "bg-gold-primary text-emerald-950 shadow-lg" : "bg-white/5 text-white/80 hover:bg-white/10 border border-white/5"
-                         )}
-                       >
-                         <div className="flex items-center gap-4 flex-row-reverse">
-                           <Icon size={20} strokeWidth={2.5} />
-                           <span className="text-[15px] tracking-tight">{label}</span>
-                         </div>
-                         <ChevronLeft size={18} className={path === to ? "opacity-60" : "opacity-20"} />
-                       </Link>
-                     ))}
+                  <div className="space-y-0.5">
+                    <h3 className="text-xl font-black text-white leading-tight">{safeUser.name}</h3>
+                    <div className="inline-flex px-2.5 py-0.5 rounded-full bg-gold-primary/20 border border-gold-primary/20 text-gold-primary text-[9px] font-black uppercase tracking-widest">
+                      {safeUser.role}
+                    </div>
                   </div>
+                </div>
 
-                  {/* Bottom Actions */}
-                  <div className="relative z-10 pt-4 flex gap-3">
-                     <button
-                        onClick={signOut}
-                        className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[22px] bg-rose-500 text-white font-black text-xs shadow-lg active:scale-95 transition-all"
-                     >
-                        <LogOut size={18} />
-                        <span>تسجيل الخروج</span>
-                     </button>
-                     <button
+                {/* Navigation Links Grid */}
+                <div className="relative z-10 grid grid-cols-1 gap-2.5">
+                  {navItems
+                    .filter((item) => !item.adminOnly || isAdmin)
+                    .map(({ to, label, icon: Icon }) => (
+                      <Link
+                        key={to}
+                        to={to}
                         onClick={() => setShowMoreHub(false)}
-                        className="flex-1 flex items-center justify-center py-4 rounded-[22px] bg-white/10 text-white font-black text-xs border border-white/10 active:scale-95 transition-all"
-                     >
-                        إغلاق
-                     </button>
-                  </div>
-               </motion.div>
+                        className={cn(
+                          "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
+                          path === to
+                            ? "bg-gold-primary text-emerald-950 shadow-lg"
+                            : "bg-white/5 text-white/80 hover:bg-white/10 border border-white/5",
+                        )}
+                      >
+                        <div className="flex items-center gap-4 flex-row-reverse">
+                          <Icon size={20} strokeWidth={2.5} />
+                          <span className="text-[15px] tracking-tight">{label}</span>
+                        </div>
+                        <ChevronLeft
+                          size={18}
+                          className={path === to ? "opacity-60" : "opacity-20"}
+                        />
+                      </Link>
+                    ))}
+                </div>
+
+                {/* Bottom Actions */}
+                <div className="relative z-10 pt-4 flex gap-3">
+                  <button
+                    onClick={signOut}
+                    className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[22px] bg-rose-500 text-white font-black text-xs shadow-lg active:scale-95 transition-all"
+                  >
+                    <LogOut size={18} />
+                    <span>تسجيل الخروج</span>
+                  </button>
+                  <button
+                    onClick={() => setShowMoreHub(false)}
+                    className="flex-1 flex items-center justify-center py-4 rounded-[22px] bg-white/10 text-white font-black text-xs border border-white/10 active:scale-95 transition-all"
+                  >
+                    إغلاق
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
@@ -606,62 +774,150 @@ export function AppShell({
         <AnimatePresence>
           {showQuickActions && (
             <motion.div
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               className="fixed inset-0 z-[160] flex flex-col justify-end bg-black/40 md:backdrop-blur-sm"
               onClick={() => setShowQuickActions(false)}
             >
-               <motion.div
-                 drag="y"
-                 dragConstraints={{ top: 0 }}
-                 dragElastic={0.1}
-                 onDragEnd={(_, info) => {
-                   if (info.offset.y > 80) setShowQuickActions(false);
-                 }}
-                 initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
-              transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
-                 className={cn(
-                    "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
-                    "touch-none relative overflow-hidden will-change-transform"
-                 )}
-                 onClick={e => e.stopPropagation()}
-                 dir="rtl"
-               >
-                  {/* Subtle Texture Overlay */}
-                  <div className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-overlay"
-                       style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")` }} />
+              <motion.div
+                drag="y"
+                dragConstraints={{ top: 0 }}
+                dragElastic={0.1}
+                onDragEnd={(_, info) => {
+                  if (info.offset.y > 80) setShowQuickActions(false);
+                }}
+                initial={{ y: "100%" }}
+                animate={{ y: 0 }}
+                exit={{ y: "100%" }}
+                transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
+                className={cn(
+                  "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
+                  "touch-none relative overflow-hidden will-change-transform",
+                )}
+                onClick={(e) => e.stopPropagation()}
+                dir="rtl"
+              >
+                {/* Subtle Texture Overlay */}
+                <div
+                  className="absolute inset-0 opacity-[0.06] pointer-events-none mix-blend-overlay"
+                  style={{
+                    backgroundImage: `url("https://www.transparenttextures.com/patterns/pinstriped-suit.png")`,
+                  }}
+                />
 
-                  <div className="relative z-10 w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2 opacity-50" />
+                <div className="relative z-10 w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-2 opacity-50" />
 
-                  <div className="relative z-10 text-center space-y-1">
-                     <h3 className="text-2xl font-black text-white">الوصول السريع</h3>
-                     <p className="text-white/40 font-bold uppercase tracking-widest text-[9px]">بوابة مجلس السيف الرقمية</p>
-                  </div>
+                <div className="relative z-10 text-center space-y-1">
+                  <h3 className="text-2xl font-black text-white">الوصول السريع</h3>
+                  <p className="text-white/40 font-bold uppercase tracking-widest text-[9px]">
+                    بوابة مجلس السيف الرقمية
+                  </p>
+                </div>
 
-                  <div className="relative z-10 grid grid-cols-3 gap-y-8 gap-x-4">
-                     <QuickActionItem to="/chat" label="محادثة" icon={<MessageCircle size={28} />} color="bg-[#065F46]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/trips" label="ترفيه" icon={<Ticket size={28} />} color="bg-[#D4AF37]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/meetings" label="اجتماعات" icon={<CalendarDays size={28} />} color="bg-[#1B3022]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/tasks" label="مهام" icon={<ListChecks size={28} />} color="bg-[#947D4C]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/majlis" label="الأخبار" icon={<Newspaper size={28} />} color="bg-[#064E3B]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/community" label="ركن الأعضاء" icon={<Users size={28} />} color="bg-[#3D8557]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/archive" label="الألبوم" icon={<Archive size={28} />} color="bg-[#C5A87C]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/heritage" label="الإرث" icon={<History size={28} />} color="bg-[#8E7745]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/family-tree" label="شجرة العائلة" icon={<Trees size={28} />} color="bg-[#153221]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/vault" label="الخزنة" icon={<Lock size={28} />} color="bg-[#7c2d12]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/finance" label="الصندوق" icon={<Wallet size={28} />} color="bg-[#BF953F]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/profile" label="ملفي" icon={<User size={28} />} color="bg-[#043A2B]" onClick={() => setShowQuickActions(false)} />
-                     <QuickActionItem to="/settings" label="الأعدادات" icon={<Settings size={28} />} color="bg-primary" onClick={() => setShowQuickActions(false)} />
-                  </div>
+                <div className="relative z-10 grid grid-cols-3 gap-y-8 gap-x-4">
+                  <QuickActionItem
+                    to="/chat"
+                    label="محادثة"
+                    icon={<MessageCircle size={28} />}
+                    color="bg-[#065F46]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/trips"
+                    label="ترفيه"
+                    icon={<Ticket size={28} />}
+                    color="bg-[#D4AF37]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/meetings"
+                    label="اجتماعات"
+                    icon={<CalendarDays size={28} />}
+                    color="bg-[#1B3022]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/tasks"
+                    label="مهام"
+                    icon={<ListChecks size={28} />}
+                    color="bg-[#947D4C]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/majlis"
+                    label="الأخبار"
+                    icon={<Newspaper size={28} />}
+                    color="bg-[#064E3B]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/community"
+                    label="ركن الأعضاء"
+                    icon={<Users size={28} />}
+                    color="bg-[#3D8557]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/archive"
+                    label="الألبوم"
+                    icon={<Archive size={28} />}
+                    color="bg-[#C5A87C]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/heritage"
+                    label="الإرث"
+                    icon={<History size={28} />}
+                    color="bg-[#8E7745]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/family-tree"
+                    label="شجرة العائلة"
+                    icon={<Trees size={28} />}
+                    color="bg-[#153221]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/vault"
+                    label="الخزنة"
+                    icon={<Lock size={28} />}
+                    color="bg-[#7c2d12]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/finance"
+                    label="الصندوق"
+                    icon={<Wallet size={28} />}
+                    color="bg-[#BF953F]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/profile"
+                    label="ملفي"
+                    icon={<User size={28} />}
+                    color="bg-[#043A2B]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/settings"
+                    label="الأعدادات"
+                    icon={<Settings size={28} />}
+                    color="bg-primary"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                </div>
 
-                  <div className="relative z-10 pt-4">
-                     <button
-                        onClick={() => setShowQuickActions(false)}
-                        className="w-full py-4 rounded-[22px] bg-white/5 text-white/60 font-black text-xs border border-white/10 active:scale-95 transition-all"
-                     >
-                        إغلاق
-                     </button>
-                  </div>
-               </motion.div>
+                <div className="relative z-10 pt-4">
+                  <button
+                    onClick={() => setShowQuickActions(false)}
+                    className="w-full py-4 rounded-[22px] bg-white/5 text-white/60 font-black text-xs border border-white/10 active:scale-95 transition-all"
+                  >
+                    إغلاق
+                  </button>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>

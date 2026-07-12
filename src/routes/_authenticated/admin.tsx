@@ -29,7 +29,7 @@ import {
   Newspaper,
   Pencil,
   Megaphone,
-  BarChart3
+  BarChart3,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -77,8 +77,18 @@ const REQ_TABS = [
 
 // Main Admin Page Component for Alsaif Family Hub
 function AdminPage() {
-  const { userId: meId, isAdmin: isSystemAdmin, isChairman: isSiteChairman, isPrivileged: isA } = useUserRole();
-  const [profile, setProfile] = useState({ name: "...", role: "...", initial: "ص", avatarPath: null as string | null });
+  const {
+    userId: meId,
+    isAdmin: isSystemAdmin,
+    isChairman: isSiteChairman,
+    isPrivileged: isA,
+  } = useUserRole();
+  const [profile, setProfile] = useState({
+    name: "...",
+    role: "...",
+    initial: "ص",
+    avatarPath: null as string | null,
+  });
   const [isChair, setIsChair] = useState(false);
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
@@ -87,8 +97,14 @@ function AdminPage() {
   const [bugReports, setBugReports] = useState<any[]>([]);
   const [polls, setPolls] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"requests" | "members" | "member_requests" | "polls" | "bugs">("requests");
-  const [reqCounts, setReqCounts] = useState<Record<string, number>>({ pending: 0, approved: 0, rejected: 0 });
+  const [tab, setTab] = useState<"requests" | "members" | "member_requests" | "polls" | "bugs">(
+    "requests",
+  );
+  const [reqCounts, setReqCounts] = useState<Record<string, number>>({
+    pending: 0,
+    approved: 0,
+    rejected: 0,
+  });
   const [fcmTokenCount, setFcmTokenCount] = useState(0);
   const [memberSearch, setMemberSearch] = useState("");
   const [updatingRole, setUpdatingRole] = useState<string | null>(null);
@@ -110,7 +126,13 @@ function AdminPage() {
     if (!meId) return;
     setLoading(true);
     try {
-      const { data: p } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, first_name, father_name, grandfather_name").eq("id", meId).maybeSingle();
+      const { data: p } = await supabase
+        .from("profiles")
+        .select(
+          "id, arabic_name, full_name, avatar_url, is_active, first_name, father_name, grandfather_name",
+        )
+        .eq("id", meId)
+        .maybeSingle();
 
       setIsChair(isSiteChairman || isSystemAdmin);
 
@@ -119,20 +141,48 @@ function AdminPage() {
           name: p.arabic_name || p.full_name || "عضو",
           role: roleLabel(isSiteChairman ? "chairman" : isSystemAdmin ? "admin" : "manager"),
           initial: (p.arabic_name?.[0] || "ع").toUpperCase(),
-          avatarPath: p.avatar_url
+          avatarPath: p.avatar_url,
         });
       }
 
       if (isA) {
         try {
-          const [{ data: reqs }, { data: mems, error: memErr }, { data: allRoles }, { data: allHeads }, { data: mreqs }, { data: bugs }, { data: pollList }] = await Promise.all([
+          const [
+            { data: reqs },
+            { data: mems, error: memErr },
+            { data: allRoles },
+            { data: allHeads },
+            { data: mreqs },
+            { data: bugs },
+            { data: pollList },
+          ] = await Promise.all([
             supabase.from("account_requests").select("*").order("created_at", { ascending: false }),
-            supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").order("full_name"),
+            supabase
+              .from("profiles")
+              .select(
+                "id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at",
+              )
+              .order("full_name"),
             supabase.from("user_roles").select("user_id, role"),
             supabase.from("section_heads" as any).select("user_id, section"),
-            isSiteChairman ? supabase.from("member_posts" as any).select("*").eq("kind", "request").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
-            (isSystemAdmin || isSiteChairman) ? supabase.from("bug_reports" as any).select("*").order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
-            supabase.from("majlis_posts").select("*").like("body", "%---poll:%").order("created_at", { ascending: false }),
+            isSiteChairman
+              ? supabase
+                  .from("member_posts" as any)
+                  .select("*")
+                  .eq("kind", "request")
+                  .order("created_at", { ascending: false })
+              : Promise.resolve({ data: [] }),
+            isSystemAdmin || isSiteChairman
+              ? supabase
+                  .from("bug_reports" as any)
+                  .select("*")
+                  .order("created_at", { ascending: false })
+              : Promise.resolve({ data: [] }),
+            supabase
+              .from("majlis_posts")
+              .select("*")
+              .like("body", "%---poll:%")
+              .order("created_at", { ascending: false }),
           ]);
 
           if (memErr) {
@@ -151,44 +201,54 @@ function AdminPage() {
               arr.push(h.section);
               headsByUser.set(h.user_id, arr);
             });
-            setMembers((mems || []).map((m: any) => ({
-              ...m,
-              user_roles: rolesByUser.get(m.id) || [],
-              section_heads: headsByUser.get(m.id) || [],
-            })));
+            setMembers(
+              (mems || []).map((m: any) => ({
+                ...m,
+                user_roles: rolesByUser.get(m.id) || [],
+                section_heads: headsByUser.get(m.id) || [],
+              })),
+            );
           }
 
           setPendingReqs(reqs || []);
           setPolls(pollList || []);
           // Enrich member requests with author profile
           const mreqList = (mreqs as any[]) || [];
-          const aids = Array.from(new Set(mreqList.map(p => p.author_id).filter(Boolean)));
+          const aids = Array.from(new Set(mreqList.map((p) => p.author_id).filter(Boolean)));
           const authMap = new Map<string, any>();
           if (aids.length) {
-            const { data: aps } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", aids);
+            const { data: aps } = await supabase
+              .from("profiles")
+              .select("id, arabic_name, full_name, avatar_url")
+              .in("id", aids);
             (aps || []).forEach((a: any) => authMap.set(a.id, a));
           }
-          setMemberRequests(mreqList.map(p => ({ ...p, author: authMap.get(p.author_id) || null })));
+          setMemberRequests(
+            mreqList.map((p) => ({ ...p, author: authMap.get(p.author_id) || null })),
+          );
 
           // Enrich bug reports with reporter profile
           const bugList = (bugs as any[]) || [];
-          const bids = Array.from(new Set(bugList.map(b => b.reporter_id).filter(Boolean)));
+          const bids = Array.from(new Set(bugList.map((b) => b.reporter_id).filter(Boolean)));
           const bMap = new Map<string, any>();
           if (bids.length) {
-            const { data: bps } = await supabase.from("profiles").select("id, arabic_name, full_name, avatar_url").in("id", bids);
+            const { data: bps } = await supabase
+              .from("profiles")
+              .select("id, arabic_name, full_name, avatar_url")
+              .in("id", bids);
             (bps || []).forEach((a: any) => bMap.set(a.id, a));
           }
-          setBugReports(bugList.map(b => ({ ...b, reporter: bMap.get(b.reporter_id) || null })));
+          setBugReports(bugList.map((b) => ({ ...b, reporter: bMap.get(b.reporter_id) || null })));
 
           // Fetch FCM Token Count via security-definer RPC (admin/chairman only)
           const { data: tcCount } = await supabase.rpc("count_fcm_tokens" as any);
           setFcmTokenCount((tcCount as number | null) ?? 0);
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
-          (reqs || []).forEach(r => {
-             if (counts[r.status as keyof typeof counts] !== undefined) {
-                counts[r.status as keyof typeof counts]++;
-             }
+          (reqs || []).forEach((r) => {
+            if (counts[r.status as keyof typeof counts] !== undefined) {
+              counts[r.status as keyof typeof counts]++;
+            }
           });
           setReqCounts(counts);
         } catch (err) {
@@ -201,7 +261,9 @@ function AdminPage() {
     }
   }, [meId, isA, isSystemAdmin, isSiteChairman]);
 
-  useEffect(() => { loadData(); }, [loadData]);
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
 
   // "Member requests" tab is chairman-only; fall back to requests if not chairman
   useEffect(() => {
@@ -236,11 +298,13 @@ function AdminPage() {
   const assignRole = async (uid: string, role: string) => {
     // Constraint: Max 2 Technical Admins (admin role)
     if (role === "admin") {
-      const currentAdmins = members.filter(m => {
-        const r = Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member');
+      const currentAdmins = members.filter((m) => {
+        const r = Array.isArray(m.user_roles)
+          ? m.user_roles[0]?.role
+          : m.user_roles?.role || "member";
         return r === "admin";
       });
-      if (currentAdmins.length >= 2 && !currentAdmins.find(a => a.id === uid)) {
+      if (currentAdmins.length >= 2 && !currentAdmins.find((a) => a.id === uid)) {
         toast.error("عذراً، لا يمكن تعيين أكثر من 2 مسؤولين تقنيين في النظام.");
         return;
       }
@@ -248,11 +312,13 @@ function AdminPage() {
 
     // Constraint: Max 2 Chairmen (chairman role)
     if (role === "chairman") {
-      const currentChairmen = members.filter(m => {
-        const r = Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member');
+      const currentChairmen = members.filter((m) => {
+        const r = Array.isArray(m.user_roles)
+          ? m.user_roles[0]?.role
+          : m.user_roles?.role || "member";
         return r === "chairman";
       });
-      if (currentChairmen.length >= 2 && !currentChairmen.find(c => c.id === uid)) {
+      if (currentChairmen.length >= 2 && !currentChairmen.find((c) => c.id === uid)) {
         toast.error("عذراً، لا يمكن تعيين أكثر من 2 رؤساء مجلس في النظام.");
         return;
       }
@@ -264,12 +330,14 @@ function AdminPage() {
       toast.success("تم تحديث الصلاحية بنجاح");
 
       // Update local state immediately for better UX
-      setMembers(prev => prev.map(m => {
-        if (m.id === uid) {
-          return { ...m, user_roles: [{ role }] };
-        }
-        return m;
-      }));
+      setMembers((prev) =>
+        prev.map((m) => {
+          if (m.id === uid) {
+            return { ...m, user_roles: [{ role }] };
+          }
+          return m;
+        }),
+      );
 
       await loadData();
     } catch (err: any) {
@@ -293,17 +361,28 @@ function AdminPage() {
   const toggleSectionHead = async (uid: string, section: string, currentlyHead: boolean) => {
     try {
       if (currentlyHead) {
-        const { error } = await supabase.from("section_heads" as any).delete().eq("user_id", uid).eq("section", section);
+        const { error } = await supabase
+          .from("section_heads" as any)
+          .delete()
+          .eq("user_id", uid)
+          .eq("section", section);
         if (error) throw error;
       } else {
-        const { error } = await supabase.from("section_heads" as any).insert({ user_id: uid, section } as any);
+        const { error } = await supabase
+          .from("section_heads" as any)
+          .insert({ user_id: uid, section } as any);
         if (error) throw error;
       }
-      setMembers(prev => prev.map(m => {
-        if (m.id !== uid) return m;
-        const cur: string[] = m.section_heads || [];
-        return { ...m, section_heads: currentlyHead ? cur.filter(s => s !== section) : [...cur, section] };
-      }));
+      setMembers((prev) =>
+        prev.map((m) => {
+          if (m.id !== uid) return m;
+          const cur: string[] = m.section_heads || [];
+          return {
+            ...m,
+            section_heads: currentlyHead ? cur.filter((s) => s !== section) : [...cur, section],
+          };
+        }),
+      );
       toast.success("تم تحديث مسؤولية القسم");
     } catch (err: any) {
       toast.error("فشل التحديث: " + (err.message || ""));
@@ -318,7 +397,9 @@ function AdminPage() {
       const { error: upErr } = await supabase.storage.from("trip-images").upload(path, file);
       if (upErr) throw upErr;
 
-      const { data: sign } = await supabase.storage.from("trip-images").createSignedUrl(path, 60 * 60 * 24 * 365);
+      const { data: sign } = await supabase.storage
+        .from("trip-images")
+        .createSignedUrl(path, 60 * 60 * 24 * 365);
       setAnnImagePreview(sign?.signedUrl || URL.createObjectURL(file));
       setAnnImage(file);
     } catch (err: any) {
@@ -346,14 +427,17 @@ function AdminPage() {
       }
 
       if (annDraft.id) {
-        const { error } = await supabase.from("majlis_posts").update({ title: annDraft.title, body }).eq("id", annDraft.id);
+        const { error } = await supabase
+          .from("majlis_posts")
+          .update({ title: annDraft.title, body })
+          .eq("id", annDraft.id);
         if (error) throw error;
       } else {
         const { error } = await supabase.from("majlis_posts").insert({
           title: annDraft.title,
           body,
           kind: "announcement",
-          author_id: meId!
+          author_id: meId!,
         });
         if (error) throw error;
       }
@@ -365,8 +449,8 @@ function AdminPage() {
           data: {
             title: "📢 إعلان رسمي جديد",
             body: annDraft.title,
-          }
-        }).catch(err => console.warn("FCM error:", err));
+          },
+        }).catch((err) => console.warn("FCM error:", err));
       }
 
       setAnnDraft({ id: "", title: "", body: "" });
@@ -382,9 +466,14 @@ function AdminPage() {
     }
   };
 
-  if (loading && !profile.name) return <div className="h-screen flex items-center justify-center bg-background"><Loader2 className="animate-spin size-10 text-primary" /></div>;
+  if (loading && !profile.name)
+    return (
+      <div className="h-screen flex items-center justify-center bg-background">
+        <Loader2 className="animate-spin size-10 text-primary" />
+      </div>
+    );
 
-  const filteredMembers = members.filter(m => {
+  const filteredMembers = members.filter((m) => {
     const fn = (m.full_name || "").toLowerCase();
     const an = (m.arabic_name || "").toLowerCase();
     const s = memberSearch.toLowerCase();
@@ -394,7 +483,6 @@ function AdminPage() {
   return (
     <AppShell title="الإدارة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-24" dir="rtl">
-
         <section className="animate-fade-up px-4 md:px-0">
           <div className="relative overflow-hidden rounded-[32px] md:rounded-[48px] bg-gradient-to-br from-primary via-emerald-950 to-black p-6 md:p-12 text-white shadow-2xl border border-white/5 group">
             <div className="absolute left-4 md:left-10 top-1/2 -translate-y-1/2 opacity-20 pointer-events-none z-1 transition-transform duration-1000 group-hover:scale-110 group-hover:opacity-40">
@@ -410,10 +498,16 @@ function AdminPage() {
               <div className="space-y-3 md:space-y-5 text-center md:text-right">
                 <div className="flex items-center justify-center md:justify-start gap-3">
                   <div className="h-0.5 w-8 md:w-12 bg-gold-primary shadow-[0_0_10px_rgba(212,175,55,0.6)]" />
-                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">إدارة المجلس</span>
+                  <span className="text-[9px] md:text-xs font-black uppercase tracking-[0.4em] text-gold-primary">
+                    إدارة المجلس
+                  </span>
                 </div>
-                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">لوحة الإدارة</h2>
-                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">إدارة طلبات الانضمام، الصلاحيات، ونظام الشورى.</p>
+                <h2 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight drop-shadow-2xl">
+                  لوحة الإدارة
+                </h2>
+                <p className="text-white/60 font-bold text-sm md:text-xl max-w-xl">
+                  إدارة طلبات الانضمام، الصلاحيات، ونظام الشورى.
+                </p>
               </div>
               <div className="size-16 md:size-28 rounded-2xl md:rounded-[36px] bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl self-center md:self-auto shrink-0 group-hover:rotate-12 transition-transform duration-700">
                 <Shield className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
@@ -421,144 +515,229 @@ function AdminPage() {
             </div>
 
             <div className="mt-8 flex justify-center md:justify-end">
-               <button
-                 onClick={async () => {
-                    const { success, error } = (await sendFcm({
-                     data: {
-                       title: "🔔 تجربة إشعارات الأخبار",
-                       body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                     }
-                    })) as any;
-                   if (success) toast.success("جاري إرسال الإشعار التجريبي...");
-                   else toast.error("فشل الإرسال: " + error);
-                 }}
-                 className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-gold-primary hover:text-black transition-all text-xs font-black border border-white/10 flex items-center gap-2"
-               >
-                 <Megaphone className="size-4" /> اختبار نظام الإشعارات
-               </button>
+              <button
+                onClick={async () => {
+                  const { success, error } = (await sendFcm({
+                    data: {
+                      title: "🔔 تجربة إشعارات الأخبار",
+                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                    },
+                  })) as any;
+                  if (success) toast.success("جاري إرسال الإشعار التجريبي...");
+                  else toast.error("فشل الإرسال: " + error);
+                }}
+                className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-gold-primary hover:text-black transition-all text-xs font-black border border-white/10 flex items-center gap-2"
+              >
+                <Megaphone className="size-4" /> اختبار نظام الإشعارات
+              </button>
             </div>
           </div>
         </section>
 
         {isA && (
           <div className="px-4 md:px-0 flex flex-col md:flex-row items-center justify-between gap-4">
-             <div className="flex items-center gap-3 bg-primary/5 px-6 py-2.5 rounded-xl border border-primary/10">
-                <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-[10px] font-black text-primary uppercase tracking-widest">الأجهزة المسجلة: {fcmTokenCount}</span>
-             </div>
-             <button
-               onClick={async () => {
-                 toast.loading("جاري إرسال الإشعار...");
-                   const res = (await sendFcm({
-                    data: {
-                      title: "🔔 تجربة إشعارات الأخبار",
-                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                    }
-                  })) as any;
-                 toast.dismiss();
-                 if (res.success) toast.success(`تم الإرسال لـ ${res.count || 0} جهاز`);
-                 else toast.error(res.error || "فشل الإرسال");
-               }}
-               className="btn-gold px-8 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-3 active:scale-95 transition-all"
-             >
-               <Megaphone className="size-5" /> إرسال إشعار تجريبي (FCM)
-             </button>
+            <div className="flex items-center gap-3 bg-primary/5 px-6 py-2.5 rounded-xl border border-primary/10">
+              <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
+                الأجهزة المسجلة: {fcmTokenCount}
+              </span>
+            </div>
+            <button
+              onClick={async () => {
+                toast.loading("جاري إرسال الإشعار...");
+                const res = (await sendFcm({
+                  data: {
+                    title: "🔔 تجربة إشعارات الأخبار",
+                    body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
+                  },
+                })) as any;
+                toast.dismiss();
+                if (res.success) toast.success(`تم الإرسال لـ ${res.count || 0} جهاز`);
+                else toast.error(res.error || "فشل الإرسال");
+              }}
+              className="btn-gold px-8 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-3 active:scale-95 transition-all"
+            >
+              <Megaphone className="size-5" /> إرسال إشعار تجريبي (FCM)
+            </button>
           </div>
         )}
 
         {!isA ? (
           <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60 animate-fade-up">
-             <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground"><Shield size={40} /></div>
-             <p className="text-xl font-black">الدخول محدود لمسؤولي النظام فقط.</p>
+            <div className="size-20 rounded-[40px] bg-muted/50 flex items-center justify-center text-muted-foreground">
+              <Shield size={40} />
+            </div>
+            <p className="text-xl font-black">الدخول محدود لمسؤولي النظام فقط.</p>
           </div>
         ) : (
           <>
-             <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar mx-4 md:mx-0">
-                <button onClick={() => setTab("requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                  <UserPlus size={18} /> طلبات العضوية
+            <div className="flex items-center gap-2 p-1.5 bg-muted/40 rounded-3xl border border-border/40 overflow-x-auto no-scrollbar mx-4 md:mx-0">
+              <button
+                onClick={() => setTab("requests")}
+                className={cn(
+                  "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
+                  tab === "requests"
+                    ? "bg-primary text-white shadow-xl"
+                    : "text-muted-foreground hover:bg-muted",
+                )}
+              >
+                <UserPlus size={18} /> طلبات العضوية
+              </button>
+              <button
+                onClick={() => setTab("members")}
+                className={cn(
+                  "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
+                  tab === "members"
+                    ? "bg-primary text-white shadow-xl"
+                    : "text-muted-foreground hover:bg-muted",
+                )}
+              >
+                <Users size={18} /> إدارة الأعضاء
+              </button>
+              <button
+                onClick={() => setTab("polls")}
+                className={cn(
+                  "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
+                  tab === "polls"
+                    ? "bg-primary text-white shadow-xl"
+                    : "text-muted-foreground hover:bg-muted",
+                )}
+              >
+                <BarChart3 size={18} /> الشورى
+              </button>
+              {isSiteChairman && (
+                <button
+                  onClick={() => setTab("member_requests")}
+                  className={cn(
+                    "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
+                    tab === "member_requests"
+                      ? "bg-primary text-white shadow-xl"
+                      : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <Megaphone size={18} /> طلبات
+                  {memberRequests.length > 0 && (
+                    <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
+                      {memberRequests.length}
+                    </span>
+                  )}
                 </button>
-                <button onClick={() => setTab("members")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "members" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                  <Users size={18} /> إدارة الأعضاء
+              )}
+              {(isSystemAdmin || isSiteChairman) && (
+                <button
+                  onClick={() => setTab("bugs")}
+                  className={cn(
+                    "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
+                    tab === "bugs"
+                      ? "bg-primary text-white shadow-xl"
+                      : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <Shield size={18} /> بلاغات تقنية
+                  {bugReports.filter((b: any) => b.status === "open").length > 0 && (
+                    <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">
+                      {bugReports.filter((b: any) => b.status === "open").length}
+                    </span>
+                  )}
                 </button>
-                <button onClick={() => setTab("polls")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "polls" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                  <BarChart3 size={18} /> الشورى
-                </button>
-                {isSiteChairman && (
-                  <button onClick={() => setTab("member_requests")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "member_requests" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                    <Megaphone size={18} /> طلبات
-                    {memberRequests.length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{memberRequests.length}</span>}
-                  </button>
-                 )}
-                 {(isSystemAdmin || isSiteChairman) && (
-                   <button onClick={() => setTab("bugs")} className={cn("px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0", tab === "bugs" ? "bg-primary text-white shadow-xl" : "text-muted-foreground hover:bg-muted")}>
-                     <Shield size={18} /> بلاغات تقنية
-                     {bugReports.filter((b: any) => b.status === 'open').length > 0 && <span className="ms-1 size-5 rounded-full bg-rose-500 text-white text-[10px] flex items-center justify-center">{bugReports.filter((b: any) => b.status === 'open').length}</span>}
-                   </button>
-                 )}
-              </div>
+              )}
+            </div>
 
             {tab === "requests" && (
               <section className="space-y-8 animate-fade-up">
-                  <div className="flex items-center justify-between gap-4 flex-wrap">
-                    <div className="flex items-center gap-4">
-                      <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">تصنيف الطلبات</h3>
-                      <div className="h-px w-24 bg-border/60" />
-                    </div>
-                    <div className="flex items-center gap-2">
-                       {REQ_TABS.map((t) => (
-                         <button key={t.key} onClick={() => setReqTab(t.key)} className={cn("px-5 py-2 rounded-full text-xs font-black transition-all border", reqTab === t.key ? "bg-primary text-white border-primary shadow-lg" : "bg-card text-muted-foreground border-border hover:bg-muted")}>
-                           {t.label} <span className="ms-2 opacity-50">{reqCounts[t.key]}</span>
-                         </button>
-                       ))}
-                    </div>
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em]">
+                      تصنيف الطلبات
+                    </h3>
+                    <div className="h-px w-24 bg-border/60" />
                   </div>
-                  <div className="grid gap-6">
-                    {pendingReqs.filter(r => r.status === reqTab).map(r => <RequestCard key={r.id} req={r} onStatus={updateReqStatus} onDelete={deleteReq} />)}
-                    {pendingReqs.filter(r => r.status === reqTab).length === 0 && <div className="p-20 text-center text-muted-foreground italic bg-muted/20 rounded-[40px] border-2 border-dashed">لا توجد طلبات في هذا القسم حالياً.</div>}
+                  <div className="flex items-center gap-2">
+                    {REQ_TABS.map((t) => (
+                      <button
+                        key={t.key}
+                        onClick={() => setReqTab(t.key)}
+                        className={cn(
+                          "px-5 py-2 rounded-full text-xs font-black transition-all border",
+                          reqTab === t.key
+                            ? "bg-primary text-white border-primary shadow-lg"
+                            : "bg-card text-muted-foreground border-border hover:bg-muted",
+                        )}
+                      >
+                        {t.label} <span className="ms-2 opacity-50">{reqCounts[t.key]}</span>
+                      </button>
+                    ))}
                   </div>
+                </div>
+                <div className="grid gap-6">
+                  {pendingReqs
+                    .filter((r) => r.status === reqTab)
+                    .map((r) => (
+                      <RequestCard
+                        key={r.id}
+                        req={r}
+                        onStatus={updateReqStatus}
+                        onDelete={deleteReq}
+                      />
+                    ))}
+                  {pendingReqs.filter((r) => r.status === reqTab).length === 0 && (
+                    <div className="p-20 text-center text-muted-foreground italic bg-muted/20 rounded-[40px] border-2 border-dashed">
+                      لا توجد طلبات في هذا القسم حالياً.
+                    </div>
+                  )}
+                </div>
               </section>
             )}
 
             {tab === "members" && (
               <section className="space-y-8 animate-fade-up">
-                 <div className="relative">
-                    <Search className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground size-5" />
-                    <input value={memberSearch} onChange={e => setMemberSearch(e.target.value)} placeholder="ابحث عن عضو بالاسم..." className="w-full h-16 pr-14 pl-8 rounded-3xl bg-card border-2 border-border/40 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all font-bold" />
-                 </div>
-                 <div className="grid grid-cols-1 gap-4">
-                    {filteredMembers.map(m => (
-                      <MemberAdminRow
-                        key={m.id}
-                        member={m}
-                        meId={meId}
-                        currentRole={Array.isArray(m.user_roles) ? m.user_roles[0]?.role : (m.user_roles?.role || 'member')}
-                        sectionHeads={m.section_heads || []}
-                        onAssignRole={assignRole}
-                        onToggleSectionHead={toggleSectionHead}
-                        onDelete={deleteMember}
-                        fullName={m.arabic_name || m.full_name || "عضو"}
-                        canManageSections={isChair}
-                        canManageRoles={isChair}
-                      />
-                    ))}
-                    {filteredMembers.length === 0 && !loading && (
-                      <div className="p-20 text-center bg-muted/10 rounded-[40px] border-2 border-dashed text-muted-foreground italic">
-                        لا توجد نتائج مطابقة للبحث أو قائمة الأعضاء فارغة.
-                      </div>
-                    )}
-                 </div>
+                <div className="relative">
+                  <Search className="absolute right-6 top-1/2 -translate-y-1/2 text-muted-foreground size-5" />
+                  <input
+                    value={memberSearch}
+                    onChange={(e) => setMemberSearch(e.target.value)}
+                    placeholder="ابحث عن عضو بالاسم..."
+                    className="w-full h-16 pr-14 pl-8 rounded-3xl bg-card border-2 border-border/40 focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all font-bold"
+                  />
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  {filteredMembers.map((m) => (
+                    <MemberAdminRow
+                      key={m.id}
+                      member={m}
+                      meId={meId}
+                      currentRole={
+                        Array.isArray(m.user_roles)
+                          ? m.user_roles[0]?.role
+                          : m.user_roles?.role || "member"
+                      }
+                      sectionHeads={m.section_heads || []}
+                      onAssignRole={assignRole}
+                      onToggleSectionHead={toggleSectionHead}
+                      onDelete={deleteMember}
+                      fullName={m.arabic_name || m.full_name || "عضو"}
+                      canManageSections={isChair}
+                      canManageRoles={isChair}
+                    />
+                  ))}
+                  {filteredMembers.length === 0 && !loading && (
+                    <div className="p-20 text-center bg-muted/10 rounded-[40px] border-2 border-dashed text-muted-foreground italic">
+                      لا توجد نتائج مطابقة للبحث أو قائمة الأعضاء فارغة.
+                    </div>
+                  )}
+                </div>
               </section>
             )}
 
-            {tab === "polls" && (
-              <PollsManager list={polls} meId={meId} onRefresh={loadData} />
-            )}
+            {tab === "polls" && <PollsManager list={polls} meId={meId} onRefresh={loadData} />}
 
             {tab === "member_requests" && (
               <section className="animate-fade-up space-y-6">
                 <div className="space-y-1">
                   <h3 className="text-xl font-black text-primary tracking-tight">طلبات الأعضاء</h3>
-                  <p className="text-sm font-bold text-muted-foreground opacity-60">الطلبات التي ينشرها الأعضاء من ركن الأعضاء — يطّلع عليها رئيس المجلس مباشرة.</p>
+                  <p className="text-sm font-bold text-muted-foreground opacity-60">
+                    الطلبات التي ينشرها الأعضاء من ركن الأعضاء — يطّلع عليها رئيس المجلس مباشرة.
+                  </p>
                 </div>
                 <div className="grid gap-4">
                   {memberRequests.length === 0 && (
@@ -574,21 +753,39 @@ function AdminPage() {
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="size-12 rounded-2xl border-2 border-gold-primary/20 overflow-hidden shrink-0">
-                              <UserAvatar path={r.author?.avatar_url} name={author} className="size-full" userId={r.author_id} />
+                              <UserAvatar
+                                path={r.author?.avatar_url}
+                                name={author}
+                                className="size-full"
+                                userId={r.author_id}
+                              />
                             </div>
                             <div className="min-w-0">
-                              <h4 className="text-base font-black text-primary truncate">{author}</h4>
+                              <h4 className="text-base font-black text-primary truncate">
+                                {author}
+                              </h4>
                               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                {new Date(r.created_at).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(r.created_at).toLocaleDateString("ar-SA", {
+                                  day: "numeric",
+                                  month: "long",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
                               </p>
                             </div>
                           </div>
                           <button
                             onClick={async () => {
                               if (!confirm("حذف الطلب؟")) return;
-                              const { error } = await supabase.from("member_posts" as any).delete().eq("id", r.id);
+                              const { error } = await supabase
+                                .from("member_posts" as any)
+                                .delete()
+                                .eq("id", r.id);
                               if (error) toast.error("تعذر الحذف");
-                              else { toast.success("تم الحذف"); loadData(); }
+                              else {
+                                toast.success("تم الحذف");
+                                loadData();
+                              }
                             }}
                             className="size-10 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all shrink-0"
                             title="حذف"
@@ -597,11 +794,22 @@ function AdminPage() {
                           </button>
                         </div>
                         <div className="space-y-2">
-                          <h5 className="text-lg font-black text-foreground leading-tight">{r.title}</h5>
-                          {cleanBody && <p className="text-sm font-bold text-muted-foreground/90 whitespace-pre-wrap leading-relaxed">{cleanBody}</p>}
+                          <h5 className="text-lg font-black text-foreground leading-tight">
+                            {r.title}
+                          </h5>
+                          {cleanBody && (
+                            <p className="text-sm font-bold text-muted-foreground/90 whitespace-pre-wrap leading-relaxed">
+                              {cleanBody}
+                            </p>
+                          )}
                         </div>
                         <div className="pt-3 border-t border-border/40 flex justify-end">
-                          <Link to="/community" className="text-xs font-black text-primary hover:underline">عرض في ركن الأعضاء ←</Link>
+                          <Link
+                            to="/community"
+                            className="text-xs font-black text-primary hover:underline"
+                          >
+                            عرض في ركن الأعضاء ←
+                          </Link>
                         </div>
                       </div>
                     );
@@ -613,8 +821,12 @@ function AdminPage() {
             {tab === "bugs" && (isSystemAdmin || isSiteChairman) && (
               <section className="animate-fade-up space-y-6">
                 <div className="space-y-1">
-                  <h3 className="text-xl font-black text-primary tracking-tight">بلاغات الدعم التقني</h3>
-                  <p className="text-sm font-bold text-muted-foreground opacity-60">البلاغات التي يرسلها الأعضاء عن الأخطاء التقنية في النظام.</p>
+                  <h3 className="text-xl font-black text-primary tracking-tight">
+                    بلاغات الدعم التقني
+                  </h3>
+                  <p className="text-sm font-bold text-muted-foreground opacity-60">
+                    البلاغات التي يرسلها الأعضاء عن الأخطاء التقنية في النظام.
+                  </p>
                 </div>
                 <div className="grid gap-4">
                   {bugReports.length === 0 && (
@@ -624,31 +836,62 @@ function AdminPage() {
                   )}
                   {bugReports.map((b: any) => {
                     const name = b.reporter?.arabic_name || b.reporter?.full_name || "عضو";
-                    const isResolved = b.status === 'resolved';
+                    const isResolved = b.status === "resolved";
                     return (
-                      <div key={b.id} className={cn("card-surface p-6 md:p-8 space-y-4", isResolved && "opacity-60")}>
+                      <div
+                        key={b.id}
+                        className={cn(
+                          "card-surface p-6 md:p-8 space-y-4",
+                          isResolved && "opacity-60",
+                        )}
+                      >
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex items-center gap-3 min-w-0">
                             <div className="size-12 rounded-2xl border-2 border-gold-primary/20 overflow-hidden shrink-0">
-                              <UserAvatar path={b.reporter?.avatar_url} name={name} className="size-full" userId={b.reporter_id} />
+                              <UserAvatar
+                                path={b.reporter?.avatar_url}
+                                name={name}
+                                className="size-full"
+                                userId={b.reporter_id}
+                              />
                             </div>
                             <div className="min-w-0">
                               <h4 className="text-base font-black text-primary truncate">{name}</h4>
                               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
-                                {new Date(b.created_at).toLocaleDateString("ar-SA", { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}
+                                {new Date(b.created_at).toLocaleDateString("ar-SA", {
+                                  day: "numeric",
+                                  month: "long",
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                })}
                               </p>
                             </div>
                           </div>
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className={cn("px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest", isResolved ? "bg-emerald-500/15 text-emerald-600" : "bg-rose-500/15 text-rose-600")}>
+                            <span
+                              className={cn(
+                                "px-3 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest",
+                                isResolved
+                                  ? "bg-emerald-500/15 text-emerald-600"
+                                  : "bg-rose-500/15 text-rose-600",
+                              )}
+                            >
                               {isResolved ? "مُعالَج" : "مفتوح"}
                             </span>
                             <button
                               onClick={async () => {
-                                const next = isResolved ? 'open' : 'resolved';
-                                const { error } = await supabase.from("bug_reports" as any).update({ status: next }).eq("id", b.id);
+                                const next = isResolved ? "open" : "resolved";
+                                const { error } = await supabase
+                                  .from("bug_reports" as any)
+                                  .update({ status: next })
+                                  .eq("id", b.id);
                                 if (error) toast.error("تعذر التحديث");
-                                else { toast.success(next === 'resolved' ? "تم تعليمه كمُعالَج" : "تمت إعادة الفتح"); loadData(); }
+                                else {
+                                  toast.success(
+                                    next === "resolved" ? "تم تعليمه كمُعالَج" : "تمت إعادة الفتح",
+                                  );
+                                  loadData();
+                                }
                               }}
                               className="size-10 rounded-2xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center hover:bg-emerald-500 hover:text-white transition-all"
                               title={isResolved ? "إعادة فتح" : "تعليم كمُعالَج"}
@@ -658,9 +901,15 @@ function AdminPage() {
                             <button
                               onClick={async () => {
                                 if (!confirm("حذف البلاغ نهائياً؟")) return;
-                                const { error } = await supabase.from("bug_reports" as any).delete().eq("id", b.id);
+                                const { error } = await supabase
+                                  .from("bug_reports" as any)
+                                  .delete()
+                                  .eq("id", b.id);
                                 if (error) toast.error("تعذر الحذف");
-                                else { toast.success("تم الحذف"); loadData(); }
+                                else {
+                                  toast.success("تم الحذف");
+                                  loadData();
+                                }
                               }}
                               className="size-10 rounded-2xl bg-rose-500/10 text-rose-600 flex items-center justify-center hover:bg-rose-500 hover:text-white transition-all"
                               title="حذف"
@@ -669,10 +918,16 @@ function AdminPage() {
                             </button>
                           </div>
                         </div>
-                        <p className="text-sm font-bold text-foreground/90 whitespace-pre-wrap leading-relaxed">{b.body}</p>
+                        <p className="text-sm font-bold text-foreground/90 whitespace-pre-wrap leading-relaxed">
+                          {b.body}
+                        </p>
                         {b.image_url && (
                           <a href={b.image_url} target="_blank" rel="noreferrer" className="block">
-                            <img src={b.image_url} alt="لقطة شاشة" className="max-h-80 w-auto rounded-2xl border border-border/40" />
+                            <img
+                              src={b.image_url}
+                              alt="لقطة شاشة"
+                              className="max-h-80 w-auto rounded-2xl border border-border/40"
+                            />
                           </a>
                         )}
                       </div>
@@ -690,7 +945,19 @@ function AdminPage() {
 
 function RoleToggleBtn({ active, onClick, icon, label, activeClass, disabled }: any) {
   return (
-    <button onClick={onClick} disabled={active || disabled} className={cn("px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border", active ? cn("border-transparent shadow-lg scale-105", activeClass) : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-primary", disabled && !active && "opacity-50 cursor-not-allowed hover:bg-card hover:text-muted-foreground")}>
+    <button
+      onClick={onClick}
+      disabled={active || disabled}
+      className={cn(
+        "px-4 py-2 rounded-xl text-xs font-black flex items-center gap-2 transition-all duration-300 border",
+        active
+          ? cn("border-transparent shadow-lg scale-105", activeClass)
+          : "bg-card text-muted-foreground border-border/60 hover:bg-muted hover:text-primary",
+        disabled &&
+          !active &&
+          "opacity-50 cursor-not-allowed hover:bg-card hover:text-muted-foreground",
+      )}
+    >
       {icon} <span>{label}</span>
     </button>
   );
@@ -699,30 +966,62 @@ function RoleToggleBtn({ active, onClick, icon, label, activeClass, disabled }: 
 function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; onDelete: any }) {
   const name = [req.first_name, req.father_name, req.grandfather_name].filter(Boolean).join(" ");
   return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="card-surface p-8 group">
-       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="flex items-start gap-5">
-             <div className="size-16 rounded-[22px] bg-primary/5 border-2 border-gold-primary/10 flex items-center justify-center text-2xl font-black text-primary shadow-inner shrink-0">{req.first_name[0]}</div>
-             <div className="space-y-2">
-                <h4 className="text-xl font-black text-primary tracking-tight">{name}</h4>
-                <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-muted-foreground opacity-70">
-                   <span className="flex items-center gap-1.5" dir="ltr"><Phone className="size-3.5" /> {req.phone}</span>
-                   <span className="flex items-center gap-1.5" dir="ltr"><Mail className="size-3.5" /> {req.email}</span>
-                   <span className="flex items-center gap-1.5"><Clock className="size-3.5" /> {new Date(req.created_at).toLocaleDateString("ar-SA")}</span>
-                </div>
-                {req.note && <p className="text-sm font-bold text-muted-foreground/80 bg-muted/30 p-4 rounded-2xl border border-border/40 mt-3 italic">"{req.note}"</p>}
-             </div>
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="card-surface p-8 group"
+    >
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="flex items-start gap-5">
+          <div className="size-16 rounded-[22px] bg-primary/5 border-2 border-gold-primary/10 flex items-center justify-center text-2xl font-black text-primary shadow-inner shrink-0">
+            {req.first_name[0]}
           </div>
-          <div className="flex items-center gap-3 self-end md:self-center">
-             {req.status === "pending" && (
-                <>
-                  <button onClick={() => onStatus(req.id, "approved")} className="px-8 py-3 rounded-2xl bg-emerald-500 text-white font-black text-sm shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"><Check className="size-4" strokeWidth={3} /> قبول</button>
-                  <button onClick={() => onStatus(req.id, "rejected")} className="size-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><X size={5} /></button>
-                </>
-             )}
-             <button onClick={() => onDelete(req.id)} className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all"><Trash2 size={5} /></button>
+          <div className="space-y-2">
+            <h4 className="text-xl font-black text-primary tracking-tight">{name}</h4>
+            <div className="flex flex-wrap items-center gap-4 text-xs font-bold text-muted-foreground opacity-70">
+              <span className="flex items-center gap-1.5" dir="ltr">
+                <Phone className="size-3.5" /> {req.phone}
+              </span>
+              <span className="flex items-center gap-1.5" dir="ltr">
+                <Mail className="size-3.5" /> {req.email}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="size-3.5" />{" "}
+                {new Date(req.created_at).toLocaleDateString("ar-SA")}
+              </span>
+            </div>
+            {req.note && (
+              <p className="text-sm font-bold text-muted-foreground/80 bg-muted/30 p-4 rounded-2xl border border-border/40 mt-3 italic">
+                "{req.note}"
+              </p>
+            )}
           </div>
-       </div>
+        </div>
+        <div className="flex items-center gap-3 self-end md:self-center">
+          {req.status === "pending" && (
+            <>
+              <button
+                onClick={() => onStatus(req.id, "approved")}
+                className="px-8 py-3 rounded-2xl bg-emerald-500 text-white font-black text-sm shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+              >
+                <Check className="size-4" strokeWidth={3} /> قبول
+              </button>
+              <button
+                onClick={() => onStatus(req.id, "rejected")}
+                className="size-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+              >
+                <X size={5} />
+              </button>
+            </>
+          )}
+          <button
+            onClick={() => onDelete(req.id)}
+            className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+          >
+            <Trash2 size={5} />
+          </button>
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -737,64 +1036,133 @@ const SECTION_OPTIONS: { key: string; label: string }[] = [
   { key: "community", label: "ركن الأعضاء" },
 ];
 
-function MemberAdminRow({ member, meId, currentRole, sectionHeads = [], onAssignRole, onToggleSectionHead, onDelete, fullName, canManageSections = false, canManageRoles = false }: any) {
+function MemberAdminRow({
+  member,
+  meId,
+  currentRole,
+  sectionHeads = [],
+  onAssignRole,
+  onToggleSectionHead,
+  onDelete,
+  fullName,
+  canManageSections = false,
+  canManageRoles = false,
+}: any) {
   const isMe = member.id === meId;
   const handleRole = (uid: string, role: string) => {
-    if (!canManageRoles) { toast.error("هذه الصلاحية متاحة لرئيس المجلس والمسؤول التقني فقط"); return; }
+    if (!canManageRoles) {
+      toast.error("هذه الصلاحية متاحة لرئيس المجلس والمسؤول التقني فقط");
+      return;
+    }
     onAssignRole(uid, role);
   };
 
   return (
     <div className="card-surface p-4 md:p-5 hover:bg-primary/5 transition-all group">
-       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div className="flex items-center gap-4">
-             <div className="size-12 rounded-[16px] border-2 border-gold-primary/20 overflow-hidden shadow-lg relative shrink-0">
-                <UserAvatar path={member.avatar_url} name={fullName} className="size-full" userId={member.id} />
-                {isMe && <div className="absolute inset-0 bg-primary/20 flex items-center justify-center"><UserIcon className="size-4 text-white" /></div>}
-             </div>
-             <div className="min-w-0">
-                <h4 className="text-base font-black text-primary truncate tracking-tight">{fullName} {isMe && <span className="text-[10px] text-gold-primary opacity-60 mr-2">(أنت)</span>}</h4>
-                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">{roleLabel(currentRole)}</p>
-             </div>
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="size-12 rounded-[16px] border-2 border-gold-primary/20 overflow-hidden shadow-lg relative shrink-0">
+            <UserAvatar
+              path={member.avatar_url}
+              name={fullName}
+              className="size-full"
+              userId={member.id}
+            />
+            {isMe && (
+              <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
+                <UserIcon className="size-4 text-white" />
+              </div>
+            )}
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-             <div className={cn("flex items-center gap-1.5 flex-wrap", !canManageRoles && "opacity-60")} title={!canManageRoles ? "تعديل الصلاحيات متاح لرئيس المجلس والمسؤول التقني فقط" : undefined}>
-               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "chairman"} onClick={() => handleRole(member.id, "chairman")} icon={<ShieldCheck className="size-3.5" />} label="رئيس المجلس" activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary" />
-               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "admin"} onClick={() => handleRole(member.id, "admin")} icon={<Crown className="size-3.5" />} label="مسؤول تقني" activeClass="bg-gold-primary text-white shadow-gold-primary/30" />
-               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "manager"} onClick={() => handleRole(member.id, "manager")} icon={<Star className="size-3.5" />} label="مسؤول قسم" activeClass="bg-emerald-600 text-white shadow-emerald-600/30" />
-               <RoleToggleBtn disabled={!canManageRoles} active={currentRole === "member"} onClick={() => handleRole(member.id, "member")} icon={<UserIcon className="size-3.5" />} label="عضو" activeClass="bg-primary text-white shadow-primary/30" />
-             </div>
-             {!isMe && currentRole !== "admin" && canManageRoles && <button onClick={() => onDelete(member.id, fullName)} className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"><Trash2 size={16} /></button>}
+          <div className="min-w-0">
+            <h4 className="text-base font-black text-primary truncate tracking-tight">
+              {fullName}{" "}
+              {isMe && <span className="text-[10px] text-gold-primary opacity-60 mr-2">(أنت)</span>}
+            </h4>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
+              {roleLabel(currentRole)}
+            </p>
           </div>
-       </div>
-       <div className="mt-4 pt-4 border-t border-border/40">
-          <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">
-            مسؤوليات الأقسام
-            {!canManageSections && <span className="mr-2 opacity-70 normal-case">(للرئيس فقط)</span>}
-          </p>
-          <div className="flex flex-wrap gap-1.5">
-             {SECTION_OPTIONS.map(s => {
-                const active = sectionHeads.includes(s.key);
-                 return (
-                   <button
-                     key={s.key}
-                     disabled={!canManageSections}
-                     onClick={() => canManageSections && onToggleSectionHead(member.id, s.key, active)}
-                     className={cn(
-                       "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
-                       active
-                         ? "bg-gold-primary text-white border-gold-primary shadow-md"
-                         : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary",
-                       !canManageSections && "opacity-50 cursor-not-allowed hover:border-border hover:text-muted-foreground"
-                     )}
-                   >
-                     {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
-                     {s.label}
-                   </button>
-                 );
-             })}
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div
+            className={cn("flex items-center gap-1.5 flex-wrap", !canManageRoles && "opacity-60")}
+            title={
+              !canManageRoles ? "تعديل الصلاحيات متاح لرئيس المجلس والمسؤول التقني فقط" : undefined
+            }
+          >
+            <RoleToggleBtn
+              disabled={!canManageRoles}
+              active={currentRole === "chairman"}
+              onClick={() => handleRole(member.id, "chairman")}
+              icon={<ShieldCheck className="size-3.5" />}
+              label="رئيس المجلس"
+              activeClass="bg-emerald-950 text-white shadow-xl ring-2 ring-gold-primary"
+            />
+            <RoleToggleBtn
+              disabled={!canManageRoles}
+              active={currentRole === "admin"}
+              onClick={() => handleRole(member.id, "admin")}
+              icon={<Crown className="size-3.5" />}
+              label="مسؤول تقني"
+              activeClass="bg-gold-primary text-white shadow-gold-primary/30"
+            />
+            <RoleToggleBtn
+              disabled={!canManageRoles}
+              active={currentRole === "manager"}
+              onClick={() => handleRole(member.id, "manager")}
+              icon={<Star className="size-3.5" />}
+              label="مسؤول قسم"
+              activeClass="bg-emerald-600 text-white shadow-emerald-600/30"
+            />
+            <RoleToggleBtn
+              disabled={!canManageRoles}
+              active={currentRole === "member"}
+              onClick={() => handleRole(member.id, "member")}
+              icon={<UserIcon className="size-3.5" />}
+              label="عضو"
+              activeClass="bg-primary text-white shadow-primary/30"
+            />
           </div>
-       </div>
+          {!isMe && currentRole !== "admin" && canManageRoles && (
+            <button
+              onClick={() => onDelete(member.id, fullName)}
+              className="size-10 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="mt-4 pt-4 border-t border-border/40">
+        <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mb-2">
+          مسؤوليات الأقسام
+          {!canManageSections && <span className="mr-2 opacity-70 normal-case">(للرئيس فقط)</span>}
+        </p>
+        <div className="flex flex-wrap gap-1.5">
+          {SECTION_OPTIONS.map((s) => {
+            const active = sectionHeads.includes(s.key);
+            return (
+              <button
+                key={s.key}
+                disabled={!canManageSections}
+                onClick={() => canManageSections && onToggleSectionHead(member.id, s.key, active)}
+                className={cn(
+                  "px-3 py-1.5 rounded-lg text-[11px] font-black border transition-all",
+                  active
+                    ? "bg-gold-primary text-white border-gold-primary shadow-md"
+                    : "bg-card text-muted-foreground border-border hover:border-gold-primary/40 hover:text-primary",
+                  !canManageSections &&
+                    "opacity-50 cursor-not-allowed hover:border-border hover:text-muted-foreground",
+                )}
+              >
+                {active && <Check className="size-3 inline ml-1" strokeWidth={3} />}
+                {s.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </div>
   );
 }
@@ -806,13 +1174,14 @@ function PollsManager({ list, meId, onRefresh }: any) {
     question: "",
     options: ["", ""],
     durationDays: "1",
-    pollType: "general" as "general" | "manager" | "chairman"
+    pollType: "general" as "general" | "manager" | "chairman",
   });
   const [finalizing, setFinalizing] = useState<string | null>(null);
   const runFinalize = useServerFn(finalizePoll);
 
   const handleSave = async () => {
-    if (!draft.title || !draft.question || draft.options.some(o => !o)) return toast.error("يرجى إكمال البيانات");
+    if (!draft.title || !draft.question || draft.options.some((o) => !o))
+      return toast.error("يرجى إكمال البيانات");
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + parseInt(draft.durationDays || "1"));
@@ -822,25 +1191,34 @@ function PollsManager({ list, meId, onRefresh }: any) {
       options: draft.options,
       expires_at: expiresAt.toISOString(),
       type: draft.pollType,
-      target_committee_only: draft.pollType !== "general"
+      target_committee_only: draft.pollType !== "general",
     };
 
     const { error } = await supabase.from("majlis_posts").insert({
       title: draft.title,
       body: `---poll:${JSON.stringify(pollData)}---`,
       kind: "announcement",
-      author_id: meId
+      author_id: meId,
     });
     if (!error) {
       toast.success("تم نشر التصويت بنجاح");
       setShowForm(false);
-      setDraft({ title: "", question: "", options: ["", ""], durationDays: "1", pollType: "general" });
+      setDraft({
+        title: "",
+        question: "",
+        options: ["", ""],
+        durationDays: "1",
+        pollType: "general",
+      });
       onRefresh();
     }
   };
 
   const handleFinalize = async (postId: string) => {
-    if (!confirm("هل أنت متأكد من إغلاق التصويت واستخراج المحضر الرسمي؟ سيتم حفظ التقرير في الخزنة.")) return;
+    if (
+      !confirm("هل أنت متأكد من إغلاق التصويت واستخراج المحضر الرسمي؟ سيتم حفظ التقرير في الخزنة.")
+    )
+      return;
     setFinalizing(postId);
     try {
       const res = await runFinalize({ data: { postId } });
@@ -857,120 +1235,207 @@ function PollsManager({ list, meId, onRefresh }: any) {
 
   return (
     <div className="space-y-8 animate-fade-up">
-       <div className="flex justify-end">
-          <button onClick={() => setShowForm(!showForm)} className="btn-gold px-8 py-3.5 rounded-2xl flex items-center gap-3 text-sm font-black shadow-xl">
-            <Plus size={20} strokeWidth={3} /> <span>تصويت جديد</span>
-          </button>
-       </div>
-       <AnimatePresence>
-         {showForm && (
-           <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} className="overflow-hidden">
-             <div className="card-surface p-8 space-y-6 border-gold-primary/20">
-                <input value={draft.title} onChange={e => setDraft({...draft, title: e.target.value})} placeholder="العنوان..." className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border font-black text-foreground" />
-                <input value={draft.question} onChange={e => setDraft({...draft, question: e.target.value})} placeholder="السؤال..." className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border font-bold text-foreground" />
-                <div className="space-y-3">
-                   {draft.options.map((opt, i) => (
-                     <input key={i} value={opt} onChange={e => { const next = [...draft.options]; next[i] = e.target.value; setDraft({...draft, options: next}); }} placeholder={`الخيار ${i+1}`} className="w-full h-12 px-5 rounded-xl bg-muted/20 border border-border font-bold text-sm text-foreground" />
-                   ))}
-                   <button onClick={() => setDraft({...draft, options: [...draft.options, ""]})} className="text-xs font-black text-primary">+ إضافة خيار</button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border/20">
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">مدة التصويت (بالأيام)</label>
-                      <input
-                        type="number"
-                        value={draft.durationDays}
-                        onChange={e => setDraft({...draft, durationDays: e.target.value})}
-                        className="w-full h-12 px-5 rounded-xl bg-muted/20 border border-border font-bold text-sm"
-                        min="1"
-                      />
-                   </div>
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">الفئة المستهدفة بالتصويت</label>
-                      <div className="grid grid-cols-3 gap-2">
-                         <button
-                           type="button"
-                           onClick={() => setDraft({...draft, pollType: "general"})}
-                           className={cn(
-                             "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
-                             draft.pollType === "general" ? "bg-primary text-white border-primary shadow-md" : "bg-card text-muted-foreground border-border"
-                           )}
-                         >الكل</button>
-                         <button
-                           type="button"
-                           onClick={() => setDraft({...draft, pollType: "manager"})}
-                           className={cn(
-                             "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
-                             draft.pollType === "manager" ? "bg-emerald-600 text-white border-emerald-600 shadow-md" : "bg-card text-muted-foreground border-border"
-                           )}
-                         >المسؤولين</button>
-                         <button
-                           type="button"
-                           onClick={() => setDraft({...draft, pollType: "chairman"})}
-                           className={cn(
-                             "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
-                             draft.pollType === "chairman" ? "bg-gold-primary text-white border-gold-primary shadow-md" : "bg-card text-muted-foreground border-border"
-                           )}
-                         >رئيس المجلس</button>
-                      </div>
-                   </div>
-                </div>
-
-                <button onClick={handleSave} className="w-full btn-gold py-4 rounded-2xl font-black">نشر للجميع</button>
-             </div>
-           </motion.div>
-         )}
-       </AnimatePresence>
-       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {list.map((p: any) => {
-            const bodyStr = p.body || "";
-            const match = bodyStr.match(/---poll:({.*?})---/s);
-            let pollData: any = null;
-            try { pollData = JSON.parse(match![1]); } catch(e) {}
-
-            const isFinalized = pollData?.status === "finalized";
-            const pType = pollData?.type || "general";
-
-            return (
-              <div key={p.id} className="card-surface p-6 flex flex-col justify-between group">
-                 <div className="space-y-4">
-                    <div className="flex justify-between items-start">
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                           <h4 className="text-lg font-black text-primary leading-tight line-clamp-2">{p.title}</h4>
-                           <span className={cn(
-                             "text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter",
-                             pType === "chairman" ? "bg-gold-primary text-emerald-950" :
-                             pType === "manager" ? "bg-emerald-600 text-white" : "bg-muted text-muted-foreground"
-                           )}>
-                             {pType === "chairman" ? "رئيس المجلس" : pType === "manager" ? "المسؤولين" : "عام"}
-                           </span>
-                        </div>
-                        {isFinalized && <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">تم الأرشفة</span>}
-                      </div>
-                      <div className="flex gap-2">
-                         {!isFinalized && (
-                           <button
-                             onClick={() => handleFinalize(p.id)}
-                             disabled={finalizing === p.id}
-                             className="size-9 rounded-lg bg-gold-primary/10 text-gold-primary flex items-center justify-center hover:bg-gold-primary hover:text-white transition-all shadow-sm"
-                             title="استخراج المحضر"
-                           >
-                             {finalizing === p.id ? <Loader2 className="size-4 animate-spin" /> : <ShieldCheck size={18} />}
-                           </button>
-                         )}
-                         <button onClick={() => { if(confirm("حذف؟")) supabase.from("majlis_posts").delete().eq("id", p.id).then(() => onRefresh()) }} className="size-9 rounded-lg bg-rose-500/10 text-rose-500 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"><Trash2 size={16} /></button>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 text-gold-primary">
-                      <BarChart3 size={14} /> <span className="text-[10px] font-black uppercase tracking-[0.2em]">{isFinalized ? "تصويت منتهي" : "تصويت نشط"}</span>
-                    </div>
-                 </div>
+      <div className="flex justify-end">
+        <button
+          onClick={() => setShowForm(!showForm)}
+          className="btn-gold px-8 py-3.5 rounded-2xl flex items-center gap-3 text-sm font-black shadow-xl"
+        >
+          <Plus size={20} strokeWidth={3} /> <span>تصويت جديد</span>
+        </button>
+      </div>
+      <AnimatePresence>
+        {showForm && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="card-surface p-8 space-y-6 border-gold-primary/20">
+              <input
+                value={draft.title}
+                onChange={(e) => setDraft({ ...draft, title: e.target.value })}
+                placeholder="العنوان..."
+                className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border font-black text-foreground"
+              />
+              <input
+                value={draft.question}
+                onChange={(e) => setDraft({ ...draft, question: e.target.value })}
+                placeholder="السؤال..."
+                className="w-full h-14 px-6 rounded-2xl bg-muted/40 border border-border font-bold text-foreground"
+              />
+              <div className="space-y-3">
+                {draft.options.map((opt, i) => (
+                  <input
+                    key={i}
+                    value={opt}
+                    onChange={(e) => {
+                      const next = [...draft.options];
+                      next[i] = e.target.value;
+                      setDraft({ ...draft, options: next });
+                    }}
+                    placeholder={`الخيار ${i + 1}`}
+                    className="w-full h-12 px-5 rounded-xl bg-muted/20 border border-border font-bold text-sm text-foreground"
+                  />
+                ))}
+                <button
+                  onClick={() => setDraft({ ...draft, options: [...draft.options, ""] })}
+                  className="text-xs font-black text-primary"
+                >
+                  + إضافة خيار
+                </button>
               </div>
-            );
-          })}
-       </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t border-border/20">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">
+                    مدة التصويت (بالأيام)
+                  </label>
+                  <input
+                    type="number"
+                    value={draft.durationDays}
+                    onChange={(e) => setDraft({ ...draft, durationDays: e.target.value })}
+                    className="w-full h-12 px-5 rounded-xl bg-muted/20 border border-border font-bold text-sm"
+                    min="1"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase text-primary/40 mr-1 tracking-[0.2em]">
+                    الفئة المستهدفة بالتصويت
+                  </label>
+                  <div className="grid grid-cols-3 gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setDraft({ ...draft, pollType: "general" })}
+                      className={cn(
+                        "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
+                        draft.pollType === "general"
+                          ? "bg-primary text-white border-primary shadow-md"
+                          : "bg-card text-muted-foreground border-border",
+                      )}
+                    >
+                      الكل
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDraft({ ...draft, pollType: "manager" })}
+                      className={cn(
+                        "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
+                        draft.pollType === "manager"
+                          ? "bg-emerald-600 text-white border-emerald-600 shadow-md"
+                          : "bg-card text-muted-foreground border-border",
+                      )}
+                    >
+                      المسؤولين
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setDraft({ ...draft, pollType: "chairman" })}
+                      className={cn(
+                        "py-2 px-1 rounded-lg font-black text-[10px] transition-all border",
+                        draft.pollType === "chairman"
+                          ? "bg-gold-primary text-white border-gold-primary shadow-md"
+                          : "bg-card text-muted-foreground border-border",
+                      )}
+                    >
+                      رئيس المجلس
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <button onClick={handleSave} className="w-full btn-gold py-4 rounded-2xl font-black">
+                نشر للجميع
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {list.map((p: any) => {
+          const bodyStr = p.body || "";
+          const match = bodyStr.match(/---poll:({.*?})---/s);
+          let pollData: any = null;
+          try {
+            pollData = JSON.parse(match![1]);
+          } catch (e) {}
+
+          const isFinalized = pollData?.status === "finalized";
+          const pType = pollData?.type || "general";
+
+          return (
+            <div key={p.id} className="card-surface p-6 flex flex-col justify-between group">
+              <div className="space-y-4">
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <h4 className="text-lg font-black text-primary leading-tight line-clamp-2">
+                        {p.title}
+                      </h4>
+                      <span
+                        className={cn(
+                          "text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-tighter",
+                          pType === "chairman"
+                            ? "bg-gold-primary text-emerald-950"
+                            : pType === "manager"
+                              ? "bg-emerald-600 text-white"
+                              : "bg-muted text-muted-foreground",
+                        )}
+                      >
+                        {pType === "chairman"
+                          ? "رئيس المجلس"
+                          : pType === "manager"
+                            ? "المسؤولين"
+                            : "عام"}
+                      </span>
+                    </div>
+                    {isFinalized && (
+                      <span className="text-[10px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        تم الأرشفة
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    {!isFinalized && (
+                      <button
+                        onClick={() => handleFinalize(p.id)}
+                        disabled={finalizing === p.id}
+                        className="size-9 rounded-lg bg-gold-primary/10 text-gold-primary flex items-center justify-center hover:bg-gold-primary hover:text-white transition-all shadow-sm"
+                        title="استخراج المحضر"
+                      >
+                        {finalizing === p.id ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          <ShieldCheck size={18} />
+                        )}
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        if (confirm("حذف؟"))
+                          supabase
+                            .from("majlis_posts")
+                            .delete()
+                            .eq("id", p.id)
+                            .then(() => onRefresh());
+                      }}
+                      className="size-9 rounded-lg bg-rose-500/10 text-rose-500 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 text-gold-primary">
+                  <BarChart3 size={14} />{" "}
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em]">
+                    {isFinalized ? "تصويت منتهي" : "تصويت نشط"}
+                  </span>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

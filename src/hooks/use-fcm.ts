@@ -16,7 +16,13 @@ export function useFcm() {
         await supabase
           .from("push_tokens")
           .upsert(
-            { user_id: userId, token, platform: "web", is_active: true, updated_at: new Date().toISOString() },
+            {
+              user_id: userId,
+              token,
+              platform: "web",
+              is_active: true,
+              updated_at: new Date().toISOString(),
+            },
             { onConflict: "user_id,token" },
           );
         // Back-compat single-token mirror
@@ -53,7 +59,11 @@ export function useFcm() {
         }
       }
       // 2. Web Platform (Browser) - use Firebase JS SDK getToken
-      else if (typeof window !== "undefined" && "serviceWorker" in navigator && "Notification" in window) {
+      else if (
+        typeof window !== "undefined" &&
+        "serviceWorker" in navigator &&
+        "Notification" in window
+      ) {
         try {
           const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
           const { initializeApp, getApps } = await import("firebase/app");
@@ -68,7 +78,9 @@ export function useFcm() {
           }
           if (Notification.permission !== "granted") return;
 
-          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', { scope: '/' });
+          const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
+            scope: "/",
+          });
           await navigator.serviceWorker.ready;
 
           const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
@@ -89,7 +101,6 @@ export function useFcm() {
           console.warn("Web FCM initialization failed:", err?.code, err?.message, err);
           // Silent fail — don't show toast on every page load. User can re-enable from settings.
         }
-
       }
     };
 

@@ -47,10 +47,13 @@ function OnboardingPage() {
         return;
       }
       setUserId(u.user.id);
-      const { data: pRaw } = await supabase
-        .rpc("get_my_profile" as any)
-        .maybeSingle();
-      const p = pRaw as { first_name: string | null; father_name: string | null; grandfather_name: string | null; phone: string | null } | null;
+      const { data: pRaw } = await supabase.rpc("get_my_profile" as any).maybeSingle();
+      const p = pRaw as {
+        first_name: string | null;
+        father_name: string | null;
+        grandfather_name: string | null;
+        phone: string | null;
+      } | null;
       if (p?.first_name && p?.father_name && p?.grandfather_name) {
         navigate({ to: "/dashboard", replace: true });
         return;
@@ -136,7 +139,12 @@ function OnboardingPage() {
           <Field label="الاسم الأول" value={first} onChange={setFirst} placeholder="مثال: فيصل" />
           <Field label="اسم الأب" value={father} onChange={setFather} placeholder="مثال: عبدالله" />
           <Field label="اسم الجد" value={grand} onChange={setGrand} placeholder="مثال: السيف" />
-          <Field label="رقم الجوال" value={phone} onChange={setPhone} placeholder="مثال: 055 123 4567" />
+          <Field
+            label="رقم الجوال"
+            value={phone}
+            onChange={setPhone}
+            placeholder="مثال: 055 123 4567"
+          />
           <button
             type="submit"
             disabled={saving}

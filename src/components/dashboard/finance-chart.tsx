@@ -10,8 +10,18 @@ import {
 } from "recharts";
 
 const AR_MONTHS_SHORT = [
-  "ينا","فبر","مار","أبر","ماي","يون",
-  "يول","أغس","سبت","أكت","نوف","ديس",
+  "ينا",
+  "فبر",
+  "مار",
+  "أبر",
+  "ماي",
+  "يون",
+  "يول",
+  "أغس",
+  "سبت",
+  "أكت",
+  "نوف",
+  "ديس",
 ];
 
 type Tx = { type: string; amount: number | string; occurred_at: string };

@@ -3,29 +3,48 @@ import { supabase } from "@/integrations/supabase/client";
 
 export type AppRole = "admin" | "manager" | "member" | "chairman";
 
-export type Section = "meetings" | "tasks" | "trips" | "finance" | "heritage" | "news" | "community";
+export type Section =
+  "meetings" | "tasks" | "trips" | "finance" | "heritage" | "news" | "community";
 
-export const SECTIONS: Section[] = ["meetings", "tasks", "trips", "finance", "heritage", "news", "community"];
-
+export const SECTIONS: Section[] = [
+  "meetings",
+  "tasks",
+  "trips",
+  "finance",
+  "heritage",
+  "news",
+  "community",
+];
 
 export function sectionLabel(section: Section): string {
   switch (section) {
-    case "meetings": return "الاجتماعات";
-    case "tasks": return "المهام";
-    case "trips": return "الترفيه";
-    case "finance": return "المالية";
-    case "heritage": return "إرث السيف";
-    case "news": return "الأخبار";
-    case "community": return "ركن الأعضاء";
+    case "meetings":
+      return "الاجتماعات";
+    case "tasks":
+      return "المهام";
+    case "trips":
+      return "الترفيه";
+    case "finance":
+      return "المالية";
+    case "heritage":
+      return "إرث السيف";
+    case "news":
+      return "الأخبار";
+    case "community":
+      return "ركن الأعضاء";
   }
 }
 
 export function roleLabel(role: AppRole | string | null): string {
   switch (role) {
-    case "admin": return "مسؤول";
-    case "manager": return "مسؤول قسم";
-    case "chairman": return "رئيس المجلس";
-    default: return "عضو";
+    case "admin":
+      return "مسؤول";
+    case "manager":
+      return "مسؤول قسم";
+    case "chairman":
+      return "رئيس المجلس";
+    default:
+      return "عضو";
   }
 }
 
@@ -48,7 +67,10 @@ export function useUserRole() {
 
       const [{ data: r }, { data: sh }] = await Promise.all([
         supabase.from("user_roles").select("role").eq("user_id", u.user.id),
-        supabase.from("section_heads" as any).select("section").eq("user_id", u.user.id),
+        supabase
+          .from("section_heads" as any)
+          .select("section")
+          .eq("user_id", u.user.id),
       ]);
       if (!active) return;
 
@@ -72,14 +94,12 @@ export function useUserRole() {
 
     // Section Heads only have access to their assigned sections
     // Note: 'events' in UI is 'events' in DB, 'majlis' is 'news'
-    const dbSection = section === 'news' ? 'majlis' : section === 'tasks' ? 'events' : section;
+    const dbSection = section === "news" ? "majlis" : section === "tasks" ? "events" : section;
     return sectionHeads.includes(dbSection as any);
   };
 
   const primaryRole: AppRole | null =
-    (roles.find((r) =>
-      ["admin", "chairman", "manager", "member"].includes(r),
-    ) as AppRole) || null;
+    (roles.find((r) => ["admin", "chairman", "manager", "member"].includes(r)) as AppRole) || null;
 
   return {
     userId,

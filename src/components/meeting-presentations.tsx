@@ -174,7 +174,10 @@ export function MeetingPresentations({
                       <Plus size={14} /> إضافة عرض
                     </button>
                   )}
-                  <button onClick={() => setOpen(false)} className="size-9 rounded-full bg-secondary text-foreground border border-border hover:bg-muted grid place-items-center shrink-0">
+                  <button
+                    onClick={() => setOpen(false)}
+                    className="size-9 rounded-full bg-secondary text-foreground border border-border hover:bg-muted grid place-items-center shrink-0"
+                  >
                     <X size={18} />
                   </button>
                 </div>
@@ -182,7 +185,9 @@ export function MeetingPresentations({
 
               <div className="overflow-y-auto p-4 sm:p-5 space-y-3 flex-1">
                 {loading ? (
-                  <div className="text-center text-muted-foreground py-10 text-sm">جاري التحميل…</div>
+                  <div className="text-center text-muted-foreground py-10 text-sm">
+                    جاري التحميل…
+                  </div>
                 ) : items.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     <Presentation size={40} className="mx-auto mb-3 opacity-30" />
@@ -195,12 +200,22 @@ export function MeetingPresentations({
                       className="grid grid-cols-[auto_1fr] sm:flex sm:items-center gap-3 p-4 rounded-2xl bg-secondary/40 border border-border hover:bg-secondary/60 transition"
                     >
                       <div className="size-11 rounded-xl bg-primary/10 text-primary grid place-items-center">
-                        {p.kind === "slides" ? <Presentation size={18} /> : p.kind === "file" ? <FileText size={18} /> : <LinkIcon size={18} />}
+                        {p.kind === "slides" ? (
+                          <Presentation size={18} />
+                        ) : p.kind === "file" ? (
+                          <FileText size={18} />
+                        ) : (
+                          <LinkIcon size={18} />
+                        )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="font-black text-sm text-primary truncate">{p.title}</p>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          {p.kind === "slides" ? `${p.slides.length} شريحة` : p.kind === "file" ? "ملف مرفوع" : "رابط خارجي"}
+                          {p.kind === "slides"
+                            ? `${p.slides.length} شريحة`
+                            : p.kind === "file"
+                              ? "ملف مرفوع"
+                              : "رابط خارجي"}
                         </p>
                       </div>
                       <div className="col-span-2 sm:col-span-1 flex items-center justify-end gap-2 pt-2 sm:pt-0">
@@ -209,7 +224,13 @@ export function MeetingPresentations({
                           className="size-10 rounded-xl bg-gold-primary text-black grid place-items-center hover:opacity-90"
                           title="عرض"
                         >
-                          {p.kind === "slides" ? <Play size={16} /> : p.kind === "file" ? <Download size={16} /> : <ExternalLink size={16} />}
+                          {p.kind === "slides" ? (
+                            <Play size={16} />
+                          ) : p.kind === "file" ? (
+                            <Download size={16} />
+                          ) : (
+                            <ExternalLink size={16} />
+                          )}
                         </button>
                         {canManage && (
                           <>
@@ -255,7 +276,11 @@ export function MeetingPresentations({
       )}
 
       {presenting && (
-        <SlidesPresenter slides={presenting.slides} title={presenting.title} onClose={() => setPresenting(null)} />
+        <SlidesPresenter
+          slides={presenting.slides}
+          title={presenting.title}
+          onClose={() => setPresenting(null)}
+        />
       )}
     </>
   );
@@ -276,7 +301,9 @@ function PresentationEditor({
 }) {
   const [kind, setKind] = useState<Kind>(initial?.kind ?? "slides");
   const [title, setTitle] = useState(initial?.title ?? "");
-  const [slides, setSlides] = useState<Slide[]>(initial?.slides?.length ? initial.slides : [{ title: "", body: "" }]);
+  const [slides, setSlides] = useState<Slide[]>(
+    initial?.slides?.length ? initial.slides : [{ title: "", body: "" }],
+  );
   const [externalUrl, setExternalUrl] = useState(initial?.external_url ?? "");
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
@@ -297,7 +324,9 @@ function PresentationEditor({
       toast.error("تعذر رفع الصورة");
       return;
     }
-    const { data } = await supabase.storage.from("meeting-presentations").createSignedUrl(path, 60 * 60 * 24 * 365);
+    const { data } = await supabase.storage
+      .from("meeting-presentations")
+      .createSignedUrl(path, 60 * 60 * 24 * 365);
     if (data?.signedUrl) updateSlide(i, { image_url: data.signedUrl });
   };
 
@@ -329,7 +358,10 @@ function PresentationEditor({
         meeting_id: meetingId,
         title: title.trim(),
         kind,
-        slides: kind === "slides" ? slides.filter((s) => s.title.trim() || s.body.trim() || s.image_url) : [],
+        slides:
+          kind === "slides"
+            ? slides.filter((s) => s.title.trim() || s.body.trim() || s.image_url)
+            : [],
         file_path: kind === "file" ? filePath : null,
         external_url: kind === "link" ? externalUrl.trim() : null,
         created_by: userId,
@@ -357,22 +389,32 @@ function PresentationEditor({
   };
 
   return (
-    <div className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-center justify-center p-4" dir="rtl">
+    <div
+      className="fixed inset-0 z-[130] bg-black/85 backdrop-blur-md flex items-center justify-center p-4"
+      dir="rtl"
+    >
       <motion.div
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         className="bg-card border border-border rounded-3xl w-full max-w-3xl max-h-[92vh] overflow-hidden flex flex-col shadow-2xl"
       >
         <div className="flex items-center justify-between p-5 border-b border-border">
-          <h3 className="text-lg font-black text-primary">{isEdit ? "تعديل العرض" : "عرض تقديمي جديد"}</h3>
-          <button onClick={onClose} className="size-9 rounded-full bg-muted hover:bg-muted/70 grid place-items-center">
+          <h3 className="text-lg font-black text-primary">
+            {isEdit ? "تعديل العرض" : "عرض تقديمي جديد"}
+          </h3>
+          <button
+            onClick={onClose}
+            className="size-9 rounded-full bg-muted hover:bg-muted/70 grid place-items-center"
+          >
             <X size={18} />
           </button>
         </div>
 
         <form id={formId} onSubmit={submit} className="overflow-y-auto p-5 space-y-5 flex-1">
           <div>
-            <label className="text-xs font-black text-muted-foreground uppercase tracking-widest block mb-2">عنوان العرض</label>
+            <label className="text-xs font-black text-muted-foreground uppercase tracking-widest block mb-2">
+              عنوان العرض
+            </label>
             <input
               type="text"
               value={title}
@@ -413,11 +455,20 @@ function PresentationEditor({
           {kind === "slides" && (
             <div className="space-y-3">
               {slides.map((s, i) => (
-                <div key={i} className="p-4 rounded-2xl bg-secondary/40 border border-border space-y-3">
+                <div
+                  key={i}
+                  className="p-4 rounded-2xl bg-secondary/40 border border-border space-y-3"
+                >
                   <div className="flex items-center justify-between">
-                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">شريحة {i + 1}</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                      شريحة {i + 1}
+                    </span>
                     {slides.length > 1 && (
-                      <button type="button" onClick={() => removeSlide(i)} className="text-rose-500 hover:text-rose-600">
+                      <button
+                        type="button"
+                        onClick={() => removeSlide(i)}
+                        className="text-rose-500 hover:text-rose-600"
+                      >
                         <Trash2 size={14} />
                       </button>
                     )}
@@ -453,7 +504,11 @@ function PresentationEditor({
                     {s.image_url && (
                       <>
                         <img src={s.image_url} alt="" className="size-10 rounded-lg object-cover" />
-                        <button type="button" onClick={() => updateSlide(i, { image_url: null })} className="text-rose-500 text-xs">
+                        <button
+                          type="button"
+                          onClick={() => updateSlide(i, { image_url: null })}
+                          className="text-rose-500 text-xs"
+                        >
                           إزالة
                         </button>
                       </>
@@ -484,7 +539,9 @@ function PresentationEditor({
                 className="w-full px-4 py-3 rounded-xl bg-white border border-border text-slate-900 placeholder:text-slate-400"
               />
               {initial?.file_path && !file && (
-                <p className="text-[10px] text-muted-foreground mt-2">ملف موجود حالياً — اختر ملفاً جديداً للاستبدال</p>
+                <p className="text-[10px] text-muted-foreground mt-2">
+                  ملف موجود حالياً — اختر ملفاً جديداً للاستبدال
+                </p>
               )}
             </div>
           )}
@@ -507,7 +564,10 @@ function PresentationEditor({
         </form>
 
         <div className="p-5 border-t border-border flex items-center justify-end gap-2">
-          <button onClick={onClose} className="px-5 py-2.5 rounded-xl bg-muted text-sm font-black hover:bg-muted/70">
+          <button
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl bg-muted text-sm font-black hover:bg-muted/70"
+          >
             إلغاء
           </button>
           <button
@@ -524,7 +584,15 @@ function PresentationEditor({
   );
 }
 
-function SlidesPresenter({ slides, title, onClose }: { slides: Slide[]; title: string; onClose: () => void }) {
+function SlidesPresenter({
+  slides,
+  title,
+  onClose,
+}: {
+  slides: Slide[];
+  title: string;
+  onClose: () => void;
+}) {
   const [idx, setIdx] = useState(0);
   const total = slides.length;
 
@@ -552,7 +620,10 @@ function SlidesPresenter({ slides, title, onClose }: { slides: Slide[]; title: s
           <span className="text-xs font-black text-white/60">
             {idx + 1} / {total}
           </span>
-          <button onClick={onClose} className="size-9 rounded-full bg-white/10 hover:bg-white/20 grid place-items-center">
+          <button
+            onClick={onClose}
+            className="size-9 rounded-full bg-white/10 hover:bg-white/20 grid place-items-center"
+          >
             <X size={18} />
           </button>
         </div>
@@ -584,13 +655,21 @@ function SlidesPresenter({ slides, title, onClose }: { slides: Slide[]; title: s
             className="max-w-5xl w-full text-center space-y-8"
           >
             {s.title && (
-              <h2 className="text-4xl md:text-7xl font-black tracking-tight text-gold-primary drop-shadow-2xl">{s.title}</h2>
+              <h2 className="text-4xl md:text-7xl font-black tracking-tight text-gold-primary drop-shadow-2xl">
+                {s.title}
+              </h2>
             )}
             {s.image_url && (
-              <img src={s.image_url} alt="" className="mx-auto max-h-[50vh] rounded-2xl object-contain shadow-2xl" />
+              <img
+                src={s.image_url}
+                alt=""
+                className="mx-auto max-h-[50vh] rounded-2xl object-contain shadow-2xl"
+              />
             )}
             {s.body && (
-              <p className="text-xl md:text-3xl leading-relaxed text-white/85 whitespace-pre-wrap">{s.body}</p>
+              <p className="text-xl md:text-3xl leading-relaxed text-white/85 whitespace-pre-wrap">
+                {s.body}
+              </p>
             )}
           </motion.div>
         </AnimatePresence>

@@ -46,7 +46,12 @@ function NotificationsPage() {
   const [items, setItems] = useState<Notif[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
-  const [profile, setProfile] = useState<{ name: string; role: string; initial: string; avatarPath?: string | null }>({
+  const [profile, setProfile] = useState<{
+    name: string;
+    role: string;
+    initial: string;
+    avatarPath?: string | null;
+  }>({
     name: "",
     role: "عضو",
     initial: "؟",
@@ -66,8 +71,14 @@ function NotificationsPage() {
       .eq("id", uid)
       .maybeSingle();
     if (prof) {
-      const name = (prof.full_name || `${prof.first_name ?? ""} ${prof.father_name ?? ""}`.trim()) || "عضو";
-      setProfile({ name, role: "عضو", initial: name.charAt(0) || "؟", avatarPath: prof.avatar_url });
+      const name =
+        prof.full_name || `${prof.first_name ?? ""} ${prof.father_name ?? ""}`.trim() || "عضو";
+      setProfile({
+        name,
+        role: "عضو",
+        initial: name.charAt(0) || "؟",
+        avatarPath: prof.avatar_url,
+      });
     }
 
     const dismissed: string[] = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
@@ -79,7 +90,9 @@ function NotificationsPage() {
       .select("conversation_id,last_read_at")
       .eq("user_id", uid);
     if (parts?.length) {
-      const readMap = new Map<string, number>(parts.map((p: any) => [p.conversation_id, new Date(p.last_read_at).getTime()]));
+      const readMap = new Map<string, number>(
+        parts.map((p: any) => [p.conversation_id, new Date(p.last_read_at).getTime()]),
+      );
       const { data: msgs } = await supabase
         .from("messages")
         .select("id,conversation_id,body,created_at,sender_id")
@@ -90,7 +103,10 @@ function NotificationsPage() {
       const seen = new Set<string>();
       (msgs ?? []).forEach((m) => {
         const nid = `msg-${m.conversation_id}`;
-        if (new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0) && !dismissed.includes(nid)) {
+        if (
+          new Date(m.created_at).getTime() > (readMap.get(m.conversation_id) ?? 0) &&
+          !dismissed.includes(nid)
+        ) {
           if (!seen.has(m.conversation_id)) {
             seen.add(m.conversation_id);
             out.push({
@@ -188,7 +204,10 @@ function NotificationsPage() {
   const clearAll = () => {
     const ids = items.map((i) => i.id);
     const d: string[] = JSON.parse(localStorage.getItem("dismissed_notifs") || "[]");
-    localStorage.setItem("dismissed_notifs", JSON.stringify([...new Set([...d, ...ids])].slice(-200)));
+    localStorage.setItem(
+      "dismissed_notifs",
+      JSON.stringify([...new Set([...d, ...ids])].slice(-200)),
+    );
     setItems([]);
   };
 
@@ -197,8 +216,16 @@ function NotificationsPage() {
   const tabs: { key: "all" | NotifKind; label: string; count: number }[] = [
     { key: "all", label: "الكل", count: items.length },
     { key: "message", label: "الرسائل", count: items.filter((i) => i.kind === "message").length },
-    { key: "meeting", label: "الاجتماعات", count: items.filter((i) => i.kind === "meeting").length },
-    { key: "account_request", label: "الطلبات", count: items.filter((i) => i.kind === "account_request").length },
+    {
+      key: "meeting",
+      label: "الاجتماعات",
+      count: items.filter((i) => i.kind === "meeting").length,
+    },
+    {
+      key: "account_request",
+      label: "الطلبات",
+      count: items.filter((i) => i.kind === "account_request").length,
+    },
   ];
 
   return (
@@ -220,7 +247,12 @@ function NotificationsPage() {
                 <RefreshCw size={14} className="ml-1" /> تحديث
               </Button>
               {items.length > 0 && (
-                <Button variant="outline" size="sm" onClick={clearAll} className="rounded-xl text-rose-600 hover:text-rose-700">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearAll}
+                  className="rounded-xl text-rose-600 hover:text-rose-700"
+                >
                   <Trash2 size={14} className="ml-1" /> مسح الكل
                 </Button>
               )}
@@ -237,14 +269,14 @@ function NotificationsPage() {
                 "px-4 py-2 rounded-2xl text-sm font-bold whitespace-nowrap transition-all border",
                 filter === t.key
                   ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                  : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40"
+                  : "bg-card text-muted-foreground border-border hover:text-foreground hover:border-primary/40",
               )}
             >
               {t.label}
               <span
                 className={cn(
                   "mr-2 inline-flex items-center justify-center min-w-5 h-5 px-1.5 rounded-full text-[10px] font-black",
-                  filter === t.key ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground"
+                  filter === t.key ? "bg-primary-foreground/20" : "bg-muted text-muted-foreground",
                 )}
               >
                 {t.count}
@@ -279,7 +311,7 @@ function NotificationsPage() {
                     n.kind === "meeting" && "bg-amber-500/10 text-amber-600",
                     n.kind === "task" && "bg-rose-500/10 text-rose-600",
                     n.kind === "message" && "bg-blue-500/10 text-blue-600",
-                    n.kind === "account_request" && "bg-primary/10 text-primary"
+                    n.kind === "account_request" && "bg-primary/10 text-primary",
                   )}
                 >
                   {n.kind === "meeting" ? (
@@ -299,7 +331,9 @@ function NotificationsPage() {
                       {timeAgo(n.at)}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{n.description}</p>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                    {n.description}
+                  </p>
                   <div className="flex items-center gap-2 pt-2">
                     <Link
                       to={n.href}

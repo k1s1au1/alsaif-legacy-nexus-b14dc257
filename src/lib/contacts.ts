@@ -7,9 +7,7 @@ import { toast } from "sonner";
  */
 export async function syncFamilyContacts(selectedUserIds?: string[]) {
   try {
-    let query = supabase
-      .from("profiles")
-      .select("id, arabic_name, full_name, phone");
+    let query = supabase.from("profiles").select("id, arabic_name, full_name, phone");
 
     if (selectedUserIds && selectedUserIds.length > 0) {
       query = query.in("id", selectedUserIds);
@@ -19,11 +17,11 @@ export async function syncFamilyContacts(selectedUserIds?: string[]) {
 
     let vcfContent = "";
 
-    profiles.forEach(p => {
+    profiles.forEach((p) => {
       if (p.phone) {
         const name = p.arabic_name || p.full_name || "عضو السيف";
         // Clean phone number (keep only digits and +)
-        const cleanPhone = p.phone.replace(/[^\d+]/g, '');
+        const cleanPhone = p.phone.replace(/[^\d+]/g, "");
 
         vcfContent += "BEGIN:VCARD\n";
         vcfContent += "VERSION:3.0\n";
@@ -49,7 +47,7 @@ export async function syncFamilyContacts(selectedUserIds?: string[]) {
     document.body.removeChild(link);
 
     toast.success("تم تجهيز سجل العائلة", {
-      description: "سيفتح جوالك الآن خيار حفظ جهات الاتصال."
+      description: "سيفتح جوالك الآن خيار حفظ جهات الاتصال.",
     });
   } catch (err) {
     console.error("Contact sync error:", err);

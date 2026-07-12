@@ -4,13 +4,15 @@ import { z } from "zod";
 
 export const sendPushNotification = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .validator(z.object({
-    title: z.string().min(1).max(150),
-    body: z.string().min(1).max(300),
-    type: z.enum(["meetings", "entertainment", "tasks", "chat", "news"]).optional(),
-    target_user_ids: z.array(z.string().uuid()).max(2000).optional(),
-    route: z.string().max(200).optional(),
-  }))
+  .validator(
+    z.object({
+      title: z.string().min(1).max(150),
+      body: z.string().min(1).max(300),
+      type: z.enum(["meetings", "entertainment", "tasks", "chat", "news"]).optional(),
+      target_user_ids: z.array(z.string().uuid()).max(2000).optional(),
+      route: z.string().max(200).optional(),
+    }),
+  )
   .handler(async ({ data, context }) => {
     try {
       const { getSupabaseAdmin } = await import("@/integrations/supabase/client.server");

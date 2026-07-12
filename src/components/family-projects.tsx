@@ -66,7 +66,10 @@ export function FamilyProjects({
     setLoading(true);
     const [{ data: pj }, { data: cs }] = await Promise.all([
       supabase.from("family_projects").select("*").order("created_at", { ascending: false }),
-      supabase.from("family_project_contributions").select("*").order("created_at", { ascending: false }),
+      supabase
+        .from("family_project_contributions")
+        .select("*")
+        .order("created_at", { ascending: false }),
     ]);
     const projectsData = (pj ?? []) as Project[];
     const contribsData = (cs ?? []) as Contribution[];
@@ -92,8 +95,14 @@ export function FamilyProjects({
     load();
     const ch = supabase
       .channel("family-projects-rt")
-      .on("postgres_changes", { event: "*", schema: "public", table: "family_projects" }, () => load())
-      .on("postgres_changes", { event: "*", schema: "public", table: "family_project_contributions" }, () => load())
+      .on("postgres_changes", { event: "*", schema: "public", table: "family_projects" }, () =>
+        load(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "family_project_contributions" },
+        () => load(),
+      )
       .subscribe();
     return () => {
       supabase.removeChannel(ch);
@@ -330,7 +339,9 @@ export function FamilyProjects({
 
       {/* List */}
       {loading ? (
-        <div className="card-surface p-8 text-center text-muted-foreground text-sm">جاري التحميل...</div>
+        <div className="card-surface p-8 text-center text-muted-foreground text-sm">
+          جاري التحميل...
+        </div>
       ) : filtered.length === 0 ? (
         <div className="card-surface p-10 text-center">
           <Lightbulb className="size-10 mx-auto text-gold-primary/40 mb-3" />
@@ -383,20 +394,27 @@ export function FamilyProjects({
                         <Target className="size-3" /> المتبقي للمشروع
                       </span>
                       <span className="font-semibold text-ivory">
-                        {fmt(remaining)} <span className="text-[10px] text-muted-foreground">من {fmt(Number(p.goal_amount))} ر.س</span>
+                        {fmt(remaining)}{" "}
+                        <span className="text-[10px] text-muted-foreground">
+                          من {fmt(Number(p.goal_amount))} ر.س
+                        </span>
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-background overflow-hidden">
                       <div
                         className={cn(
                           "h-full transition-all duration-700",
-                          pct >= 100 ? "bg-emerald-500" : "bg-gradient-to-l from-gold-primary to-emerald-400",
+                          pct >= 100
+                            ? "bg-emerald-500"
+                            : "bg-gradient-to-l from-gold-primary to-emerald-400",
                         )}
                         style={{ width: `${pct}%` }}
                       />
                     </div>
                     <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-emerald-400">جُمع {fmt(raised)} ر.س ({pct}%)</span>
+                      <span className="text-emerald-400">
+                        جُمع {fmt(raised)} ر.س ({pct}%)
+                      </span>
                       <span className="text-muted-foreground">
                         صندوق: {fmt(Number(p.fund_allocation))} · أعضاء: {fmt(memberSum)}
                       </span>
@@ -414,9 +432,14 @@ export function FamilyProjects({
                       {cs.map((c) => {
                         const who = c.contributor_id ? profiles[c.contributor_id] : null;
                         return (
-                          <li key={c.id} className="flex items-center justify-between text-[11px] text-muted-foreground">
+                          <li
+                            key={c.id}
+                            className="flex items-center justify-between text-[11px] text-muted-foreground"
+                          >
                             <span>{who?.arabic_name || who?.full_name || "عضو"}</span>
-                            <span className="text-emerald-400 font-semibold">+{fmt(Number(c.amount))} ر.س</span>
+                            <span className="text-emerald-400 font-semibold">
+                              +{fmt(Number(c.amount))} ر.س
+                            </span>
                           </li>
                         );
                       })}
@@ -472,15 +495,40 @@ export function FamilyProjects({
 
 function StatusBadge({ status }: { status: Project["status"] }) {
   const map: Record<Project["status"], { label: string; cls: string; icon: React.ReactNode }> = {
-    pending: { label: "قيد الانتظار", cls: "bg-gold-primary/10 text-gold-primary", icon: <Clock className="size-3" /> },
-    approved: { label: "معتمد", cls: "bg-emerald-500/10 text-emerald-400", icon: <Check className="size-3" /> },
-    rejected: { label: "مرفوض", cls: "bg-rose-500/10 text-rose-400", icon: <X className="size-3" /> },
-    completed: { label: "مكتمل", cls: "bg-blue-500/10 text-blue-400", icon: <Check className="size-3" /> },
-    cancelled: { label: "ملغى", cls: "bg-muted text-muted-foreground", icon: <X className="size-3" /> },
+    pending: {
+      label: "قيد الانتظار",
+      cls: "bg-gold-primary/10 text-gold-primary",
+      icon: <Clock className="size-3" />,
+    },
+    approved: {
+      label: "معتمد",
+      cls: "bg-emerald-500/10 text-emerald-400",
+      icon: <Check className="size-3" />,
+    },
+    rejected: {
+      label: "مرفوض",
+      cls: "bg-rose-500/10 text-rose-400",
+      icon: <X className="size-3" />,
+    },
+    completed: {
+      label: "مكتمل",
+      cls: "bg-blue-500/10 text-blue-400",
+      icon: <Check className="size-3" />,
+    },
+    cancelled: {
+      label: "ملغى",
+      cls: "bg-muted text-muted-foreground",
+      icon: <X className="size-3" />,
+    },
   };
   const m = map[status];
   return (
-    <span className={cn("text-[10px] px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1", m.cls)}>
+    <span
+      className={cn(
+        "text-[10px] px-2 py-0.5 rounded-full font-medium inline-flex items-center gap-1",
+        m.cls,
+      )}
+    >
       {m.icon} {m.label}
     </span>
   );

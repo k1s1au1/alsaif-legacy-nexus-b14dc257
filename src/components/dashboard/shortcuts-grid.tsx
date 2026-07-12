@@ -2,8 +2,18 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
-  MessageCircle, CalendarDays, Plane, Wallet, ListChecks,
-  Sparkles, Newspaper, Archive, TreePine, Star, ArrowLeft, Ticket,
+  MessageCircle,
+  CalendarDays,
+  Plane,
+  Wallet,
+  ListChecks,
+  Sparkles,
+  Newspaper,
+  Archive,
+  TreePine,
+  Star,
+  ArrowLeft,
+  Ticket,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,22 +62,119 @@ export function ShortcutsGrid({
   const toggleFav = (key: string) => {
     setFavs((prev) => {
       const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
-      try { window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next)); } catch { /* noop */ }
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      } catch {
+        /* noop */
+      }
       return next;
     });
   };
 
-  const baseShortcuts: Shortcut[] = useMemo(() => [
-    { key: "chat", to: "/chat", title: "المحادثات", description: "تواصل مباشر مع العائلة", icon: MessageCircle, accent: "from-gold-primary/10 to-transparent", cta: "افتح المحادثات", badge: badges.chat ?? null, stat: stats.chat ?? null },
-    { key: "meetings", to: "/meetings", title: "الاجتماعات", description: "جدول الاجتماعات والحضور", icon: CalendarDays, accent: "from-gold-primary/10 to-transparent", cta: "عرض الاجتماعات", badge: badges.meetings ?? null, stat: stats.meetings ?? null },
-    { key: "trips", to: "/trips", title: "الترفيه", description: "ترفيه ووجهات عائلية", icon: Ticket, accent: "from-gold-primary/10 to-transparent", cta: "استكشاف الترفيه", badge: badges.trips ?? null, stat: stats.trips ?? null },
-    { key: "finance", to: "/finance", title: "الصندوق المالي", description: "الرصيد والمساهمات", icon: Wallet, accent: "from-gold-primary/25 to-transparent", cta: "إدارة الصندوق", badge: badges.finance ?? null, stat: stats.finance ?? null },
-    { key: "tasks", to: "/tasks", title: "المهام", description: "متابعة مهامك النشطة", icon: ListChecks, accent: "from-gold-primary/10 to-transparent", cta: "عرض المهام", badge: badges.tasks ?? null, stat: stats.tasks ?? null },
-    { key: "events", to: "/events", title: "المهام", description: "متابعة المهام والأنشطة العائلية", icon: Sparkles, accent: "from-gold-primary/10 to-transparent", cta: "تصفح المهام", badge: badges.events ?? null, stat: stats.events ?? null },
-    { key: "majlis", to: "/majlis", title: "الأخبار", description: "آخر الأخبار والمستجدات الرسمية", icon: Newspaper, accent: "from-gold-primary/10 to-transparent", cta: "ادخل الأخبار", badge: badges.majlis ?? null, stat: stats.majlis ?? null },
-    { key: "archive", to: "/archive", title: "الأرشيف", description: "صور ووثائق العائلة", icon: Archive, accent: "from-gold-primary/10 to-transparent", cta: "افتح الأرشيف", badge: badges.archive ?? null, stat: stats.archive ?? null },
-    { key: "family-tree", to: "/family-tree", title: "شجرة العائلة", description: "نسب العائلة وفروعها", icon: TreePine, accent: "from-gold-primary/10 to-transparent", cta: "عرض الشجرة", badge: badges["family-tree"] ?? null, stat: stats["family-tree"] ?? null },
-  ], [badges, stats]);
+  const baseShortcuts: Shortcut[] = useMemo(
+    () => [
+      {
+        key: "chat",
+        to: "/chat",
+        title: "المحادثات",
+        description: "تواصل مباشر مع العائلة",
+        icon: MessageCircle,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "افتح المحادثات",
+        badge: badges.chat ?? null,
+        stat: stats.chat ?? null,
+      },
+      {
+        key: "meetings",
+        to: "/meetings",
+        title: "الاجتماعات",
+        description: "جدول الاجتماعات والحضور",
+        icon: CalendarDays,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "عرض الاجتماعات",
+        badge: badges.meetings ?? null,
+        stat: stats.meetings ?? null,
+      },
+      {
+        key: "trips",
+        to: "/trips",
+        title: "الترفيه",
+        description: "ترفيه ووجهات عائلية",
+        icon: Ticket,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "استكشاف الترفيه",
+        badge: badges.trips ?? null,
+        stat: stats.trips ?? null,
+      },
+      {
+        key: "finance",
+        to: "/finance",
+        title: "الصندوق المالي",
+        description: "الرصيد والمساهمات",
+        icon: Wallet,
+        accent: "from-gold-primary/25 to-transparent",
+        cta: "إدارة الصندوق",
+        badge: badges.finance ?? null,
+        stat: stats.finance ?? null,
+      },
+      {
+        key: "tasks",
+        to: "/tasks",
+        title: "المهام",
+        description: "متابعة مهامك النشطة",
+        icon: ListChecks,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "عرض المهام",
+        badge: badges.tasks ?? null,
+        stat: stats.tasks ?? null,
+      },
+      {
+        key: "events",
+        to: "/events",
+        title: "المهام",
+        description: "متابعة المهام والأنشطة العائلية",
+        icon: Sparkles,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "تصفح المهام",
+        badge: badges.events ?? null,
+        stat: stats.events ?? null,
+      },
+      {
+        key: "majlis",
+        to: "/majlis",
+        title: "الأخبار",
+        description: "آخر الأخبار والمستجدات الرسمية",
+        icon: Newspaper,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "ادخل الأخبار",
+        badge: badges.majlis ?? null,
+        stat: stats.majlis ?? null,
+      },
+      {
+        key: "archive",
+        to: "/archive",
+        title: "الأرشيف",
+        description: "صور ووثائق العائلة",
+        icon: Archive,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "افتح الأرشيف",
+        badge: badges.archive ?? null,
+        stat: stats.archive ?? null,
+      },
+      {
+        key: "family-tree",
+        to: "/family-tree",
+        title: "شجرة العائلة",
+        description: "نسب العائلة وفروعها",
+        icon: TreePine,
+        accent: "from-gold-primary/10 to-transparent",
+        cta: "عرض الشجرة",
+        badge: badges["family-tree"] ?? null,
+        stat: stats["family-tree"] ?? null,
+      },
+    ],
+    [badges, stats],
+  );
 
   const sorted = useMemo(() => {
     const favSet = new Set(favs);
@@ -111,7 +218,11 @@ export function ShortcutsGrid({
               key={s.key}
               variants={{
                 hidden: { opacity: 0, y: 12 },
-                show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.19, 1, 0.22, 1] } },
+                show: {
+                  opacity: 1,
+                  y: 0,
+                  transition: { duration: 0.35, ease: [0.19, 1, 0.22, 1] },
+                },
               }}
               whileHover={{ y: -6 }}
               whileTap={{ scale: 0.98 }}
@@ -122,11 +233,19 @@ export function ShortcutsGrid({
                 "flex flex-col gap-4",
               )}
             >
-              <div className={cn("absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none", s.accent)} />
+              <div
+                className={cn(
+                  "absolute inset-0 bg-gradient-to-br opacity-5 transition-opacity duration-500 group-hover:opacity-10 pointer-events-none",
+                  s.accent,
+                )}
+              />
 
               <button
                 type="button"
-                onClick={(e) => { e.preventDefault(); toggleFav(s.key); }}
+                onClick={(e) => {
+                  e.preventDefault();
+                  toggleFav(s.key);
+                }}
                 aria-label={isFav ? "إلغاء التثبيت" : "تثبيت كمفضل"}
                 className={cn(
                   "absolute top-4 left-4 z-20 size-8 grid place-items-center rounded-full transition-all duration-300",
@@ -135,7 +254,10 @@ export function ShortcutsGrid({
                     : "bg-muted/30 text-muted-foreground hover:text-gold-primary opacity-0 group-hover:opacity-100",
                 )}
               >
-                <Star className={cn("size-4 transition-transform", isFav && "fill-gold-primary")} strokeWidth={2} />
+                <Star
+                  className={cn("size-4 transition-transform", isFav && "fill-gold-primary")}
+                  strokeWidth={2}
+                />
               </button>
 
               <Link to={s.to} className="relative z-10 flex flex-col gap-4 flex-1">

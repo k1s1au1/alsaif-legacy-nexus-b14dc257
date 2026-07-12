@@ -44,11 +44,11 @@ export function useSiteLogo() {
 
         // Prevent showing the old logo if it's somehow still the one in storage
         if (finalUrl?.includes("alsaif-mark.png")) {
-           if (!cancelled) {
-             globalLogoUrl = null;
-             setLogoUrl(null);
-           }
-           return;
+          if (!cancelled) {
+            globalLogoUrl = null;
+            setLogoUrl(null);
+          }
+          return;
         }
 
         if (!cancelled) {

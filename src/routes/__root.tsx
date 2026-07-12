@@ -39,16 +39,23 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => { reportLovableError(error, { boundary: "tanstack_root_error_component" }); }, [error]);
+  useEffect(() => {
+    reportLovableError(error, { boundary: "tanstack_root_error_component" });
+  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">حدث خطأ غير متوقع</h1>
-        <p className="mt-2 text-sm text-muted-foreground">يمكنك المحاولة مرة أخرى أو العودة للصفحة الرئيسية.</p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          يمكنك المحاولة مرة أخرى أو العودة للصفحة الرئيسية.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
-            onClick={() => { router.invalidate(); reset(); }}
+            onClick={() => {
+              router.invalidate();
+              reset();
+            }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
             إعادة المحاولة
@@ -72,7 +79,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "السيف — Alsaif" },
-      { name: "description", content: "السيف — منصة العائلة الخاصة للتواصل والتنظيم وحفظ الإرث. Private family & community headquarters." },
+      {
+        name: "description",
+        content:
+          "السيف — منصة العائلة الخاصة للتواصل والتنظيم وحفظ الإرث. Private family & community headquarters.",
+      },
       { name: "theme-color", content: "#0F5A3A" },
       { property: "og:title", content: "السيف — Alsaif" },
       { property: "og:description", content: "نصل العائلة، نحفظ الإرث، نبني المجتمع." },
@@ -82,7 +93,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap" },
+      {
+        rel: "stylesheet",
+        href: "https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Tajawal:wght@400;500;700;800&family=Amiri:wght@400;700&family=Reem+Kufi:wght@400;700&display=swap",
+      },
     ],
   }),
   shellComponent: RootShell,
@@ -94,8 +108,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang="ar" dir="rtl">
-      <head><HeadContent /></head>
-      <body>{children}<Scripts /></body>
+      <head>
+        <HeadContent />
+      </head>
+      <body>
+        {children}
+        <Scripts />
+      </body>
     </html>
   );
 }
@@ -135,11 +154,36 @@ function RootComponent() {
         // For simplicity, we can fetch from a static list or just wait for the user to visit settings.
         // Better: store the colors themselves or use a mapping.
         const themes: Record<string, any> = {
-          "emerald": { p: "#064E3B", s: "#D4AF37", dp: "#064E3B", m: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"] },
-          "midnight": { p: "#1E293B", s: "#94A3B8", dp: "#334155", m: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"] },
-          "burgundy": { p: "#4C0519", s: "#D4AF37", dp: "#800000", m: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"] },
-          "pure-white": { p: "#FDFCF7", s: "#8E7745", dp: "#F1F5F9", m: ["rgba(142, 119, 69, 0.1)", "rgba(253, 252, 247, 0.1)"] },
-          "sand": { p: "#C2B280", s: "#451A03", dp: "#D2B48C", m: ["rgba(69, 26, 3, 0.1)", "rgba(194, 178, 128, 0.1)"] }
+          emerald: {
+            p: "#064E3B",
+            s: "#D4AF37",
+            dp: "#064E3B",
+            m: ["rgba(212, 175, 55, 0.1)", "rgba(6, 78, 59, 0.08)"],
+          },
+          midnight: {
+            p: "#1E293B",
+            s: "#94A3B8",
+            dp: "#334155",
+            m: ["rgba(148, 163, 184, 0.1)", "rgba(30, 41, 59, 0.1)"],
+          },
+          burgundy: {
+            p: "#4C0519",
+            s: "#D4AF37",
+            dp: "#800000",
+            m: ["rgba(212, 175, 55, 0.1)", "rgba(76, 5, 25, 0.1)"],
+          },
+          "pure-white": {
+            p: "#FDFCF7",
+            s: "#8E7745",
+            dp: "#F1F5F9",
+            m: ["rgba(142, 119, 69, 0.1)", "rgba(253, 252, 247, 0.1)"],
+          },
+          sand: {
+            p: "#C2B280",
+            s: "#451A03",
+            dp: "#D2B48C",
+            m: ["rgba(69, 26, 3, 0.1)", "rgba(194, 178, 128, 0.1)"],
+          },
         };
         const c = themes[savedColor];
         if (c) {
@@ -155,9 +199,11 @@ function RootComponent() {
     }
 
     // Initialize native push notifications (no-op on web)
-    import("@/lib/pushNotifications").then(({ setupPushNotifications }) => {
-      setupPushNotifications();
-    }).catch((e) => console.error("[Push] import failed:", e));
+    import("@/lib/pushNotifications")
+      .then(({ setupPushNotifications }) => {
+        setupPushNotifications();
+      })
+      .catch((e) => console.error("[Push] import failed:", e));
     const { data: sub } = supabase.auth.onAuthStateChange((event) => {
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();

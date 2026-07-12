@@ -59,9 +59,21 @@ type ProfileLite = { id: string; arabic_name: string | null; full_name: string |
 const TYPE_META: Record<EventType, { label: string; icon: typeof Sparkles; color: string }> = {
   wedding: { label: "زواج", icon: Heart, color: "text-rose-300 bg-rose-500/10 ring-rose-500/30" },
   birthday: { label: "ميلاد", icon: Cake, color: "text-pink-300 bg-pink-500/10 ring-pink-500/30" },
-  graduation: { label: "تخرّج", icon: GraduationCap, color: "text-sky-300 bg-sky-500/10 ring-sky-500/30" },
-  religious: { label: "ديني", icon: Moon, color: "text-emerald-300 bg-emerald-500/10 ring-emerald-500/30" },
-  social: { label: "اجتماعي", icon: PartyPopper, color: "text-gold-primary bg-gold-primary/10 ring-gold-primary/30" },
+  graduation: {
+    label: "تخرّج",
+    icon: GraduationCap,
+    color: "text-sky-300 bg-sky-500/10 ring-sky-500/30",
+  },
+  religious: {
+    label: "ديني",
+    icon: Moon,
+    color: "text-emerald-300 bg-emerald-500/10 ring-emerald-500/30",
+  },
+  social: {
+    label: "اجتماعي",
+    icon: PartyPopper,
+    color: "text-gold-primary bg-gold-primary/10 ring-gold-primary/30",
+  },
   other: { label: "أخرى", icon: Star, color: "text-muted-foreground bg-secondary/40 ring-border" },
 };
 
@@ -178,10 +190,7 @@ function EventsPage() {
             .eq("id", userId)
             .maybeSingle(),
         ]);
-        const name =
-          p?.arabic_name?.trim() ||
-          p?.full_name?.trim() ||
-          "عضو العائلة";
+        const name = p?.arabic_name?.trim() || p?.full_name?.trim() || "عضو العائلة";
         setProfile({
           name,
           role: roleLabel(primaryRole),
@@ -283,9 +292,7 @@ function EventsPage() {
   const upcoming = events.filter(
     (e) => e.status !== "cancelled" && new Date(e.starts_at) >= new Date(),
   );
-  const past = events.filter(
-    (e) => e.status === "cancelled" || new Date(e.starts_at) < new Date(),
-  );
+  const past = events.filter((e) => e.status === "cancelled" || new Date(e.starts_at) < new Date());
 
   return (
     <AppShell title="المهام" user={profile}>
@@ -294,9 +301,7 @@ function EventsPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-semibold tracking-tight">مهام العائلة</h2>
-            <p className="text-sm text-muted-foreground mt-1">
-              متابعة المهام وكل ما يجمع العائلة.
-            </p>
+            <p className="text-sm text-muted-foreground mt-1">متابعة المهام وكل ما يجمع العائلة.</p>
           </div>
           {canManage && (
             <button

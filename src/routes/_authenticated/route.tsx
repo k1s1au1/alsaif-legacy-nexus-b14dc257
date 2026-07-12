@@ -8,28 +8,37 @@ export const Route = createFileRoute("/_authenticated")({
   errorComponent: ({ error, reset }) => {
     console.error("Route error:", error);
     return (
-    <div className="min-h-screen flex items-center justify-center p-6 bg-background">
-      <div className="card-surface max-w-md w-full p-10 text-center space-y-6 shadow-2xl border-rose-500/20">
-         <div className="size-20 rounded-[32px] bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">
+      <div className="min-h-screen flex items-center justify-center p-6 bg-background">
+        <div className="card-surface max-w-md w-full p-10 text-center space-y-6 shadow-2xl border-rose-500/20">
+          <div className="size-20 rounded-[32px] bg-rose-500/10 flex items-center justify-center text-rose-500 mx-auto">
             <AlertCircle size={40} />
-         </div>
-         <div className="space-y-2">
+          </div>
+          <div className="space-y-2">
             <h2 className="text-2xl font-black text-primary tracking-tight">حدث خطأ في النظام</h2>
-            <p className="text-sm font-bold text-muted-foreground opacity-60 leading-relaxed">أعتذر منك، يبدو أن هناك مشكلة في تحميل البيانات. يمكنك المحاولة مرة أخرى أو العودة للرئيسية.</p>
-         </div>
-         <div className="p-4 rounded-2xl bg-muted/50 text-xs font-bold text-muted-foreground text-center">
+            <p className="text-sm font-bold text-muted-foreground opacity-60 leading-relaxed">
+              أعتذر منك، يبدو أن هناك مشكلة في تحميل البيانات. يمكنك المحاولة مرة أخرى أو العودة
+              للرئيسية.
+            </p>
+          </div>
+          <div className="p-4 rounded-2xl bg-muted/50 text-xs font-bold text-muted-foreground text-center">
             حدث خطأ غير متوقع، يرجى المحاولة مجدداً.
-         </div>
-         <div className="flex gap-3">
-            <button onClick={() => reset()} className="flex-1 h-14 rounded-2xl bg-primary text-white font-black text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all">
-               <RefreshCcw size={18} /> إعادة المحاولة
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => reset()}
+              className="flex-1 h-14 rounded-2xl bg-primary text-white font-black text-sm flex items-center justify-center gap-2 hover:brightness-110 transition-all"
+            >
+              <RefreshCcw size={18} /> إعادة المحاولة
             </button>
-            <a href="/" className="size-14 rounded-2xl bg-muted flex items-center justify-center text-primary hover:bg-border transition-all">
-               <Home size={20} />
+            <a
+              href="/"
+              className="size-14 rounded-2xl bg-muted flex items-center justify-center text-primary hover:bg-border transition-all"
+            >
+              <Home size={20} />
             </a>
-         </div>
+          </div>
+        </div>
       </div>
-    </div>
     );
   },
   beforeLoad: async ({ location }) => {
@@ -47,11 +56,7 @@ export const Route = createFileRoute("/_authenticated")({
 
         // If we can't check profile (e.g. columns missing), don't block the app
         if (!pError && profile) {
-          if (
-            !profile.first_name ||
-            !profile.father_name ||
-            !profile.grandfather_name
-          ) {
+          if (!profile.first_name || !profile.father_name || !profile.grandfather_name) {
             throw redirect({ to: "/onboarding" });
           }
         }
@@ -60,7 +65,7 @@ export const Route = createFileRoute("/_authenticated")({
       return { user: data.user };
     } catch (e) {
       // Re-throw redirects so the router handles them
-      if (typeof e === 'object' && e !== null && ('to' in e || 'status' in e)) {
+      if (typeof e === "object" && e !== null && ("to" in e || "status" in e)) {
         throw e;
       }
       console.error("Auth guard error:", e);

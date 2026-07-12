@@ -1,4 +1,4 @@
-import type { Database } from './types';
+import type { Database } from "./types";
 
 // Standard server-side client setup
 export const getSupabaseAdmin = async () => {
@@ -8,12 +8,12 @@ export const getSupabaseAdmin = async () => {
   if (!url || !key) return null;
 
   // Use dynamic import to avoid serialization issues with Proxy objects
-  const { createClient } = await import('@supabase/supabase-js');
+  const { createClient } = await import("@supabase/supabase-js");
 
   return createClient<Database>(url, key, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
-    }
+    },
   });
 };

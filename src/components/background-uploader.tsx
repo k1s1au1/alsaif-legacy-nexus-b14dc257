@@ -23,7 +23,6 @@ export function BackgroundUploader({
   className?: string;
   inline?: boolean;
 }) {
-
   const [canEdit, setCanEdit] = useState(false);
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -31,7 +30,9 @@ export function BackgroundUploader({
   useEffect(() => {
     (async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
         if (!user) {
           setCanEdit(false);
           return;
@@ -91,13 +92,7 @@ export function BackgroundUploader({
 
   return (
     <>
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        onChange={onFile}
-        className="hidden"
-      />
+      <input ref={inputRef} type="file" accept="image/*" onChange={onFile} className="hidden" />
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
@@ -110,14 +105,19 @@ export function BackgroundUploader({
           className,
         )}
       >
-        <div className={cn(
-          "rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110",
-          inline ? "size-12 bg-card shadow-sm" : ""
-        )}>
+        <div
+          className={cn(
+            "rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110",
+            inline ? "size-12 bg-card shadow-sm" : "",
+          )}
+        >
           {uploading ? (
             <Loader2 className="size-5 animate-spin text-primary" />
           ) : (
-            <ImagePlus className={cn("size-6", inline ? "text-gold-primary" : "text-navy-base")} strokeWidth={2} />
+            <ImagePlus
+              className={cn("size-6", inline ? "text-gold-primary" : "text-navy-base")}
+              strokeWidth={2}
+            />
           )}
         </div>
         {inline && (

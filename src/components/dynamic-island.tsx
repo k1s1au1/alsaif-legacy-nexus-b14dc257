@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-import {
-  CheckCircle2,
-  Info,
-  AlertCircle,
-  Loader2,
-  Calendar,
-  Zap
-} from "lucide-react";
+import { CheckCircle2, Info, AlertCircle, Loader2, Calendar, Zap } from "lucide-react";
 
 export type IslandStatus = "success" | "loading" | "info" | "error" | "event";
 
@@ -24,9 +17,14 @@ let islandTimer: ReturnType<typeof setTimeout>;
 /**
  * Global trigger for the Dynamic Island
  */
-export const showIsland = (message: string, status: IslandStatus = "info", duration = 4000, onClick?: () => void) => {
+export const showIsland = (
+  message: string,
+  status: IslandStatus = "info",
+  duration = 4000,
+  onClick?: () => void,
+) => {
   const event = new CustomEvent("island:show", {
-    detail: { message, status, id: Math.random().toString(36).substr(2, 9), onClick }
+    detail: { message, status, id: Math.random().toString(36).substr(2, 9), onClick },
   });
   window.dispatchEvent(event);
 
@@ -70,28 +68,30 @@ export function DynamicIsland() {
             className={cn(
               "pointer-events-auto h-12 min-w-[120px] max-w-[90vw] bg-black text-white rounded-full flex items-center px-4 gap-3 shadow-2xl border border-white/10 backdrop-blur-xl",
               "ring-1 ring-gold-primary/20",
-              state.onClick && "cursor-pointer"
+              state.onClick && "cursor-pointer",
             )}
           >
-             <div className="shrink-0">
-                {state.status === "loading" && <Loader2 className="size-4 animate-spin text-gold-primary" />}
-                {state.status === "success" && <CheckCircle2 className="size-4 text-emerald-400" />}
-                {state.status === "error" && <AlertCircle className="size-4 text-rose-400" />}
-                {state.status === "info" && <Info className="size-4 text-blue-400" />}
-                {state.status === "event" && <Calendar className="size-4 text-amber-400" />}
-             </div>
+            <div className="shrink-0">
+              {state.status === "loading" && (
+                <Loader2 className="size-4 animate-spin text-gold-primary" />
+              )}
+              {state.status === "success" && <CheckCircle2 className="size-4 text-emerald-400" />}
+              {state.status === "error" && <AlertCircle className="size-4 text-rose-400" />}
+              {state.status === "info" && <Info className="size-4 text-blue-400" />}
+              {state.status === "event" && <Calendar className="size-4 text-amber-400" />}
+            </div>
 
-             <motion.span
-               initial={{ opacity: 0, x: 5 }}
-               animate={{ opacity: 1, x: 0 }}
-               className="text-[11px] font-black tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
-             >
-                {state.message}
-             </motion.span>
+            <motion.span
+              initial={{ opacity: 0, x: 5 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-[11px] font-black tracking-tight whitespace-nowrap overflow-hidden text-ellipsis"
+            >
+              {state.message}
+            </motion.span>
 
-             {state.status === "loading" && (
-               <div className="ml-auto size-1.5 rounded-full bg-gold-primary animate-pulse" />
-             )}
+            {state.status === "loading" && (
+              <div className="ml-auto size-1.5 rounded-full bg-gold-primary animate-pulse" />
+            )}
           </motion.div>
         )}
       </AnimatePresence>

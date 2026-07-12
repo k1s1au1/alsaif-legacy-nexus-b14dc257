@@ -36,8 +36,7 @@ export const Route = createFileRoute("/_authenticated/family-tree")({
       { title: "شجرة عائلة السيف" },
       {
         name: "description",
-        content:
-          "عرض هرمي لشجرة عائلة السيف مع روابط واضحة بين الآباء والأبناء.",
+        content: "عرض هرمي لشجرة عائلة السيف مع روابط واضحة بين الآباء والأبناء.",
       },
     ],
   }),
@@ -60,7 +59,13 @@ const NODE_H = 80;
 
 function FamilyTreePage() {
   const router = useRouter();
-  const [me, setMe] = useState<{ name: string; role: string; initial: string; avatarPath?: string | null; id?: string } | null>(null);
+  const [me, setMe] = useState<{
+    name: string;
+    role: string;
+    initial: string;
+    avatarPath?: string | null;
+    id?: string;
+  } | null>(null);
   const [isPriv, setIsPriv] = useState(false);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
@@ -85,7 +90,13 @@ function FamilyTreePage() {
         } = await supabase.auth.getUser();
         if (!user) return;
         const [{ data: profile }, { data: roles }] = await Promise.all([
-          supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").eq("id", user.id).maybeSingle(),
+          supabase
+            .from("profiles")
+            .select(
+              "id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at",
+            )
+            .eq("id", user.id)
+            .maybeSingle(),
           supabase.from("user_roles").select("role").eq("user_id", user.id),
         ]);
         const rs = (roles ?? []).map((r) => r.role);
@@ -93,7 +104,13 @@ function FamilyTreePage() {
         const profileName = profile?.arabic_name || profile?.full_name || "عضو";
         setMe({
           name: profileName,
-          role: rs.includes("admin") ? "مسؤول تقني" : rs.includes("chairman") ? "رئيس المجلس" : rs.includes("manager") ? "مسؤول قسم" : "عضو",
+          role: rs.includes("admin")
+            ? "مسؤول تقني"
+            : rs.includes("chairman")
+              ? "رئيس المجلس"
+              : rs.includes("manager")
+                ? "مسؤول قسم"
+                : "عضو",
           initial: (profileName[0] || "ع").toUpperCase(),
           avatarPath: profile?.avatar_url,
           id: user.id,
@@ -116,8 +133,16 @@ function FamilyTreePage() {
     setLoading(true);
     try {
       const [profilesRes, extrasRes] = await Promise.all([
-        supabase.from("profiles").select("id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at").order("first_name", { ascending: true }),
-        supabase.from("family_tree_extras" as any).select("*").order("first_name", { ascending: true }),
+        supabase
+          .from("profiles")
+          .select(
+            "id, arabic_name, full_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at",
+          )
+          .order("first_name", { ascending: true }),
+        supabase
+          .from("family_tree_extras" as any)
+          .select("*")
+          .order("first_name", { ascending: true }),
       ]);
       if (profilesRes.error) throw profilesRes.error;
       const profileMembers: Member[] = (profilesRes.data ?? []).map((p: any) => ({
@@ -218,74 +243,90 @@ function FamilyTreePage() {
 
     return (
       <g className="node-group">
-        <foreignObject
-          width={NODE_W}
-          height={NODE_H}
-          x={-NODE_W / 2}
-          y={-NODE_H / 2}
-        >
+        <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2}>
           <div
             onClick={toggleNode}
 
             style={{
               width: `${NODE_W}px`,
               height: `${NODE_H}px`,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '8px',
-              borderRadius: '999px',
-              border: '3px solid #E5E4E0',
-              backgroundColor: 'white',
-              boxSizing: 'border-box',
-              cursor: 'pointer'
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "8px",
+              borderRadius: "999px",
+              border: "3px solid #E5E4E0",
+              backgroundColor: "white",
+              boxSizing: "border-box",
+              cursor: "pointer",
             }}
             className={cn(
               "tree-node-content",
               isRoot && "is-root",
               isMe && "is-me",
               isSearchMatch && "is-match",
-              isExtra && "is-extra"
+              isExtra && "is-extra",
             )}
           >
             {isRoot ? (
-              <div style={{ textAlign: 'center' }}>
+              <div style={{ textAlign: "center" }}>
                 <Trees size={16} color="#D4AF37" />
-                <div style={{ fontSize: '11px', fontWeight: 900, color: 'white' }}>{nodeDatum.name}</div>
+                <div style={{ fontSize: "11px", fontWeight: 900, color: "white" }}>
+                  {nodeDatum.name}
+                </div>
               </div>
             ) : m ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', overflow: 'hidden' }}>
-                <div style={{
-                  width: '40px',
-                  height: '40px',
-                  borderRadius: '50%',
-                  overflow: 'hidden',
-                  border: '1px solid #D4AF37',
-                  flexShrink: 0
-                }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  width: "100%",
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    width: "40px",
+                    height: "40px",
+                    borderRadius: "50%",
+                    overflow: "hidden",
+                    border: "1px solid #D4AF37",
+                    flexShrink: 0,
+                  }}
+                >
                   {isExtra ? (
                     <UserCircle2 size={40} color="#8E7745" />
                   ) : (
-                    <UserAvatar name={m.first_name || "ع"} path={m.avatar_url} className="size-full" userId={m.id} />
+                    <UserAvatar
+                      name={m.first_name || "ع"}
+                      path={m.avatar_url}
+                      className="size-full"
+                      userId={m.id}
+                    />
                   )}
                 </div>
-                <div style={{ flex: 1, textAlign: 'right', overflow: 'hidden' }}>
-                  <div style={{
-                    fontSize: '13px',
-                    fontWeight: 900,
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    color: (isMe || isRoot) ? 'white' : '#1B4332'
-                  }}>
+                <div style={{ flex: 1, textAlign: "right", overflow: "hidden" }}>
+                  <div
+                    style={{
+                      fontSize: "13px",
+                      fontWeight: 900,
+                      whiteSpace: "nowrap",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      color: isMe || isRoot ? "white" : "#1B4332",
+                    }}
+                  >
                     {m.first_name}
                   </div>
-                  <div style={{
-                    fontSize: '9px',
-                    fontWeight: 700,
-                    opacity: 0.7,
-                    color: (isMe || isRoot) ? 'white' : '#8E7745'
-                  }}>
+                  <div
+                    style={{
+                      fontSize: "9px",
+                      fontWeight: 700,
+                      opacity: 0.7,
+                      color: isMe || isRoot ? "white" : "#8E7745",
+                    }}
+                  >
                     {isExtra ? "بدون حساب" : m.father_name || "السيف"}
                   </div>
                 </div>
@@ -296,7 +337,7 @@ function FamilyTreePage() {
                       setEditing(m.id);
                       setDraftParent(m.parent_id);
                     }}
-                    style={{ padding: '4px', opacity: 0.5 }}
+                    style={{ padding: "4px", opacity: 0.5 }}
                   >
                     <Pencil size={12} />
                   </button>
@@ -357,8 +398,14 @@ function FamilyTreePage() {
               />
             </div>
             <div className="flex gap-2 w-full md:w-auto justify-center">
-              <ControlBtn onClick={() => setZoom((z) => Math.min(2, z + 0.15))} icon={<ZoomIn size={18} />} />
-              <ControlBtn onClick={() => setZoom((z) => Math.max(0.1, z - 0.15))} icon={<ZoomOut size={18} />} />
+              <ControlBtn
+                onClick={() => setZoom((z) => Math.min(2, z + 0.15))}
+                icon={<ZoomIn size={18} />}
+              />
+              <ControlBtn
+                onClick={() => setZoom((z) => Math.max(0.1, z - 0.15))}
+                icon={<ZoomOut size={18} />}
+              />
               <ControlBtn
                 onClick={() => {
                   setZoom(0.6);
@@ -427,7 +474,11 @@ function FamilyTreePage() {
                   {editingMember.kind === "extra" ? (
                     <UserCircle2 className="size-7 text-[#8E7745]" />
                   ) : (
-                    <UserAvatar name={editingMember.first_name || "ع"} path={editingMember.avatar_url} className="size-full" />
+                    <UserAvatar
+                      name={editingMember.first_name || "ع"}
+                      path={editingMember.avatar_url}
+                      className="size-full"
+                    />
                   )}
                 </div>
                 <div>
@@ -435,7 +486,9 @@ function FamilyTreePage() {
                     تعديل ارتباط {editingMember.first_name}
                   </h3>
                   <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                    {editingMember.kind === "extra" ? "فرد مضاف بدون حساب" : (
+                    {editingMember.kind === "extra" ? (
+                      "فرد مضاف بدون حساب"
+                    ) : (
                       <>
                         <ShieldCheck size={12} /> حساب معتمد ومرتبط بالنظام
                       </>
@@ -688,8 +741,10 @@ function AddMemberDialog({
 
           <p className="text-[10px] font-bold text-[#8E7745] leading-relaxed bg-[#FFF8E7] rounded-xl p-3">
             {relation === "child" && "سيتم إضافة الفرد الجديد كابن مباشر للعضو المختار."}
-            {relation === "father" && "سيتم إضافة الفرد كأب للعضو المختار، وسيرث ارتباط جدّه إن وجد."}
-            {relation === "grandfather" && "سيتم إضافة الفرد كجد، أي والداً لأب العضو المختار. يجب أن يكون للعضو أب مسجّل."}
+            {relation === "father" &&
+              "سيتم إضافة الفرد كأب للعضو المختار، وسيرث ارتباط جدّه إن وجد."}
+            {relation === "grandfather" &&
+              "سيتم إضافة الفرد كجد، أي والداً لأب العضو المختار. يجب أن يكون للعضو أب مسجّل."}
             {relation === "root" && "سيظهر الفرد كرأس شجرة مستقل."}
           </p>
         </div>
@@ -706,7 +761,8 @@ function AddMemberDialog({
             disabled={saving}
             className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2"
           >
-            {saving ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />} إضافة
+            {saving ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />}{" "}
+            إضافة
           </button>
         </div>
       </div>
@@ -717,7 +773,9 @@ function AddMemberDialog({
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="space-y-1.5">
-      <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">{label}</label>
+      <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">
+        {label}
+      </label>
       {children}
     </div>
   );
