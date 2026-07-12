@@ -27,17 +27,27 @@ export function PresenceDot({
   className?: string;
   withRing?: boolean;
 }) {
-  const color =
-    state === "online" ? "bg-emerald-500" : state === "idle" ? "bg-amber-500" : "bg-red-500";
-  const label = state === "online" ? "متصل" : state === "idle" ? "خامل" : "غير متصل";
+  const isOnline = state === "online";
+  const isIdle = state === "idle";
+
+  const color = isOnline ? "bg-emerald-500" : isIdle ? "bg-amber-500" : "bg-red-500";
+  const label = isOnline ? "متصل" : isIdle ? "خامل" : "غير متصل";
+
   return (
-    <span
-      title={label}
-      aria-label={label}
-      className={`inline-block size-2.5 rounded-full ${color} ${
-        withRing ? "ring-2 ring-background" : ""
-      } ${className}`}
-    />
+    <div className={cn("relative flex items-center justify-center", className)}>
+      {isOnline && (
+        <span className="absolute inset-0 rounded-full bg-emerald-500 animate-ping opacity-40" />
+      )}
+      <span
+        title={label}
+        aria-label={label}
+        className={cn(
+          "relative inline-block size-full rounded-full border shadow-sm transition-colors duration-500",
+          color,
+          withRing ? "border-white dark:border-[#0a1a16]" : "border-transparent"
+        )}
+      />
+    </div>
   );
 }
 

@@ -375,8 +375,16 @@ export function AppShell({
               userId={myUserId}
             />
           </div>
-          <div className="text-center md:text-right">
-            <h3 className="text-xl font-black text-primary tracking-tight">{safeUser.name}</h3>
+          <div className="text-center md:text-right flex-1 min-w-0">
+            <div className="flex items-center justify-center md:justify-start gap-2">
+               <h3 className="text-xl font-black text-primary tracking-tight truncate">{safeUser.name}</h3>
+               {usePresenceFor(myUserId) === 'online' && (
+                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm animate-fade-up">
+                    <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">متصل</span>
+                 </div>
+               )}
+            </div>
             <p className="text-[11px] text-gold-primary font-black uppercase tracking-[0.2em] mt-1">
               {safeUser.role}
             </p>
