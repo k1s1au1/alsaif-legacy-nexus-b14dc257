@@ -464,11 +464,11 @@ function MeetingsPage() {
                 <Carousel
                   plugins={[carouselPlugin.current]}
                   className="w-full"
-                  opts={{ loop: upcoming.length > 1 }}
+                  opts={{ loop: upcoming.length > 1, direction: 'rtl' }}
                 >
                   <CarouselContent>
-                    {upcoming.map((m) => (
-                      <CarouselItem key={m.id}>
+                    {(upcoming || []).map((m) => (
+                      <CarouselItem key={m.id} className="pl-0">
                         <MeetingInteractiveCard
                           meeting={m}
                           attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
@@ -490,9 +490,9 @@ function MeetingsPage() {
                   </CarouselContent>
 
                   {upcoming.length > 1 && (
-                    <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 left-8 flex-col gap-3 z-20">
-                      <CarouselPrevious className="relative top-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
-                      <CarouselNext className="relative bottom-0 left-0 translate-x-0 translate-y-0 rotate-0 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
+                    <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 right-4 flex-col gap-3 z-30">
+                      <CarouselPrevious className="static translate-x-0 translate-y-0 bg-black/20 backdrop-blur-md border-white/10 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
+                      <CarouselNext className="static translate-x-0 translate-y-0 bg-black/20 backdrop-blur-md border-white/10 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
                     </div>
                   )}
                 </Carousel>
