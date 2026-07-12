@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, Plane, ListChecks, Timer, MapPin, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
