@@ -444,27 +444,160 @@ function TripDetail() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-2 space-y-8">
-              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-6 border-none shadow-xl relative overflow-hidden">
+            <div className="lg:col-span-3 space-y-8">
+              {/* MERGED PREMIUM TRIP HUB BANNER */}
+              <div className="relative overflow-hidden rounded-[48px] bg-emerald-950 shadow-2xl border border-white/10 group min-h-[500px] flex flex-col md:flex-row">
+                {/* Background Decoration */}
                 <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none">
-                  <Info size={120} />
+                  <Tent size={240} className="text-white" />
                 </div>
-                <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
-                  <Compass size={18} /> وصف الرحلة
+                <div className="absolute bottom-0 left-0 p-12 opacity-5 pointer-events-none -rotate-12">
+                  <Compass size={180} className="text-white" />
                 </div>
-                <p className="text-lg md:text-xl font-bold text-foreground/80 leading-relaxed whitespace-pre-line relative z-10">
-                  {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
-                </p>
+
+                {/* Left Side (or Top on Mobile): Attendance & Participants */}
+                <div className="md:w-1/3 p-8 md:p-12 bg-white/5 backdrop-blur-sm border-b md:border-b-0 md:border-l border-white/10 flex flex-col justify-between space-y-10 relative z-10">
+                  <div className="space-y-6">
+                    <div className="space-y-3">
+                      <h3 className="text-3xl md:text-4xl font-black text-white leading-tight tracking-tight">هل ستنضم إلينا؟</h3>
+                      <p className="text-sm font-bold leading-relaxed text-emerald-100/60">أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.</p>
+                    </div>
+
+                    <div className="flex flex-col gap-4">
+                      {attendanceStatus === "going" && (
+                        <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-5 rounded-[32px] border border-white/10 shadow-inner">
+                          <div className="flex items-center justify-between px-1">
+                            <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">عدد المرافقين معك؟</p>
+                            <span className="text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + companionsCount}</span>
+                          </div>
+                          <input
+                            type="tel"
+                            value={companionsCount === 0 ? "" : companionsCount}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => {
+                              const val = e.target.value.replace(/[^0-9]/g, "");
+                              setCompanionsCount(val === "" ? 0 : parseInt(val));
+                            }}
+                            onBlur={() => updateAttendance("going", companionsCount)}
+                            className="w-full h-16 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                            placeholder="٠"
+                          />
+                        </div>
+                      )}
+
+                      <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[70px]">
+                        <div
+                          className={cn(
+                            "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
+                            attendanceStatus === "going" ? "right-1.5 bg-emerald-500 shadow-emerald-500/40" :
+                            attendanceStatus === "not_going" ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40" : "opacity-0"
+                          )}
+                        />
+                        <button
+                          onClick={() => updateAttendance("going", companionsCount, true)}
+                          disabled={saving || !userId || !attendanceLoaded}
+                          className={cn(
+                            "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                            attendanceStatus === "going" ? "text-white" : "text-white/40 hover:text-white/60"
+                          )}
+                        >
+                          {saving && attendanceStatus === "going" ? <Loader2 size={18} className="animate-spin" /> : <UserCheck size={20} />}
+                          <span>سأحضر</span>
+                        </button>
+                        <button
+                          onClick={() => updateAttendance("not_going", 0, true)}
+                          disabled={saving || !userId || !attendanceLoaded}
+                          className={cn(
+                            "relative z-10 flex items-center justify-center gap-3 font-black text-sm transition-colors duration-500",
+                            attendanceStatus === "not_going" ? "text-white" : "text-white/40 hover:text-white/60"
+                          )}
+                        >
+                          {saving && attendanceStatus === "not_going" ? <Loader2 size={18} className="animate-spin" /> : <UserX size={20} />}
+                          <span>أعتذر</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between border-t border-white/10 pt-6">
+                      <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.2em] text-[10px]">
+                        <Users size={16} /> المشاركون
+                      </div>
+                      <span className="text-[10px] font-black bg-white/10 text-white px-3 py-1 rounded-full">{attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)} حاضرين</span>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                       {attendees.slice(0, 5).map(a => (
+                         <div key={a.user_id} className="size-10 rounded-xl overflow-hidden ring-2 ring-white/10 shadow-lg transition-transform hover:scale-110">
+                            <UserAvatar path={a.avatarPath} name={a.name} initial={a.initial} className="size-full" userId={a.user_id} />
+                         </div>
+                       ))}
+                       {attendees.length > 5 && (
+                         <div className="size-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-white">+{attendees.length - 5}</div>
+                       )}
+                       {attendees.length === 0 && <p className="text-[10px] font-bold text-white/30 italic">لا يوجد حضور مؤكد بعد</p>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side (or Bottom on Mobile): Info & Description */}
+                <div className="flex-1 p-8 md:p-12 space-y-12 relative z-10">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-6">
+                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
+                          <Compass size={18} /> وصف الرحلة
+                       </div>
+                       <p className="text-base md:text-xl font-medium text-emerald-50/90 leading-relaxed whitespace-pre-line drop-shadow-sm">
+                          {trip.description?.trim() || "لا يوجد وصف لهذه الرحلة."}
+                       </p>
+                    </div>
+
+                    <div className="space-y-8">
+                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
+                          <Info size={18} /> تفاصيل إضافية
+                       </div>
+                       <div className="grid grid-cols-1 gap-6">
+                          <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
+                             <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Tent size={22} /></div>
+                             <div>
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">نوع الإقامة</p>
+                                <p className="text-sm font-black text-white">مخيم عائلي فاخر</p>
+                             </div>
+                          </div>
+                          <div className="flex items-center gap-4 bg-white/5 p-4 rounded-3xl border border-white/10">
+                             <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Clock size={22} /></div>
+                             <div>
+                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">آخر موعد للتسجيل</p>
+                                <p className="text-sm font-black text-white">{formatDate(trip.start_date)}</p>
+                             </div>
+                          </div>
+                          {trip.location_url && (
+                            <a href={trip.location_url} target="_blank" rel="noopener noreferrer" className="flex items-center justify-between p-4 rounded-3xl bg-gold-primary text-emerald-950 font-black shadow-xl hover:scale-[1.02] transition-all">
+                               <div className="flex items-center gap-3">
+                                  <MapPin size={22} strokeWidth={2.5} />
+                                  <span className="text-sm">موقع الوجهة على الخريطة</span>
+                               </div>
+                               <ChevronLeft size={18} strokeWidth={3} />
+                            </a>
+                          )}
+                       </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl">
-                <div className="flex items-center justify-between">
+              {/* Checklist Section Remains Separate for Clarity */}
+              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl relative overflow-hidden">
+                <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
+                  <ListChecks size={140} />
+                </div>
+                <div className="flex items-center justify-between relative z-10">
                   <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
                     <ListChecks size={18} /> أغراض الرحلة (من سيحضر ماذا؟)
                   </div>
                 </div>
                 {isPrivileged && (
-                  <div className="flex gap-3">
+                  <div className="flex gap-3 relative z-10">
                     <input
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
@@ -476,19 +609,13 @@ function TripDetail() {
                       disabled={addingItem}
                       className="btn-gold size-14 rounded-2xl flex items-center justify-center shrink-0 active:scale-95 transition-all shadow-lg"
                     >
-                      {addingItem ? (
-                        <Loader2 className="size-5 animate-spin" />
-                      ) : (
-                        <Plus size={24} strokeWidth={3} />
-                      )}
+                      {addingItem ? <Loader2 className="size-5 animate-spin" /> : <Plus size={24} strokeWidth={3} />}
                     </button>
                   </div>
                 )}
-                <div className="grid grid-cols-1 gap-3">
+                <div className="grid grid-cols-1 gap-3 relative z-10">
                   {checklist.length === 0 ? (
-                    <p className="py-10 text-center opacity-30 font-bold">
-                      لا يوجد تجهيزات مطلوبة حالياً.
-                    </p>
+                    <p className="py-10 text-center opacity-30 font-bold">لا يوجد تجهيزات مطلوبة حالياً.</p>
                   ) : (
                     checklist.map((item) => {
                       const isMine = item.assigned_to === userId;
@@ -498,44 +625,23 @@ function TripDetail() {
                           key={item.id}
                           className={cn(
                             "group flex items-center justify-between p-4 md:p-6 rounded-3xl border transition-all duration-300",
-                            isTaken
-                              ? "bg-emerald-500/5 border-emerald-500/20"
-                              : "bg-muted/20 border-border/40",
+                            isTaken ? "bg-emerald-500/5 border-emerald-500/20" : "bg-muted/20 border-border/40"
                           )}
                         >
                           <div className="flex items-center gap-4 flex-1 min-w-0">
-                            <div
-                              className={cn(
-                                "size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm",
-                                isTaken
-                                  ? "bg-emerald-500 text-white"
-                                  : "bg-muted text-muted-foreground",
-                              )}
-                            >
+                            <div className={cn("size-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", isTaken ? "bg-emerald-500 text-white" : "bg-muted text-muted-foreground")}>
                               {isTaken ? <UserCheck size={20} /> : <Tent size={20} />}
                             </div>
                             <div className="min-w-0">
-                              <p
-                                className={cn(
-                                  "text-base md:text-lg font-black truncate",
-                                  isTaken && "text-emerald-600",
-                                )}
-                              >
-                                {item.name}
-                              </p>
+                              <p className={cn("text-base md:text-lg font-black truncate", isTaken && "text-emerald-600")}>{item.name}</p>
                               {isTaken && (
-                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">
-                                  سيحضره: {item.assignee?.arabic_name || "عضو"} {isMine && "(أنت)"}
-                                </p>
+                                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest opacity-60">سيحضره: {item.assignee?.arabic_name || "عضو"} {isMine && "(أنت)"}</p>
                               )}
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
                             {isPrivileged && (
-                              <button
-                                onClick={() => deleteItem(item.id)}
-                                className="size-10 rounded-xl hover:bg-rose-500/10 text-rose-500 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100"
-                              >
+                              <button onClick={() => deleteItem(item.id)} className="size-10 rounded-xl hover:bg-rose-500/10 text-rose-500 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
                                 <Trash2 size={16} />
                               </button>
                             )}
@@ -543,11 +649,7 @@ function TripDetail() {
                               onClick={() => toggleClaim(item)}
                               className={cn(
                                 "px-6 py-2.5 rounded-xl font-black text-xs transition-all shadow-sm active:scale-95",
-                                isMine
-                                  ? "bg-rose-500 text-white hover:bg-rose-600"
-                                  : isTaken
-                                    ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
-                                    : "bg-emerald-500 text-white hover:bg-emerald-600",
+                                isMine ? "bg-rose-500 text-white hover:bg-rose-600" : isTaken ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50" : "bg-emerald-500 text-white hover:bg-emerald-600"
                               )}
                               disabled={isTaken && !isMine}
                             >
@@ -557,187 +659,6 @@ function TripDetail() {
                         </div>
                       );
                     })
-                  )}
-                </div>
-              </div>
-
-              <div className="card-surface p-8 md:p-12 rounded-[40px] space-y-8 border-none shadow-xl">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-xs">
-                    <Users size={18} /> المشاركون المؤكدون
-                  </div>
-                  <span className="px-4 py-1.5 bg-emerald-500/10 text-emerald-500 rounded-full border border-emerald-500/20 text-xs font-black">
-                    {attendees.reduce((acc, curr) => acc + 1 + curr.companions_count, 0)} حاضرين
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {attendees.length === 0 ? (
-                    <p className="py-10 text-center col-span-2 opacity-30 font-bold">
-                      لا يوجد حضور مؤكد بعد.
-                    </p>
-                  ) : (
-                    attendees.map((a) => (
-                      <div
-                        key={a.user_id}
-                        className="group flex items-center gap-4 p-4 rounded-[28px] bg-muted/30 hover:bg-gold-primary/5 border border-border/40 transition-all duration-300"
-                      >
-                        <div className="size-12 rounded-2xl overflow-hidden shadow-lg border-2 border-white/5 transition-transform group-hover:scale-110 shrink-0">
-                          <UserAvatar
-                            path={a.avatarPath}
-                            name={a.name}
-                            initial={a.initial}
-                            className="size-full"
-                            userId={a.user_id}
-                          />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
-                            <span className="text-base font-black text-foreground truncate">
-                              {a.name}
-                            </span>
-                            {a.companions_count > 0 && (
-                              <span className="text-[9px] font-black bg-gold-primary/10 text-gold-primary px-2 py-0.5 rounded-full border border-gold-primary/20 shrink-0">
-                                +{a.companions_count} مرافقين
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60 block">
-                            عضو مؤكد
-                          </span>
-                        </div>
-                        <div className="size-8 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500">
-                          <CheckCircle2 size={16} />
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            </div>
-
-            <div className="space-y-8">
-              {/* Attendance Card */}
-              <div className="relative overflow-hidden rounded-[40px] bg-emerald-950 p-8 text-white shadow-2xl ring-1 ring-white/10">
-                <div className="absolute top-6 left-6">
-                  <div className="flex size-12 items-center justify-center rounded-full bg-emerald-800/70 ring-1 ring-white/20 backdrop-blur-sm">
-                    <Clock className="size-6 text-white" strokeWidth={2.5} />
-                  </div>
-                </div>
-                <div className="relative z-10 mb-8 space-y-3">
-                  <h3 className="text-3xl font-black leading-tight tracking-tight">
-                    هل ستنضم إلينا؟
-                  </h3>
-                  <p className="text-sm font-bold leading-relaxed text-emerald-100/80">
-                    أكد حضورك الآن لتساعدنا في تنظيم الرحلة بشكل أفضل.
-                  </p>
-                </div>
-                <div className="relative z-10 flex flex-col gap-4">
-                  {attendanceStatus === "going" && (
-                    <div className="flex flex-col gap-3 mb-2 animate-fade-up bg-white/5 p-5 rounded-3xl border border-white/10">
-                      <div className="flex items-center justify-between px-1">
-                        <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">
-                          عدد المرافقين معك؟
-                        </p>
-                        <span className="text-[14px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">
-                          إجمالي: {1 + companionsCount}
-                        </span>
-                      </div>
-                      <input
-                        type="tel"
-                        value={companionsCount === 0 ? "" : companionsCount}
-                        onFocus={(e) => e.target.select()}
-                        onChange={(e) => {
-                          const val = e.target.value.replace(/[^0-9]/g, "");
-                          setCompanionsCount(val === "" ? 0 : parseInt(val));
-                        }}
-                        onBlur={() => updateAttendance("going", companionsCount)}
-                        className="w-full h-20 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-4xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
-                        placeholder="٠"
-                      />
-                    </div>
-                  )}
-                  <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-1.5 rounded-[28px] grid grid-cols-2 gap-1.5 shadow-2xl overflow-hidden h-[70px]">
-                    <div
-                      className={cn(
-                        "absolute inset-y-1.5 w-[calc(50%-6px)] rounded-[22px] transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] shadow-lg",
-                        attendanceStatus === "going"
-                          ? "right-1.5 bg-emerald-500 shadow-emerald-500/40"
-                          : attendanceStatus === "not_going"
-                            ? "right-[calc(50%+1.5px)] bg-rose-500 shadow-rose-500/40"
-                            : "opacity-0",
-                      )}
-                    />
-                    <button
-                      onClick={() => updateAttendance("going", companionsCount, true)}
-                      disabled={saving || !userId || !attendanceLoaded}
-                      className={cn(
-                        "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-base transition-colors duration-500",
-                        attendanceStatus === "going"
-                          ? "text-white"
-                          : "text-white/40 hover:text-white/60",
-                      )}
-                    >
-                      {saving && attendanceStatus === "going" ? (
-                        <Loader2 size={20} className="animate-spin" />
-                      ) : (
-                        <UserCheck size={22} />
-                      )}
-                      <span>سأحضر</span>
-                    </button>
-                    <button
-                      onClick={() => updateAttendance("not_going", 0, true)}
-                      disabled={saving || !userId || !attendanceLoaded}
-                      className={cn(
-                        "relative z-10 flex items-center justify-center gap-3 font-black text-sm md:text-base transition-colors duration-500",
-                        attendanceStatus === "not_going"
-                          ? "text-white"
-                          : "text-white/40 hover:text-white/60",
-                      )}
-                    >
-                      {saving && attendanceStatus === "not_going" ? (
-                        <Loader2 size={20} className="animate-spin" />
-                      ) : (
-                        <UserX size={22} />
-                      )}
-                      <span>أعتذر</span>
-                    </button>
-                  </div>
-                </div>
-                <div className="absolute -bottom-10 -right-10 opacity-5 pointer-events-none">
-                  <Tent size={160} />
-                </div>
-              </div>
-
-              <div className="card-surface p-8 rounded-[40px] space-y-8 border-none shadow-xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gold-primary/20" />
-                <div className="flex items-center gap-3 text-primary font-black uppercase tracking-[0.3em] text-xs">
-                  <Info size={18} /> تفاصيل إضافية
-                </div>
-                <div className="space-y-6">
-                  <SidebarStat icon={Tent} label="نوع الإقامة" value="مخيم عائلي فاخر" />
-                  <SidebarStat
-                    icon={Clock}
-                    label="آخر موعد للتسجيل"
-                    value={formatDate(trip.start_date)}
-                  />
-                  {trip.location_url && (
-                    <div className="pt-4 border-t border-border/40">
-                      <a
-                        href={trip.location_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center justify-between p-4 rounded-2xl bg-muted/50 hover:bg-gold-primary/10 hover:text-gold-primary transition-all border border-transparent hover:border-gold-primary/20 group"
-                      >
-                        <div className="flex items-center gap-3">
-                          <MapPin size={20} />
-                          <span className="text-sm font-black">موقع الوجهة</span>
-                        </div>
-                        <ChevronLeft
-                          size={16}
-                          className="group-hover:-translate-x-1 transition-transform"
-                        />
-                      </a>
-                    </div>
                   )}
                 </div>
               </div>
