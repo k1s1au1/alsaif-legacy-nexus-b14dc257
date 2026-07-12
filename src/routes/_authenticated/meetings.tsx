@@ -710,16 +710,16 @@ function MeetingInteractiveCard({
         className={cn(
           "relative overflow-hidden rounded-[40px] md:rounded-[56px] text-white flex flex-col md:flex-row border border-white/10 shadow-2xl transition-all duration-700",
           myRsvp === "going" ? "bg-emerald-950" : myRsvp === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]",
-          "aspect-square md:aspect-auto md:min-h-[600px]"
+          "min-h-[520px] md:min-h-[600px]"
         )}
       >
-        {/* Mobile Tab Switcher */}
-        <div className="md:hidden absolute top-4 left-4 right-4 z-50 flex p-1 bg-black/40 backdrop-blur-xl rounded-2xl border border-white/10">
+        {/* Mobile Tab Switcher - More compact */}
+        <div className="md:hidden absolute top-3 left-3 right-3 z-50 flex p-1 bg-black/60 backdrop-blur-2xl rounded-2xl border border-white/10 shadow-2xl">
           <button
             onClick={() => setActiveTab("info")}
             className={cn(
-              "flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all",
-              activeTab === "info" ? "bg-gold-primary text-emerald-950 shadow-lg" : "text-white/60"
+              "flex-1 py-2 rounded-xl text-[11px] font-black transition-all duration-300",
+              activeTab === "info" ? "bg-gold-primary text-emerald-950 shadow-lg scale-[1.02]" : "text-white/40"
             )}
           >
             تفاصيل اللقاء
@@ -727,8 +727,8 @@ function MeetingInteractiveCard({
           <button
             onClick={() => setActiveTab("rsvp")}
             className={cn(
-              "flex-1 py-2.5 rounded-xl text-[10px] font-black transition-all",
-              activeTab === "rsvp" ? "bg-gold-primary text-emerald-950 shadow-lg" : "text-white/60"
+              "flex-1 py-2 rounded-xl text-[11px] font-black transition-all duration-300",
+              activeTab === "rsvp" ? "bg-gold-primary text-emerald-950 shadow-lg scale-[1.02]" : "text-white/40"
             )}
           >
             تأكيد الحضور
@@ -758,7 +758,7 @@ function MeetingInteractiveCard({
                 activeTab === "rsvp" ? "flex" : "hidden md:flex"
               )}
             >
-              <div className="space-y-8 pt-12 md:pt-0">
+              <div className="space-y-6 pt-10 md:pt-0">
                  <div className="space-y-4">
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gold-primary/10 border border-gold-primary/20">
                        <Timer size={14} className="text-gold-primary animate-pulse" />
@@ -769,10 +769,10 @@ function MeetingInteractiveCard({
 
                  <div className="space-y-4">
                     {myRsvp === "going" && (
-                      <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-5 rounded-[32px] border border-white/10 shadow-inner">
+                      <div className="flex flex-col gap-3 animate-fade-up bg-white/10 p-4 md:p-5 rounded-[28px] md:rounded-[32px] border border-white/10 shadow-inner">
                         <div className="flex items-center justify-between px-1">
                           <p className="text-[10px] font-black text-gold-primary uppercase tracking-widest">المرافقين؟</p>
-                          <span className="text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + compCount}</span>
+                          <span className="text-[11px] md:text-[12px] font-black text-white bg-white/10 px-3 py-1 rounded-lg">إجمالي: {1 + compCount}</span>
                         </div>
                         <input
                           type="tel"
@@ -783,7 +783,7 @@ function MeetingInteractiveCard({
                             setCompCount(val === "" ? 0 : parseInt(val));
                           }}
                           onBlur={() => onRsvp(meeting.id, "going", compCount)}
-                          className="w-full h-14 md:h-16 bg-black/20 border-2 border-white/10 rounded-[24px] px-6 font-black text-center text-2xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
+                          className="w-full h-12 md:h-16 bg-black/20 border-2 border-white/10 rounded-[20px] md:rounded-[24px] px-6 font-black text-center text-xl md:text-3xl focus:outline-none focus:border-gold-primary transition-all text-white shadow-inner"
                           placeholder="٠"
                         />
                       </div>
@@ -860,47 +860,47 @@ function MeetingInteractiveCard({
                 activeTab === "info" ? "flex" : "hidden md:flex"
               )}
             >
-              <div className="space-y-10 pt-12 md:pt-0">
-                 <div className="flex flex-col md:flex-row justify-between items-start gap-6">
-                    <div className="space-y-4 flex-1">
-                       <div className="flex flex-wrap items-center gap-3">
-                          <span className="px-4 py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[10px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة عائلية</span>
-                          <span className="px-4 py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                             <Clock size={14} /> {meeting.duration_minutes || 60} د
+              <div className="space-y-6 pt-10 md:pt-0">
+                 <div className="flex flex-col md:flex-row justify-between items-start gap-4 md:gap-6">
+                    <div className="space-y-3 md:space-y-4 flex-1">
+                       <div className="flex flex-wrap items-center gap-2 md:gap-3">
+                          <span className="px-3 py-0.5 md:px-4 md:py-1 rounded-full bg-gold-primary/20 text-gold-primary border border-gold-primary/30 text-[9px] md:text-[10px] font-black uppercase tracking-widest backdrop-blur-md">مناسبة عائلية</span>
+                          <span className="px-3 py-0.5 md:px-4 md:py-1 rounded-full bg-white/5 text-white/60 border border-white/10 text-[9px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                             <Clock size={12} md:size={14} /> {meeting.duration_minutes || 60} د
                           </span>
                        </div>
-                       <h2 className="text-3xl md:text-6xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl">{meeting.title}</h2>
+                       <h2 className="text-2xl md:text-6xl font-black text-white tracking-tighter leading-tight drop-shadow-2xl line-clamp-2 md:line-clamp-none">{meeting.title}</h2>
                     </div>
 
                     <div className="text-right shrink-0">
-                       <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-xs block mb-1">{date.weekday}</span>
+                       <span className="text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-xs block mb-1">{date.weekday}</span>
                        <div className="flex items-baseline gap-2">
-                          <span className="text-5xl md:text-8xl font-black tracking-tighter text-white leading-none">{date.day}</span>
-                          <span className="text-xl md:text-3xl font-black text-white/40 uppercase tracking-widest">{date.month}</span>
+                          <span className="text-4xl md:text-8xl font-black tracking-tighter text-white leading-none">{date.day}</span>
+                          <span className="text-lg md:text-3xl font-black text-white/40 uppercase tracking-widest">{date.month}</span>
                        </div>
                     </div>
                  </div>
 
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
-                    <div className="space-y-5">
-                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
-                          <HelpCircle size={16} /> أجندة اللقاء
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-10">
+                    <div className="space-y-3 md:space-y-5">
+                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-[11px]">
+                          <HelpCircle size={14} md:size={16} /> أجندة اللقاء
                        </div>
-                       <div className="text-base md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-6 line-clamp-3 md:line-clamp-none">
+                       <div className="text-sm md:text-2xl font-bold text-white/80 leading-relaxed border-r-4 border-gold-primary/30 pr-4 md:pr-6 line-clamp-3 md:line-clamp-none">
                           {meeting.description || "لا يوجد وصف لهذه المناسبة العائلية."}
                        </div>
                     </div>
 
-                    <div className="space-y-6">
-                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[11px]">
-                          <MapPin size={16} /> الموقع
+                    <div className="space-y-4 md:space-y-6">
+                       <div className="flex items-center gap-3 text-gold-primary font-black uppercase tracking-[0.3em] text-[10px] md:text-[11px]">
+                          <MapPin size={14} md:size={16} /> الموقع
                        </div>
-                       <div className="grid gap-4">
-                          <div className="flex items-center gap-4 bg-white/5 p-4 md:p-5 rounded-[24px] md:rounded-[28px] border border-white/10">
-                             <div className="size-12 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><MapPin size={24} /></div>
+                       <div className="grid gap-3">
+                          <div className="flex items-center gap-3 bg-white/5 p-3 md:p-5 rounded-[20px] md:rounded-[28px] border border-white/10">
+                             <div className="size-10 md:size-14 rounded-xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><MapPin size={20} md:size={28} /></div>
                              <div className="min-w-0">
-                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">المكان</p>
-                                <p className="text-sm md:text-xl font-black text-white truncate">{meeting.location || "مجلس العائلة"}</p>
+                                <p className="text-[9px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">المكان</p>
+                                <p className="text-xs md:text-xl font-black text-white truncate">{meeting.location || "مجلس العائلة"}</p>
                              </div>
                           </div>
                        </div>
