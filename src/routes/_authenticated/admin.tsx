@@ -513,54 +513,8 @@ function AdminPage() {
                 <Shield className="size-8 md:size-14 text-gold-primary" strokeWidth={1.5} />
               </div>
             </div>
-
-            <div className="mt-8 flex justify-center md:justify-end">
-              <button
-                onClick={async () => {
-                  const { success, error } = (await sendFcm({
-                    data: {
-                      title: "🔔 تجربة إشعارات الأخبار",
-                      body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                    },
-                  })) as any;
-                  if (success) toast.success("جاري إرسال الإشعار التجريبي...");
-                  else toast.error("فشل الإرسال: " + error);
-                }}
-                className="px-6 py-2.5 rounded-xl bg-white/10 hover:bg-gold-primary hover:text-black transition-all text-xs font-black border border-white/10 flex items-center gap-2"
-              >
-                <Megaphone className="size-4" /> اختبار نظام الإشعارات
-              </button>
-            </div>
           </div>
         </section>
-
-        {isA && (
-          <div className="px-4 md:px-0 flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex items-center gap-3 bg-primary/5 px-6 py-2.5 rounded-xl border border-primary/10">
-              <div className="size-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black text-primary uppercase tracking-widest">
-                الأجهزة المسجلة: {fcmTokenCount}
-              </span>
-            </div>
-            <button
-              onClick={async () => {
-                toast.loading("جاري إرسال الإشعار...");
-                const res = (await sendFcm({
-                  data: {
-                    title: "🔔 تجربة إشعارات الأخبار",
-                    body: "هذا إشعار تجريبي للتأكد من عمل نظام التنبيهات الجديد بنجاح.",
-                  },
-                })) as any;
-                toast.dismiss();
-                if (res.success) toast.success(`تم الإرسال لـ ${res.count || 0} جهاز`);
-                else toast.error(res.error || "فشل الإرسال");
-              }}
-              className="btn-gold px-8 py-3 rounded-2xl font-black text-sm shadow-xl flex items-center gap-3 active:scale-95 transition-all"
-            >
-              <Megaphone className="size-5" /> إرسال إشعار تجريبي (FCM)
-            </button>
-          </div>
-        )}
 
         {!isA ? (
           <div className="card-surface p-20 flex flex-col items-center text-center gap-6 border-dashed opacity-60 animate-fade-up">
@@ -678,6 +632,7 @@ function AdminPage() {
                         req={r}
                         onStatus={updateReqStatus}
                         onDelete={deleteReq}
+                        canManage={isChair}
                       />
                     ))}
                   {pendingReqs.filter((r) => r.status === reqTab).length === 0 && (
@@ -963,7 +918,7 @@ function RoleToggleBtn({ active, onClick, icon, label, activeClass, disabled }: 
   );
 }
 
-function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; onDelete: any }) {
+function RequestCard({ req, onStatus, onDelete, canManage }: { req: ReqRow; onStatus: any; onDelete: any; canManage: boolean }) {
   const name = [req.first_name, req.father_name, req.grandfather_name].filter(Boolean).join(" ");
   return (
     <motion.div
@@ -998,7 +953,7 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
           </div>
         </div>
         <div className="flex items-center gap-3 self-end md:self-center">
-          {req.status === "pending" && (
+          {req.status === "pending" && canManage && (
             <>
               <button
                 onClick={() => onStatus(req.id, "approved")}
@@ -1010,16 +965,18 @@ function RequestCard({ req, onStatus, onDelete }: { req: ReqRow; onStatus: any; 
                 onClick={() => onStatus(req.id, "rejected")}
                 className="size-12 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
               >
-                <X size={5} />
+                <X size={16} />
               </button>
             </>
           )}
-          <button
-            onClick={() => onDelete(req.id)}
-            className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all"
-          >
-            <Trash2 size={5} />
-          </button>
+          {canManage && (
+            <button
+              onClick={() => onDelete(req.id)}
+              className="size-12 rounded-2xl bg-muted/50 text-muted-foreground flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+            >
+              <Trash2 size={16} />
+            </button>
+          )}
         </div>
       </div>
     </motion.div>

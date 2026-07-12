@@ -24,6 +24,7 @@ import { BackgroundUploader } from "@/components/background-uploader";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getPublicStats } from "@/lib/api/stats.functions";
+import { notifyAdminsOfNewRequest } from "@/lib/api/admin-notifications.functions";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -146,11 +147,21 @@ function AuthPage() {
       desired_password: reqForm.password,
       status: "pending",
     });
-    setLoading(false);
+
     if (error) {
+      setLoading(false);
       toast.error("فشل إرسال الطلب", { description: error.message });
       return;
     }
+
+    // Notify admins (Chairman and Technical Admin)
+    try {
+      await notifyAdminsOfNewRequest({ data: { name: `${reqForm.firstName} ${reqForm.fatherName}` } });
+    } catch (err) {
+      console.warn("Notification error:", err);
+    }
+
+    setLoading(false);
     toast.success("تم إرسال طلبك بنجاح", { description: "سيتم مراجعة طلبك من قبل إدارة المجلس." });
     setAuthMode("login");
   }
