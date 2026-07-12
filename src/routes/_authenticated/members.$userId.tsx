@@ -70,45 +70,57 @@ function MemberProfilePage() {
   useEffect(() => {
     (async () => {
       setLoading(true);
-      const { data: auth } = await supabase.auth.getUser();
+      try {
+        const { data: auth } = await supabase.auth.getUser();
 
-      const [{ data: p }, { data: r }, { data: phoneVal }] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("id, arabic_name, full_name, avatar_url, first_name, father_name, grandfather_name, created_at")
-          .eq("id", userId)
-          .maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
-        supabase.rpc("get_member_phone" as any, { _user: userId }),
-      ]);
-
-      if (p) setProfile({ ...p, phone: (phoneVal as string | null) ?? null });
-      setRole(r?.role ?? null);
-
-      if (auth.user) {
-        const [{ data: mine }, { data: adminCheck }] = await Promise.all([
+        // 1. Fetch Profile, Role and Phone
+        const [profileRes, roleRes, phoneRes] = await Promise.all([
           supabase
             .from("profiles")
-            .select("arabic_name, full_name, avatar_url")
-            .eq("id", auth.user.id)
+            .select("id, arabic_name, full_name, avatar_url, first_name, father_name, grandfather_name, created_at")
+            .eq("id", userId)
             .maybeSingle(),
-          supabase
-            .from("user_roles")
-            .select("role")
-            .eq("user_id", auth.user.id)
-            .eq("role", "admin")
-            .maybeSingle(),
+          supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
+          supabase.rpc("get_member_phone", { _user: userId }),
         ]);
-        const name = mine?.arabic_name || mine?.full_name || "عضو";
-        setMe({
-          name,
-          role: adminCheck ? "مسؤول تقني" : "عضو",
-          initial: name[0],
-          avatarPath: mine?.avatar_url ?? null,
-        });
-        setIsAdmin(!!adminCheck);
+
+        if (profileRes.data) {
+          setProfile({
+            ...(profileRes.data as any),
+            phone: (phoneRes.data as string) || null
+          });
+        }
+        setRole(roleRes.data?.role ?? null);
+
+        // 2. Fetch current user identity
+        if (auth.user) {
+          const [{ data: mine }, { data: adminCheck }] = await Promise.all([
+            supabase
+              .from("profiles")
+              .select("arabic_name, full_name, avatar_url")
+              .eq("id", auth.user.id)
+              .maybeSingle(),
+            supabase
+              .from("user_roles")
+              .select("role")
+              .eq("user_id", auth.user.id)
+              .in("role", ["admin", "chairman"])
+              .maybeSingle(),
+          ]);
+          const name = mine?.arabic_name || mine?.full_name || "عضو";
+          setMe({
+            name,
+            role: adminCheck ? (adminCheck.role === 'chairman' ? "رئيس المجلس" : "مسؤول تقني") : "عضو",
+            initial: name[0],
+            avatarPath: mine?.avatar_url ?? null,
+          });
+          setIsAdmin(!!adminCheck);
+        }
+      } catch (err) {
+        console.error("Profile load error:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     })();
 
     const loadPresence = async () => {
