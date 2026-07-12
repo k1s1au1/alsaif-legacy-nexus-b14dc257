@@ -83,13 +83,15 @@ function AdminPage() {
     isChairman: isSiteChairman,
     isPrivileged: isA,
   } = useUserRole();
+
+  const isPowerUser = isSiteChairman || isSystemAdmin;
+
   const [profile, setProfile] = useState({
     name: "...",
     role: "...",
     initial: "ص",
     avatarPath: null as string | null,
   });
-  const [isChair, setIsChair] = useState(false);
   const [reqTab, setReqTab] = useState("pending");
   const [pendingReqs, setPendingReqs] = useState<ReqRow[]>([]);
   const [members, setMembers] = useState<any[]>([]);
@@ -133,8 +135,6 @@ function AdminPage() {
         )
         .eq("id", meId)
         .maybeSingle();
-
-      setIsChair(isSiteChairman || isSystemAdmin);
 
       if (p) {
         setProfile({
@@ -632,7 +632,7 @@ function AdminPage() {
                         req={r}
                         onStatus={updateReqStatus}
                         onDelete={deleteReq}
-                        canManage={isChair}
+                        canManage={isPowerUser}
                       />
                     ))}
                   {pendingReqs.filter((r) => r.status === reqTab).length === 0 && (
@@ -671,8 +671,8 @@ function AdminPage() {
                       onToggleSectionHead={toggleSectionHead}
                       onDelete={deleteMember}
                       fullName={m.arabic_name || m.full_name || "عضو"}
-                      canManageSections={isChair}
-                      canManageRoles={isChair}
+                      canManageSections={isPowerUser}
+                      canManageRoles={isPowerUser}
                     />
                   ))}
                   {filteredMembers.length === 0 && !loading && (
