@@ -92,6 +92,9 @@ export function IntegratedHub({
 
   const tripsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
   const meetingsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
+  const tripsPlugins = useMemo(() => [tripsPlugin.current], []);
+  const meetingsPlugins = useMemo(() => [meetingsPlugin.current], []);
+  const carouselOpts = useMemo(() => ({ loop: true }), []);
 
   useEffect(() => {
     if (!tripApi || !tripApi.on) return;
