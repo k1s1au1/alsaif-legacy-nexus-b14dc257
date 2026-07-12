@@ -80,9 +80,9 @@ function CountdownDisplay({ targetDate }: { targetDate: string }) {
 }
 
 export function IntegratedHub({
-  upcomingMeetings,
-  upcomingTrips,
-  tasksCount,
+  upcomingMeetings = [],
+  upcomingTrips = [],
+  tasksCount = 0,
   onViewTrip,
   onViewMeeting,
 }: HubProps) {
@@ -94,10 +94,14 @@ export function IntegratedHub({
   const meetingsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
 
   useEffect(() => {
-    if (!tripApi) return;
-    tripApi.on("select", () => {
+    if (!tripApi || !tripApi.on) return;
+    const onSelect = () => {
       setActiveTripIndex(tripApi.selectedScrollSnap());
-    });
+    };
+    tripApi.on("select", onSelect);
+    return () => {
+      tripApi.off("select", onSelect);
+    };
   }, [tripApi]);
 
   const tabs = [
@@ -283,11 +287,14 @@ export function IntegratedHub({
                     opts={{ loop: true }}
                   >
                     <CarouselContent className="h-[280px] md:h-[250px]">
-                      {upcomingMeetings.map((meeting) => {
-                        const daysLeft = Math.ceil(
-                          (new Date(meeting.scheduled_at).getTime() - new Date().getTime()) /
-                            (1000 * 60 * 60 * 24),
-                        );
+                      {(upcomingMeetings || []).map((meeting) => {
+                        if (!meeting) return null;
+                        const daysLeft = meeting.scheduled_at
+                          ? Math.ceil(
+                              (new Date(meeting.scheduled_at).getTime() - new Date().getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            )
+                          : 0;
                         return (
                           <CarouselItem key={meeting.id} className="flex items-center p-6 md:p-12">
                             <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 w-full">

@@ -347,6 +347,9 @@ function Dashboard() {
   const hasGreeted = useRef(false);
   const dynamicLogo = useSiteLogo();
 
+  // Memoize carousel plugins to prevent recreation on every render (causes Embla crash)
+  const announcementsAutoplay = useRef(Autoplay({ delay: 7000, stopOnInteraction: true }));
+
   const loadData = useCallback(async () => {
     const supabase = getSupabase();
     if (!supabase) return;
@@ -646,18 +649,18 @@ function Dashboard() {
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
-        {/* 1. SPIRITUAL REMINDER - Emerald in Light, White in Dark */}
+        {/* 1. SPIRITUAL REMINDER - Vibrant Emerald in Light, White in Dark */}
         <section className="animate-fade-up px-2 md:px-0">
-          <div className="flex items-center justify-center gap-3 py-1 opacity-90 transition-all duration-700">
-            <Scroll className="size-3 text-emerald-800 dark:text-gold-primary/60 shrink-0" />
+          <div className="flex items-center justify-center gap-3 py-1 opacity-100 transition-all duration-700">
+            <Scroll className="size-3 text-emerald-600 dark:text-gold-primary shrink-0" />
             <p
-              className="text-[11px] md:text-sm font-black text-emerald-900 dark:text-white italic drop-shadow-sm"
+              className="text-[11px] md:text-sm font-black text-emerald-700 dark:text-white italic drop-shadow-sm"
               style={{ fontFamily: "'Amiri', serif" }}
             >
               "{spiritualQuote.text}"
             </p>
             <div className="h-2 w-px bg-emerald-200 dark:bg-gold-primary/20 mx-1" />
-            <span className="text-[9px] font-bold text-emerald-700 dark:text-gold-primary/50">
+            <span className="text-[9px] font-bold text-emerald-600 dark:text-gold-primary/50">
               {spiritualQuote.source}
             </span>
           </div>
@@ -779,12 +782,12 @@ function Dashboard() {
           </section>
         )}
 
-        {/* 6. ANNOUNCEMENTS - Now with Carousel and Arrows */}
+        {/* 6. ANNOUNCEMENTS - Refined with stable plugin */}
         {announcements.length > 0 && (
           <section className="animate-fade-up px-2 md:px-0">
             <Carousel
               opts={{ loop: true, direction: "rtl" }}
-              plugins={[Autoplay({ delay: 7000 })]}
+              plugins={[announcementsAutoplay.current]}
               className="w-full group"
             >
               <CarouselContent>
