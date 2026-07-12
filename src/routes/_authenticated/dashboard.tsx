@@ -48,6 +48,7 @@ import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
 import { showIsland, hideIsland } from "@/components/dynamic-island";
+import { useWidgetUpdater } from "@/hooks/use-widget-updater";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -346,6 +347,9 @@ function Dashboard() {
   const [bugSending, setBugSending] = useState(false);
   const hasGreeted = useRef(false);
   const dynamicLogo = useSiteLogo();
+
+  // Register widget updater
+  useWidgetUpdater(upcomingMeetings, upcomingTrips);
 
   // Memoize carousel plugins to prevent recreation on every render (causes Embla crash)
   const announcementsAutoplay = useRef(Autoplay({ delay: 7000, stopOnInteraction: true }));

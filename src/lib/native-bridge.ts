@@ -23,7 +23,12 @@ export interface DocumentScannerPlugin {
   scanDocument(): Promise<{ path: string }>;
 }
 
+export interface WidgetPlugin {
+  updateData(options: { title?: string; date?: string; label?: string }): Promise<void>;
+}
+
 export const DocumentScanner = registerPlugin<DocumentScannerPlugin>("DocumentScanner");
+export const Widget = registerPlugin<WidgetPlugin>("Widget");
 
 const FamilySharingRaw = registerPlugin<FamilySharingPlugin>("FamilySharing");
 export const FamilyContacts = registerPlugin<FamilyContactsPlugin>("FamilyContacts");
