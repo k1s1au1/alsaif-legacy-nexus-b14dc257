@@ -47,6 +47,64 @@ export function useFcm() {
 
           await PushNotifications.register();
 
+          // 1.1 Register Action Types for Interactivity
+          await PushNotifications.registerActionTypes({
+            types: [
+              {
+                id: "MEETING_INVITE",
+                actions: [
+                  {
+                    id: "going",
+                    title: "سأحضر ✅",
+                    foreground: false, // Handle in background if possible
+                  },
+                  {
+                    id: "not_going",
+                    title: "أعتذر ❌",
+                    foreground: false,
+                    destructive: true,
+                  },
+                ],
+              },
+            ],
+          });
+
+          // 1.2 Handle Action Performed (Clicking a button)
+          PushNotifications.addListener(
+            "pushNotificationActionPerformed",
+            async (notification: any) => {
+              const { actionId, notification: data } = notification;
+              const meetingId = data.data?.meeting_id;
+
+              if (meetingId && (actionId === "going" || actionId === "not_going")) {
+                try {
+                  const { data: auth } = await supabase.auth.getUser();
+                  if (!auth.user) return;
+
+                  if (actionId === "going") {
+                    await supabase
+                      .from("meeting_attendees")
+                      .upsert(
+                        { meeting_id: meetingId, user_id: auth.user.id, rsvp: "going" },
+                        { onConflict: "meeting_id,user_id" },
+                      );
+                    toast.success("تم تأكيد حضورك للاجتماع بنجاح ✨");
+                  } else {
+                    await supabase
+                      .from("meeting_attendees")
+                      .upsert(
+                        { meeting_id: meetingId, user_id: auth.user.id, rsvp: "not_going" },
+                        { onConflict: "meeting_id,user_id" },
+                      );
+                    toast.info("تم تسجيل اعتذارك عن الحضور.");
+                  }
+                } catch (e) {
+                  console.error("Background RSVP error:", e);
+                }
+              }
+            },
+          );
+
           PushNotifications.addListener("registration", async (token: { value: string }) => {
             await saveToken(token.value);
           });

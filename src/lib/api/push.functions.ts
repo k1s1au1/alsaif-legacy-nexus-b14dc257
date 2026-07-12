@@ -11,6 +11,8 @@ export const sendPushNotification = createServerFn({ method: "POST" })
       type: z.enum(["meetings", "entertainment", "tasks", "chat", "news"]).optional(),
       target_user_ids: z.array(z.string().uuid()).max(2000).optional(),
       route: z.string().max(200).optional(),
+      category: z.string().max(100).optional(),
+      data: z.record(z.string().max(500)).optional(),
     }),
   )
   .handler(async ({ data, context }) => {
@@ -29,8 +31,19 @@ export const sendPushNotification = createServerFn({ method: "POST" })
       }
       if (userIds.length === 0) return { success: true, count: 0 };
 
-      // Collecting tokens and sending...
-      return { success: true, count: 0 };
+      const { data: pushResult, error } = await admin.functions.invoke("send-push", {
+        body: {
+          title: data.title,
+          body: data.body,
+          user_ids: userIds,
+          url: data.route,
+          category: data.category,
+          data: data.data
+        }
+      });
+
+      if (error) throw error;
+      return { success: true, count: pushResult?.sent || 0 };
     } catch (e: any) {
       console.error("sendPushNotification error", e);
       return { success: false, error: "تعذّر إرسال الإشعار" };

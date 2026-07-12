@@ -67,6 +67,8 @@ Deno.serve(async (req) => {
       image,
       user_ids,
       exclude_user_id,
+      category,
+      data: customData,
     }: {
       title: string;
       body: string;
@@ -74,6 +76,8 @@ Deno.serve(async (req) => {
       image?: string;
       user_ids?: string[];
       exclude_user_id?: string;
+      category?: string;
+      data?: Record<string, string>;
     } = await req.json();
 
     if (!title || !body) {
@@ -132,12 +136,16 @@ Deno.serve(async (req) => {
               body,
               image: image || undefined,
             },
-            data: url ? { url } : {},
+            data: {
+              ...(url ? { url } : {}),
+              ...(customData || {}),
+              click_action: category || "FLUTTER_NOTIFICATION_CLICK"
+            },
             android: {
               priority: "HIGH",
               notification: {
                 sound: "default",
-                click_action: "FLUTTER_NOTIFICATION_CLICK",
+                click_action: category || "FLUTTER_NOTIFICATION_CLICK",
                 color: "#064E3B", // Emerald Green for identity
                 image: image || undefined,
               },

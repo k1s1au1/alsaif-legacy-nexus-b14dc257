@@ -338,6 +338,8 @@ function MeetingsPage() {
           body: `نذكركم بموعدنا القريب في: ${formatDate(m.scheduled_at).weekday} الساعة ${formatDate(m.scheduled_at).time}`,
           type: "meetings",
           route: "/meetings",
+          category: "MEETING_INVITE",
+          data: { meeting_id: m.id }
         },
       });
       toast.dismiss();
