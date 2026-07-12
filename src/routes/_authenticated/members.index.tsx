@@ -89,10 +89,15 @@ function MembersPage() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, arabic_name, full_name, avatar_url, father_name, phone")
+        .select("id, arabic_name, full_name, avatar_url, father_name")
         .order("arabic_name", { ascending: true });
 
-      if (!error && data) setMembers(data as MemberRow[]);
+      if (error) {
+        console.error("Fetch members error:", error);
+        toast.error("حدث خطأ أثناء تحميل قائمة الأعضاء");
+      }
+
+      if (data) setMembers(data as MemberRow[]);
 
       const mine = (data as MemberRow[] | null)?.find((m) => m.id === userId);
       const name = mine?.arabic_name?.trim() || mine?.full_name?.trim() || "عضو";
