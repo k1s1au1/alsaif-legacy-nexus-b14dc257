@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Link } from "@tanstack/react-router";
 import { CalendarDays, Plane, ListChecks, Timer, MapPin, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -92,6 +92,9 @@ export function IntegratedHub({
 
   const tripsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
   const meetingsPlugin = useRef(Autoplay({ delay: 6000, stopOnInteraction: true }));
+  const tripsPlugins = useMemo(() => [tripsPlugin.current], []);
+  const meetingsPlugins = useMemo(() => [meetingsPlugin.current], []);
+  const carouselOpts = useMemo(() => ({ loop: true }), []);
 
   useEffect(() => {
     if (!tripApi || !tripApi.on) return;
@@ -201,10 +204,10 @@ export function IntegratedHub({
                 {upcomingTrips.length > 0 ? (
                   <Carousel
                     orientation="vertical"
-                    plugins={[tripsPlugin.current]}
+                    plugins={tripsPlugins}
                     setApi={setTripApi}
                     className="w-full"
-                    opts={{ loop: true }}
+                    opts={carouselOpts}
                   >
                     <CarouselContent className="h-[280px] md:h-[250px]">
                       {upcomingTrips.map((trip) => {
@@ -282,9 +285,9 @@ export function IntegratedHub({
                 {upcomingMeetings.length > 0 ? (
                   <Carousel
                     orientation="vertical"
-                    plugins={[meetingsPlugin.current]}
+                    plugins={meetingsPlugins}
                     className="w-full"
-                    opts={{ loop: true }}
+                    opts={carouselOpts}
                   >
                     <CarouselContent className="h-[280px] md:h-[250px]">
                       {(upcomingMeetings || []).map((meeting) => {
