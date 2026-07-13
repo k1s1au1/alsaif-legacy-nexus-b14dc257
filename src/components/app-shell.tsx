@@ -35,7 +35,7 @@ import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers, usePresenceFor } from "@/lib/presence";
+import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
@@ -127,7 +127,7 @@ function QuickActionItem({ to, label, icon, color, onClick }: any) {
   );
 }
 
-function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) {
+function UserDropdown({ safeUser, myAvatarPath, signOut, logo }: any) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -139,8 +139,6 @@ function UserDropdown({ safeUser, myAvatarPath, myUserId, signOut, logo }: any) 
                 name={safeUser.name}
                 initial={safeUser.initial}
                 className="size-full rounded-full"
-                userId={myUserId}
-                presenceDotClassName="absolute -bottom-0.5 -left-0.5 size-2.5 ring-2 ring-[var(--card)] shadow-lg"
               />
             </div>
           </div>
@@ -205,7 +203,6 @@ export function AppShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
-  const [myUserId, setMyUserId] = useState<string | null>(null);
   const [myName, setMyName] = useState<string>(user?.name || "");
   const [myRole, setMyRole] = useState<string>(user?.role || "");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -226,7 +223,6 @@ export function AppShell({
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
   const onlineCount = useOnlineCount();
-  const myPresenceState = usePresenceFor(myUserId);
   const onlineUserIds = useOnlineUsers();
   const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
   useFcm();
@@ -277,7 +273,6 @@ export function AppShell({
         const { data: authData } = await supabase.auth.getUser();
         if (!authData?.user) return;
         const uid = authData.user.id;
-        setMyUserId(uid);
 
         const [{ data: rolesData }, { data: profileData }] = await Promise.all([
           supabase.from("user_roles").select("role").eq("user_id", uid),
@@ -373,19 +368,10 @@ export function AppShell({
               name={safeUser.name}
               initial={safeUser.initial}
               className="size-full rounded-full"
-              userId={myUserId}
             />
           </div>
           <div className="text-center md:text-right flex-1 min-w-0">
-            <div className="flex items-center justify-center md:justify-start gap-2">
-               <h3 className="text-xl font-black text-primary tracking-tight truncate">{safeUser.name}</h3>
-               {myPresenceState === 'online' && (
-                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 shadow-sm animate-fade-up">
-                    <div className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    <span className="text-[8px] font-black text-emerald-600 uppercase tracking-tighter">متصل</span>
-                 </div>
-               )}
-            </div>
+            <h3 className="text-xl font-black text-primary tracking-tight truncate">{safeUser.name}</h3>
             <p className="text-[11px] text-gold-primary font-black uppercase tracking-[0.2em] mt-1">
               {safeUser.role}
             </p>
@@ -468,7 +454,6 @@ export function AppShell({
               <UserDropdown
                 safeUser={safeUser}
                 myAvatarPath={myAvatarPath}
-                myUserId={myUserId}
                 signOut={signOut}
                 logo={dynamicLogo}
               />
@@ -717,7 +702,6 @@ export function AppShell({
                       name={safeUser.name}
                       initial={safeUser.initial}
                       className="size-full rounded-full"
-                      userId={myUserId}
                     />
                   </div>
                   <div className="space-y-0.5">
