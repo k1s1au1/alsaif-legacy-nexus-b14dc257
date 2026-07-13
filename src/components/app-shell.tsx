@@ -176,10 +176,10 @@ function UserDropdown({ safeUser, myAvatarPath, connectionState, signOut, logo }
               />
             </div>
           </div>
-          <span className="text-[11px] md:text-[14px] font-black text-primary tracking-tight">
+          <span className="text-[12px] md:text-[14px] font-black text-white md:text-primary tracking-tight drop-shadow-sm">
             {safeUser.name.split(" ")[0]}
           </span>
-          <ChevronDown className="size-3.5 text-primary/30 group-hover/profile:text-primary transition-colors" />
+          <ChevronDown className="size-3.5 text-white/70 md:text-primary/30 group-hover/profile:text-white md:group-hover/profile:text-primary transition-colors" />
         </button>
       </DropdownMenuTrigger>
 
@@ -612,8 +612,8 @@ export function AppShell({
                   </div>
                 </div>
 
-                <div className="md:pr-4 md:border-r md:border-primary/10 flex items-center h-full">
-                  <h1 className="text-sm md:text-lg font-black text-primary uppercase line-clamp-1">{title}</h1>
+                <div className="hidden md:flex md:pr-4 md:border-r md:border-primary/10 items-center h-full">
+                  <h1 className="md:text-lg font-black text-primary uppercase line-clamp-1">{title}</h1>
                 </div>
               </div>
 
