@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Capacitor } from "@capacitor/core";
-import { motion, AnimatePresence } from "framer-motion";
-import { ShieldCheck, Fingerprint, Lock, ShieldAlert } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { Fingerprint, Lock, ShieldAlert } from "lucide-react";
 import { BiometricAuth } from "@/lib/native-bridge";
 
 /**
@@ -13,7 +12,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async ({ force = false } = {}) => {
     if (!Capacitor.isNativePlatform()) {
       setChecking(false);
       return;
@@ -21,13 +20,23 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
 
     const isEnabled = localStorage.getItem("app-use-biometrics") === "true";
     if (!isEnabled) {
+      setLocked(false);
+      setChecking(false);
+      return;
+    }
+
+    if (!force && sessionStorage.getItem("app-biometric-unlocked") === "true") {
+      setLocked(false);
       setChecking(false);
       return;
     }
 
     try {
+      setChecking(true);
+      setError(null);
       const result = await BiometricAuth.checkBiometry();
       if (!result.isAvailable) {
+        setLocked(false);
         setChecking(false);
         return;
       }
@@ -37,10 +46,11 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
 
       const authResult = await BiometricAuth.authenticate({
         title: "تأكيد الهوية",
-        subtitle: "استخدم البصمة أو الوجه",
+        subtitle: "استخدم البصمة أو رمز قفل الجهاز",
       }).catch(() => null);
 
       if (authResult?.success) {
+        sessionStorage.setItem("app-biometric-unlocked", "true");
         setLocked(false);
       } else {
         setError("فشل التحقق من الهوية");
@@ -49,11 +59,27 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
       console.error("Biometric error", e);
       setChecking(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    checkAuth();
-  }, []);
+    void checkAuth();
+
+    const handleVisibilityChange = () => {
+      if (!Capacitor.isNativePlatform()) return;
+
+      if (document.visibilityState === "hidden") {
+        sessionStorage.removeItem("app-biometric-unlocked");
+        return;
+      }
+
+      if (document.visibilityState === "visible") {
+        void checkAuth({ force: true });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange);
+  }, [checkAuth]);
 
   if (checking) return null;
 
@@ -78,7 +104,7 @@ export function BiometricGate({ children }: { children: React.ReactNode }) {
             <h2 className="text-3xl font-black tracking-tight italic font-royal-mode">
               المجلس مؤمن
             </h2>
-            <p className="text-white/60 font-bold">يرجى استخدام البصمة للفتح</p>
+            <p className="text-white/60 font-bold">استخدم البصمة أو رمز قفل الجهاز للفتح</p>
           </div>
 
           {error && (
