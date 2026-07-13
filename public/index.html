@@ -7,6 +7,12 @@
     <title>السيف</title>
   </head>
   <body>
+    <div id="app-loading" style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#faf9f5;color:#075640;font-family:system-ui,sans-serif">جاري تشغيل مجلس العائلة…</div>
+    <script>
+      window.addEventListener("error", function () {
+        document.getElementById("app-loading").textContent = "تعذّر تشغيل التطبيق. أعد فتحه.";
+      });
+    </script>
     <script type="module" src="/assets/app.js"></script>
   </body>
 </html>
