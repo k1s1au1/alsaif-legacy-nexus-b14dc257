@@ -198,12 +198,6 @@ function RootComponent() {
       }
     }
 
-    // Initialize native push notifications (no-op on web)
-    import("@/lib/pushNotifications")
-      .then(({ setupPushNotifications }) => {
-        setupPushNotifications((opts) => router.navigate(opts));
-      })
-      .catch((e) => console.error("[Push] import failed:", e));
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" || event === "USER_UPDATED") {
         // Try to save FCM token if we have one stored

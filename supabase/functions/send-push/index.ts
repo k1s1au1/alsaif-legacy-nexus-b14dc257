@@ -156,7 +156,10 @@ Deno.serve(async (req) => {
                 color: "#064E3B",
                 image: image || undefined,
                 channel_id: "alsaif_notifications",
-                tag: category || undefined,
+                notification_priority: "PRIORITY_MAX",
+                default_sound: true,
+                default_vibrate_timings: true,
+                visibility: "PUBLIC"
               },
             },
             webpush: {

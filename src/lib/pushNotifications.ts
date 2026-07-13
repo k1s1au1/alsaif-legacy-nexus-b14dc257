@@ -45,7 +45,7 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
         return;
       }
 
-      await supabase.from("push_tokens").upsert(
+      const { error } = await supabase.from("push_tokens").upsert(
         {
           user_id: auth.user.id,
           token: token.value,
@@ -57,6 +57,8 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
 
       if (!error) {
         console.log("[Push] Token saved successfully.");
+      } else {
+        console.error("[Push] Error saving token:", error);
       }
     });
 
@@ -121,6 +123,20 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
           ],
         },
       ],
+    });
+
+    // 2.1 Foreground Listener
+    await PushNotifications.addListener("pushNotificationReceived", (notification) => {
+      toast.info(notification.title || "تنبيه جديد", {
+        description: notification.body,
+        action: {
+          label: "فتح",
+          onClick: () => {
+            const url = (notification.data as any)?.url;
+            if (url && navigate) navigate({ to: url as any });
+          }
+        }
+      });
     });
 
     // 3. Register AFTER adding listeners

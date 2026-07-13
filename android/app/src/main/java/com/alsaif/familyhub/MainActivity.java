@@ -11,6 +11,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(ContactsPlugin.class);
         registerPlugin(SOSPlugin.class);
         registerPlugin(BiometricPlugin.class);
+        registerPlugin(DocumentScannerPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

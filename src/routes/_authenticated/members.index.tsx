@@ -89,7 +89,7 @@ function MembersPage() {
 
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, arabic_name, full_name, avatar_url, father_name")
+        .select("id, arabic_name, full_name, avatar_url")
         .order("arabic_name", { ascending: true });
 
       if (error) {
