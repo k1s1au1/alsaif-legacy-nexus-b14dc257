@@ -42,6 +42,7 @@ import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-
 import { useFcm } from "@/hooks/use-fcm";
 import { DynamicIsland } from "@/components/dynamic-island";
 import { LiveClock } from "@/components/dashboard/live-clock";
+import { BiometricGate } from "@/components/biometric-gate";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -372,6 +373,7 @@ export function AppShell({
   };
 
   return (
+    <BiometricGate>
     <div className="min-h-screen bg-background text-foreground transition-colors duration-500 overflow-x-hidden">
       <div className="mesh-gradient-container">
         <div className="mesh-blob-1" />
@@ -993,5 +995,6 @@ export function AppShell({
         </AnimatePresence>
       </main>
     </div>
+    </BiometricGate>
   );
 }
