@@ -11,9 +11,19 @@ CREATE UNIQUE INDEX IF NOT EXISTS push_tokens_user_id_token_key
   ON public.push_tokens (user_id, token)
   WHERE user_id IS NOT NULL;
 
-CREATE POLICY "users manage current push tokens"
-  ON public.push_tokens
-  FOR ALL
-  TO authenticated
-  USING (auth.uid() = user_id)
-  WITH CHECK (auth.uid() = user_id);
+DO $
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_policies
+    WHERE schemaname = 'public'
+      AND tablename = 'push_tokens'
+      AND policyname = 'users manage current push tokens'
+  ) THEN
+    CREATE POLICY "users manage current push tokens"
+      ON public.push_tokens
+      FOR ALL
+      TO authenticated
+      USING (auth.uid() = user_id)
+      WITH CHECK (auth.uid() = user_id);
+  END IF;
+END $;
