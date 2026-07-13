@@ -32,6 +32,7 @@ dependencies {
     implementation "androidx.coordinatorlayout:coordinatorlayout:$androidxCoordinatorLayoutVersion"
     implementation "androidx.core:core-splashscreen:$coreSplashScreenVersion"
     implementation "androidx.biometric:biometric:$androidxBiometricVersion"
+    implementation "com.google.android.gms:play-services-mlkit-document-scanner:$mlkitDocumentScannerVersion"
     if (findProject(':capacitor-android')) {
         implementation project(':capacitor-android')
     } else {
