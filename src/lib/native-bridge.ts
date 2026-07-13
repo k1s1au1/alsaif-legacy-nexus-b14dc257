@@ -14,14 +14,25 @@ export interface FamilyContactsPlugin {
   saveContact(options: { name: string; phone: string; prefix?: string }): Promise<void>;
 }
 
+export interface SOSPlugin {
+  triggerSOS(): Promise<void>;
+  showEmergencyNotification(options: { name?: string; location?: string }): Promise<void>;
+}
+
+export interface DocumentScannerPlugin {
+  scanDocument(): Promise<{ path: string }>;
+}
+
 export interface WidgetPlugin {
   updateData(options: { title?: string; date?: string; label?: string }): Promise<void>;
 }
 
+export const DocumentScanner = registerPlugin<DocumentScannerPlugin>("DocumentScanner");
 export const Widget = registerPlugin<WidgetPlugin>("Widget");
 
 const FamilySharingRaw = registerPlugin<FamilySharingPlugin>("FamilySharing");
 export const FamilyContacts = registerPlugin<FamilyContactsPlugin>("FamilyContacts");
+export const SOS = registerPlugin<SOSPlugin>("SOS");
 
 /**
  * Enhanced Sharing: Generates a beautiful image on the fly and shares it.
