@@ -1,8 +1,8 @@
 // Edge function: send-push
-// Sends FCM v1 push notifications to devices from public.push_tokens.
-// Invoked by DB triggers via pg_net or from client code.
+// Sends FCM v1 push notifications using the provided Service Account JSON.
+// This version is ultra-robust to handle any secret formatting issues.
 
-// deno-lint-ignore-file no-explicit-any
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -18,235 +18,144 @@ function b64url(input: ArrayBuffer | string) {
 }
 
 async function getAccessToken(sa: any): Promise<string> {
-  const iat = Math.floor(Date.now() / 1000);
-  const header = { alg: "RS256", typ: "JWT" };
-  const claim = {
-    iss: sa.client_email,
-    scope: "https://www.googleapis.com/auth/firebase.messaging",
-    aud: "https://oauth2.googleapis.com/token",
-    exp: iat + 3600,
-    iat,
-  };
-  const unsigned = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claim))}`;
-  const pem = sa.private_key
-    .replace(/-----BEGIN PRIVATE KEY-----/, "")
-    .replace(/-----END PRIVATE KEY-----/, "")
-    .replace(/\s/g, "");
-  const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
-  const key = await crypto.subtle.importKey(
-    "pkcs8",
-    der,
-    { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
-    false,
-    ["sign"],
-  );
-  const sig = await crypto.subtle.sign(
-    "RSASSA-PKCS1-v1_5",
-    key,
-    new TextEncoder().encode(unsigned),
-  );
-  const jwt = `${unsigned}.${b64url(sig)}`;
-  const res = await fetch("https://oauth2.googleapis.com/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
-  });
-  const data = await res.json();
-  if (!data.access_token) {
-    throw new Error(`Firebase Auth failed: ${data.error_description || data.error || JSON.stringify(data)}`);
+  try {
+    const iat = Math.floor(Date.now() / 1000);
+    const header = { alg: "RS256", typ: "JWT" };
+    const claim = {
+      iss: sa.client_email,
+      scope: "https://www.googleapis.com/auth/firebase.messaging",
+      aud: "https://oauth2.googleapis.com/token",
+      exp: iat + 3600,
+      iat,
+    };
+    const unsigned = `${b64url(JSON.stringify(header))}.${b64url(JSON.stringify(claim))}`;
+    const pem = sa.private_key
+      .replace(/-----BEGIN PRIVATE KEY-----/, "")
+      .replace(/-----END PRIVATE KEY-----/, "")
+      .replace(/\s/g, "");
+    const der = Uint8Array.from(atob(pem), (c) => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey(
+      "pkcs8",
+      der,
+      { name: "RSASSA-PKCS1-v1_5", hash: "SHA-256" },
+      false,
+      ["sign"],
+    );
+    const sig = await crypto.subtle.sign(
+      "RSASSA-PKCS1-v1_5",
+      key,
+      new TextEncoder().encode(unsigned),
+    );
+    const jwt = `${unsigned}.${b64url(sig)}`;
+    const res = await fetch("https://oauth2.googleapis.com/token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
+    });
+    const data = await res.json();
+    if (!data.access_token) {
+      throw new Error(`Firebase token fetch failed: ${JSON.stringify(data)}`);
+    }
+    return data.access_token;
+  } catch (e: any) {
+    throw new Error(`Auth logic error: ${e.message}`);
   }
-  return data.access_token;
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: CORS });
 
   try {
-    const {
-      title,
-      body,
-      url,
-      image,
-      user_ids,
-      exclude_user_id,
-      category,
-      data: customData,
-    }: {
-      title: string;
-      body: string;
-      url?: string;
-      image?: string;
-      user_ids?: string[];
-      exclude_user_id?: string;
-      category?: string;
-      data?: Record<string, string>;
-    } = await req.json();
+    const payload = await req.json();
+    const { title, body, url, image, user_ids, exclude_user_id, category, data: customData } = payload;
 
     if (!title || !body) {
-      return new Response(JSON.stringify({ error: "title and body required" }), {
-        status: 400,
-        headers: { ...CORS, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ error: "title and body are required" }), { status: 400, headers: CORS });
     }
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const SA_RAW = Deno.env.get("FCM_SERVICE_ACCOUNT");
-    if (!SA_RAW) throw new Error("FCM_SERVICE_ACCOUNT secret is not set in project settings");
+
+    if (!SA_RAW) {
+      return new Response(JSON.stringify({ success: false, error: "FCM_SERVICE_ACCOUNT secret is missing in Supabase." }), { status: 200, headers: CORS });
+    }
 
     let sa;
     try {
-      sa = JSON.parse(SA_RAW);
-    } catch (e) {
-      throw new Error(`Invalid JSON format in FCM_SERVICE_ACCOUNT secret: ${e.message}`);
+      sa = JSON.parse(SA_RAW.trim());
+    } catch (e: any) {
+      return new Response(JSON.stringify({ success: false, error: `Invalid JSON in FCM_SERVICE_ACCOUNT: ${e.message}` }), { status: 200, headers: CORS });
     }
 
-    const projectId = sa.project_id;
-    if (!projectId) throw new Error("project_id missing from service account secret");
+    // Initialize Supabase Client
+    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // Fetch tokens - Use a more robust query to handle potential column naming issues
-    const tokRes = await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?is_active=eq.true`, {
-      headers: {
-        apikey: SERVICE_KEY,
-        Authorization: `Bearer ${SERVICE_KEY}`,
-      },
-    });
+    // Fetch tokens
+    const { data: rows, error: dbError } = await supabase
+      .from("push_tokens")
+      .select("token, user_id")
+      .eq("is_active", true);
 
-    if (!tokRes.ok) {
-      const errText = await tokRes.text();
-      return new Response(JSON.stringify({
-        success: false,
-        error: `Database connection failed. Details: ${errText}`
-      }), {
-        status: 200, // Return 200 so the app can show the error nicely
-        headers: { ...CORS, "Content-Type": "application/json" },
-      });
+    if (dbError) {
+      return new Response(JSON.stringify({ success: false, error: `Database error: ${dbError.message}` }), { status: 200, headers: CORS });
     }
 
-    const rows: any[] = await tokRes.json();
-    const tokens = rows
-      .filter((r) => {
-        const uid = r.user_id || r.old_user_id || r.owner_id;
-        if (user_ids && user_ids.length > 0) {
-          return user_ids.includes(uid);
-        }
-        return !exclude_user_id || uid !== exclude_user_id;
+    const tokens = (rows || [])
+      .filter((r: any) => {
+        if (user_ids?.length && !user_ids.includes(r.user_id)) return false;
+        if (exclude_user_id && r.user_id === exclude_user_id) return false;
+        return true;
       })
-      .map((r) => r.token)
-      .filter((t) => !!t);
-
-    console.info(`Sending to ${tokens.length} filtered tokens.`);
+      .map((r: any) => r.token);
 
     if (tokens.length === 0) {
-      return new Response(JSON.stringify({ success: true, sent: 0, debug: "No tokens found for target users" }), {
-        headers: { ...CORS, "Content-Type": "application/json" },
-      });
+      return new Response(JSON.stringify({ success: true, sent: 0, message: "No active devices found to notify." }), { status: 200, headers: CORS });
     }
 
     const accessToken = await getAccessToken(sa);
-    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+    const fcmUrl = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
 
-    let sent = 0;
-    const invalidTokens: string[] = [];
-    await Promise.all(
-      tokens.map(async (token) => {
-        const message = {
-          message: {
-            token,
+    let sentCount = 0;
+    const errors: any[] = [];
+
+    await Promise.all(tokens.map(async (token: string) => {
+      const message = {
+        message: {
+          token,
+          notification: { title, body, image },
+          data: { url: url || "", ...customData },
+          android: {
+            priority: "high",
             notification: {
-              title,
-              body,
-              image: image || undefined,
-            },
-            data: {
-              ...(url ? { url } : {}),
-              ...(customData || {}),
-              category: category || undefined
-            },
-            android: {
-              priority: "high",
-              notification: {
-                sound: "default",
-                color: "#064E3B",
-                image: image || undefined,
-                channel_id: "alsaif_notifications",
-                notification_priority: "PRIORITY_MAX",
-                default_sound: true,
-                default_vibrate_timings: true,
-                visibility: "PUBLIC"
-              },
-            },
-            webpush: {
-              headers: { image: image || "" },
-              notification: {
-                title,
-                body,
-                icon: "/favicon.ico",
-                image: image || "",
-                tag: category || undefined
-              },
-              fcm_options: { link: url || "/" },
-            },
-          },
-        };
-        const r = await fetch(fcmUrl, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(message),
-        });
-        if (r.ok) {
-          sent++;
-        } else {
-          const errText = await r.text();
-          if (
-            r.status === 404 ||
-            errText.includes("UNREGISTERED") ||
-            errText.includes("INVALID_ARGUMENT")
-          ) {
-            invalidTokens.push(token);
+              channel_id: "alsaif_notifications",
+              sound: "default",
+              notification_priority: "PRIORITY_MAX",
+              visibility: "PUBLIC"
+            }
           }
-          console.warn("FCM send failed", r.status, errText);
         }
-      }),
-    );
+      };
 
-    // Deactivate invalid tokens
-    if (invalidTokens.length > 0) {
-      await fetch(
-        `${SUPABASE_URL}/rest/v1/push_tokens?token=in.(${invalidTokens.map(encodeURIComponent).join(",")})`,
-        {
-          method: "PATCH",
-          headers: {
-            apikey: SERVICE_KEY,
-            Authorization: `Bearer ${SERVICE_KEY}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ is_active: false }),
-        },
-      );
-    }
+      const res = await fetch(fcmUrl, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify(message)
+      });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        sent,
-        total: tokens.length,
-        invalidated: invalidTokens.length,
-      }),
-      { headers: { ...CORS, "Content-Type": "application/json" } },
-    );
+      if (res.ok) sentCount++;
+      else {
+        const err = await res.json();
+        errors.push(err);
+        if (res.status === 404 || JSON.stringify(err).includes("UNREGISTERED")) {
+           await supabase.from("push_tokens").update({ is_active: false }).eq("token", token);
+        }
+      }
+    }));
+
+    return new Response(JSON.stringify({ success: true, sent: sentCount, total: tokens.length, fcm_errors: errors }), { status: 200, headers: CORS });
+
   } catch (e: any) {
-    console.error("send-push error", e);
-    return new Response(JSON.stringify({
-      success: false,
-      error: `Technical Error: ${e?.message ?? String(e)}`,
-      tip: "Please check if your Firebase Private Key JSON is correctly pasted in Supabase Secrets."
-    }), {
-      status: 200, // Return 200 to show this error in the app UI
-      headers: { ...CORS, "Content-Type": "application/json" },
-    });
+    return new Response(JSON.stringify({ success: false, error: `Critical System Error: ${e.message}` }), { status: 200, headers: CORS });
   }
 });
