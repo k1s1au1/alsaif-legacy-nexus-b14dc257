@@ -7,6 +7,8 @@ type AppNavigator = (options: { to: string }) => void;
 
 let appNavigate: AppNavigator | undefined;
 let listenersAttached = false;
+let authListenerAttached = false;
+let latestNativeToken: string | undefined;
 
 /** Converts a notification payload into a safe in-app route. */
 export function notificationRoute(data: PushData = {}): string {
@@ -26,9 +28,9 @@ export function notificationRoute(data: PushData = {}): string {
 
 async function saveToken(token: string) {
   const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return;
+  if (!auth.user) return false;
 
-  await supabase.from("push_tokens").upsert(
+  const { error } = await supabase.from("push_tokens").upsert(
     {
       user_id: auth.user.id,
       token,
@@ -38,6 +40,7 @@ async function saveToken(token: string) {
     },
     { onConflict: "user_id,token" },
   );
+  return !error;
 }
 
 /** Registers native notification actions once and sends taps to the right page. */
@@ -79,6 +82,7 @@ export async function setupPushNotifications(navigate?: AppNavigator) {
 
       await PushNotifications.addListener("registration", async (token) => {
         try {
+          latestNativeToken = token.value;
           await saveToken(token.value);
         } catch (error) {
           console.error("Push token save failed", error);
@@ -114,6 +118,17 @@ export async function setupPushNotifications(navigate?: AppNavigator) {
 
         appNavigate?.({ to: notificationRoute(data) });
       });
+
+      // On a fresh install, Android can generate the token before the user
+      // signs in. Keep it and attach it to the account as soon as auth exists.
+      if (!authListenerAttached) {
+        authListenerAttached = true;
+        supabase.auth.onAuthStateChange((_event, session) => {
+          if (session?.user && latestNativeToken) {
+            void saveToken(latestNativeToken);
+          }
+        });
+      }
     }
 
     await PushNotifications.register();
