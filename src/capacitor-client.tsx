@@ -1,13 +1,19 @@
 import { StrictMode, startTransition } from "react";
 import { createRoot } from "react-dom/client";
-import { StartClient } from "@tanstack/react-start/client";
+import { RouterProvider } from "@tanstack/react-router";
+import { getRouter } from "./router";
 
-// The Android app ships without server-rendered HTML.  Render from scratch
-// instead of trying to hydrate an empty Capacitor WebView document.
-startTransition(() => {
-  createRoot(document).render(
-    <StrictMode>
-      <StartClient />
-    </StrictMode>,
-  );
+// Capacitor starts from a blank document, with no TanStack server hydration
+// payload. Start the router normally and load the current client route.
+const router = getRouter();
+router.update({ defaultSsr: false });
+
+void router.load().then(() => {
+  startTransition(() => {
+    createRoot(document).render(
+      <StrictMode>
+        <RouterProvider router={router} />
+      </StrictMode>,
+    );
+  });
 });
