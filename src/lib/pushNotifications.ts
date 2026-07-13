@@ -3,8 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 /**
- * Sets up native push notifications (Android/iOS via Capacitor).
- * No-op when running on the web.
+ * Sets up native push notifications (Android via Capacitor).
  */
 export async function setupPushNotifications(navigate?: (options: { to: string }) => void) {
   if (!Capacitor.isNativePlatform()) {
@@ -14,11 +13,15 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
   try {
     const { PushNotifications } = await import("@capacitor/push-notifications");
 
+    console.log("[Push] Checking permissions...");
     let perm = await PushNotifications.checkPermissions();
     if (perm.receive === "prompt" || perm.receive === "denied") {
       perm = await PushNotifications.requestPermissions();
     }
-    if (perm.receive !== "granted") return;
+    if (perm.receive !== "granted") {
+      console.warn("[Push] Permissions not granted");
+      return;
+    }
 
     // 0. Create Notification Channel (Required for Android 8+)
     try {
@@ -31,17 +34,22 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
         sound: "default",
         vibration: true,
       });
+      console.log("[Push] Channel created successfully");
     } catch (e) {
       console.warn("[Push] Channel creation failed:", e);
     }
 
-    // 1. Add listeners FIRST
+    // 1. Clear existing listeners to avoid duplicates on re-init
+    await PushNotifications.removeAllListeners();
+
+    // 2. Add listeners
     await PushNotifications.addListener("registration", async (token) => {
-      // Store token locally so we can retry if user is not logged in yet
+      console.log("[Push] Registration successful, token:", token.value);
       localStorage.setItem("fcm_token", token.value);
 
       const { data: auth } = await supabase.auth.getUser();
       if (!auth?.user) {
+        console.log("[Push] No user logged in, token stored locally for later.");
         return;
       }
 
@@ -51,23 +59,44 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
           token: token.value,
           platform: Capacitor.getPlatform(),
           is_active: true,
+          updated_at: new Date().toISOString(),
         },
         { onConflict: "token" },
       );
 
       if (!error) {
-        console.log("[Push] Token saved successfully.");
+        console.log("[Push] Token saved successfully to Supabase.");
       } else {
-        console.error("[Push] Error saving token:", error);
+        console.error("[Push] Error saving token to Supabase:", error);
       }
     });
 
+    await PushNotifications.addListener("registrationError", (err) => {
+      console.error("[Push] FCM Registration error:", err);
+    });
+
+    await PushNotifications.addListener("pushNotificationReceived", (notification) => {
+      console.log("[Push] Notification received in foreground:", notification);
+      toast.info(notification.title || "تنبيه جديد", {
+        description: notification.body,
+        duration: 5000,
+        action: {
+          label: "فتح",
+          onClick: () => {
+            const url = (notification.data as any)?.url;
+            if (url && navigate) navigate({ to: url as any });
+          }
+        }
+      });
+    });
+
     await PushNotifications.addListener("pushNotificationActionPerformed", async (notification: any) => {
+      console.log("[Push] Notification action performed:", notification);
       const { actionId, notification: data } = notification;
       const meetingId = data.data?.meeting_id;
       const url = data.data?.url;
 
-      // 1.1 Handle Interactive Actions (Buttons)
+      // Handle RSVP buttons from notification
       if (meetingId && (actionId === "going" || actionId === "not_going")) {
         try {
           const { data: auth } = await supabase.auth.getUser();
@@ -84,36 +113,18 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
           if (rsvp === "going") toast.success("تم تأكيد حضورك ✨");
           else toast.info("تم تسجيل اعتذارك.");
         } catch (e) {
-          console.error("Background action error:", e);
+          console.error("[Push] Background RSVP error:", e);
         }
       }
 
-      // 1.2 Handle Deep Linking (Redirection)
+      // Handle Deep Linking (Redirection)
       if (url && navigate) {
-        if (url.startsWith("/")) {
-          navigate({ to: url as any });
-        } else if (url.startsWith("http")) {
-          window.open(url, "_blank");
-        }
+        navigate({ to: url as any });
       }
     });
 
-    // 2. Register ACTION TYPES (The buttons)
-    const pushNotificationsWithActions = PushNotifications as typeof PushNotifications & {
-      registerActionTypes?: (options: {
-        types: Array<{
-          id: string;
-          actions: Array<{
-            id: string;
-            title: string;
-            foreground?: boolean;
-            destructive?: boolean;
-          }>;
-        }>;
-      }) => Promise<void>;
-    };
-
-    await pushNotificationsWithActions.registerActionTypes?.({
+    // 3. Register Action Types (The buttons)
+    await PushNotifications.registerActionTypes({
       types: [
         {
           id: "MEETING_INVITE",
@@ -125,21 +136,7 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
       ],
     });
 
-    // 2.1 Foreground Listener
-    await PushNotifications.addListener("pushNotificationReceived", (notification) => {
-      toast.info(notification.title || "تنبيه جديد", {
-        description: notification.body,
-        action: {
-          label: "فتح",
-          onClick: () => {
-            const url = (notification.data as any)?.url;
-            if (url && navigate) navigate({ to: url as any });
-          }
-        }
-      });
-    });
-
-    // 3. Register AFTER adding listeners
+    // 4. Register with FCM
     await PushNotifications.register();
   } catch (e) {
     console.error("[Push] setup failed:", e);

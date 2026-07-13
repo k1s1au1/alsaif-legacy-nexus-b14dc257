@@ -247,36 +247,6 @@ export function AppShell({
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showMoreHub, setShowMoreHub] = useState(false);
 
-  const handleSOS = async () => {
-    if (!confirm("🚨 هل تود إرسال نداء استغاثة عاجل لكافة أفراد العائلة؟")) return;
-
-    const toastId = toast.loading("جاري إرسال نداء الاستغاثة...");
-    try {
-      const { SOS } = await import("@/lib/native-bridge");
-
-      // 1. Native Alert (if on android)
-      if (typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform()) {
-        await SOS.triggerSOS();
-      }
-
-      // 2. Database/Push Alert
-      const { sendPushNotification } = await import("@/lib/api/push.functions");
-      await sendPushNotification({
-        data: {
-          title: "🚨 نداء استغاثة عاجل (فزعة)!",
-          body: `يطلب ${myName} المساعدة العاجلة الآن.`,
-          route: "/community"
-        }
-      });
-
-      toast.success("تم إرسال النداء بنجاح. نسأل الله السلامة.", { id: toastId });
-      setShowQuickActions(false);
-    } catch (e) {
-      console.error("SOS Error:", e);
-      toast.error("فشل إرسال النداء", { id: toastId });
-    }
-  };
-
   // Header Visibility Control
   const [headerVisible, setHeaderVisible] = useState(true);
   const { scrollY } = useScroll();
@@ -919,19 +889,6 @@ export function AppShell({
                 </div>
 
                 <div className="relative z-10 grid grid-cols-3 gap-y-8 gap-x-4">
-                  <div className="col-span-3 pb-2">
-                    <button
-                      onClick={handleSOS}
-                      className="w-full bg-rose-600 hover:bg-rose-700 text-white p-6 rounded-[28px] flex items-center justify-center gap-4 shadow-xl shadow-rose-900/20 active:scale-95 transition-all"
-                    >
-                      <AlertOctagon size={32} className="animate-pulse" />
-                      <div className="text-right">
-                        <p className="text-sm font-black uppercase tracking-widest">فزعة (SOS)</p>
-                        <p className="text-[9px] font-bold opacity-60">إرسال استغاثة عاجلة للعائلة</p>
-                      </div>
-                    </button>
-                  </div>
-
                   <QuickActionItem
                     to="/chat"
                     label="محادثة"
