@@ -133,7 +133,17 @@ Deno.serve(async (req) => {
               notification_priority: "PRIORITY_MAX",
               visibility: "PUBLIC"
             }
-          }
+          },
+          webpush: {
+            headers: { image: image || "" },
+            notification: {
+              title,
+              body,
+              icon: "/favicon.ico",
+              image: image || "",
+            },
+            fcm_options: { link: url || "/" },
+          },
         }
       };
 

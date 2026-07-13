@@ -338,6 +338,63 @@ function SettingsPage() {
   const currentThemeObj = THEME_COLORS.find((c) => c.id === themeColor) || THEME_COLORS[0];
   const currentFontObj = FONTS.find((f) => f.id === font) || FONTS[0];
 
+  const handleRegisterPush = async () => {
+    const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await setupPushNotifications();
+      } else {
+        // Handle Web Push Registration
+        const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
+        const { initializeApp, getApps } = await import("firebase/app");
+        const { FIREBASE_CONFIG, FCM_VAPID_KEY } = await import("@/lib/fcm-config");
+
+        if (!(await isSupported())) {
+          throw new Error("المتصفح لا يدعم الإشعارات");
+        }
+
+        const permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          throw new Error("لم يتم منح إذن الإشعارات");
+        }
+
+        const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
+        const messaging = getMessaging(app);
+
+        const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY });
+        if (token) {
+          const { data: auth } = await supabase.auth.getUser();
+          if (auth.user) {
+            await supabase.from("push_tokens").upsert(
+              { user_id: auth.user.id, token, platform: "web", is_active: true },
+              { onConflict: "token" }
+            );
+          }
+        }
+      }
+
+      setTimeout(async () => {
+        const { data: auth } = await supabase.auth.getUser();
+        const { data: tokens } = await supabase
+          .from("push_tokens")
+          .select("token")
+          .eq("user_id", auth.user?.id)
+          .eq("is_active", true)
+          .limit(1);
+
+        toast.dismiss(tId);
+        if (tokens && tokens.length > 0) {
+          toast.success("مبروك! جهازك مربوط بنجاح بنظام الإشعارات ✨");
+        } else {
+          toast.error("لم يتم تسجيل الجهاز بعد. تأكد من منح الأذونات اللازمة.");
+        }
+      }, 3000);
+    } catch (e: any) {
+      toast.dismiss(tId);
+      toast.error("فشل الربط: " + (e.message || "خطأ غير معروف"));
+    }
+  };
+
   return (
     <AppShell title="الإعدادات" user={{ name: "إعدادات الأخبار", role: "تخصيص", initial: "إ" }}>
       <div className="max-w-4xl mx-auto space-y-12 pb-24" dir="rtl">
@@ -587,82 +644,57 @@ function SettingsPage() {
 
         <NotificationPreferencesSection />
 
-        {isNative && (
-          <section className="space-y-6 animate-fade-up">
-            <div className="flex items-center gap-4">
-              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">
-                تجربة الإشعارات (تطبيق الجوال)
-              </h3>
-              <div className="h-px flex-1 bg-border/60" />
-            </div>
-            <div className="card-surface p-8 space-y-4">
-              <p className="text-sm font-bold text-muted-foreground">
-                إذا لم تكن الإشعارات تصلك، يمكنك محاولة إعادة طلب الإذن يدوياً من هنا.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3">
-                <button
-                  onClick={async () => {
-                    const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
-                    try {
-                      await setupPushNotifications();
-                      setTimeout(async () => {
-                        const { data: auth } = await supabase.auth.getUser();
-                        const { data: tokens } = await supabase
-                          .from("push_tokens")
-                          .select("token")
-                          .eq("user_id", auth.user?.id)
-                          .limit(1);
-                        toast.dismiss(tId);
-                        if (tokens && tokens.length > 0) {
-                          toast.success("مبروك! جوالك مربوط بنجاح بنظام الإشعارات ✨");
-                        } else {
-                          toast.error(
-                            "لم يتم تسجيل التوكن بعد. تأكد من تفعيل الإشعارات من إعدادات الجوال يدوياً.",
-                          );
-                        }
-                      }, 4000);
-                    } catch (e) {
-                      toast.dismiss(tId);
-                      toast.error("فشل الاتصال: " + (e as any).message);
-                    }
-                  }}
-                  className="flex-1 btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
-                >
-                  <Smartphone className="size-5" /> إعادة ربط الجوال
-                </button>
+        <section className="space-y-6 animate-fade-up">
+          <div className="flex items-center gap-4">
+            <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">
+              تجربة الإشعارات ({isNative ? "تطبيق الجوال" : "المتصفح"})
+            </h3>
+            <div className="h-px flex-1 bg-border/60" />
+          </div>
+          <div className="card-surface p-8 space-y-4">
+            <p className="text-sm font-bold text-muted-foreground">
+              إذا لم تكن الإشعارات تصلك، يمكنك محاولة إعادة طلب الإذن يدوياً من هنا.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleRegisterPush}
+                className="flex-1 btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
+              >
+                {isNative ? <Smartphone className="size-5" /> : <Bell className="size-5" />}
+                {isNative ? "إعادة ربط الجوال" : "تفعيل إشعارات المتصفح"}
+              </button>
 
-                <button
-                  onClick={async () => {
-                    const tId = toast.loading("جاري إرسال إشعار تجريبي لجهازك...");
-                    try {
-                      const { data: auth } = await supabase.auth.getUser();
-                      const { data: result, error } = await supabase.functions.invoke("send-push", {
-                        body: {
-                          title: "🔔 تجربة الإشعارات",
-                          body: "هذا إشعار تجريبي من مجلس السيف الرقمي ✨",
-                          user_ids: [auth.user?.id],
-                        }
-                      });
-                      toast.dismiss(tId);
-                      if (error) throw error;
-                      if (result?.sent > 0) {
-                        toast.success("تم إرسال الإشعار بنجاح! تفقد مركز التنبيهات.");
-                      } else {
-                        toast.error("فشل الإرسال. تأكد من أن جهازك مسجل ومسموح له بالاستقبال.");
+              <button
+                onClick={async () => {
+                  const tId = toast.loading("جاري إرسال إشعار تجريبي لجهازك...");
+                  try {
+                    const { data: auth } = await supabase.auth.getUser();
+                    const { data: result, error } = await supabase.functions.invoke("send-push", {
+                      body: {
+                        title: "🔔 تجربة الإشعارات",
+                        body: "هذا إشعار تجريبي من مجلس السيف الرقمي ✨",
+                        user_ids: [auth.user?.id],
                       }
-                    } catch (e: any) {
-                      toast.dismiss(tId);
-                      toast.error("خطأ تقني: " + e.message);
+                    });
+                    toast.dismiss(tId);
+                    if (error) throw error;
+                    if (result?.sent > 0) {
+                      toast.success("تم إرسال الإشعار بنجاح! تفقد مركز التنبيهات.");
+                    } else {
+                      toast.error("فشل الإرسال. تأكد من أن جهازك مسجل ومسموح له بالاستقبال.");
                     }
-                  }}
-                  className="px-8 py-4 rounded-2xl bg-white/5 text-white font-black text-sm border border-white/10 hover:bg-white/10 transition-all"
-                >
-                  إرسال تجربة
-                </button>
-              </div>
+                  } catch (e: any) {
+                    toast.dismiss(tId);
+                    toast.error("خطأ تقني: " + e.message);
+                  }
+                }}
+                className="px-8 py-4 rounded-2xl bg-white/5 text-white font-black text-sm border border-white/10 hover:bg-white/10 transition-all"
+              >
+                إرسال تجربة
+              </button>
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
         {canCustomizeBg && (
           <section className="space-y-6 animate-fade-up" style={{ animationDelay: "300ms" }}>
