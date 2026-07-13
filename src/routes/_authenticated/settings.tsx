@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
+import { Capacitor } from "@capacitor/core";
 import { AppShell } from "@/components/app-shell";
 import { BackgroundUploader } from "@/components/background-uploader";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,11 +20,13 @@ import {
   Minus,
   ImagePlus,
   Star,
+  Fingerprint,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { motion, AnimatePresence } from "framer-motion";
+import { BiometricAuth } from "@/lib/native-bridge";
 
 const FONTS = [
   { id: "Tajawal", name: "تجوال (عصري)", family: "'Tajawal', sans-serif", desc: "خط ناعم وأنيق" },
@@ -141,6 +144,8 @@ function SettingsPage() {
   const [showColorPicker, setShowColorPicker] = useState(false);
   const [showFontPicker, setShowFontPicker] = useState(false);
   const [canCustomizeBg, setCanCustomizeBg] = useState(false);
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricsAvailable, setBiometricsAvailable] = useState(false);
   const dynamicLogo = useSiteLogo();
 
   useEffect(() => {
@@ -154,6 +159,16 @@ function SettingsPage() {
       const rs = (roles ?? []).map((r) => r.role);
       setCanCustomizeBg(rs.includes("admin") || rs.includes("chairman"));
     })();
+  }, []);
+
+  useEffect(() => {
+    setBiometricEnabled(localStorage.getItem("app-use-biometrics") === "true");
+
+    if (!Capacitor.isNativePlatform()) return;
+
+    BiometricAuth.checkBiometry()
+      .then(({ isAvailable }) => setBiometricsAvailable(isAvailable))
+      .catch(() => setBiometricsAvailable(false));
   }, []);
 
   useEffect(() => {
@@ -279,6 +294,31 @@ function SettingsPage() {
     applyThemeColors(selected);
     toast.success(`تم تفعيل ${selected.name}`);
     setShowColorPicker(false);
+  };
+
+  const handleBiometricChange = async () => {
+    if (biometricEnabled) {
+      localStorage.removeItem("app-use-biometrics");
+      sessionStorage.removeItem("app-biometric-unlocked");
+      setBiometricEnabled(false);
+      toast.success("تم إيقاف قفل التطبيق");
+      return;
+    }
+
+    try {
+      const result = await BiometricAuth.authenticate({
+        title: "تفعيل قفل التطبيق",
+        subtitle: "استخدم البصمة أو رمز قفل الجهاز للتأكيد",
+      });
+
+      if (!result.success) return;
+      localStorage.setItem("app-use-biometrics", "true");
+      sessionStorage.setItem("app-biometric-unlocked", "true");
+      setBiometricEnabled(true);
+      toast.success("تم تفعيل قفل التطبيق بالبصمة أو رمز الجهاز");
+    } catch {
+      toast.error("تعذر تفعيل القفل. تأكد من إعداد البصمة أو رمز قفل على جهازك.");
+    }
   };
 
   const handleThemeChange = (theme: "light" | "dark" | "system") => {
@@ -493,6 +533,49 @@ function SettingsPage() {
             </div>
           </div>
         </section>
+
+        {biometricsAvailable && (
+          <section className="space-y-6 animate-fade-up" style={{ animationDelay: "250ms" }}>
+            <div className="flex items-center gap-4">
+              <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">
+                حماية التطبيق
+              </h3>
+              <div className="h-px flex-1 bg-border/60" />
+            </div>
+
+            <div className="card-surface p-6 flex items-center justify-between gap-5">
+              <div className="flex items-center gap-4 min-w-0">
+                <div className="size-12 shrink-0 rounded-2xl bg-gold-primary/10 text-gold-primary flex items-center justify-center">
+                  <Fingerprint className="size-6" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-base font-black text-primary">القفل بالبصمة أو رمز الجهاز</h4>
+                  <p className="mt-1 text-[11px] leading-relaxed font-bold text-muted-foreground">
+                    يطلب تأكيد هويتك عند فتح التطبيق أو العودة إليه.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                role="switch"
+                aria-checked={biometricEnabled}
+                onClick={handleBiometricChange}
+                className={cn(
+                  "relative h-8 w-14 shrink-0 rounded-full transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-primary/15",
+                  biometricEnabled ? "bg-primary" : "bg-muted",
+                )}
+              >
+                <span
+                  className={cn(
+                    "absolute top-1 right-1 size-6 rounded-full bg-white shadow-md transition-transform duration-300",
+                    biometricEnabled ? "-translate-x-6" : "translate-x-0",
+                  )}
+                />
+              </button>
+            </div>
+          </section>
+        )}
 
         <NotificationPreferencesSection />
 
