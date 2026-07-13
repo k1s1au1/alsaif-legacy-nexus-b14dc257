@@ -204,7 +204,28 @@ function RootComponent() {
         setupPushNotifications((opts) => router.navigate(opts));
       })
       .catch((e) => console.error("[Push] import failed:", e));
-    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+    const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" || event === "USER_UPDATED") {
+        // Try to save FCM token if we have one stored
+        const storedToken = localStorage.getItem("fcm_token");
+        if (storedToken && session?.user) {
+          try {
+            const { Capacitor } = await import("@capacitor/core");
+            await supabase.from("push_tokens").upsert(
+              {
+                user_id: session.user.id,
+                token: storedToken,
+                platform: Capacitor.getPlatform() || "android",
+                is_active: true,
+              },
+              { onConflict: "token" },
+            );
+          } catch (e) {
+            console.warn("[Push] Failed to save stored token on login:", e);
+          }
+        }
+      }
+
       if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
       router.invalidate();
       if (event !== "SIGNED_OUT") queryClient.invalidateQueries();

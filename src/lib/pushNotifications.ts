@@ -22,8 +22,13 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
 
     // 1. Add listeners FIRST
     await PushNotifications.addListener("registration", async (token) => {
+      // Store token locally so we can retry if user is not logged in yet
+      localStorage.setItem("fcm_token", token.value);
+
       const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) return;
+      if (!auth?.user) {
+        return;
+      }
 
       await supabase.from("push_tokens").upsert(
         {

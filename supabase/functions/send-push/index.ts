@@ -147,20 +147,26 @@ Deno.serve(async (req) => {
             data: {
               ...(url ? { url } : {}),
               ...(customData || {}),
-              click_action: category || "FLUTTER_NOTIFICATION_CLICK"
+              category: category || undefined
             },
             android: {
-              priority: "HIGH",
+              priority: "high",
               notification: {
                 sound: "default",
-                click_action: category || "FLUTTER_NOTIFICATION_CLICK",
-                color: "#064E3B", // Emerald Green for identity
+                color: "#064E3B",
                 image: image || undefined,
+                tag: category || undefined, // Use tag or keep standard
               },
             },
             webpush: {
               headers: { image: image || "" },
-              notification: { title, body, icon: "/favicon.ico", image: image || "" },
+              notification: {
+                title,
+                body,
+                icon: "/favicon.ico",
+                image: image || "",
+                tag: category || undefined
+              },
               fcm_options: { link: url || "/" },
             },
           },

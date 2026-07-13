@@ -9,9 +9,8 @@ android {
 
 apply from: "../capacitor-cordova-android-plugins/cordova.variables.gradle"
 dependencies {
-    if (findProject(':capacitor-app')) implementation project(':capacitor-app')
-    if (findProject(':capacitor-haptics')) implementation project(':capacitor-haptics')
-    if (findProject(':capacitor-push-notifications')) implementation project(':capacitor-push-notifications')
+    implementation project(':capacitor-push-notifications')
+
 }
 
 
