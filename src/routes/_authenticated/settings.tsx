@@ -297,6 +297,11 @@ function SettingsPage() {
   };
 
   const handleBiometricChange = async () => {
+    if (!biometricsAvailable) {
+      toast.error("فعّل البصمة أو رمز قفل الشاشة من إعدادات جهازك أولاً.");
+      return;
+    }
+
     if (biometricEnabled) {
       localStorage.removeItem("app-use-biometrics");
       sessionStorage.removeItem("app-biometric-unlocked");
@@ -534,7 +539,7 @@ function SettingsPage() {
           </div>
         </section>
 
-        {biometricsAvailable && (
+        {isNative && (
           <section className="space-y-6 animate-fade-up" style={{ animationDelay: "250ms" }}>
             <div className="flex items-center gap-4">
               <h3 className="text-xs font-black text-primary uppercase tracking-[0.3em]">
@@ -551,7 +556,9 @@ function SettingsPage() {
                 <div className="min-w-0">
                   <h4 className="text-base font-black text-primary">القفل بالبصمة أو رمز الجهاز</h4>
                   <p className="mt-1 text-[11px] leading-relaxed font-bold text-muted-foreground">
-                    يطلب تأكيد هويتك عند فتح التطبيق أو العودة إليه.
+                    {biometricsAvailable
+                      ? "يطلب تأكيد هويتك عند فتح التطبيق أو العودة إليه."
+                      : "فعّل البصمة أو رمز قفل الشاشة من إعدادات جهازك أولاً."}
                   </p>
                 </div>
               </div>
@@ -561,8 +568,9 @@ function SettingsPage() {
                 role="switch"
                 aria-checked={biometricEnabled}
                 onClick={handleBiometricChange}
+                disabled={!biometricsAvailable}
                 className={cn(
-                  "relative h-8 w-14 shrink-0 rounded-full transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-primary/15",
+                  "relative h-8 w-14 shrink-0 rounded-full transition-colors duration-300 focus:outline-none focus:ring-4 focus:ring-primary/15 disabled:cursor-not-allowed disabled:opacity-45",
                   biometricEnabled ? "bg-primary" : "bg-muted",
                 )}
               >
