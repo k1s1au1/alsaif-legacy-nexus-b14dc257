@@ -330,7 +330,6 @@ function Dashboard() {
   const [fundBalance, setFundBalance] = useState<number>(0);
   const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
   const [upcomingTrips, setUpcomingTrips] = useState<any[]>([]);
-  const [activeTasks, setActiveTasks] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
   const [annIndex, setAnnIndex] = useState(0);
   const [statusIndex, setStatusIndex] = useState(0);
@@ -375,7 +374,6 @@ function Dashboard() {
         { count: tCount },
         { count: myTCount },
         { count: newsCount },
-        { data: tasksList },
         { data: meetings },
         { data: trips },
         { data: posts },
@@ -396,14 +394,8 @@ function Dashboard() {
           .neq("status", "done"),
         supabase
           .from("majlis_posts")
-          .select("id, { count: "exact", head: true }")
+          .select("id", { count: "exact", head: true })
           .gt("created_at", yesterday),
-        supabase
-          .from("tasks")
-          .select("*")
-          .neq("status", "done")
-          .order("priority", { ascending: false })
-          .limit(3),
         supabase
           .from("meetings")
           .select("*")
@@ -441,7 +433,6 @@ function Dashboard() {
       });
       setUpcomingMeetings(meetings || []);
       setUpcomingTrips(trips || []);
-      setActiveTasks(tasksList || []);
 
       if (tx)
         setFundBalance(
@@ -777,7 +768,6 @@ function Dashboard() {
         <IntegratedHub
           upcomingMeetings={upcomingMeetings}
           upcomingTrips={upcomingTrips}
-          activeTasks={activeTasks}
           tasksCount={counts.tasks}
           onViewTrip={(t) => setImmersiveItem({ type: "trip", data: t })}
           onViewMeeting={(m) => setImmersiveItem({ type: "meeting", data: m })}

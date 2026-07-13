@@ -18,7 +18,6 @@ import { ChevronUp, ChevronDown } from "lucide-react";
 interface HubProps {
   upcomingMeetings: any[];
   upcomingTrips: any[];
-  activeTasks: any[];
   tasksCount: number;
   onViewTrip?: (trip: any) => void;
   onViewMeeting?: (meeting: any) => void;
@@ -83,7 +82,6 @@ function CountdownDisplay({ targetDate }: { targetDate: string }) {
 export function IntegratedHub({
   upcomingMeetings = [],
   upcomingTrips = [],
-  activeTasks = [],
   tasksCount = 0,
   onViewTrip,
   onViewMeeting,
@@ -364,41 +362,26 @@ export function IntegratedHub({
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="w-full p-6 md:p-12 h-full"
+                className="w-full p-8 md:p-12"
               >
-                <div className="flex flex-col md:flex-row items-center justify-between gap-8 h-full">
-                  <div className="space-y-4 text-center md:text-right flex-1 min-w-0">
+                <div className="flex flex-col md:flex-row items-center justify-between gap-10">
+                  <div className="space-y-4 text-center md:text-right flex-1">
                     <div className="flex items-center justify-center md:justify-start gap-3 text-rose-400">
                       <ListChecks size={16} />
                       <span className="text-[10px] font-black uppercase tracking-[0.2em]">
                         المسؤوليات الجارية
                       </span>
                     </div>
-                    <h3 className="text-2xl md:text-5xl font-black text-white leading-tight tracking-tight truncate">
-                      {tasksCount} مهام قيد الإنجاز
+                    <h3 className="text-3xl md:text-5xl font-black text-white leading-tight tracking-tight">
+                      لديك {tasksCount} مهام قيد الإنجاز
                     </h3>
-
-                    {activeTasks.length > 0 ? (
-                      <div className="space-y-2 mt-4">
-                        {activeTasks.slice(0, 2).map((t) => (
-                          <div key={t.id} className="flex items-center gap-3 bg-white/5 p-3 rounded-xl border border-white/5">
-                             <div className={cn(
-                               "size-2 rounded-full shrink-0",
-                               t.priority === 'high' ? 'bg-rose-500' : 'bg-amber-500'
-                             )} />
-                             <span className="text-xs font-bold text-white/90 truncate">{t.title}</span>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="bg-white/5 border border-white/10 p-4 rounded-2xl inline-block max-w-md">
-                        <p className="text-xs md:text-sm font-bold text-gold-primary/80 italic">
-                          {getMotivationalNudge()}
-                        </p>
-                      </div>
-                    )}
+                    <div className="bg-white/5 border border-white/10 p-4 rounded-2xl inline-block max-w-md">
+                      <p className="text-xs md:text-sm font-bold text-gold-primary/80 italic">
+                        {getMotivationalNudge()}
+                      </p>
+                    </div>
                   </div>
-                  <div className="w-full md:w-auto shrink-0">
+                  <div className="w-full md:w-auto">
                     <Link
                       to="/tasks"
                       className="btn-gold px-12 py-5 rounded-full font-black text-sm shadow-2xl shadow-gold-primary/20 shrink-0 hover:scale-105 active:scale-95 transition-all block text-center"
