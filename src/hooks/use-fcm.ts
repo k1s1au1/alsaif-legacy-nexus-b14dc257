@@ -13,7 +13,9 @@ export function useFcm() {
   useEffect(() => {
     // Only initialize on native platforms
     if (Capacitor.isNativePlatform()) {
-      setupPushNotifications(navigate);
+      setupPushNotifications(navigate).catch(err => {
+        console.error("[FCM Hook] Failed to setup notifications:", err);
+      });
     }
   }, [navigate]);
 }

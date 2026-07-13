@@ -77,7 +77,7 @@ function MemberProfilePage() {
         const [profileRes, roleRes, phoneRes] = await Promise.all([
           supabase
             .from("profiles")
-            .select("id, arabic_name, full_name, avatar_url, created_at")
+            .select("id, arabic_name, full_name, avatar_url, first_name, father_name, grandfather_name, created_at")
             .eq("id", userId)
             .maybeSingle(),
           supabase.from("user_roles").select("role").eq("user_id", userId).maybeSingle(),
