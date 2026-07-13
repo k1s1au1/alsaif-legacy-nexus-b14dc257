@@ -1,5 +1,6 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { useQueryClient } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
@@ -31,6 +32,8 @@ import {
   Lock,
   LayoutGrid,
   Radio,
+  Siren,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -43,6 +46,7 @@ import { useFcm } from "@/hooks/use-fcm";
 import { DynamicIsland } from "@/components/dynamic-island";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { BiometricGate } from "@/components/biometric-gate";
+import { sendSosAlert } from "@/lib/api/sos.functions";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -245,6 +249,13 @@ export function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showQuickActions, setShowQuickActions] = useState(false);
   const [showMoreHub, setShowMoreHub] = useState(false);
+  const [showSos, setShowSos] = useState(false);
+  const [sosMembers, setSosMembers] = useState<
+    { id: string; arabic_name: string | null; full_name: string | null }[]
+  >([]);
+  const [sosRecipients, setSosRecipients] = useState<string[]>([]);
+  const [sosNote, setSosNote] = useState("");
+  const [sendingSos, setSendingSos] = useState(false);
 
   // Header Visibility Control
   const [headerVisible, setHeaderVisible] = useState(true);
@@ -258,6 +269,7 @@ export function AppShell({
   });
 
   const queryClient = useQueryClient();
+  const sendSos = useServerFn(sendSosAlert);
   const dynamicLogo = useSiteLogo();
   const onlineCount = useOnlineCount();
   const myPresenceState = usePresenceFor(myUserId);
@@ -362,6 +374,55 @@ export function AppShell({
       navigate({ to: "/auth", replace: true });
     } catch {
       window.location.href = "/auth";
+    }
+  }
+
+  async function openSos() {
+    setShowMoreHub(false);
+    setShowSos(true);
+    setSosNote("");
+    setSosRecipients([]);
+
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, arabic_name, full_name")
+      .order("arabic_name", { ascending: true });
+    setSosMembers(data ?? []);
+  }
+
+  function toggleSosRecipient(userId: string) {
+    setSosRecipients((current) =>
+      current.includes(userId) ? current.filter((id) => id !== userId) : [...current, userId].slice(0, 10),
+    );
+  }
+
+  async function submitSos() {
+    setSendingSos(true);
+    try {
+      const result = await sendSos({
+        data: {
+          note: sosNote.trim() || undefined,
+          recipient_ids: sosRecipients,
+        },
+      });
+
+      if (!result.success) {
+        toast.error(result.error || "تعذر إرسال نداء الطوارئ");
+        return;
+      }
+
+      if (!result.count) {
+        toast.error("لم نجد جهازًا مفعلًا لاستقبال التنبيه لدى جهات الطوارئ.");
+        return;
+      }
+
+      toast.success(`تم إرسال نداء الطوارئ إلى ${result.count} جهاز.`);
+      setShowSos(false);
+    } catch (error) {
+      console.error("SOS request error", error);
+      toast.error("تعذر إرسال نداء الطوارئ");
+    } finally {
+      setSendingSos(false);
     }
   }
 
@@ -822,7 +883,15 @@ export function AppShell({
                 </div>
 
                 {/* Bottom Actions */}
-                <div className="relative z-10 pt-4 flex gap-3">
+                <div className="relative z-10 pt-4 space-y-3">
+                  <button
+                    onClick={openSos}
+                    className="w-full flex items-center justify-center gap-2.5 py-4 rounded-[22px] bg-rose-500/15 text-rose-200 border border-rose-400/30 font-black text-xs active:scale-95 transition-all"
+                  >
+                    <Siren size={18} />
+                    <span>طلب فزعة طارئ</span>
+                  </button>
+                  <div className="flex gap-3">
                   <button
                     onClick={signOut}
                     className="flex-1 flex items-center justify-center gap-2.5 py-4 rounded-[22px] bg-rose-500 text-white font-black text-xs shadow-lg active:scale-95 transition-all"
@@ -835,6 +904,93 @@ export function AppShell({
                     className="flex-1 flex items-center justify-center py-4 rounded-[22px] bg-white/10 text-white font-black text-xs border border-white/10 active:scale-95 transition-all"
                   >
                     إغلاق
+                  </button>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showSos && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[220] flex items-end md:items-center justify-center bg-black/70 p-4 backdrop-blur-sm"
+              onClick={() => !sendingSos && setShowSos(false)}
+              dir="rtl"
+            >
+              <motion.div
+                initial={{ y: 40, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 40, opacity: 0 }}
+                className="w-full max-w-md rounded-[32px] border border-rose-400/20 bg-emerald-950 p-6 text-white shadow-2xl"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="size-12 shrink-0 rounded-2xl bg-rose-500/20 text-rose-300 flex items-center justify-center">
+                    <Siren size={25} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black">طلب فزعة طارئ</h3>
+                    <p className="mt-1 text-[11px] leading-relaxed text-white/60 font-bold">
+                      سيرسل نداء عالي الأولوية للمسؤولين تلقائيًا، ويمكنك إضافة أفراد محددين.
+                    </p>
+                  </div>
+                </div>
+
+                <textarea
+                  value={sosNote}
+                  onChange={(event) => setSosNote(event.target.value.slice(0, 240))}
+                  placeholder="اكتب باختصار نوع المساعدة المطلوبة أو موقعك..."
+                  className="mt-5 h-24 w-full resize-none rounded-2xl border border-white/10 bg-white/5 p-4 text-sm font-bold text-white placeholder:text-white/35 outline-none focus:border-rose-300/60"
+                />
+
+                <div className="mt-5">
+                  <p className="mb-2 text-[10px] font-black tracking-widest text-gold-primary">إضافة أفراد للتنبيه (اختياري)</p>
+                  <div className="max-h-36 space-y-1 overflow-y-auto rounded-2xl border border-white/10 bg-black/10 p-2">
+                    {sosMembers
+                      .filter((member) => member.id !== myUserId)
+                      .map((member) => {
+                        const selected = sosRecipients.includes(member.id);
+                        const name = member.arabic_name || member.full_name || "عضو العائلة";
+                        return (
+                          <button
+                            key={member.id}
+                            type="button"
+                            onClick={() => toggleSosRecipient(member.id)}
+                            className={cn(
+                              "w-full flex items-center justify-between rounded-xl px-3 py-2.5 text-right text-xs font-bold transition-colors",
+                              selected ? "bg-rose-500/20 text-white" : "text-white/65 hover:bg-white/5",
+                            )}
+                          >
+                            <span>{name}</span>
+                            <span className={cn("size-4 rounded-full border", selected ? "border-rose-300 bg-rose-400" : "border-white/30")} />
+                          </button>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                <div className="mt-6 flex gap-3">
+                  <button
+                    type="button"
+                    disabled={sendingSos}
+                    onClick={() => setShowSos(false)}
+                    className="flex-1 rounded-2xl bg-white/10 py-3.5 text-xs font-black text-white/80 disabled:opacity-50"
+                  >
+                    إلغاء
+                  </button>
+                  <button
+                    type="button"
+                    disabled={sendingSos}
+                    onClick={submitSos}
+                    className="flex-[1.4] rounded-2xl bg-rose-500 py-3.5 text-xs font-black text-white shadow-lg shadow-rose-500/25 disabled:opacity-50 flex items-center justify-center gap-2"
+                  >
+                    {sendingSos ? <Loader2 className="size-4 animate-spin" /> : <Siren size={17} />}
+                    إرسال النداء الآن
                   </button>
                 </div>
               </motion.div>
