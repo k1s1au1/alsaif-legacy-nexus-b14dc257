@@ -449,7 +449,6 @@ function AdminPage() {
           data: {
             title: "📢 إعلان رسمي جديد",
             body: annDraft.title,
-            route: "/majlis",
           },
         }).catch((err) => console.warn("FCM error:", err));
       }
