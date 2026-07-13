@@ -618,7 +618,9 @@ function AddDialog({ meId, isChairman, onClose, onSaved }: any) {
         .insert({ title, body: finalBody, kind: dbKind, author_id: meId });
       if (!error) {
         toast.success("تم النشر");
-        sendFcm({ data: { title: "نقاش جديد في الاجتماعات", body: title } }).catch(() => {});
+        sendFcm({
+          data: { title: "نقاش جديد في الاجتماعات", body: title, route: "/meetings" },
+        }).catch(() => {});
         onSaved();
         onClose();
       } else toast.error("تعذر النشر: " + error.message);
