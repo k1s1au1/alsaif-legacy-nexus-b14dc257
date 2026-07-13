@@ -109,7 +109,14 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${SERVICE_KEY}`,
       },
     });
-    const rows: { token: string; user_id: string }[] = await tokRes.json();
+    const tokenResult = await tokRes.json();
+    if (!tokRes.ok) {
+      throw new Error(`Could not read push tokens (${tokRes.status}): ${JSON.stringify(tokenResult)}`);
+    }
+    if (!Array.isArray(tokenResult)) {
+      throw new Error(`Unexpected push token response: ${JSON.stringify(tokenResult)}`);
+    }
+    const rows = tokenResult as { token: string; user_id: string }[];
     const tokens = rows
       .filter((r) => (exclude_user_id ? r.user_id !== exclude_user_id : true))
       .map((r) => r.token)
