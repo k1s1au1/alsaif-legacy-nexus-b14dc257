@@ -236,6 +236,7 @@ export function AppShell({
   const navigate = useNavigate();
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [isAdmin, setIsAdmin] = useState(false);
+  const [bottomNavShortcut, setBottomNavShortcut] = useState<"admin" | "news" | null>(null);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
   const [myUserId, setMyUserId] = useState<string | null>(null);
   const [myName, setMyName] = useState<string>(user?.name || "");
@@ -322,7 +323,13 @@ export function AppShell({
         ]);
 
         const rs = (rolesData ?? []).map((x) => x.role);
-        setIsAdmin(rs.includes("admin") || rs.includes("manager") || rs.includes("chairman"));
+        const hasManagementRank = rs.some((role) =>
+          ["chairman", "admin", "manager"].includes(role),
+        );
+        setIsAdmin(hasManagementRank);
+        // Resolve this once from the member's rank so the mobile shortcut never
+        // flashes "الأخبار" before changing to "الإدارة".
+        setBottomNavShortcut(hasManagementRank ? "admin" : "news");
 
         const name =
           profileData?.arabic_name ||
@@ -340,6 +347,7 @@ export function AppShell({
         if (profileData?.avatar_url) setMyAvatarPath(profileData.avatar_url);
       } catch (e) {
         console.error("Shell initialization error", e);
+        setBottomNavShortcut("news");
       }
     })();
   }, []);
@@ -676,20 +684,28 @@ export function AppShell({
                   </button>
                 </div>
 
-                {isAdmin ? (
+                {bottomNavShortcut === "admin" ? (
                   <BottomNavItem
                     to="/admin"
                     label="الإدارة"
                     icon={<ShieldCheck size={20} />}
                     active={path === "/admin"}
                   />
-                ) : (
+                ) : bottomNavShortcut === "news" ? (
                   <BottomNavItem
                     to="/majlis"
                     label="الأخبار"
                     icon={<Newspaper size={20} />}
                     active={path === "/majlis"}
                   />
+                ) : (
+                  <div
+                    aria-hidden="true"
+                    className="flex flex-col items-center gap-1 text-transparent"
+                  >
+                    <Newspaper size={20} />
+                    <span className="text-[9px] font-black uppercase">الأخبار</span>
+                  </div>
                 )}
 
                 <button
