@@ -125,6 +125,10 @@ Deno.serve(async (req) => {
     }
 
     const rows: { token: string; user_id: string }[] = await tokRes.json();
+
+    // Log for diagnostics
+    console.info(`Found ${rows.length} tokens. Target users: ${user_ids?.join(',') || 'ALL'}`);
+
     const tokens = rows
       .filter((r) => {
         if (user_ids && user_ids.length > 0 && !user_ids.includes(r.user_id)) return false;
@@ -133,8 +137,10 @@ Deno.serve(async (req) => {
       .map((r) => r.token)
       .filter((t) => !!t);
 
+    console.info(`Sending to ${tokens.length} filtered tokens.`);
+
     if (tokens.length === 0) {
-      return new Response(JSON.stringify({ success: true, sent: 0 }), {
+      return new Response(JSON.stringify({ success: true, sent: 0, debug: "No tokens found for target users" }), {
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
