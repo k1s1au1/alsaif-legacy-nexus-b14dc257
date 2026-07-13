@@ -26,6 +26,12 @@ messaging.onBackgroundMessage((payload) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = event.notification.data?.url || "/";
-  event.waitUntil(clients.openWindow(url));
+  const target = new URL(event.notification.data?.url || "/dashboard", self.location.origin).href;
+  event.waitUntil(
+    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
+      const existing = clientList.find((client) => client.url.startsWith(self.location.origin));
+      if (existing) return existing.focus().then(() => existing.navigate(target));
+      return clients.openWindow(target);
+    }),
+  );
 });
