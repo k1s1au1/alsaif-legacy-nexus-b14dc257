@@ -42,7 +42,6 @@ import { NotificationsBell } from "@/components/notifications-bell";
 import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers, usePresenceFor, type PresenceState } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
-import { useFcm } from "@/hooks/use-fcm";
 import { DynamicIsland } from "@/components/dynamic-island";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { BiometricGate } from "@/components/biometric-gate";
@@ -275,7 +274,6 @@ export function AppShell({
   const myPresenceState = usePresenceFor(myUserId);
   const onlineUserIds = useOnlineUsers();
   const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
-  useFcm();
   usePresenceHeartbeat();
 
   useEffect(() => {
