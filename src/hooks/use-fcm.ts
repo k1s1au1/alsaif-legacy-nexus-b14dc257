@@ -3,6 +3,7 @@ import { useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { FCM_VAPID_KEY, FIREBASE_CONFIG } from "@/lib/fcm-config";
 import { toast } from "sonner";
+import { setupPushNotifications } from "@/lib/pushNotifications";
 
 export function useFcm() {
   const navigate = useNavigate();
@@ -38,6 +39,9 @@ export function useFcm() {
     const initPush = async () => {
       // 1. Native Platform (Mobile App)
       if (win.Capacitor?.isNativePlatform()) {
+        await setupPushNotifications(navigate);
+        return;
+
         try {
           const { PushNotifications } = win.Capacitor.Plugins;
           if (!PushNotifications) return;
