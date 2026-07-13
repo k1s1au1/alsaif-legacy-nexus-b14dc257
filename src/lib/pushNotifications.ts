@@ -2,70 +2,92 @@ import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-type PushData = Record<string, string | undefined>;
-type AppNavigator = (options: { to: string }) => void;
-
-let appNavigate: AppNavigator | undefined;
-let listenersAttached = false;
-let authListenerAttached = false;
-let latestNativeToken: string | undefined;
-
-/** Converts a notification payload into a safe in-app route. */
-export function notificationRoute(data: PushData = {}): string {
-  const rawUrl = data.url;
-  if (rawUrl?.startsWith("/")) return rawUrl;
-
-  if (data.conversation_id) return `/chat/${data.conversation_id}`;
-  if (data.meeting_id) return "/meetings";
-  if (data.event_id) return "/events";
-  if (data.task_id || data.type === "tasks") return "/tasks";
-  if (data.type === "chat") return "/chat";
-  if (data.type === "news" || data.type === "announcement") return "/majlis";
-  if (data.type === "entertainment" || data.trip_id) return "/trips";
-  if (data.type === "sos" || data.category === "SOS") return "/dashboard";
-  return "/dashboard";
-}
-
-async function saveToken(token: string) {
-  const { data: auth } = await supabase.auth.getUser();
-  if (!auth.user) return false;
-
-  const { error } = await supabase.from("push_tokens").upsert(
-    {
-      user_id: auth.user.id,
-      token,
-      platform: Capacitor.getPlatform(),
-      is_active: true,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: "user_id,token" },
-  );
-  return !error;
-}
-
-/** Registers native notification actions once and sends taps to the right page. */
-export async function setupPushNotifications(navigate?: AppNavigator) {
-  if (navigate) appNavigate = navigate;
-  if (!Capacitor.isNativePlatform()) return;
+/**
+ * Sets up native push notifications (Android/iOS via Capacitor).
+ * No-op when running on the web.
+ */
+export async function setupPushNotifications(navigate?: (options: { to: string }) => void) {
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
 
   try {
     const { PushNotifications } = await import("@capacitor/push-notifications");
-    let permission = await PushNotifications.checkPermissions();
-    if (permission.receive === "prompt" || permission.receive === "denied") {
-      permission = await PushNotifications.requestPermissions();
-    }
-    if (permission.receive !== "granted") return;
 
-    const actionPlugin = PushNotifications as typeof PushNotifications & {
+    let perm = await PushNotifications.checkPermissions();
+    if (perm.receive === "prompt" || perm.receive === "denied") {
+      perm = await PushNotifications.requestPermissions();
+    }
+    if (perm.receive !== "granted") return;
+
+    // 1. Add listeners FIRST
+    await PushNotifications.addListener("registration", async (token) => {
+      const { data: auth } = await supabase.auth.getUser();
+      if (!auth?.user) return;
+
+      await supabase.from("push_tokens").upsert(
+        {
+          user_id: auth.user.id,
+          token: token.value,
+          platform: Capacitor.getPlatform(),
+          is_active: true,
+        },
+        { onConflict: "token" },
+      );
+    });
+
+    await PushNotifications.addListener("pushNotificationActionPerformed", async (notification: any) => {
+      const { actionId, notification: data } = notification;
+      const meetingId = data.data?.meeting_id;
+      const url = data.data?.url;
+
+      // 1.1 Handle Interactive Actions (Buttons)
+      if (meetingId && (actionId === "going" || actionId === "not_going")) {
+        try {
+          const { data: auth } = await supabase.auth.getUser();
+          if (!auth.user) return;
+
+          const rsvp = actionId === "going" ? "going" : "not_going";
+          await supabase
+            .from("meeting_attendees")
+            .upsert(
+              { meeting_id: meetingId, user_id: auth.user.id, rsvp },
+              { onConflict: "meeting_id,user_id" },
+            );
+
+          if (rsvp === "going") toast.success("تم تأكيد حضورك ✨");
+          else toast.info("تم تسجيل اعتذارك.");
+        } catch (e) {
+          console.error("Background action error:", e);
+        }
+      }
+
+      // 1.2 Handle Deep Linking (Redirection)
+      if (url && navigate) {
+        if (url.startsWith("/")) {
+          navigate({ to: url as any });
+        } else if (url.startsWith("http")) {
+          window.open(url, "_blank");
+        }
+      }
+    });
+
+    // 2. Register ACTION TYPES (The buttons)
+    const pushNotificationsWithActions = PushNotifications as typeof PushNotifications & {
       registerActionTypes?: (options: {
         types: Array<{
           id: string;
-          actions: Array<{ id: string; title: string; foreground?: boolean; destructive?: boolean }>;
+          actions: Array<{
+            id: string;
+            title: string;
+            foreground?: boolean;
+            destructive?: boolean;
+          }>;
         }>;
       }) => Promise<void>;
     };
 
-    await actionPlugin.registerActionTypes?.({
+    await pushNotificationsWithActions.registerActionTypes?.({
       types: [
         {
           id: "MEETING_INVITE",
@@ -77,62 +99,9 @@ export async function setupPushNotifications(navigate?: AppNavigator) {
       ],
     });
 
-    if (!listenersAttached) {
-      listenersAttached = true;
-
-      await PushNotifications.addListener("registration", async (token) => {
-        try {
-          latestNativeToken = token.value;
-          await saveToken(token.value);
-        } catch (error) {
-          console.error("Push token save failed", error);
-        }
-      });
-
-      await PushNotifications.addListener("registrationError", (error) => {
-        console.error("Push registration error", error);
-      });
-
-      await PushNotifications.addListener("pushNotificationActionPerformed", async (event: any) => {
-        const actionId = event.actionId;
-        const data = (event.notification?.data ?? {}) as PushData;
-        const meetingId = data.meeting_id;
-
-        if (meetingId && (actionId === "going" || actionId === "not_going")) {
-          try {
-            const { data: auth } = await supabase.auth.getUser();
-            if (auth.user) {
-              const rsvp = actionId === "going" ? "going" : "not_going";
-              await supabase
-                .from("meeting_attendees")
-                .upsert(
-                  { meeting_id: meetingId, user_id: auth.user.id, rsvp },
-                  { onConflict: "meeting_id,user_id" },
-                );
-              toast.success(rsvp === "going" ? "تم تأكيد حضورك ✨" : "تم تسجيل اعتذارك.");
-            }
-          } catch (error) {
-            console.error("Meeting notification action failed", error);
-          }
-        }
-
-        appNavigate?.({ to: notificationRoute(data) });
-      });
-
-      // On a fresh install, Android can generate the token before the user
-      // signs in. Keep it and attach it to the account as soon as auth exists.
-      if (!authListenerAttached) {
-        authListenerAttached = true;
-        supabase.auth.onAuthStateChange((_event, session) => {
-          if (session?.user && latestNativeToken) {
-            void saveToken(latestNativeToken);
-          }
-        });
-      }
-    }
-
+    // 3. Register AFTER adding listeners
     await PushNotifications.register();
-  } catch (error) {
-    console.error("[Push] setup failed:", error);
+  } catch (e) {
+    console.error("[Push] setup failed:", e);
   }
 }
