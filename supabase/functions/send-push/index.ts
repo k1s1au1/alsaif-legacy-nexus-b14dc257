@@ -104,12 +104,8 @@ Deno.serve(async (req) => {
     const projectId = sa.project_id;
     if (!projectId) throw new Error("project_id missing from service account secret");
 
-    // Fetch tokens - Simplified to only use user_id
-    const params = new URLSearchParams({
-      select: "token,user_id",
-      is_active: "eq.true",
-    });
-    const tokRes = await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?${params.toString()}`, {
+    // Fetch tokens - Use a more robust query to handle potential column naming issues
+    const tokRes = await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?is_active=eq.true`, {
       headers: {
         apikey: SERVICE_KEY,
         Authorization: `Bearer ${SERVICE_KEY}`,
@@ -117,22 +113,24 @@ Deno.serve(async (req) => {
     });
 
     if (!tokRes.ok) {
-      const err = await tokRes.text();
-      return new Response(JSON.stringify({ error: `Database error: ${err}` }), {
-        status: 500,
+      const errText = await tokRes.text();
+      return new Response(JSON.stringify({
+        success: false,
+        error: `Database connection failed. Details: ${errText}`
+      }), {
+        status: 200, // Return 200 so the app can show the error nicely
         headers: { ...CORS, "Content-Type": "application/json" },
       });
     }
 
-    const rows: { token: string; user_id: string }[] = await tokRes.json();
-
-    // Log for diagnostics
-    console.info(`Found ${rows.length} tokens. Target users: ${user_ids?.join(',') || 'ALL'}`);
-
+    const rows: any[] = await tokRes.json();
     const tokens = rows
       .filter((r) => {
-        if (user_ids && user_ids.length > 0 && !user_ids.includes(r.user_id)) return false;
-        return !exclude_user_id || r.user_id !== exclude_user_id;
+        const uid = r.user_id || r.old_user_id || r.owner_id;
+        if (user_ids && user_ids.length > 0) {
+          return user_ids.includes(uid);
+        }
+        return !exclude_user_id || uid !== exclude_user_id;
       })
       .map((r) => r.token)
       .filter((t) => !!t);
