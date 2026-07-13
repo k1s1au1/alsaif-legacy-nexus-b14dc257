@@ -5,6 +5,7 @@ const config: CapacitorConfig = {
   appName: "المجلس",
   webDir: "www",
   server: {
+    // This links the APK directly to your live website
     url: "https://alsaif-legacy-nexus.lovable.app",
     cleartext: true,
   },
