@@ -599,36 +599,67 @@ function SettingsPage() {
               <p className="text-sm font-bold text-muted-foreground">
                 إذا لم تكن الإشعارات تصلك، يمكنك محاولة إعادة طلب الإذن يدوياً من هنا.
               </p>
-              <button
-                onClick={async () => {
-                  const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
-                  try {
-                    await setupPushNotifications();
-                    setTimeout(async () => {
-                      const { data: auth } = await supabase.auth.getUser();
-                      const { data: tokens } = await supabase
-                        .from("push_tokens")
-                        .select("token")
-                        .eq("user_id", auth.user?.id)
-                        .limit(1);
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={async () => {
+                    const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
+                    try {
+                      await setupPushNotifications();
+                      setTimeout(async () => {
+                        const { data: auth } = await supabase.auth.getUser();
+                        const { data: tokens } = await supabase
+                          .from("push_tokens")
+                          .select("token")
+                          .eq("user_id", auth.user?.id)
+                          .limit(1);
+                        toast.dismiss(tId);
+                        if (tokens && tokens.length > 0) {
+                          toast.success("مبروك! جوالك مربوط بنجاح بنظام الإشعارات ✨");
+                        } else {
+                          toast.error(
+                            "لم يتم تسجيل التوكن بعد. تأكد من تفعيل الإشعارات من إعدادات الجوال يدوياً.",
+                          );
+                        }
+                      }, 4000);
+                    } catch (e) {
                       toast.dismiss(tId);
-                      if (tokens && tokens.length > 0) {
-                        toast.success("مبروك! جوالك مربوط بنجاح بنظام الإشعارات ✨");
+                      toast.error("فشل الاتصال: " + (e as any).message);
+                    }
+                  }}
+                  className="flex-1 btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
+                >
+                  <Smartphone className="size-5" /> إعادة ربط الجوال
+                </button>
+
+                <button
+                  onClick={async () => {
+                    const tId = toast.loading("جاري إرسال إشعار تجريبي لجهازك...");
+                    try {
+                      const { data: auth } = await supabase.auth.getUser();
+                      const { data: result, error } = await supabase.functions.invoke("send-push", {
+                        body: {
+                          title: "🔔 تجربة الإشعارات",
+                          body: "هذا إشعار تجريبي من مجلس السيف الرقمي ✨",
+                          user_ids: [auth.user?.id],
+                        }
+                      });
+                      toast.dismiss(tId);
+                      if (error) throw error;
+                      if (result?.sent > 0) {
+                        toast.success("تم إرسال الإشعار بنجاح! تفقد مركز التنبيهات.");
                       } else {
-                        toast.error(
-                          "لم يتم تسجيل التوكن بعد. تأكد من تفعيل الإشعارات من إعدادات الجوال يدوياً.",
-                        );
+                        toast.error("فشل الإرسال. تأكد من أن جهازك مسجل ومسموح له بالاستقبال.");
                       }
-                    }, 4000);
-                  } catch (e) {
-                    toast.dismiss(tId);
-                    toast.error("فشل الاتصال: " + (e as any).message);
-                  }
-                }}
-                className="w-full btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
-              >
-                <Smartphone className="size-5" /> إعادة طلب إذن الإشعارات
-              </button>
+                    } catch (e: any) {
+                      toast.dismiss(tId);
+                      toast.error("خطأ تقني: " + e.message);
+                    }
+                  }}
+                  className="px-8 py-4 rounded-2xl bg-white/5 text-white font-black text-sm border border-white/10 hover:bg-white/10 transition-all"
+                >
+                  إرسال تجربة
+                </button>
+              </div>
             </div>
           </section>
         )}
