@@ -4,9 +4,11 @@ import { setupPushNotifications } from "@/lib/pushNotifications";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { FCM_VAPID_KEY, FIREBASE_CONFIG } from "@/lib/fcm-config";
+import { initializeApp, getApps } from "firebase/app";
+import { getMessaging, getToken, isSupported } from "firebase/messaging";
 
 /**
- * Hook to initialize push notifications and handle registration for both Web and Mobile.
+ * Hook to initialize push notifications for both Web and Mobile.
  */
 export function useFcm() {
   const navigate = useNavigate();
@@ -15,25 +17,19 @@ export function useFcm() {
     const initPush = async () => {
       // 1. Native Platform (Mobile App)
       if (Capacitor.isNativePlatform()) {
-        setupPushNotifications(navigate).catch(err => {
-          console.error("[FCM Hook] Native setup failed:", err);
-        });
+        try {
+          await setupPushNotifications(navigate);
+        } catch (err) {
+          console.error("[Push] Native setup failed:", err);
+        }
       }
       // 2. Web Platform (Browser)
-      else if (typeof window !== "undefined" && "serviceWorker" in navigator && "Notification" in window) {
+      else if (typeof window !== "undefined" && "serviceWorker" in navigator) {
         try {
-          const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
-          const { initializeApp, getApps } = await import("firebase/app");
+          if (!(await isSupported())) return;
 
-          if (!(await isSupported())) {
-            console.warn("FCM not supported in this browser");
-            return;
-          }
-
-          if (Notification.permission === "default") {
-            await Notification.requestPermission();
-          }
-          if (Notification.permission !== "granted") return;
+          const permission = await Notification.requestPermission();
+          if (permission !== "granted") return;
 
           const registration = await navigator.serviceWorker.register("/firebase-messaging-sw.js", {
             scope: "/",
@@ -63,11 +59,11 @@ export function useFcm() {
             }
           }
         } catch (err) {
-          console.warn("Web FCM initialization failed:", err);
+          console.warn("[Push] Web initialization failed:", err);
         }
       }
     };
 
-    initPush();
+    void initPush();
   }, [navigate]);
 }
