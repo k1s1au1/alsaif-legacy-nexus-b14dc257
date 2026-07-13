@@ -240,8 +240,12 @@ Deno.serve(async (req) => {
     );
   } catch (e: any) {
     console.error("send-push error", e);
-    return new Response(JSON.stringify({ error: e?.message ?? String(e) }), {
-      status: 500,
+    return new Response(JSON.stringify({
+      success: false,
+      error: `Technical Error: ${e?.message ?? String(e)}`,
+      tip: "Please check if your Firebase Private Key JSON is correctly pasted in Supabase Secrets."
+    }), {
+      status: 200, // Return 200 to show this error in the app UI
       headers: { ...CORS, "Content-Type": "application/json" },
     });
   }
