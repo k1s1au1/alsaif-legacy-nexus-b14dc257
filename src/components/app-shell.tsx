@@ -30,12 +30,13 @@ import {
   ChevronLeft,
   Lock,
   LayoutGrid,
+  Radio,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { UserAvatar } from "@/components/user-avatar";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers } from "@/lib/presence";
+import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers, usePresenceFor, type PresenceState } from "@/lib/presence";
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
@@ -127,12 +128,45 @@ function QuickActionItem({ to, label, icon, color, onClick }: any) {
   );
 }
 
-function UserDropdown({ safeUser, myAvatarPath, signOut, logo }: any) {
+function ConnectionStatus({ state, dark = false }: { state: PresenceState; dark?: boolean }) {
+  const status =
+    state === "online"
+      ? { label: "نشط الآن", color: "text-emerald-500", glow: "bg-emerald-400/30" }
+      : state === "idle"
+        ? { label: "وضع هادئ", color: "text-amber-500", glow: "bg-amber-400/25" }
+        : { label: "غير نشط", color: "text-slate-400", glow: "bg-slate-400/20" };
+
+  return (
+    <div
+      className={cn(
+        "inline-flex items-center gap-2 rounded-xl border px-3 py-1.5 text-[10px] font-black tracking-wide",
+        dark ? "border-white/10 bg-white/10 text-white/85" : "border-primary/10 bg-primary/5 text-primary",
+      )}
+    >
+      <span className="relative flex size-4 items-center justify-center">
+        {state === "online" && <span className={cn("absolute inset-0 rounded-full animate-ping", status.glow)} />}
+        <Radio size={13} className={cn("relative", status.color)} strokeWidth={2.5} />
+      </span>
+      <span>{status.label}</span>
+    </div>
+  );
+}
+
+function UserDropdown({ safeUser, myAvatarPath, connectionState, signOut, logo }: any) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-2 md:gap-3 p-1 pr-2.5 md:pr-4 rounded-full bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-primary/5 group/profile">
-          <div className="size-7 md:size-9 rounded-full ring-2 ring-primary/10 group-hover/profile:ring-primary transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center">
+          <div
+            className={cn(
+              "size-7 md:size-9 rounded-full ring-2 transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center",
+              connectionState === "online"
+                ? "ring-emerald-400/80 shadow-[0_0_14px_rgba(52,211,153,0.35)]"
+                : connectionState === "idle"
+                  ? "ring-amber-400/70"
+                  : "ring-primary/10 group-hover/profile:ring-primary",
+            )}
+          >
             <div className="size-full">
               <UserAvatar
                 path={myAvatarPath}
@@ -203,6 +237,7 @@ export function AppShell({
   const path = useRouterState({ select: (s) => s.location.pathname });
   const [isAdmin, setIsAdmin] = useState(false);
   const [myAvatarPath, setMyAvatarPath] = useState<string | null>(user?.avatarPath ?? null);
+  const [myUserId, setMyUserId] = useState<string | null>(null);
   const [myName, setMyName] = useState<string>(user?.name || "");
   const [myRole, setMyRole] = useState<string>(user?.role || "");
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -223,6 +258,7 @@ export function AppShell({
   const queryClient = useQueryClient();
   const dynamicLogo = useSiteLogo();
   const onlineCount = useOnlineCount();
+  const myPresenceState = usePresenceFor(myUserId);
   const onlineUserIds = useOnlineUsers();
   const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
   useFcm();
@@ -273,6 +309,7 @@ export function AppShell({
         const { data: authData } = await supabase.auth.getUser();
         if (!authData?.user) return;
         const uid = authData.user.id;
+        setMyUserId(uid);
 
         const [{ data: rolesData }, { data: profileData }] = await Promise.all([
           supabase.from("user_roles").select("role").eq("user_id", uid),
@@ -362,7 +399,16 @@ export function AppShell({
         )}
       >
         <div className="px-6 pt-12 pb-8 flex flex-col items-center text-center gap-4 bg-muted/20 rounded-tl-[32px] border-b border-border relative">
-          <div className="size-24 rounded-full ring-4 ring-background shadow-md bg-background p-1 relative">
+          <div
+            className={cn(
+              "size-24 rounded-full ring-4 shadow-md bg-background p-1 relative transition-all duration-500",
+              myPresenceState === "online"
+                ? "ring-emerald-400/80 shadow-[0_0_24px_rgba(52,211,153,0.25)]"
+                : myPresenceState === "idle"
+                  ? "ring-amber-400/70"
+                  : "ring-background",
+            )}
+          >
             <UserAvatar
               path={myAvatarPath}
               name={safeUser.name}
@@ -372,6 +418,9 @@ export function AppShell({
           </div>
           <div className="text-center md:text-right flex-1 min-w-0">
             <h3 className="text-xl font-black text-primary tracking-tight truncate">{safeUser.name}</h3>
+            <div className="mt-2">
+              <ConnectionStatus state={myPresenceState} />
+            </div>
             <p className="text-[11px] text-gold-primary font-black uppercase tracking-[0.2em] mt-1">
               {safeUser.role}
             </p>
@@ -454,6 +503,7 @@ export function AppShell({
               <UserDropdown
                 safeUser={safeUser}
                 myAvatarPath={myAvatarPath}
+                connectionState={myPresenceState}
                 signOut={signOut}
                 logo={dynamicLogo}
               />
@@ -696,7 +746,16 @@ export function AppShell({
 
                 {/* User Profile Section */}
                 <div className="relative z-10 flex items-center gap-5 p-2">
-                  <div className="size-16 rounded-full ring-4 ring-white/10 p-0.5 bg-white/5 shadow-sm">
+                  <div
+                    className={cn(
+                      "size-16 rounded-full ring-4 p-0.5 bg-white/5 shadow-sm transition-all duration-500",
+                      myPresenceState === "online"
+                        ? "ring-emerald-400/80 shadow-[0_0_20px_rgba(52,211,153,0.28)]"
+                        : myPresenceState === "idle"
+                          ? "ring-amber-400/70"
+                          : "ring-white/10",
+                    )}
+                  >
                     <UserAvatar
                       path={myAvatarPath}
                       name={safeUser.name}
@@ -706,6 +765,9 @@ export function AppShell({
                   </div>
                   <div className="space-y-0.5">
                     <h3 className="text-xl font-black text-white leading-tight">{safeUser.name}</h3>
+                    <div className="mt-2">
+                      <ConnectionStatus state={myPresenceState} dark />
+                    </div>
                     <div className="inline-flex px-2.5 py-0.5 rounded-full bg-gold-primary/20 border border-gold-primary/20 text-gold-primary text-[9px] font-black uppercase tracking-widest">
                       {safeUser.role}
                     </div>
