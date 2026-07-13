@@ -655,33 +655,20 @@ function Dashboard() {
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
-        {/* 1. SPIRITUAL REMINDER - Premium Glass Card */}
+        {/* 1. SPIRITUAL REMINDER - Classic Style for All Platforms */}
         <section className="animate-fade-up px-2 md:px-0">
-          <div className="relative group">
-            <div className="absolute inset-0 bg-gold-primary/5 blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-            <div className="relative overflow-hidden glass-surface p-4 md:p-6 rounded-[28px] border-gold-primary/20 flex flex-col md:flex-row items-center justify-center gap-4 text-center">
-              <div className="size-10 rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary border border-gold-primary/20 shrink-0">
-                <Scroll size={20} />
-              </div>
-              <div className="space-y-1 flex-1">
-                <p
-                  className="text-sm md:text-xl font-black text-primary dark:text-white italic leading-relaxed"
-                  style={{ fontFamily: "'Amiri', serif" }}
-                >
-                  "{spiritualQuote.text}"
-                </p>
-                <div className="flex items-center justify-center gap-2">
-                   <div className="h-px w-8 bg-gold-primary/20" />
-                   <span className="text-[10px] md:text-xs font-black text-gold-primary tracking-widest uppercase opacity-60">
-                     {spiritualQuote.source}
-                   </span>
-                   <div className="h-px w-8 bg-gold-primary/20" />
-                </div>
-              </div>
-              <div className="hidden md:block size-10 opacity-0 group-hover:opacity-10 transition-opacity">
-                <Sparkles className="text-gold-primary" />
-              </div>
-            </div>
+          <div className="flex items-center justify-center gap-3 py-1 opacity-100 transition-all duration-700">
+            <Scroll className="size-3 text-gold-primary shrink-0" />
+            <p
+              className="text-[11px] md:text-sm font-black text-emerald-600 dark:text-gold-primary italic drop-shadow-sm"
+              style={{ fontFamily: "'Amiri', serif" }}
+            >
+              "{spiritualQuote.text}"
+            </p>
+            <div className="h-2 w-px bg-gold-primary/20 mx-1" />
+            <span className="text-[9px] font-bold text-gold-primary/60">
+              {spiritualQuote.source}
+            </span>
           </div>
         </section>
 
