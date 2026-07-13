@@ -97,12 +97,9 @@ Deno.serve(async (req) => {
 
     // Fetch tokens
     const params = new URLSearchParams({
-      select: "token,old_user_id",
+      select: "token,user_id,old_user_id",
       is_active: "eq.true",
     });
-    if (user_ids && user_ids.length > 0) {
-      params.append("old_user_id", `in.(${user_ids.join(",")})`);
-    }
     const tokRes = await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?${params.toString()}`, {
       headers: {
         apikey: SERVICE_KEY,
@@ -116,9 +113,13 @@ Deno.serve(async (req) => {
     if (!Array.isArray(tokenResult)) {
       throw new Error(`Unexpected push token response: ${JSON.stringify(tokenResult)}`);
     }
-    const rows = tokenResult as { token: string; old_user_id: string }[];
+    const rows = tokenResult as { token: string; user_id?: string | null; old_user_id?: string | null }[];
     const tokens = rows
-      .filter((r) => (exclude_user_id ? r.old_user_id !== exclude_user_id : true))
+      .filter((r) => {
+        const ownerId = r.user_id ?? r.old_user_id;
+        if (user_ids?.length && !user_ids.includes(ownerId ?? "")) return false;
+        return !exclude_user_id || ownerId !== exclude_user_id;
+      })
       .map((r) => r.token)
       .filter((t) => !!t);
 
