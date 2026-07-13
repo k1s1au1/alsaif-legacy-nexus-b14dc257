@@ -7,4 +7,15 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 // Alsaif Family Hub - Optimized Config
-export default defineConfig({});
+export default defineConfig({
+  nitro: false,
+  vite: {
+    build: {
+      rollupOptions: {
+        output: {
+          entryFileNames: "assets/app.js",
+        },
+      },
+    },
+  },
+});
