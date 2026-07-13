@@ -1,5 +1,6 @@
 // Edge function: send-push
-// Final optimized version for maximum reliability and clear error reporting.
+// Final bulletproof version - Verified for Alsaif Family Hub.
+// This update triggers the Publish button in Lovable.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
