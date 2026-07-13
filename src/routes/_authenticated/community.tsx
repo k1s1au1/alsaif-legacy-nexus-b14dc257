@@ -701,7 +701,6 @@ function AddPostDialog({ meId, onClose, onSaved }: any) {
           data: {
             title: "📩 طلب جديد من عضو",
             body: title.trim(),
-            route: "/community",
           },
         }).catch(() => {});
       }
