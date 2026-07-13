@@ -15,5 +15,4 @@ ext {
     androidxEspressoCoreVersion = '3.7.0'
     cordovaAndroidVersion = '14.0.1'
     capacitorVersion = '8.4.1'
-    mlkitDocumentScannerVersion = '16.0.0'
 }
