@@ -655,12 +655,12 @@ function Dashboard() {
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
-        {/* 1. SPIRITUAL REMINDER - Classic Style for All Platforms */}
+        {/* 1. SPIRITUAL REMINDER - Force Consistent Signature Emerald Color */}
         <section className="animate-fade-up px-2 md:px-0">
           <div className="flex items-center justify-center gap-3 py-1 opacity-100 transition-all duration-700">
             <Scroll className="size-3 text-gold-primary shrink-0" />
             <p
-              className="text-[11px] md:text-sm font-black text-emerald-600 dark:text-gold-primary italic drop-shadow-sm"
+              className="text-[11px] md:text-sm font-black text-[#064E3B] italic drop-shadow-sm"
               style={{ fontFamily: "'Amiri', serif" }}
             >
               "{spiritualQuote.text}"
