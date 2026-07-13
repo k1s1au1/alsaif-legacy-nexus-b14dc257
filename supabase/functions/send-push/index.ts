@@ -52,7 +52,9 @@ async function getAccessToken(sa: any): Promise<string> {
     body: `grant_type=urn:ietf:params:oauth:grant-type:jwt-bearer&assertion=${jwt}`,
   });
   const data = await res.json();
-  if (!data.access_token) throw new Error(`OAuth failed: ${JSON.stringify(data)}`);
+  if (!data.access_token) {
+    throw new Error(`Firebase Auth failed: ${data.error_description || data.error || JSON.stringify(data)}`);
+  }
   return data.access_token;
 }
 
@@ -90,14 +92,21 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const SA_RAW = Deno.env.get("FCM_SERVICE_ACCOUNT");
-    if (!SA_RAW) throw new Error("FCM_SERVICE_ACCOUNT secret is not set");
+    if (!SA_RAW) throw new Error("FCM_SERVICE_ACCOUNT secret is not set in project settings");
 
-    const sa = JSON.parse(SA_RAW);
+    let sa;
+    try {
+      sa = JSON.parse(SA_RAW);
+    } catch (e) {
+      throw new Error(`Invalid JSON format in FCM_SERVICE_ACCOUNT secret: ${e.message}`);
+    }
+
     const projectId = sa.project_id;
+    if (!projectId) throw new Error("project_id missing from service account secret");
 
-    // Fetch tokens
+    // Fetch tokens - Simplified to only use user_id
     const params = new URLSearchParams({
-      select: "token,user_id,old_user_id",
+      select: "token,user_id",
       is_active: "eq.true",
     });
     const tokRes = await fetch(`${SUPABASE_URL}/rest/v1/push_tokens?${params.toString()}`, {
@@ -106,19 +115,20 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${SERVICE_KEY}`,
       },
     });
-    const tokenResult = await tokRes.json();
+
     if (!tokRes.ok) {
-      throw new Error(`Could not read push tokens (${tokRes.status}): ${JSON.stringify(tokenResult)}`);
+      const err = await tokRes.text();
+      return new Response(JSON.stringify({ error: `Database error: ${err}` }), {
+        status: 500,
+        headers: { ...CORS, "Content-Type": "application/json" },
+      });
     }
-    if (!Array.isArray(tokenResult)) {
-      throw new Error(`Unexpected push token response: ${JSON.stringify(tokenResult)}`);
-    }
-    const rows = tokenResult as { token: string; user_id?: string | null; old_user_id?: string | null }[];
+
+    const rows: { token: string; user_id: string }[] = await tokRes.json();
     const tokens = rows
       .filter((r) => {
-        const ownerId = r.user_id ?? r.old_user_id;
-        if (user_ids?.length && !user_ids.includes(ownerId ?? "")) return false;
-        return !exclude_user_id || ownerId !== exclude_user_id;
+        if (user_ids && user_ids.length > 0 && !user_ids.includes(r.user_id)) return false;
+        return !exclude_user_id || r.user_id !== exclude_user_id;
       })
       .map((r) => r.token)
       .filter((t) => !!t);
