@@ -45,6 +45,7 @@
                 android:resource="@xml/today_widget_info" />
         </receiver>
 
+        <meta-data android:name="com.google.firebase.messaging.default_notification_channel_id" android:value="alsaif_notifications" />
         <receiver android:name=".NotificationActionReceiver" android:exported="false" />
     </application>
 

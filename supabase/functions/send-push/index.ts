@@ -155,7 +155,8 @@ Deno.serve(async (req) => {
                 sound: "default",
                 color: "#064E3B",
                 image: image || undefined,
-                tag: category || undefined, // Use tag or keep standard
+                channel_id: "alsaif_notifications",
+                tag: category || undefined,
               },
             },
             webpush: {

@@ -20,6 +20,21 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
     }
     if (perm.receive !== "granted") return;
 
+    // 0. Create Notification Channel (Required for Android 8+)
+    try {
+      await PushNotifications.createChannel({
+        id: "alsaif_notifications",
+        name: "إشعارات المجلس",
+        description: "إشعارات الاجتماعات والرسائل والفعاليات العائلية",
+        importance: 5, // high
+        visibility: 1, // public
+        sound: "default",
+        vibration: true,
+      });
+    } catch (e) {
+      console.warn("[Push] Channel creation failed:", e);
+    }
+
     // 1. Add listeners FIRST
     await PushNotifications.addListener("registration", async (token) => {
       // Store token locally so we can retry if user is not logged in yet
@@ -39,6 +54,10 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
         },
         { onConflict: "token" },
       );
+
+      if (!error) {
+        console.log("[Push] Token saved successfully.");
+      }
     });
 
     await PushNotifications.addListener("pushNotificationActionPerformed", async (notification: any) => {
