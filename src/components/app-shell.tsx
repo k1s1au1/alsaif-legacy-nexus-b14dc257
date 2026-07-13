@@ -262,6 +262,7 @@ export function AppShell({
   const onlineUserIds = useOnlineUsers();
   const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
   useFcm();
+  usePresenceHeartbeat();
 
   useEffect(() => {
     if (onlineUserIds.length > 0) {
