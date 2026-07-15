@@ -82,7 +82,7 @@ function ImmersiveView({
         animate={{ y: 0, opacity: 1 }}
         exit={{ y: "100%", opacity: 0 }}
         transition={{ type: "spring", damping: 30, stiffness: 200 }}
-        className="bg-[#051410] w-full max-w-6xl h-[100dvh] md:h-[90vh] rounded-t-[32px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col relative border-t border-white/20 md:border border-white/10"
+        className="bg-[var(--nav-bg)] w-full max-w-6xl h-[100dvh] md:h-[90vh] rounded-t-[32px] md:rounded-[60px] overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] flex flex-col relative border-t border-white/20 md:border border-white/10"
       >
         <button
           onClick={onClose}
@@ -99,7 +99,7 @@ function ImmersiveView({
                 className="size-full object-cover"
               />
             ) : (
-              <div className="size-full bg-gradient-to-br from-[#064E3B] via-[#051410] to-black flex items-center justify-center">
+              <div className="size-full bg-gradient-to-br from-primary via-[var(--nav-bg)] to-black flex items-center justify-center">
                 {type === "meeting" ? (
                   <CalendarDays className="size-32 text-gold-primary opacity-10" />
                 ) : (
@@ -107,7 +107,7 @@ function ImmersiveView({
                 )}
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#051410] via-[#051410]/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[var(--nav-bg)] via-[var(--nav-bg)]/40 to-transparent" />
             <div className="absolute bottom-6 right-6 left-6 md:bottom-12 md:right-12 md:left-12 space-y-2 md:space-y-4">
               <div className="flex items-center gap-2 text-gold-primary bg-black/50 backdrop-blur-xl w-fit px-3 py-1 rounded-full border border-white/10 shadow-lg">
                 {type === "trip" ? (
@@ -655,18 +655,18 @@ function Dashboard() {
   return (
     <AppShell title="لوحة العائلة" user={profile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
-        {/* 1. SPIRITUAL REMINDER - Forced Emerald Style for Total Consistency */}
+        {/* 1. SPIRITUAL REMINDER - Linked to Theme Colors */}
         <section className="animate-fade-up px-2 md:px-0">
           <div className="flex items-center justify-center gap-3 py-1 opacity-100 transition-all duration-700">
-            <Scroll className="size-3 text-[#064E3B] shrink-0" />
+            <Scroll className="size-3 text-primary shrink-0" />
             <p
-              className="text-[11px] md:text-sm font-black text-[#064E3B] italic drop-shadow-sm"
+              className="text-[11px] md:text-sm font-black text-primary italic drop-shadow-sm"
               style={{ fontFamily: "'Amiri', serif" }}
             >
               "{spiritualQuote.text}"
             </p>
-            <div className="h-2 w-px bg-[#064E3B]/20 mx-1" />
-            <span className="text-[9px] font-bold text-[#064E3B]/60">
+            <div className="h-2 w-px bg-primary/20 mx-1" />
+            <span className="text-[9px] font-bold text-primary/60">
               {spiritualQuote.source}
             </span>
           </div>
@@ -674,7 +674,7 @@ function Dashboard() {
 
         {/* 2. RESPONSIVE HERO CARD */}
         <section className="animate-fade-up px-2 md:px-0">
-          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
+          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[var(--nav-bg)] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
             {/* Background Texture */}
             <div
               className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
@@ -690,7 +690,7 @@ function Dashboard() {
                 <div className="relative group/avatar">
                   <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-2xl animate-pulse" />
                   <div className="relative size-32 md:size-48 rounded-full p-1.5 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
-                    <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-emerald-950/5">
+                    <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-[var(--nav-bg)]/5">
                       {dynamicLogo ? (
                         <div
                           className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]"
