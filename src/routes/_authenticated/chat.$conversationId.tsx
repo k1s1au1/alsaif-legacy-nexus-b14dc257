@@ -29,6 +29,9 @@ import {
   Clock,
   ChevronLeft,
   MoreHorizontal,
+  Mic,
+  Square,
+  FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
@@ -84,10 +87,14 @@ function ConversationRoute() {
   const [showEmoji, setShowEmoji] = useState(false);
   const [reactingTo, setReactingTo] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [recording, setRecording] = useState(false);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
 
   const myParticipant = useMemo(
     () => participants.find((p) => p.user_id === meId),
@@ -246,6 +253,90 @@ function ConversationRoute() {
     if (!error) {
       setDraft("");
       setReplyTo(null);
+    }
+  }
+
+  async function sendAttachment(file: File) {
+    if (!meId || !conv || uploading) return;
+    if (file.size > 20 * 1024 * 1024) {
+      toast.error("حجم المرفق أكبر من 20 م.ب");
+      return;
+    }
+
+    setUploading(true);
+    const toastId = toast.loading("جاري رفع المرفق...");
+    try {
+      const extension = file.name.split(".").pop() || "bin";
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = `${meId}/${conv.id}/${crypto.randomUUID()}-${safeName || `file.${extension}`}`;
+      const { error: uploadError } = await supabase.storage
+        .from("chat-attachments")
+        .upload(storagePath, file, { contentType: file.type || "application/octet-stream" });
+      if (uploadError) throw uploadError;
+
+      const kind = file.type.startsWith("image/")
+        ? "image"
+        : file.type.startsWith("audio/")
+          ? "audio"
+          : file.type.startsWith("video/")
+            ? "video"
+            : "file";
+      const duration = kind === "audio" || kind === "video" ? await readMediaDuration(file) : null;
+      const { error: messageError } = await supabase.from("messages").insert({
+        conversation_id: conv.id,
+        sender_id: meId,
+        kind,
+        body: kind === "file" ? file.name : null,
+        attachment_url: storagePath,
+        attachment_name: file.name,
+        attachment_size: file.size,
+        attachment_mime: file.type || null,
+        attachment_duration_ms: duration,
+        reply_to_id: replyTo?.id ?? null,
+      });
+      if (messageError) throw messageError;
+      setReplyTo(null);
+      toast.success("تم إرسال المرفق");
+    } catch (error: any) {
+      console.error("Attachment upload error", error);
+      toast.error(error?.message || "تعذر رفع المرفق");
+    } finally {
+      toast.dismiss(toastId);
+      setUploading(false);
+    }
+  }
+
+  async function startRecording() {
+    if (recording) {
+      recorderRef.current?.stop();
+      return;
+    }
+    try {
+      if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+        throw new Error("تسجيل الصوت غير مدعوم في هذا المتصفح");
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      audioChunksRef.current = [];
+      recorder.ondataavailable = (event) => {
+        if (event.data.size) audioChunksRef.current.push(event.data);
+      };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        setRecording(false);
+        const mime = recorder.mimeType || "audio/webm";
+        const audio = new File(
+          [new Blob(audioChunksRef.current, { type: mime })],
+          `رسالة-صوتية-${Date.now()}.webm`,
+          { type: mime },
+        );
+        if (audio.size) await sendAttachment(audio);
+      };
+      recorderRef.current = recorder;
+      recorder.start();
+      setRecording(true);
+    } catch (error: any) {
+      toast.error(error?.message || "تعذر تشغيل الميكروفون");
     }
   }
 
@@ -437,6 +528,27 @@ function ConversationRoute() {
           )}
         </AnimatePresence>
 
+        <input
+          ref={fileInputRef}
+          type="file"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.currentTarget.value = "";
+            if (file) void sendAttachment(file);
+          }}
+        />
+        <input
+          ref={imageInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            event.currentTarget.value = "";
+            if (file) void sendAttachment(file);
+          }}
+        />
         <form onSubmit={sendText} className="flex items-end gap-2 lg:gap-3 max-w-6xl mx-auto">
           <div className="flex-1 bg-muted/30 border border-border rounded-[20px] lg:rounded-[24px] p-1.5 lg:p-2 flex items-end shadow-inner focus-within:border-primary/30 transition-all">
             <button
@@ -445,6 +557,18 @@ function ConversationRoute() {
               className="size-9 lg:size-11 rounded-full flex items-center justify-center text-muted-foreground hover:text-primary transition-all"
             >
               <Paperclip className="size-4 lg:size-5" strokeWidth={2.5} />
+            </button>
+            <button
+              type="button"
+              onClick={() => void startRecording()}
+              disabled={uploading}
+              aria-label={recording ? "إيقاف التسجيل" : "تسجيل رسالة صوتية"}
+              className={cn(
+                "size-9 lg:size-11 rounded-full flex items-center justify-center transition-all",
+                recording ? "bg-red-500 text-white animate-pulse" : "text-muted-foreground hover:text-primary",
+              )}
+            >
+              {recording ? <Square className="size-4" fill="currentColor" /> : <Mic className="size-4 lg:size-5" strokeWidth={2.5} />}
             </button>
             <textarea
               value={draft}
@@ -482,6 +606,32 @@ function ConversationRoute() {
             )}
           </button>
         </form>
+        <AnimatePresence>
+          {showEmoji && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="absolute bottom-[76px] left-3 right-3 lg:left-auto lg:right-10 lg:w-[360px] z-30 rounded-2xl border border-border bg-card p-3 shadow-2xl"
+            >
+              <div className="grid grid-cols-8 gap-1 max-h-48 overflow-y-auto custom-scrollbar" dir="ltr">
+                {EMOJI_PICKER.map((emoji) => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    onClick={() => {
+                      setDraft((value) => value + emoji);
+                      setShowEmoji(false);
+                    }}
+                    className="size-9 rounded-lg text-lg hover:bg-muted transition-colors"
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
 
       <AnimatePresence>
@@ -643,8 +793,10 @@ function MessageBubble({
           <div className="text-[14px] md:text-[15px] font-bold leading-relaxed whitespace-pre-wrap dir-rtl text-right">
             {m.deleted_at ? (
               <em className="opacity-30 font-medium italic">🚫 تم حذف الرسالة</em>
-            ) : (
+            ) : m.kind === "text" ? (
               m.body
+            ) : (
+              <AttachmentBody message={m} mine={mine} />
             )}
           </div>
 
@@ -750,6 +902,52 @@ function MessageBubble({
         )}
       </AnimatePresence>
     </motion.div>
+  );
+}
+
+function AttachmentBody({ message, mine }: { message: Message; mine: boolean }) {
+  const [url, setUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    if (!message.attachment_url) return;
+    getSignedAttachmentUrl(message.attachment_url).then((signed) => {
+      if (active) setUrl(signed);
+    });
+    return () => {
+      active = false;
+    };
+  }, [message.attachment_url]);
+
+  if (!message.attachment_url) return <span>[مرفق غير متاح]</span>;
+  if (!url) return <span className="opacity-70">جاري تحميل المرفق...</span>;
+
+  if (message.kind === "image") {
+    return <img src={url} alt={message.attachment_name || "صورة"} className="max-h-72 max-w-full rounded-xl object-cover" />;
+  }
+
+  if (message.kind === "audio") {
+    return <audio controls src={url} className="max-w-full h-10" />;
+  }
+
+  if (message.kind === "video") {
+    return <video controls src={url} className="max-h-72 max-w-full rounded-xl" />;
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        "flex items-center gap-2 rounded-xl px-3 py-2 border",
+        mine ? "border-white/20 bg-white/10 text-white" : "border-border bg-muted/40 text-primary",
+      )}
+    >
+      <FileText className="size-4 shrink-0" />
+      <span className="truncate">{message.attachment_name || "تحميل المرفق"}</span>
+      <Download className="size-4 shrink-0" />
+    </a>
   );
 }
 
