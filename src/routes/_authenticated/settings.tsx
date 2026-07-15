@@ -27,6 +27,7 @@ import { toast } from "sonner";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { motion, AnimatePresence } from "framer-motion";
 import { BiometricAuth } from "@/lib/native-bridge";
+import { setupPushNotifications } from "@/lib/pushNotifications";
 
 const FONTS = [
   { id: "Tajawal", name: "تجوال (عصري)", family: "'Tajawal', sans-serif", desc: "خط ناعم وأنيق" },
@@ -339,10 +340,14 @@ function SettingsPage() {
   const currentFontObj = FONTS.find((f) => f.id === font) || FONTS[0];
 
   const handleRegisterPush = async () => {
-    const tId = toast.loading("جاري محاولة الاتصال بخوادم جوجل...");
+    const tId = toast.loading("جاري محاولة ربط الجهاز...");
     try {
       if (Capacitor.isNativePlatform()) {
+        // استخدام الإعدادات الأصلية للجوال فقط كما طلب المستخدم
         await setupPushNotifications();
+
+        // ننتظر قليلاً لضمان تنفيذ مستمع التسجيل وحفظ الـ Token في قاعدة البيانات
+        await new Promise((resolve) => setTimeout(resolve, 4000));
       } else {
         // Handle Web Push Registration
         const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
@@ -373,22 +378,25 @@ function SettingsPage() {
         }
       }
 
-      setTimeout(async () => {
-        const { data: auth } = await supabase.auth.getUser();
+      // فحص جدول push_tokens للمستخدم الحالي لعرض نتيجة الربط
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
         const { data: tokens } = await supabase
           .from("push_tokens")
-          .select("token")
-          .eq("user_id", auth.user?.id)
+          .select("id")
+          .eq("user_id", auth.user.id)
           .eq("is_active", true)
           .limit(1);
 
         toast.dismiss(tId);
         if (tokens && tokens.length > 0) {
-          toast.success("مبروك! جهازك مربوط بنجاح بنظام الإشعارات ✨");
+          toast.success("مبروك! تم ربط جهازك بنجاح بنظام الإشعارات ✨");
         } else {
           toast.error("لم يتم تسجيل الجهاز بعد. تأكد من منح الأذونات اللازمة.");
         }
-      }, 3000);
+      } else {
+        toast.dismiss(tId);
+      }
     } catch (e: any) {
       toast.dismiss(tId);
       toast.error("فشل الربط: " + (e.message || "خطأ غير معروف"));
@@ -889,8 +897,6 @@ function SettingRow({ icon, title, desc }: any) {
     </div>
   );
 }
-
-import { setupPushNotifications } from "@/lib/pushNotifications";
 
 const NOTIF_OPTIONS: {
   key: "meetings" | "entertainment" | "tasks" | "chat" | "news";
