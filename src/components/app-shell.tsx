@@ -673,17 +673,17 @@ export function AppShell({
                 />
 
                 {/* PULSING CENTRAL LOGO */}
-                <div className="relative">
+                <div className="relative flex items-center justify-center">
                   <motion.div
                     animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
                     transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                    className="absolute inset-0 rounded-full bg-gold-primary blur-md"
+                    className="absolute inset-0 rounded-full bg-gold-primary/50 blur-md"
                   />
                   <button
                     onClick={() => setShowQuickActions(true)}
-                    className="size-14 rounded-full bg-white dark:bg-gold-primary shadow-2xl flex items-center justify-center -mt-6 border-[5px] border-emerald-950/60 dark:border-black/60 p-2 relative z-10 active:scale-90 transition-transform"
+                    className="size-12 rounded-full bg-white dark:bg-gold-primary shadow-lg flex items-center justify-center border-2 border-emerald-950/20 dark:border-black/20 p-2 relative z-10 active:scale-90 transition-transform"
                   >
-                    <LayoutGrid className="text-emerald-950 dark:text-black size-7" strokeWidth={2.5} />
+                    <LayoutGrid className="text-emerald-950 dark:text-black size-6" strokeWidth={2.5} />
                   </button>
                 </div>
 
