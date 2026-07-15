@@ -482,8 +482,8 @@ export function AppShell({
             className={cn(
               "flex items-center justify-between transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)] relative overflow-hidden",
               headerCompact
-                ? "h-11 bg-black/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
-                : "h-14 bg-emerald-950/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
+                ? "h-11 bg-[var(--nav-bg)]/80 w-40 rounded-full px-6 border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.6)]"
+                : "h-14 bg-[var(--nav-bg)]/95 w-full rounded-full px-4 border border-white/10 shadow-2xl",
               "backdrop-blur-3xl border md:h-20 md:bg-background/80 md:rounded-none md:px-8 lg:px-12 md:w-full md:max-w-none md:border-none flex-row",
             )}
             dir="rtl"
@@ -551,9 +551,9 @@ export function AppShell({
                         <LiveClock variant="date" />
                       </div>
                       <div className="h-2 w-px bg-white/20 md:hidden" />
-                      <div className="flex md:hidden items-center gap-1.5 bg-emerald-500/20 px-1.5 py-0.5 rounded-full border border-emerald-500/30 shadow-sm">
-                        <div className="size-1 rounded-full bg-emerald-400 animate-pulse" />
-                        <span className="text-[7px] font-black text-emerald-400 uppercase tracking-tighter">
+                      <div className="flex md:hidden items-center gap-1.5 bg-primary/20 px-1.5 py-0.5 rounded-full border border-primary/30 shadow-sm">
+                        <div className="size-1 rounded-full bg-primary animate-pulse" />
+                        <span className="text-[7px] font-black text-primary uppercase tracking-tighter">
                           {onlineCount} متصل الآن
                         </span>
                       </div>
@@ -567,7 +567,7 @@ export function AppShell({
                           initial={{ scale: 0, x: 10 }}
                           animate={{ scale: 1, x: 0 }}
                           transition={{ delay: i * 0.1 }}
-                          className="size-5 rounded-full border border-white/20 overflow-hidden bg-emerald-950"
+                          className="size-5 rounded-full border border-white/20 overflow-hidden bg-[var(--nav-bg)]"
                         >
                           <UserAvatar
                             path={p.avatar_url}
@@ -577,7 +577,7 @@ export function AppShell({
                         </motion.div>
                       ))}
                       {onlineCount > 5 && (
-                        <div className="size-5 rounded-full bg-emerald-900 border border-white/20 flex items-center justify-center text-[7px] font-black text-white">
+                        <div className="size-5 rounded-full bg-primary border border-white/20 flex items-center justify-center text-[7px] font-black text-white">
                           +{onlineCount - 5}
                         </div>
                       )}
@@ -611,7 +611,7 @@ export function AppShell({
               <div className="flex items-center gap-3 pr-2 md:pr-4 h-10">
                 {/* Desktop Medallion Logo - Hidden on Mobile */}
                 <div className="hidden md:flex size-10 rounded-full p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-lg transition-transform duration-500 hover:scale-110">
-                  <div className="size-full rounded-full bg-[#fdfcf7] p-1.5 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
+                  <div className="size-full rounded-full bg-[#fdfcf7] p-1.5 flex items-center justify-center shadow-inner overflow-hidden border border-[var(--nav-bg)]/5">
                     {dynamicLogo ? (
                       <div
                         className="size-full bg-contain bg-no-repeat bg-center"
@@ -655,7 +655,7 @@ export function AppShell({
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
               className="md:hidden fixed bottom-8 inset-x-6 z-[100] flex justify-center"
             >
-              <nav className="h-16 w-full max-w-sm bg-emerald-950/95 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
+              <nav className="h-16 w-full max-w-sm bg-[var(--nav-bg)]/95 border border-white/10 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.4)] flex items-center justify-around px-4 backdrop-blur-2xl relative overflow-hidden transition-all duration-500">
                 {/* Subtle Sheen Effect */}
                 <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
 
@@ -681,9 +681,9 @@ export function AppShell({
                   />
                   <button
                     onClick={() => setShowQuickActions(true)}
-                    className="size-12 rounded-full bg-white dark:bg-gold-primary shadow-lg flex items-center justify-center border-2 border-emerald-950/20 dark:border-black/20 p-2 relative z-10 active:scale-90 transition-transform"
+                    className="size-12 rounded-full bg-white dark:bg-gold-primary shadow-lg flex items-center justify-center border-2 border-[var(--nav-bg)]/20 dark:border-black/20 p-2 relative z-10 active:scale-90 transition-transform"
                   >
-                    <LayoutGrid className="text-emerald-950 dark:text-black size-6" strokeWidth={2.5} />
+                    <LayoutGrid className="text-primary dark:text-black size-6" strokeWidth={2.5} />
                   </button>
                 </div>
 
@@ -748,7 +748,7 @@ export function AppShell({
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                 className={cn(
-                  "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
+                  "bg-[var(--nav-bg)]/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.5)]",
                   "touch-none relative overflow-hidden will-change-transform",
                 )}
                 onClick={(e) => e.stopPropagation()}
@@ -762,7 +762,7 @@ export function AppShell({
                   }}
                 />
 
-                <div className="relative z-10 w-12 h-1.5 bg-emerald-950/20 rounded-full mx-auto mb-2 opacity-50" />
+                <div className="relative z-10 w-12 h-1.5 bg-[var(--nav-bg)]/20 rounded-full mx-auto mb-2 opacity-50" />
 
                 {/* User Profile Section */}
                 <div className="relative z-10 flex items-center gap-5 p-2">
@@ -806,7 +806,7 @@ export function AppShell({
                         className={cn(
                           "flex flex-row-reverse items-center justify-between p-4.5 rounded-[22px] font-black transition-all active:scale-[0.98]",
                           path === to
-                            ? "bg-gold-primary text-emerald-950 shadow-lg"
+                            ? "bg-gold-primary text-primary shadow-lg"
                             : "bg-white/5 text-white/80 hover:bg-white/10 border border-white/5",
                         )}
                       >
@@ -865,7 +865,7 @@ export function AppShell({
                 exit={{ y: "100%" }}
                 transition={{ type: "spring", damping: 30, stiffness: 300, mass: 0.8 }}
                 className={cn(
-                  "bg-emerald-950/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
+                  "bg-[var(--nav-bg)]/30 backdrop-blur-2xl rounded-t-[40px] border-t border-white/10 p-8 pb-12 space-y-8 shadow-[0_-20px_80px_rgba(0,0,0,0.6)]",
                   "touch-none relative overflow-hidden will-change-transform",
                 )}
                 onClick={(e) => e.stopPropagation()}

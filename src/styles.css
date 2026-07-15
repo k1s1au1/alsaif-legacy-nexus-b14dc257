@@ -31,6 +31,7 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-nav-bg: var(--nav-bg);
 
   --font-arabic: var(--app-font, "IBM Plex Sans Arabic", "Tajawal", sans-serif);
   --font-royal: "Amiri", "Reem Kufi", serif;
