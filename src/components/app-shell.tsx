@@ -158,10 +158,10 @@ function UserDropdown({ safeUser, myAvatarPath, connectionState, signOut, logo }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-2.5 md:gap-4 p-1 pr-3 md:pr-5 rounded-full bg-white/10 md:bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-white/10 md:border-primary/5 group/profile">
+        <button className="flex items-center gap-1.5 md:gap-4 p-1 pr-2 md:pr-5 rounded-full bg-white/10 md:bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-white/10 md:border-primary/5 group/profile max-w-[140px] md:max-w-none">
           <div
             className={cn(
-              "size-8 md:size-10 rounded-full ring-2 transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center",
+              "size-7 md:size-10 rounded-full ring-2 transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center shrink-0",
               connectionState === "online"
                 ? "ring-emerald-400/80 shadow-[0_0_14px_rgba(52,211,153,0.35)]"
                 : connectionState === "idle"
@@ -178,10 +178,10 @@ function UserDropdown({ safeUser, myAvatarPath, connectionState, signOut, logo }
               />
             </div>
           </div>
-          <span className="text-[13px] md:text-[15px] font-black text-white md:text-primary tracking-tight drop-shadow-sm mx-1">
+          <span className="text-[10px] md:text-[15px] font-black text-white md:text-primary tracking-tight drop-shadow-sm truncate">
             {safeUser.name.split(" ")[0]}
           </span>
-          <ChevronDown className="size-4 text-white/70 md:text-primary/30 group-hover/profile:text-white md:group-hover/profile:text-primary transition-colors" />
+          <ChevronDown className="size-3 md:size-4 text-white/70 md:text-primary/30 group-hover/profile:text-white md:group-hover/profile:text-primary transition-colors shrink-0" />
         </button>
       </DropdownMenuTrigger>
 
