@@ -205,8 +205,10 @@ function ConversationRoute() {
     };
   }, [conversationId]);
 
+  // 1. Initialize Presence Channel ONCE per conversation
+  const channelRef = useRef<any>(null);
   useEffect(() => {
-    if (!meId || !conv) return;
+    if (!meId || !conversationId) return;
 
     const channel = supabase.channel(`chat-presence-${conversationId}`, {
       config: { presence: { key: meId } },
@@ -223,34 +225,42 @@ function ConversationRoute() {
         });
         setTypingUsers(typing);
       })
-      .subscribe(async (status) => {
-        if (status === "SUBSCRIBED") {
-          await channel.track({ isTyping: draft.length > 0, last_seen: new Date().toISOString() });
-        }
-      });
+      .subscribe();
 
-    // Track typing status whenever draft changes
-    let timeout: ReturnType<typeof setTimeout>;
-    const trackTyping = async () => {
-      if (channel.state === "joined") {
-        const isTyping = draft.length > 0;
-        await channel.track({ isTyping, last_seen: new Date().toISOString() });
+    channelRef.current = channel;
 
-        if (isTyping) {
-          if (timeout) clearTimeout(timeout);
-          timeout = setTimeout(async () => {
-            await channel.track({ isTyping: false, last_seen: new Date().toISOString() });
-          }, 3000);
-        }
+    return () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
       }
     };
-    trackTyping();
+  }, [conversationId, meId]);
+
+  // 2. Track typing status based on draft changes
+  useEffect(() => {
+    const channel = channelRef.current;
+    if (!channel || !meId) return;
+
+    const isTyping = draft.trim().length > 0;
+
+    const updateTyping = async (typing: boolean) => {
+      if (channel.state === "joined") {
+        await channel.track({ isTyping: typing, last_seen: new Date().toISOString() });
+      }
+    };
+
+    updateTyping(isTyping);
+
+    let timeout: ReturnType<typeof setTimeout>;
+    if (isTyping) {
+      timeout = setTimeout(() => updateTyping(false), 3000);
+    }
 
     return () => {
       if (timeout) clearTimeout(timeout);
-      supabase.removeChannel(channel);
     };
-  }, [conversationId, meId, conv, draft]);
+  }, [draft, meId]);
 
   useEffect(() => {
     if (!meId || !messages.length) return;
