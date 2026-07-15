@@ -225,44 +225,55 @@ function ConversationRoute() {
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
-          await channel.track({ isTyping: false, last_seen: new Date().toISOString() });
+          await channel.track({ isTyping: draft.length > 0, last_seen: new Date().toISOString() });
         }
       });
 
+    // Track typing status whenever draft changes
+    let timeout: ReturnType<typeof setTimeout>;
+    const trackTyping = async () => {
+      if (channel.state === "joined") {
+        const isTyping = draft.length > 0;
+        await channel.track({ isTyping, last_seen: new Date().toISOString() });
+
+        if (isTyping) {
+          if (timeout) clearTimeout(timeout);
+          timeout = setTimeout(async () => {
+            await channel.track({ isTyping: false, last_seen: new Date().toISOString() });
+          }, 3000);
+        }
+      }
+    };
+    trackTyping();
+
     return () => {
+      if (timeout) clearTimeout(timeout);
       supabase.removeChannel(channel);
     };
-  }, [conversationId, meId, conv]);
-
-  useEffect(() => {
-    if (!meId || !draft) return;
-    const channel = supabase.channel(`chat-presence-${conversationId}`);
-
-    channel.track({ isTyping: draft.length > 0, last_seen: new Date().toISOString() });
-
-    const timeout = setTimeout(() => {
-      channel.track({ isTyping: false, last_seen: new Date().toISOString() });
-    }, 3000);
-
-    return () => clearTimeout(timeout);
-  }, [draft, meId, conversationId]);
+  }, [conversationId, meId, conv, draft]);
 
   useEffect(() => {
     if (!meId || !messages.length) return;
 
     const markAsRead = async () => {
       const unreadIds = messages
-        .filter(m => m.sender_id !== meId && !deliveries.some(d => d.message_id === m.id && d.user_id === meId && d.read_at))
-        .map(m => m.id);
+        .filter(
+          (m) =>
+            m.sender_id !== meId &&
+            !deliveries.some((d) => d.message_id === m.id && d.user_id === meId && d.read_at),
+        )
+        .map((m) => m.id);
 
       if (unreadIds.length > 0) {
-        await Promise.all(unreadIds.map(mid =>
-          supabase.from("message_deliveries").upsert({
+        await supabase.from("message_deliveries").upsert(
+          unreadIds.map((mid) => ({
             message_id: mid,
+            conversation_id: conversationId,
             user_id: meId,
-            read_at: new Date().toISOString()
-          }, { onConflict: "message_id,user_id" })
-        ));
+            read_at: new Date().toISOString(),
+          })),
+          { onConflict: "message_id,user_id" },
+        );
       }
     };
 
@@ -297,9 +308,15 @@ function ConversationRoute() {
       )
       .on(
         "postgres_changes",
-        { event: "*", schema: "public", table: "message_deliveries" },
+        {
+          event: "*",
+          schema: "public",
+          table: "message_deliveries",
+          filter: `conversation_id=eq.${conversationId}`,
+        },
         (payload) => {
           const d = payload.new as Delivery;
+          if (!d || !d.id) return;
           setDeliveries((prev) => {
             const exists = prev.some((x) => x.id === d.id);
             if (exists) return prev.map((x) => (x.id === d.id ? d : x));
