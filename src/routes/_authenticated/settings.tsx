@@ -339,16 +339,18 @@ function SettingsPage() {
   const currentThemeObj = THEME_COLORS.find((c) => c.id === themeColor) || THEME_COLORS[0];
   const currentFontObj = FONTS.find((f) => f.id === font) || FONTS[0];
 
-  const handleRegisterPush = async () => {
-    const tId = toast.loading("جاري محاولة ربط الجهاز...");
+  const handleDeviceLinking = async () => {
+    console.log("[Push] Device linking started...");
+    const tId = toast.loading("جاري تحديث اتصال الجوال بالنظام...");
     try {
       if (Capacitor.isNativePlatform()) {
-        // استخدام الإعدادات الأصلية للجوال فقط كما طلب المستخدم
+        console.log("[Push] Native platform detected, calling setup...");
         await setupPushNotifications();
 
         // ننتظر قليلاً لضمان تنفيذ مستمع التسجيل وحفظ الـ Token في قاعدة البيانات
-        await new Promise((resolve) => setTimeout(resolve, 4000));
+        await new Promise((resolve) => setTimeout(resolve, 5000));
       } else {
+        console.log("[Push] Web platform detected, calling Firebase...");
         // Handle Web Push Registration
         const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
         const { initializeApp, getApps } = await import("firebase/app");
@@ -381,25 +383,29 @@ function SettingsPage() {
       // فحص جدول push_tokens للمستخدم الحالي لعرض نتيجة الربط
       const { data: auth } = await supabase.auth.getUser();
       if (auth.user) {
-        const { data: tokens } = await supabase
+        console.log("[Push] Checking tokens for user:", auth.user.id);
+        const { data: tokens, error: tokenError } = await supabase
           .from("push_tokens")
           .select("id")
           .eq("user_id", auth.user.id)
           .eq("is_active", true)
           .limit(1);
 
+        if (tokenError) throw tokenError;
+
         toast.dismiss(tId);
         if (tokens && tokens.length > 0) {
-          toast.success("مبروك! تم ربط جهازك بنجاح بنظام الإشعارات ✨");
+          toast.success("تم ربط جهازك بنجاح! الإشعارات جاهزة الآن ✨");
         } else {
-          toast.error("لم يتم تسجيل الجهاز بعد. تأكد من منح الأذونات اللازمة.");
+          toast.error("لم يتم العثور على جهازك المسجل. يرجى التأكد من السماح بالإشعارات في إعدادات الجهاز.");
         }
       } else {
         toast.dismiss(tId);
       }
     } catch (e: any) {
+      console.error("[Push] Linking failed:", e);
       toast.dismiss(tId);
-      toast.error("فشل الربط: " + (e.message || "خطأ غير معروف"));
+      toast.error("عطل في الربط التقني: " + (e.message || "خطأ غير معروف"));
     }
   };
 
@@ -665,7 +671,7 @@ function SettingsPage() {
             </p>
             <div className="flex flex-col sm:flex-row gap-3">
               <button
-                onClick={handleRegisterPush}
+                onClick={handleDeviceLinking}
                 className="flex-1 btn-gold py-4 rounded-2xl flex items-center justify-center gap-3 font-black text-sm shadow-xl"
               >
                 {isNative ? <Smartphone className="size-5" /> : <Bell className="size-5" />}
