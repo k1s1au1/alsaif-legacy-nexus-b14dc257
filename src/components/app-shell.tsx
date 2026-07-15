@@ -158,7 +158,7 @@ function UserDropdown({ safeUser, myAvatarPath, connectionState, signOut, logo }
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <button className="flex items-center gap-1.5 md:gap-4 p-1 pr-2 md:pr-5 rounded-full bg-white/10 md:bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-white/10 md:border-primary/5 group/profile max-w-[140px] md:max-w-none">
+        <button className="flex items-center gap-1.5 md:gap-4 p-1 pr-2 md:pr-5 rounded-full bg-white/10 md:bg-primary/5 hover:bg-primary/10 transition-all outline-none border border-white/10 md:border-primary/5 group/profile max-w-[130px] md:max-w-none">
           <div
             className={cn(
               "size-7 md:size-10 rounded-full ring-2 transition-all bg-background p-0.5 relative overflow-hidden flex items-center justify-center shrink-0",
