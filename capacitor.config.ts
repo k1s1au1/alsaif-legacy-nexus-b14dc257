@@ -4,7 +4,10 @@ const config: CapacitorConfig = {
   appId: "com.alsaif.familyhub",
   appName: "المجلس",
   webDir: "www",
-  // Unlinked from external URL - will use internal bundled code
+  server: {
+    url: "https://alsaif-legacy-nexus.lovable.app",
+    cleartext: true,
+  },
 };
 
 export default config;
