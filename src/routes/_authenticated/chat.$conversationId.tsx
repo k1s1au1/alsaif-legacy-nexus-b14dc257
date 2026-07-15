@@ -206,6 +206,70 @@ function ConversationRoute() {
   }, [conversationId]);
 
   useEffect(() => {
+    if (!meId || !conv) return;
+
+    const channel = supabase.channel(`chat-presence-${conversationId}`, {
+      config: { presence: { key: meId } },
+    });
+
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        const typing: string[] = [];
+        Object.entries(state).forEach(([userId, presences]: [string, any]) => {
+          if (userId !== meId && presences.some((p: any) => p.isTyping)) {
+            typing.push(userId);
+          }
+        });
+        setTypingUsers(typing);
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ isTyping: false, last_seen: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [conversationId, meId, conv]);
+
+  useEffect(() => {
+    if (!meId || !draft) return;
+    const channel = supabase.channel(`chat-presence-${conversationId}`);
+
+    channel.track({ isTyping: draft.length > 0, last_seen: new Date().toISOString() });
+
+    const timeout = setTimeout(() => {
+      channel.track({ isTyping: false, last_seen: new Date().toISOString() });
+    }, 3000);
+
+    return () => clearTimeout(timeout);
+  }, [draft, meId, conversationId]);
+
+  useEffect(() => {
+    if (!meId || !messages.length) return;
+
+    const markAsRead = async () => {
+      const unreadIds = messages
+        .filter(m => m.sender_id !== meId && !deliveries.some(d => d.message_id === m.id && d.user_id === meId && d.read_at))
+        .map(m => m.id);
+
+      if (unreadIds.length > 0) {
+        await Promise.all(unreadIds.map(mid =>
+          supabase.from("message_deliveries").upsert({
+            message_id: mid,
+            user_id: meId,
+            read_at: new Date().toISOString()
+          }, { onConflict: "message_id,user_id" })
+        ));
+      }
+    };
+
+    markAsRead();
+  }, [messages, meId, deliveries]);
+
+  useEffect(() => {
     if (!meId) return;
     const ch = supabase
       .channel(`conv-${conversationId}`)
@@ -229,6 +293,18 @@ function ConversationRoute() {
           if (payload.eventType === "DELETE")
             setReactions((prev) => prev.filter((r) => r.id !== (payload.old as Reaction).id));
           else setReactions((prev) => [...prev, payload.new as Reaction]);
+        },
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "message_deliveries" },
+        (payload) => {
+          const d = payload.new as Delivery;
+          setDeliveries((prev) => {
+            const exists = prev.some((x) => x.id === d.id);
+            if (exists) return prev.map((x) => (x.id === d.id ? d : x));
+            return [...prev, d];
+          });
         },
       )
       .subscribe();
@@ -549,6 +625,25 @@ function ConversationRoute() {
             closeReactingTo: () => setReactingTo(null),
           })}
         </AnimatePresence>
+
+        {typingUsers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-2 px-4 py-2 bg-muted/30 rounded-full w-fit border border-border/50"
+          >
+            <div className="flex gap-1">
+              <span className="size-1 bg-primary rounded-full animate-bounce [animation-delay:-0.3s]" />
+              <span className="size-1 bg-primary rounded-full animate-bounce [animation-delay:-0.15s]" />
+              <span className="size-1 bg-primary rounded-full animate-bounce" />
+            </div>
+            <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest">
+              {typingUsers.length === 1
+                ? `${displayName(profiles[typingUsers[0]])} يكتب...`
+                : "عدة أشخاص يكتبون..."}
+            </p>
+          </motion.div>
+        )}
       </div>
 
       {/* INPUT AREA */}
@@ -771,6 +866,7 @@ function renderGroupedMessages(opts: any) {
         profiles={profiles}
         replyTo={m.reply_to_id ? byId[m.reply_to_id] : undefined}
         reactions={reactions.filter((r: any) => r.message_id === m.id)}
+        deliveries={deliveries.filter((d: any) => d.message_id === m.id)}
         onReply={() => onReply(m)}
         onReact={() => onReact(m.id)}
         onDelete={() => onDelete(m)}
@@ -790,6 +886,7 @@ function MessageBubble({
   profiles,
   replyTo,
   reactions,
+  deliveries,
   onReply,
   onReact,
   onDelete,
@@ -804,6 +901,11 @@ function MessageBubble({
   const canDelete = mine || isAdmin;
   const [showActions, setShowActions] = useState(false);
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
+
+  const isRead = useMemo(() => {
+    if (!mine) return true;
+    return deliveries.some((d: any) => d.user_id !== meId && d.read_at);
+  }, [deliveries, mine, meId]);
 
   useEffect(() => {
     if (m.attachment_url && !m.deleted_at) {
@@ -925,7 +1027,9 @@ function MessageBubble({
             )}
           >
             <span className="tabular-nums">{timeLabel(m.created_at)}</span>
-            {mine && !m.deleted_at && <CheckCheck className="size-2.5" />}
+            {mine && !m.deleted_at && (
+              <CheckCheck className={cn("size-2.5 transition-colors", isRead ? "text-blue-400" : "text-white/40")} />
+            )}
           </div>
         </div>
 
