@@ -340,35 +340,26 @@ function SettingsPage() {
   const currentFontObj = FONTS.find((f) => f.id === font) || FONTS[0];
 
   const handleDeviceLinking = async () => {
-    console.log("[Push] Device linking started...");
-    const tId = toast.loading("جاري تحديث اتصال الجوال بالنظام...");
+    console.log("[Push] Linking button clicked v2");
+    const tId = toast.loading("جاري ربط جهازك بالنظام...");
     try {
       if (Capacitor.isNativePlatform()) {
-        console.log("[Push] Native platform detected, calling setup...");
         await setupPushNotifications();
-
-        // ننتظر قليلاً لضمان تنفيذ مستمع التسجيل وحفظ الـ Token في قاعدة البيانات
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // ننتظر 6 ثواني لنعطي فرصة للتسجيل
+        await new Promise((r) => setTimeout(r, 6000));
       } else {
-        console.log("[Push] Web platform detected, calling Firebase...");
-        // Handle Web Push Registration
         const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
         const { initializeApp, getApps } = await import("firebase/app");
         const { FIREBASE_CONFIG, FCM_VAPID_KEY } = await import("@/lib/fcm-config");
 
-        if (!(await isSupported())) {
-          throw new Error("المتصفح لا يدعم الإشعارات");
-        }
-
+        if (!(await isSupported())) throw new Error("المتصفح لا يدعم الإشعارات");
         const permission = await Notification.requestPermission();
-        if (permission !== "granted") {
-          throw new Error("لم يتم منح إذن الإشعارات");
-        }
+        if (permission !== "granted") throw new Error("لم يتم منح إذن الإشعارات");
 
         const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
         const messaging = getMessaging(app);
-
         const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY });
+
         if (token) {
           const { data: auth } = await supabase.auth.getUser();
           if (auth.user) {
@@ -380,32 +371,26 @@ function SettingsPage() {
         }
       }
 
-      // فحص جدول push_tokens للمستخدم الحالي لعرض نتيجة الربط
       const { data: auth } = await supabase.auth.getUser();
       if (auth.user) {
-        console.log("[Push] Checking tokens for user:", auth.user.id);
-        const { data: tokens, error: tokenError } = await supabase
+        const { data: tokens } = await supabase
           .from("push_tokens")
           .select("id")
           .eq("user_id", auth.user.id)
-          .eq("is_active", true)
-          .limit(1);
-
-        if (tokenError) throw tokenError;
+          .eq("is_active", true);
 
         toast.dismiss(tId);
         if (tokens && tokens.length > 0) {
-          toast.success("تم ربط جهازك بنجاح! الإشعارات جاهزة الآن ✨");
+          toast.success("تم الربط بنجاح! ستصلك التنبيهات الآن ✨");
         } else {
-          toast.error("لم يتم العثور على جهازك المسجل. يرجى التأكد من السماح بالإشعارات في إعدادات الجهاز.");
+          toast.error("فشل تسجيل الجهاز. يرجى التأكد من السماح بالإشعارات.");
         }
       } else {
         toast.dismiss(tId);
       }
     } catch (e: any) {
-      console.error("[Push] Linking failed:", e);
       toast.dismiss(tId);
-      toast.error("عطل في الربط التقني: " + (e.message || "خطأ غير معروف"));
+      toast.error("حدث خطأ أثناء الربط: " + (e.message || "خطأ غير معروف"));
     }
   };
 
