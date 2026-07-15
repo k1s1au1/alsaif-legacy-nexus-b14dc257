@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 import { Toaster } from "sonner";
+import { THEME_COLORS, applyThemeColors } from "@/lib/themes";
 
 function NotFoundComponent() {
   return (
@@ -139,6 +140,10 @@ function RootComponent() {
       } else {
         document.documentElement.classList.remove("font-royal-mode");
       }
+
+      const savedColorId = localStorage.getItem("app-theme-color-id") || "emerald";
+      const colorObj = THEME_COLORS.find((c) => c.id === savedColorId) || THEME_COLORS[0];
+      applyThemeColors(colorObj);
     }
 
     const { data: sub } = supabase.auth.onAuthStateChange(async (event, session) => {
