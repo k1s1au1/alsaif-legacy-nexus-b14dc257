@@ -718,7 +718,7 @@ function Dashboard() {
                     {profile.name}
                   </h2>
 
-                  <div className="flex items-center justify-center md:justify-start gap-4">
+                  <div className="flex items-center justify-center md:justify-start gap-4 mt-6 md:mt-8">
                     <div className="hidden md:block w-1 h-10 bg-gradient-to-b from-gold-primary/70 via-gold-primary/30 to-transparent rounded-full" />
                     <div className="h-8 overflow-hidden relative w-full md:w-auto">
                       <AnimatePresence mode="wait">
