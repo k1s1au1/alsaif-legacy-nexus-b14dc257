@@ -328,7 +328,7 @@ function ProfilePage() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <Field
-                  label="الاسم بالعربية (الأخبار)"
+                  label="الاسم بالعربية (المجلس)"
                   icon={<Quote className="size-4" />}
                   value={arabicName}
                   onChange={setArabicName}
@@ -439,7 +439,7 @@ function ProfilePage() {
               </div>
               <h4 className="text-lg font-black tracking-tight relative z-10">إرث السيف الرقمي</h4>
               <p className="text-sm font-bold opacity-80 leading-relaxed relative z-10">
-                هذا الحساب موثق لدى مركز الأخبار. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا
+                هذا الحساب موثق لدى مركز مجلس السيف الرقمي. بياناتك الشخصية محمية بخصوصية تامة ولا تظهر إلا
                 لأعضاء المجلس المعتمدين.
               </p>
               <div className="pt-4 relative z-10">

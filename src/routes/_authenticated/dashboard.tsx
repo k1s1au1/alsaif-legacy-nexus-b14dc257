@@ -419,7 +419,7 @@ function Dashboard() {
           ? "مسؤول تقني"
           : rs.includes("chairman")
             ? "رئيس المجلس"
-            : "عضو الأخبار",
+            : "عضو المجلس",
         initial: (name[0] || "ع").toUpperCase(),
         avatarPath: p?.avatar_url ?? null,
         userId: u.id,
@@ -562,7 +562,7 @@ function Dashboard() {
   const statusMessages = useMemo(() => {
     const msgs = ["نصل العائلة، نحفظ الإرث، ونبني المستقبل."];
     if (counts.myTasks > 0) msgs.push(`لديك ${counts.myTasks} مسؤوليات بانتظار إنجازك.`);
-    if (counts.newNews > 0) msgs.push(`هناك ${counts.newNews} أخبار جديدة في مركز الأخبار.`);
+    if (counts.newNews > 0) msgs.push(`هناك ${counts.newNews} أخبار جديدة في مركز المجلس.`);
     msgs.push("المجلس يرحب بكم دائماً يا أهل الوفاء.");
     msgs.push("كل خطوة تخطونها تبني مجداً لعائلة السيف.");
     return msgs;
