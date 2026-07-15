@@ -674,7 +674,7 @@ function Dashboard() {
 
         {/* 2. RESPONSIVE HERO CARD */}
         <section className="animate-fade-up px-2 md:px-0">
-          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[var(--nav-bg)] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
+          <div className="relative overflow-hidden rounded-[40px] md:rounded-[48px] bg-[#051410] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.7)] border border-white/5 group">
             {/* Background Texture */}
             <div
               className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay"
@@ -690,7 +690,7 @@ function Dashboard() {
                 <div className="relative group/avatar">
                   <div className="absolute inset-0 rounded-full bg-gold-primary/20 blur-2xl animate-pulse" />
                   <div className="relative size-32 md:size-48 rounded-full p-1.5 bg-gradient-to-br from-gold-primary via-transparent to-gold-primary shadow-2xl transition-transform duration-700 group-hover/avatar:scale-[1.03]">
-                    <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-[var(--nav-bg)]/5">
+                    <div className="size-full rounded-full bg-[#fdfcf7] p-4 flex items-center justify-center shadow-inner overflow-hidden border-[3px] border-emerald-950/5">
                       {dynamicLogo ? (
                         <div
                           className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/avatar:rotate-[360deg]"
