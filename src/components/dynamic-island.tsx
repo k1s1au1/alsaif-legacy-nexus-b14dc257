@@ -66,9 +66,9 @@ export function DynamicIsland() {
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             onClick={state.onClick}
             className={cn(
-              "pointer-events-auto h-12 min-w-[120px] max-w-[90vw] bg-black text-white rounded-full flex items-center px-4 gap-3 shadow-2xl border border-white/10 backdrop-blur-xl",
+              "pointer-events-auto h-9 md:h-12 min-w-[100px] max-w-[85vw] bg-black/90 text-white rounded-full flex items-center px-4 gap-2.5 shadow-2xl border border-white/10 backdrop-blur-xl",
               "ring-1 ring-gold-primary/20",
-              state.onClick && "cursor-pointer",
+              state.onClick && "cursor-pointer active:scale-95 transition-transform",
             )}
           >
             <div className="shrink-0">

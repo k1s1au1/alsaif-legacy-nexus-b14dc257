@@ -462,10 +462,8 @@ function Dashboard() {
           showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () =>
             window.dispatchEvent(new CustomEvent("polls:open")),
           );
-        else showIsland(`طاب يومك يا ${name.split(" ")[0]}`, "info", 3000);
         hasGreeted.current = true;
       } else if (!hasGreeted.current) {
-        showIsland(`طاب يومك يا ${name.split(" ")[0]}`, "info", 3000);
         hasGreeted.current = true;
       }
 
