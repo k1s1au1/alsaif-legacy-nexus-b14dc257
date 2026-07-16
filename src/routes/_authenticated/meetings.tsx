@@ -41,6 +41,8 @@ import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { MeetingPresentations } from "@/components/meeting-presentations";
 import { addToCalendar } from "@/lib/calendar";
 import { FamilySharing } from "@/lib/native-bridge";
+import { OfflineCache } from "@/lib/offline-cache";
+import { FileText, Download } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/meetings")({
   ssr: false,
@@ -64,6 +66,7 @@ type Meeting = {
   duration_minutes: number | null;
   status: "scheduled" | "cancelled" | "completed";
   created_by: string;
+  minutes: string | null;
 };
 type Attendee = { meeting_id: string; user_id: string; rsvp: Rsvp; companions_count?: number };
 type ProfileLite = {
@@ -114,6 +117,7 @@ function MeetingsPage() {
   const [savingRsvp, setSavingRsvp] = useState<string | null>(null);
 
   const [showForm, setShowForm] = useState(false);
+  const [showMinutes, setShowMinutes] = useState<Meeting | null>(null);
   const [editing, setEditing] = useState<Meeting | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -124,6 +128,7 @@ function MeetingsPage() {
   const [fLocationUrl, setFLocationUrl] = useState("");
   const [fWhen, setFWhen] = useState("");
   const [fDuration, setFDuration] = useState("");
+  const [fMinutes, setFMinutes] = useState("");
 
   const canManage = canManageSection("meetings");
   const carouselPlugin = useRef(Autoplay({ delay: 5000, stopOnInteraction: true }));
@@ -136,10 +141,14 @@ function MeetingsPage() {
     setFLocationUrl("");
     setFWhen("");
     setFDuration("");
+    setFMinutes("");
     setEditing(null);
   }, []);
 
   const loadAll = useCallback(async () => {
+    const cached = OfflineCache.load("meetings");
+    if (cached) setMeetings(cached);
+
     setLoading(true);
     try {
       const [{ data: m }, { data: a }, { data: pr }] = await Promise.all([
@@ -149,6 +158,7 @@ function MeetingsPage() {
       ]);
 
       setMeetings((m ?? []) as Meeting[]);
+      OfflineCache.save("meetings", m);
       setAttendees((a ?? []) as Attendee[]);
       const map: Record<string, ProfileLite> = {};
       (pr ?? []).forEach((p: any) => {
@@ -223,6 +233,7 @@ function MeetingsPage() {
       `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`,
     );
     setFDuration(m.duration_minutes ? String(m.duration_minutes) : "");
+    setFMinutes(m.minutes ?? "");
     setShowForm(true);
   };
 
@@ -241,6 +252,7 @@ function MeetingsPage() {
       location_url: fLocationUrl.trim() || null,
       scheduled_at: new Date(fWhen).toISOString(),
       duration_minutes: fDuration ? Number(fDuration) : null,
+      minutes: fMinutes.trim() || null,
     };
     try {
       if (editing) {
@@ -538,12 +550,75 @@ function MeetingsPage() {
                       </div>
                       <ChevronLeft className="opacity-20 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
                     </div>
-                  ))}
+
+                    {m.minutes && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMinutes(m);
+                        }}
+                        className="mt-4 w-full py-3 rounded-xl bg-primary/5 text-primary font-black text-xs border border-primary/10 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2"
+                      >
+                        <FileText size={14} /> عرض محضر الاجتماع
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))}
           </div>
         )}
       </div>
+
+      <AnimatePresence>
+        {showMinutes && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="bg-card border border-border rounded-[40px] w-full max-w-3xl max-h-[85vh] overflow-hidden shadow-2xl flex flex-col"
+              dir="rtl"
+            >
+              <div className="p-8 border-b border-border flex items-center justify-between bg-muted/20">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-primary">{showMinutes.title}</h3>
+                  <p className="text-xs font-bold text-muted-foreground">
+                    محضر اجتماع {formatDate(showMinutes.scheduled_at).day}{" "}
+                    {formatDate(showMinutes.scheduled_at).month}{" "}
+                    {formatDate(showMinutes.scheduled_at).year}
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => window.print()}
+                    className="size-11 rounded-full bg-primary text-white flex items-center justify-center shadow-lg hover:scale-105 transition-all"
+                  >
+                    <Download size={20} />
+                  </button>
+                  <button
+                    onClick={() => setShowMinutes(null)}
+                    className="size-11 rounded-full bg-muted flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                  >
+                    <X size={20} />
+                  </button>
+                </div>
+              </div>
+              <div className="p-8 md:p-12 overflow-y-auto custom-scrollbar flex-1 prose dark:prose-invert max-w-none">
+                <div className="bg-primary/5 p-8 rounded-[32px] border border-primary/10 shadow-inner min-h-[300px]">
+                  <p className="text-lg font-bold text-foreground leading-relaxed whitespace-pre-wrap">
+                    {showMinutes.minutes}
+                  </p>
+                </div>
+              </div>
+              <div className="p-6 bg-muted/10 border-t border-border text-center">
+                <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  أرشيف مجلس السيف الرقمي — {new Date().getFullYear()}م
+                </p>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       <AnimatePresence>
         {showForm && (
@@ -640,6 +715,21 @@ function MeetingsPage() {
                       className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                     />
                   </div>
+
+                  {editing && (
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
+                        محضر الاجتماع (القرارات والنتائج)
+                      </label>
+                      <textarea
+                        value={fMinutes}
+                        onChange={(e) => setFMinutes(e.target.value)}
+                        rows={6}
+                        placeholder="اكتب هنا ما تم الاتفاق عليه والقرارات التي اتخذت..."
+                        className="w-full bg-muted/30 border border-border rounded-[24px] px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none custom-scrollbar"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex gap-4 pt-4">

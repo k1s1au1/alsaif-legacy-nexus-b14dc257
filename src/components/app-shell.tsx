@@ -32,6 +32,7 @@ import {
   LayoutGrid,
   Radio,
   AlertOctagon,
+  Footprints,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -964,6 +965,13 @@ export function AppShell({
                     label="الصندوق"
                     icon={<Wallet size={28} />}
                     color="bg-[#BF953F]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/steps-challenge"
+                    label="تحدي الخطوات"
+                    icon={<Footprints size={28} />}
+                    color="bg-[#10b981]"
                     onClick={() => setShowQuickActions(false)}
                   />
                   <QuickActionItem

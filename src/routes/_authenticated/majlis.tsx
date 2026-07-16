@@ -23,6 +23,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { sendPushNotification } from "@/lib/api/push.functions";
 import { useUserRole } from "@/hooks/use-user-role";
+import { Search } from "lucide-react";
+import { VoiceSearch } from "@/components/voice-search";
+import { OfflineCache } from "@/lib/offline-cache";
 
 export const Route = createFileRoute("/_authenticated/majlis")({
   ssr: false,
@@ -65,9 +68,16 @@ function MajlisPage() {
   const [posts, setPosts] = useState<MajlisPost[]>([]);
   const [comments, setComments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const [debouncedQ, setDebouncedQ] = useState("");
   const [showAdd, setShowAdd] = useState(false);
   const [editingPost, setEditingPost] = useState<MajlisPost | null>(null);
   const dynamicLogo = useSiteLogo();
+
+  useEffect(() => {
+    const cached = OfflineCache.load("majlis_posts");
+    if (cached) setPosts(cached);
+  }, []);
 
   const loadData = useCallback(async () => {
     if (!meId) return;
@@ -171,6 +181,7 @@ function MajlisPage() {
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
         });
         setPosts(withImages as any);
+        OfflineCache.save("majlis_posts", withImages);
       }
 
       const { data: coms } = await supabase
@@ -204,10 +215,24 @@ function MajlisPage() {
         loadData(),
       )
       .subscribe();
+
+    const handler = setTimeout(() => setDebouncedQ(q), 300);
     return () => {
       supabase.removeChannel(channel);
+      clearTimeout(handler);
     };
-  }, [loadData]);
+  }, [loadData, q]);
+
+  const filteredPosts = useMemo(() => {
+    if (!debouncedQ.trim()) return posts;
+    const needle = debouncedQ.trim().toLowerCase();
+    return posts.filter(
+      (p) =>
+        (p.title ?? "").toLowerCase().includes(needle) ||
+        (p.cleanBody ?? "").toLowerCase().includes(needle) ||
+        (p.author?.arabic_name ?? "").toLowerCase().includes(needle),
+    );
+  }, [posts, debouncedQ]);
 
   return (
     <AppShell title="الأخبار" user={profile}>
@@ -245,6 +270,27 @@ function MajlisPage() {
           </div>
         </section>
 
+        {/* Search Bar with Voice Search */}
+        <section className="animate-fade-up px-4 md:px-0" style={{ animationDelay: "150ms" }}>
+          <div className="relative group">
+            <div className="absolute inset-y-0 right-6 flex items-center pointer-events-none">
+              <Search
+                className="size-5 text-muted-foreground group-focus-within:text-primary transition-colors"
+                strokeWidth={2.5}
+              />
+            </div>
+            <input
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="ابحث في الأخبار والمنشورات..."
+              className="w-full h-16 pr-16 pl-20 rounded-[28px] bg-card border border-border shadow-xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-lg"
+            />
+            <div className="absolute inset-y-0 left-4 flex items-center">
+              <VoiceSearch onResult={(text) => setQ(text)} />
+            </div>
+          </div>
+        </section>
+
         {canPostNews && (
           <div className="px-4 md:px-0 flex justify-end">
             <button
@@ -262,7 +308,7 @@ function MajlisPage() {
               <Loader2 className="animate-spin size-12 mx-auto text-primary opacity-20" />
             </div>
           ) : (
-            posts.map((p) => (
+            filteredPosts.map((p) => (
               <PostCard
                 key={p.id}
                 post={p}
@@ -276,9 +322,9 @@ function MajlisPage() {
               />
             ))
           )}
-          {!loading && posts.length === 0 && (
+          {!loading && filteredPosts.length === 0 && (
             <div className="p-20 text-center bg-muted/20 rounded-[48px] border-4 border-dashed italic text-muted-foreground">
-              لا توجد منشورات حالياً.
+              {q ? "لا توجد نتائج مطابقة لبحثك." : "لا توجد منشورات حالياً."}
             </div>
           )}
         </div>

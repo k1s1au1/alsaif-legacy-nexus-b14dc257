@@ -24,6 +24,7 @@ import { deleteMemberAccount } from "@/lib/api/members-admin.functions";
 import { toast } from "sonner";
 import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { FamilyContacts } from "@/lib/native-bridge";
+import { VoiceSearch } from "@/components/voice-search";
 
 export const Route = createFileRoute("/_authenticated/members/")({
   ssr: false,
@@ -223,8 +224,11 @@ function MembersPage() {
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder="ابحث عن فرد من العائلة بالاسم..."
-              className="w-full h-16 pr-16 pl-8 rounded-[28px] bg-card border border-border shadow-xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-lg"
+              className="w-full h-16 pr-16 pl-20 rounded-[28px] bg-card border border-border shadow-xl focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all font-bold text-lg"
             />
+            <div className="absolute inset-y-0 left-4 flex items-center">
+              <VoiceSearch onResult={(text) => setQ(text)} />
+            </div>
           </div>
         </section>
 
