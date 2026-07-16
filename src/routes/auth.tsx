@@ -208,7 +208,7 @@ function AuthPage() {
           {/* Logo Section */}
           <div className="mb-10 lg:mb-12 text-center flex flex-col items-center w-full">
             <div className="size-32 lg:size-52 rounded-[38px] lg:rounded-[60px] p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-2xl mb-6 lg:mb-8 relative overflow-hidden group/logo flex items-center justify-center transition-all duration-700 hover:scale-105">
-              <div className="size-full rounded-[36px] lg:rounded-[58px] bg-[#fdfcf7] p-6 lg:p-12 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
+              <div className="size-full rounded-[36px] lg:rounded-[58px] bg-[#fdfcf7] p-3 lg:p-6 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
                 {dynamicLogo && !dynamicLogo.includes("alsaif-mark") ? (
                   <div
                     className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg] scale-110"
