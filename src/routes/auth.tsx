@@ -173,18 +173,27 @@ function AuthPage() {
       dir="rtl"
     >
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
-      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0">
-        {/* Immersive Mobile Background (Shows the custom image with emerald overlay) */}
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#1a1f16] to-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0 overflow-hidden">
+
+        {/* Background Calligraphy Shadow (Idea #3) */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
+           <span className="text-[300px] lg:text-[500px] font-black text-white/[0.02] rotate-[-15deg] translate-x-[-20%] translate-y-[10%]" style={{ fontFamily: "'Amiri', serif" }}>
+             السيف
+           </span>
+        </div>
+
+        {/* Immersive Mobile Background (Shows the custom image with olive overlay) */}
         <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
           <div
             className="size-full bg-cover bg-left opacity-20 scale-110 blur-[2px]"
             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#064e3b]/40 via-[#0d0f17] to-[#0d0f17]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#1a1f16]/60 via-[#0d0f17] to-[#0d0f17]" />
         </div>
 
-        {/* Palm Watermark Decoration (Subtle on mobile) */}
-        <div className="absolute -left-10 -bottom-10 size-60 lg:size-72 opacity-[0.02] pointer-events-none">
+        {/* Integrated Palm Watermark with Golden Glow */}
+        <div className="absolute -left-20 -bottom-20 size-80 lg:size-96 opacity-[0.04] pointer-events-none">
+          <div className="absolute inset-0 bg-gold-primary/20 blur-[100px] rounded-full" />
           <img
             src={palmWatermark}
             alt=""
@@ -196,7 +205,7 @@ function AuthPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, type: "spring" }}
-          className="w-full max-w-md flex flex-col items-center"
+          className="w-full max-w-md flex flex-col items-center relative z-10"
         >
           {/* Mobile Welcome Tag */}
           <div className="lg:hidden mb-6 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20 backdrop-blur-md">
@@ -231,7 +240,7 @@ function AuthPage() {
             <div className="flex items-center justify-center gap-3 mt-4 opacity-30">
               <div className="h-px w-8 bg-gold-primary" />
               <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">
-                الهوية الرقمية
+                بوابة المجلس الرقمية
               </span>
               <div className="h-px w-8 bg-gold-primary" />
             </div>
@@ -470,7 +479,7 @@ function AuthPage() {
 
           <div className="mt-12 pt-8 border-t border-white/5 flex flex-col items-center gap-2 opacity-20">
             <p className="text-[9px] font-black tracking-[0.5em] text-white uppercase">
-              Alsaif Nexus • 2026
+              Alsaif Family • 2026
             </p>
           </div>
         </motion.div>
