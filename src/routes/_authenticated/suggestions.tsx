@@ -53,20 +53,30 @@ function SuggestionsPage() {
     if (!content.trim()) return;
 
     setSubmitting(true);
-    const { error } = await supabase
-      .from("anonymous_suggestions")
-      .insert([{ content: content.trim() }]);
+    try {
+      const { error } = await supabase
+        .from("anonymous_suggestions")
+        .insert({ content: content.trim() });
 
-    if (error) {
-      console.error("Suggestion error:", error);
-      toast.error("فشل إرسال المقترح", {
-        description: error.message || "تأكد من تحديث الصفحة والمحاولة مرة أخرى"
-      });
-    } else {
+      if (error) {
+        console.error("Suggestion error:", error);
+        // محاولة بديلة بتنسيق مختلف في حال فشل الكاش
+        const { error: retryError } = await supabase
+          .from("anonymous_suggestions")
+          .insert([{ content: content.trim() }]);
+
+        if (retryError) throw retryError;
+      }
+
       toast.success("تم إرسال مقترحك بسرية تامة. شكراً لك! ✨");
       setContent("");
+    } catch (e: any) {
+      toast.error("فشل إرسال المقترح", {
+        description: "يرجى تحديث الصفحة والمحاولة مرة أخرى بعد دقيقة"
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const deleteSuggestion = async (id: string) => {
