@@ -976,13 +976,6 @@ export function AppShell({
                     onClick={() => setShowQuickActions(false)}
                   />
                   <QuickActionItem
-                    to="/suggestions"
-                    label="صندوق المقترحات"
-                    icon={<Inbox size={28} />}
-                    color="bg-[#4f46e5]"
-                    onClick={() => setShowQuickActions(false)}
-                  />
-                  <QuickActionItem
                     to="/profile"
                     label="ملفي"
                     icon={<User size={28} />}

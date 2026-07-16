@@ -18,6 +18,7 @@ import {
   ShieldAlert,
   Send,
   X,
+  Inbox,
   Image as ImageIcon,
   Loader2,
   Calendar,
@@ -877,27 +878,36 @@ function Dashboard() {
 
         {/* 8. SUPPORT SECTION */}
         <section className="pb-20 px-4 md:px-0 animate-fade-up">
-          <div className="glass-surface p-10 md:p-16 border-dashed border-2 border-primary/20 rounded-[44px] flex flex-col md:flex-row items-center justify-between gap-10 text-center md:text-right relative overflow-hidden group">
-            <div className="space-y-4 relative z-10">
-              <div className="flex items-center justify-center md:justify-start gap-3 text-rose-500">
-                <ShieldAlert className="size-6" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em]">
-                  الدعم الفني والتقني
-                </span>
-              </div>
-              <h3 className="text-3xl font-black text-primary tracking-tight">
-                هل واجهت عائقاً في النظام?
-              </h3>
-              <p className="text-base md:text-lg font-bold text-muted-foreground opacity-80 max-w-xl">
-                أبلغ فريق الإشراف عن أي ملاحظة برمجية لمساعدتنا في تطوير تجربة تليق بعائلة السيف.
-              </p>
-            </div>
-            <button
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {/* Bug Report Card */}
+            <div
               onClick={() => setShowBugReport(true)}
-              className="px-12 py-5 rounded-[22px] bg-rose-500/10 text-rose-600 font-black text-sm border border-rose-500/20 hover:bg-rose-500 hover:text-white transition-all shadow-xl flex items-center gap-3 relative z-10"
+              className="glass-surface p-8 md:p-10 border border-rose-500/20 rounded-[32px] md:rounded-[40px] flex items-center gap-6 cursor-pointer hover:bg-rose-500/5 transition-all group overflow-hidden relative shadow-xl"
             >
-              <ShieldAlert size={20} /> إرسال بلاغ فوري
-            </button>
+              <div className="size-16 md:size-20 rounded-[20px] md:rounded-[24px] bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0 group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-inner">
+                <ShieldAlert className="size-8 md:size-10" />
+              </div>
+              <div className="text-right flex-1 min-w-0">
+                <h3 className="text-xl md:text-2xl font-black text-primary tracking-tight">أبلغ عن عطل</h3>
+                <p className="text-xs md:text-sm font-bold text-muted-foreground opacity-60 leading-relaxed mt-1">فريقنا التقني جاهز لمساعدتك وحل أي عائق برمجي في النظام.</p>
+              </div>
+              <div className="absolute -bottom-6 -left-6 size-24 bg-rose-500/5 rounded-full blur-2xl group-hover:bg-rose-500/10 transition-colors" />
+            </div>
+
+            {/* Anonymous Suggestion Card */}
+            <Link
+              to="/suggestions"
+              className="glass-surface p-8 md:p-10 border border-indigo-500/20 rounded-[32px] md:rounded-[40px] flex items-center gap-6 cursor-pointer hover:bg-indigo-500/5 transition-all group overflow-hidden relative shadow-xl"
+            >
+              <div className="size-16 md:size-20 rounded-[20px] md:rounded-[24px] bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0 group-hover:scale-110 group-hover:-rotate-6 transition-all duration-500 shadow-inner">
+                <Inbox className="size-8 md:size-10" />
+              </div>
+              <div className="text-right flex-1 min-w-0">
+                <h3 className="text-xl md:text-2xl font-black text-primary tracking-tight">صندوق المقترحات</h3>
+                <p className="text-xs md:text-sm font-bold text-muted-foreground opacity-60 leading-relaxed mt-1">شاركنا أفكارك لتطوير المجلس بسرية تامة وهويتك لن تظهر لأحد.</p>
+              </div>
+              <div className="absolute -bottom-6 -left-6 size-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors" />
+            </Link>
           </div>
         </section>
       </div>
