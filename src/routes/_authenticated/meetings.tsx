@@ -528,43 +528,40 @@ function MeetingsPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {past.map((m) => (
-                    <div
-                      key={m.id}
-                      className="card-surface p-5 flex items-center justify-between hover:bg-muted/40 transition-all group rounded-[24px]"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="size-14 rounded-2xl bg-muted flex flex-col items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                          <span className="text-[10px] font-black uppercase tracking-tighter">
-                            {formatDate(m.scheduled_at).month}
-                          </span>
-                          <span className="text-2xl font-black tracking-tighter leading-none">
-                            {formatDate(m.scheduled_at).day}
-                          </span>
+                    <div key={m.id} className="space-y-3">
+                      <div className="card-surface p-5 flex items-center justify-between hover:bg-muted/40 transition-all group rounded-[24px]">
+                        <div className="flex items-center gap-4">
+                          <div className="size-14 rounded-2xl bg-muted flex flex-col items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
+                            <span className="text-[10px] font-black uppercase tracking-tighter">
+                              {formatDate(m.scheduled_at).month}
+                            </span>
+                            <span className="text-2xl font-black tracking-tighter leading-none">
+                              {formatDate(m.scheduled_at).day}
+                            </span>
+                          </div>
+                          <div>
+                            <h4 className="font-black text-base text-foreground">{m.title}</h4>
+                            <p className="text-xs font-bold text-muted-foreground">
+                              {formatDate(m.scheduled_at).year}
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <h4 className="font-black text-base text-foreground">{m.title}</h4>
-                          <p className="text-xs font-bold text-muted-foreground">
-                            {formatDate(m.scheduled_at).year}
-                          </p>
-                        </div>
+                        <ChevronLeft className="opacity-20 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
                       </div>
-                      <ChevronLeft className="opacity-20 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
-                    </div>
 
-                    {m.minutes && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowMinutes(m);
-                        }}
-                        className="mt-4 w-full py-3 rounded-xl bg-primary/5 text-primary font-black text-xs border border-primary/10 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2"
-                      >
-                        <FileText size={14} /> عرض محضر الاجتماع
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ))}
+                      {m.minutes && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowMinutes(m);
+                          }}
+                          className="w-full py-3 rounded-xl bg-primary/5 text-primary font-black text-xs border border-primary/10 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2"
+                        >
+                          <FileText size={14} /> عرض محضر الاجتماع
+                        </button>
+                      )}
+                    </div>
+                  ))}
           </div>
         )}
       </div>
