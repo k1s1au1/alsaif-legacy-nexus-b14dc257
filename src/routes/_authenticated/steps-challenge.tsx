@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Trophy, Footprints, Flame, TrendingUp, Calendar, Loader2, Plus, Sync } from "lucide-react";
+import { Trophy, Footprints, Flame, TrendingUp, Calendar, Loader2, Plus, RotateCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -147,7 +147,7 @@ function StepsChallengePage() {
             onClick={handleSync}
             className="btn-gold px-12 py-5 rounded-full flex items-center gap-4 shadow-2xl hover:scale-105 active:scale-95 transition-all text-lg font-black"
           >
-            <Sync className="size-6" /> مزامنة خطوات اليوم
+            <RotateCw className="size-6" /> مزامنة خطوات اليوم
           </button>
         </div>
 
