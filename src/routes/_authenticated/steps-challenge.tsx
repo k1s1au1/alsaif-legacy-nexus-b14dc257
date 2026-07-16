@@ -107,25 +107,32 @@ function StepsChallengePage() {
   }, []);
 
   const handleSync = async () => {
-    toast.info("جاري المزامنة مع Google Fit / Health Kit...", { duration: 2000 });
-    // In a real app, we'd use Capacitor health plugins here.
-    // For now, we simulate a sync with a random small amount.
-    setTimeout(async () => {
+    const tId = toast.loading("جاري المزامنة مع بيانات الحركة...");
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("لم يتم العثور على حساب المستخدم");
+
+      // محاكاة الحصول على الخطوات من الحساسات
       const randomSteps = Math.floor(Math.random() * 2000) + 500;
       const today = new Date().toISOString().split('T')[0];
 
       const { error } = await supabase.from("steps_data" as any).upsert({
-        user_id: meId,
+        user_id: user.id,
         steps: randomSteps,
         date: today
       }, { onConflict: "user_id,date" });
 
-      if (error) toast.error("فشل تحديث الخطوات");
-      else {
-        toast.success(`تمت المزامنة! أضفت ${randomSteps} خطوة اليوم ✨`);
-        loadData();
-      }
-    }, 2000);
+      if (error) throw error;
+
+      toast.success(`تمت المزامنة بنجاح! أضفت ${randomSteps} خطوة اليوم ✨`, { id: tId });
+      loadData();
+    } catch (e: any) {
+      console.error("Steps sync error:", e);
+      toast.error("فشل تحديث الخطوات", {
+        id: tId,
+        description: e.message || "تأكد من وجود جدول steps_data في قاعدة البيانات"
+      });
+    }
   };
 
   return (
