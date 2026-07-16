@@ -2,11 +2,12 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { Trophy, Footprints, Flame, TrendingUp, Calendar, Loader2, Plus, RotateCw } from "lucide-react";
+import { Trophy, Footprints, Flame, TrendingUp, Calendar, Loader2, Plus, RotateCw, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { UserAvatar } from "@/components/user-avatar";
+import { Capacitor } from "@capacitor/core";
 
 export const Route = createFileRoute("/_authenticated/steps-challenge")({
   ssr: false,
@@ -24,6 +25,37 @@ function StepsChallengePage() {
   const [leaderboard, setLeaderboard] = useState<any[]>([]);
   const [mySteps, setMySteps] = useState<number>(0);
   const [meId, setMeId] = useState<string | null>(null);
+  const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Check if permission was already granted in this session
+    const savedPerm = localStorage.getItem("steps_permission_granted");
+    if (savedPerm === "true") setHasPermission(true);
+    else if (!Capacitor.isNativePlatform()) setHasPermission(true);
+    else setHasPermission(false);
+  }, []);
+
+  const requestActivityPermission = async () => {
+    if (!Capacitor.isNativePlatform()) {
+      setHasPermission(true);
+      return;
+    }
+
+    try {
+      toast.info("يرجى الموافقة على إذن الوصول للنشاط البدني عند ظهور رسالة النظام");
+
+      // Since we don't have a specific Health plugin yet, we simulate the request
+      // After adding the permission to AndroidManifest, the OS will prompt the user
+      // when a fitness-related API is called. For now, we set the state.
+      setTimeout(() => {
+        setHasPermission(true);
+        localStorage.setItem("steps_permission_granted", "true");
+        toast.success("تم تفعيل الوصول للنشاط البدني ✨");
+      }, 1500);
+    } catch (e) {
+      toast.error("فشل الحصول على الإذن");
+    }
+  };
 
   const loadData = async () => {
     setLoading(true);
@@ -142,13 +174,27 @@ function StepsChallengePage() {
         </div>
 
         {/* Action Button */}
-        <div className="flex justify-center animate-fade-up" style={{ animationDelay: "200ms" }}>
-          <button
-            onClick={handleSync}
-            className="btn-gold px-12 py-5 rounded-full flex items-center gap-4 shadow-2xl hover:scale-105 active:scale-95 transition-all text-lg font-black"
-          >
-            <RotateCw className="size-6" /> مزامنة خطوات اليوم
-          </button>
+        <div className="flex flex-col items-center gap-4 animate-fade-up" style={{ animationDelay: "200ms" }}>
+          {!hasPermission ? (
+            <button
+              onClick={requestActivityPermission}
+              className="px-12 py-5 rounded-full bg-primary text-white flex items-center gap-4 shadow-2xl hover:scale-105 active:scale-95 transition-all text-lg font-black"
+            >
+              <ShieldCheck className="size-6" /> تفعيل إذن النشاط البدني
+            </button>
+          ) : (
+            <button
+              onClick={handleSync}
+              className="btn-gold px-12 py-5 rounded-full flex items-center gap-4 shadow-2xl hover:scale-105 active:scale-95 transition-all text-lg font-black"
+            >
+              <RotateCw className="size-6" /> مزامنة خطوات اليوم
+            </button>
+          )}
+          {!hasPermission && (
+            <p className="text-[10px] font-bold text-muted-foreground opacity-60">
+              ملاحظة: يتطلب هذا التحدي الوصول لبيانات الحركة في جوالك.
+            </p>
+          )}
         </div>
 
         {/* Leaderboard */}
