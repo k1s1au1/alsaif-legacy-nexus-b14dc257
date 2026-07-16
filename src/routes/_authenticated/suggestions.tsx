@@ -54,11 +54,14 @@ function SuggestionsPage() {
 
     setSubmitting(true);
     const { error } = await supabase
-      .from("anonymous_suggestions" as any)
-      .insert({ content: content.trim() });
+      .from("anonymous_suggestions")
+      .insert([{ content: content.trim() }]);
 
     if (error) {
-      toast.error("فشل إرسال المقترح");
+      console.error("Suggestion error:", error);
+      toast.error("فشل إرسال المقترح", {
+        description: error.message || "تأكد من تحديث الصفحة والمحاولة مرة أخرى"
+      });
     } else {
       toast.success("تم إرسال مقترحك بسرية تامة. شكراً لك! ✨");
       setContent("");
