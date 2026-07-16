@@ -33,6 +33,7 @@ import {
   Radio,
   AlertOctagon,
   Footprints,
+  Inbox,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useSiteLogo } from "@/hooks/use-site-logo";
@@ -972,6 +973,13 @@ export function AppShell({
                     label="تحدي الخطوات"
                     icon={<Footprints size={28} />}
                     color="bg-[#10b981]"
+                    onClick={() => setShowQuickActions(false)}
+                  />
+                  <QuickActionItem
+                    to="/suggestions"
+                    label="صندوق المقترحات"
+                    icon={<Inbox size={28} />}
+                    color="bg-[#4f46e5]"
                     onClick={() => setShowQuickActions(false)}
                   />
                   <QuickActionItem
