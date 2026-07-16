@@ -54,25 +54,22 @@ function SuggestionsPage() {
 
     setSubmitting(true);
     try {
+      // محاولة الإرسال المباشرة
       const { error } = await supabase
         .from("anonymous_suggestions")
-        .insert({ content: content.trim() });
+        .insert([{ content: content.trim() }]);
 
       if (error) {
         console.error("Suggestion error:", error);
-        // محاولة بديلة بتنسيق مختلف في حال فشل الكاش
-        const { error: retryError } = await supabase
-          .from("anonymous_suggestions")
-          .insert([{ content: content.trim() }]);
-
-        if (retryError) throw retryError;
+        throw error;
       }
 
       toast.success("تم إرسال مقترحك بسرية تامة. شكراً لك! ✨");
       setContent("");
     } catch (e: any) {
+      console.error("Catch error:", e);
       toast.error("فشل إرسال المقترح", {
-        description: "يرجى تحديث الصفحة والمحاولة مرة أخرى بعد دقيقة"
+        description: e.message || "حدث خطأ غير متوقع، يرجى المحاولة لاحقاً"
       });
     } finally {
       setSubmitting(false);
