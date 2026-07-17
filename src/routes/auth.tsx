@@ -173,26 +173,26 @@ function AuthPage() {
       dir="rtl"
     >
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
-      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#0f172a] to-[#020617] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0 overflow-hidden">
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#141414] to-[#080808] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0 overflow-hidden">
 
-        {/* Clean Royal Navy Background */}
+        {/* Clean Luxury Charcoal Background */}
 
-        {/* Immersive Mobile Background (Shows the custom image with navy overlay) */}
+        {/* Immersive Mobile Background (Shows the custom image with charcoal overlay) */}
         <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
           <div
             className="size-full bg-cover bg-left opacity-20 scale-110 blur-[2px]"
             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/60 via-[#020617] to-[#020617]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#141414]/80 via-[#080808] to-[#080808]" />
         </div>
 
-        {/* Integrated Palm Watermark with Subtle Blue Glow */}
-        <div className="absolute -left-20 -bottom-20 size-80 lg:size-96 opacity-[0.06] pointer-events-none">
-          <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full" />
+        {/* Integrated Palm Watermark with Warm Golden Glow */}
+        <div className="absolute -left-20 -bottom-20 size-80 lg:size-96 opacity-[0.05] pointer-events-none text-gold-primary">
+          <div className="absolute inset-0 bg-gold-primary/10 blur-[100px] rounded-full" />
           <img
             src={palmWatermark}
             alt=""
-            className="size-full object-contain brightness-0 invert"
+            className="size-full object-contain brightness-0 invert opacity-40"
           />
         </div>
 
@@ -481,7 +481,7 @@ function AuthPage() {
       </div>
 
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#0f172a]">
+      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#111111]">
         {/* Heritage Backdrop Image with Optimized Fitting */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <motion.div
@@ -494,9 +494,9 @@ function AuthPage() {
           />
         </div>
 
-        {/* Refined Seamless Blend - Navy Edition */}
-        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#0f172a] via-[#0f172a]/70 to-transparent" />
-        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#0f172a]/40 via-transparent to-transparent opacity-40" />
+        {/* Refined Seamless Blend - Luxury Charcoal Edition */}
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#111111] via-[#111111]/80 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#111111]/40 via-transparent to-transparent opacity-40" />
         <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/20 to-transparent" />
 
         <div className="relative z-10 space-y-10 w-full max-w-4xl pr-4">
