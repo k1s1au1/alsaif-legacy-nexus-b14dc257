@@ -175,7 +175,14 @@ function AuthPage() {
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
       <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#FCF8EF] via-[#F7F1E4] to-[#EEE4CF] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-[#D8C282]/45 shadow-[-40px_0_100px_rgba(4,43,38,0.22)] shrink-0 overflow-hidden">
 
-        {/* Clean Luxury Charcoal Background */}
+        {/* Layered Alsaif palette: teal depth, ivory light, and a restrained gold glow */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="absolute -top-32 -right-24 size-96 rounded-full bg-[#0B5D4B]/10 blur-3xl" />
+          <div className="absolute -bottom-40 -left-24 size-[28rem] rounded-full bg-gold-primary/10 blur-3xl" />
+          <div className="absolute right-0 top-24 h-2/3 w-px bg-gradient-to-b from-transparent via-gold-primary/35 to-transparent" />
+          <div className="absolute inset-x-10 bottom-10 h-px bg-gradient-to-l from-transparent via-[#0B5D4B]/20 to-transparent" />
+        </div>
+
 
         {/* Immersive Mobile Background (Shows the custom image with charcoal overlay) */}
         <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
@@ -187,12 +194,12 @@ function AuthPage() {
         </div>
 
         {/* Integrated Palm Watermark with Warm Golden Glow */}
-        <div className="absolute -left-20 -bottom-20 size-80 lg:size-96 opacity-[0.05] pointer-events-none text-gold-primary">
-          <div className="absolute inset-0 bg-gold-primary/10 blur-[100px] rounded-full" />
+        <div className="absolute -right-28 -bottom-28 size-[26rem] lg:size-[32rem] opacity-[0.10] pointer-events-none text-[#0B5D4B]">
+          <div className="absolute inset-0 bg-gold-primary/15 blur-[100px] rounded-full" />
           <img
             src={palmWatermark}
             alt=""
-            className="size-full object-contain brightness-0 invert opacity-40"
+            className="size-full object-contain opacity-60 mix-blend-multiply rotate-[-8deg]"
           />
         </div>
 
@@ -262,7 +269,7 @@ function AuthPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full h-16 bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 rounded-2xl pr-14 pl-6 font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
+                      className="w-full h-16 bg-white/60 border border-[#0B5D4B]/20 rounded-2xl pr-14 pl-6 font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
                       placeholder="example@mail.com"
                     />
                   </div>
@@ -276,7 +283,7 @@ function AuthPage() {
                     <button
                       type="button"
                       onClick={() => setAuthMode("forgot")}
-                      className="text-[11px] font-black text-gold-primary hover:underline"
+                      className="text-[11px] font-black text-[#0B5D4B] hover:text-[#064A43] hover:underline"
                     >
                       نسيت الكلمة؟
                     </button>
@@ -288,7 +295,7 @@ function AuthPage() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-16 bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 rounded-2xl pr-14 pl-14 font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
+                      className="w-full h-16 bg-white/60 border border-[#0B5D4B]/20 rounded-2xl pr-14 pl-14 font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
                       placeholder="••••••••••••"
                     />
                     <button
@@ -339,7 +346,7 @@ function AuthPage() {
                 className="w-full space-y-6"
               >
                 <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-2xl font-black text-gold-primary tracking-tight">
+                  <h3 className="text-2xl font-black text-[#0B5D4B] tracking-tight">
                     استعادة الحساب
                   </h3>
                   <button
@@ -390,7 +397,7 @@ function AuthPage() {
                   id="auth-request-form"
                 >
                   <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#F7F1E4] z-10 py-2">
-                    <h3 className="text-2xl font-black text-gold-primary tracking-tight">
+                    <h3 className="text-2xl font-black text-[#0B5D4B] tracking-tight">
                       طلب عضوية
                     </h3>
                     <button
@@ -609,7 +616,7 @@ function AuthField({ label, icon, value, onChange, placeholder, type = "text" }:
           required
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-16 bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 rounded-2xl font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all pr-14 pl-6 shadow-sm"
+          className="w-full h-16 bg-white/60 border border-[#0B5D4B]/20 rounded-2xl font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all pr-14 pl-6 shadow-sm"
           placeholder={placeholder}
         />
       </div>
