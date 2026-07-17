@@ -175,9 +175,9 @@ function AuthPage() {
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
       <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#1a1f16] to-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0 overflow-hidden">
 
-        {/* Background Calligraphy Shadow (Idea #3) */}
-        <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none select-none overflow-hidden">
-           <span className="text-[300px] lg:text-[500px] font-black text-white/[0.02] rotate-[-15deg] translate-x-[-20%] translate-y-[10%]" style={{ fontFamily: "'Amiri', serif" }}>
+        {/* Background Calligraphy Shadow (Improved) */}
+        <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none select-none opacity-[0.06]">
+           <span className="text-[180px] lg:text-[280px] font-black text-white rotate-[-5deg] leading-none text-center drop-shadow-2xl" style={{ fontFamily: "'Reem Kufi', sans-serif" }}>
              السيف
            </span>
         </div>
