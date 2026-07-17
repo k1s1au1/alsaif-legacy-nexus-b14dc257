@@ -177,10 +177,13 @@ function AuthPage() {
 
         {/* Layered Alsaif palette: teal depth, ivory light, and a restrained gold glow */}
         <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-          <div className="absolute -top-32 -right-24 size-96 rounded-full bg-[#0B5D4B]/10 blur-3xl" />
-          <div className="absolute -bottom-40 -left-24 size-[28rem] rounded-full bg-gold-primary/10 blur-3xl" />
           <div className="absolute right-0 top-24 h-2/3 w-px bg-gradient-to-b from-transparent via-gold-primary/35 to-transparent" />
           <div className="absolute inset-x-10 bottom-10 h-px bg-gradient-to-l from-transparent via-[#0B5D4B]/20 to-transparent" />
+          <div className="absolute top-8 left-8 right-8 flex items-center gap-3 opacity-70">
+            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-[#0B5D4B]/20" />
+            <span className="text-[9px] font-black tracking-[0.35em] text-[#0B5D4B]/55">إرثٌ يجمعنا</span>
+            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-[#0B5D4B]/20" />
+          </div>
         </div>
 
 
@@ -194,12 +197,13 @@ function AuthPage() {
         </div>
 
         {/* Integrated Palm Watermark with Warm Golden Glow */}
-        <div className="absolute -right-28 -bottom-28 size-[26rem] lg:size-[32rem] opacity-[0.10] pointer-events-none text-[#0B5D4B]">
-          <div className="absolute inset-0 bg-gold-primary/15 blur-[100px] rounded-full" />
+        <div className="absolute -right-28 -bottom-28 size-[26rem] lg:size-[32rem] opacity-[0.14] pointer-events-none text-[#0B5D4B]">
+          <div className="absolute inset-10 rounded-full border border-[#0B5D4B]/15" />
+          <div className="absolute inset-16 rounded-full border border-gold-primary/20 border-dashed" />
           <img
             src={palmWatermark}
             alt=""
-            className="size-full object-contain opacity-60 mix-blend-multiply rotate-[-8deg]"
+            className="size-full object-contain opacity-55 mix-blend-multiply rotate-[-8deg]"
           />
         </div>
 
@@ -210,8 +214,8 @@ function AuthPage() {
           className="w-full max-w-md flex flex-col items-center relative z-10"
         >
           {/* Mobile Welcome Tag */}
-          <div className="lg:hidden mb-6 px-4 py-1.5 rounded-full bg-gold-primary/10 border border-gold-primary/20 backdrop-blur-md">
-            <p className="text-[10px] font-black text-gold-primary uppercase tracking-[0.3em]">
+          <div className="lg:hidden mb-6 px-4 py-1.5 rounded-full bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 backdrop-blur-md">
+            <p className="text-[10px] font-black text-[#0B5D4B] uppercase tracking-[0.3em]">
               {getGreeting()}، يا أهل الوفاء
             </p>
           </div>
@@ -239,9 +243,9 @@ function AuthPage() {
             <h3 className="text-3xl lg:text-4xl font-black text-[#0B5D4B] tracking-tight">
               مجلس السيف
             </h3>
-            <div className="flex items-center justify-center gap-3 mt-4 opacity-30">
+            <div className="flex items-center justify-center gap-3 mt-4 opacity-70">
               <div className="h-px w-8 bg-gold-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#0B3F3A]/60">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#0B5D4B]/70">
                 بوابة المجلس الرقمية
               </span>
               <div className="h-px w-8 bg-gold-primary" />
