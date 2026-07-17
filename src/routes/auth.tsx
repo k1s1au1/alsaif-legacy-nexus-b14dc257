@@ -169,11 +169,11 @@ function AuthPage() {
 
   return (
     <div
-      className="min-h-screen relative flex flex-col lg:flex-row bg-[#05070a] overflow-y-auto"
+      className="min-h-screen relative flex flex-col lg:flex-row bg-[#062F2B] overflow-y-auto"
       dir="rtl"
     >
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
-      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#141414] to-[#080808] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0 overflow-hidden">
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#0D574D] via-[#08483F] to-[#062F2B] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-[#D8C282]/25 shadow-[-40px_0_100px_rgba(4,43,38,0.38)] shrink-0 overflow-hidden">
 
         {/* Clean Luxury Charcoal Background */}
 
@@ -183,7 +183,7 @@ function AuthPage() {
             className="size-full bg-cover bg-left opacity-20 scale-110 blur-[2px]"
             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#141414]/80 via-[#080808] to-[#080808]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0D574D]/90 via-[#08483F]/92 to-[#062F2B]/95" />
         </div>
 
         {/* Integrated Palm Watermark with Warm Golden Glow */}
@@ -212,7 +212,7 @@ function AuthPage() {
           {/* Logo Section */}
           <div className="mb-10 lg:mb-12 text-center flex flex-col items-center w-full">
             <div className="size-32 lg:size-52 rounded-[38px] lg:rounded-[60px] p-0.5 bg-gradient-to-br from-gold-primary via-gold-primary/20 to-gold-primary shadow-2xl mb-6 lg:mb-8 relative overflow-hidden group/logo flex items-center justify-center transition-all duration-700 hover:scale-105">
-              <div className="size-full rounded-[36px] lg:rounded-[58px] bg-[#fdfcf7] p-3 lg:p-6 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
+              <div className="size-full rounded-[36px] lg:rounded-[58px] bg-[#FCF8EF] p-3 lg:p-6 flex items-center justify-center shadow-inner overflow-hidden border border-emerald-950/5">
                 {dynamicLogo && !dynamicLogo.includes("alsaif-mark") ? (
                   <div
                     className="size-full bg-contain bg-no-repeat bg-center transition-transform duration-1000 group-hover/logo:rotate-[360deg] scale-110"
@@ -389,7 +389,7 @@ function AuthPage() {
                   dir="rtl"
                   id="auth-request-form"
                 >
-                  <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#0d0f17] z-10 py-2">
+                  <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#08483F] z-10 py-2">
                     <h3 className="text-2xl font-black text-gold-primary tracking-tight">
                       طلب عضوية
                     </h3>
@@ -481,7 +481,7 @@ function AuthPage() {
       </div>
 
       {/* 2. Welcoming Heritage Section (Left Side in RTL) */}
-      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#111111]">
+      <div className="hidden lg:flex flex-1 flex-col justify-center items-start p-12 xl:p-24 relative overflow-hidden bg-[#0A3732]">
         {/* Heritage Backdrop Image with Optimized Fitting */}
         <div className="absolute inset-0 z-0 overflow-hidden">
           <motion.div
@@ -495,9 +495,9 @@ function AuthPage() {
         </div>
 
         {/* Refined Seamless Blend - Luxury Charcoal Edition */}
-        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#111111] via-[#111111]/80 to-transparent" />
-        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#111111]/40 via-transparent to-transparent opacity-40" />
-        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-black/20 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#0A3732] via-[#0A3732]/80 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#0A3732]/45 via-transparent to-transparent opacity-40" />
+        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-[#064A43]/45 to-transparent" />
 
         <div className="relative z-10 space-y-10 w-full max-w-4xl pr-4">
           <div className="space-y-6 text-right">
