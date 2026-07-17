@@ -56,6 +56,7 @@ type Trip = {
   badge: string | null;
   location: string | null;
   location_url: string | null;
+  accommodation_type: string | null;
   start_date: string | null;
   end_date: string | null;
   description: string | null;
@@ -619,7 +620,7 @@ function TripDetail() {
                              <div className="size-10 md:size-12 rounded-xl md:rounded-2xl bg-gold-primary/10 flex items-center justify-center text-gold-primary shadow-xl shrink-0"><Tent className="size-[18px] md:size-[22px]" /></div>
                              <div>
                                 <p className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest">نوع الإقامة</p>
-                                <p className="text-xs md:text-sm font-black text-white">مخيم عائلي فاخر</p>
+                                <p className="text-xs md:text-sm font-black text-white">{trip.accommodation_type || "غير محدد"}</p>
                              </div>
                           </div>
                           <div className="flex items-center gap-3 md:gap-4 bg-white/5 p-3 md:p-4 rounded-2xl md:rounded-3xl border border-white/10">
