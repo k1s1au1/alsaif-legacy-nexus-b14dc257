@@ -96,9 +96,7 @@ function TripsPage() {
   async function loadTrips() {
     const { data, error } = await supabase
       .from("trips")
-      .select(
-        "id,title,badge,location,location_url,accommodation_type,start_date,end_date,description,image_url,status",
-      )
+      .select("*")
       .order("start_date", { ascending: true, nullsFirst: false });
     if (error) {
       toast.error("تعذر تحميل بيانات الترفيه");
@@ -481,11 +479,26 @@ function TripDialog({ trip, onClose, onSaved }: any) {
     const payload: any = { ...form, title };
     if (imagePath !== undefined) payload.image_url = imagePath;
 
-    let error;
+    let error: any;
     if (isEdit) {
       ({ error } = await supabase.from("trips").update(payload).eq("id", trip.id));
     } else {
       ({ error } = await supabase.from("trips").insert({ ...payload, created_by: u.user.id }));
+    }
+
+    // Keep the list usable while an older database is waiting for the migration.
+    if (error?.message?.includes("accommodation_type")) {
+      const { accommodation_type: _accommodationType, ...legacyPayload } = payload;
+      if (isEdit) {
+        ({ error } = await supabase.from("trips").update(legacyPayload).eq("id", trip.id));
+      } else {
+        ({ error } = await supabase
+          .from("trips")
+          .insert({ ...legacyPayload, created_by: u.user.id }));
+      }
+      if (!error) {
+        toast.info("تم حفظ الرحلة. سيُفعّل نوع الإقامة بعد تحديث قاعدة البيانات.");
+      }
     }
 
     setSaving(false);
