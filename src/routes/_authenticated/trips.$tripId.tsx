@@ -459,13 +459,6 @@ function TripDetail() {
                 attendanceStatus === "going" ? "bg-emerald-950" : attendanceStatus === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
               )}>
                 {/* Journey identity layer: trip image, family mark, and a quiet route motif */}
-                {trip.image_url && (
-                  <TripImage
-                    path={trip.image_url}
-                    alt=""
-                    className="absolute inset-0 size-full object-cover opacity-[0.07] mix-blend-screen pointer-events-none"
-                  />
-                )}
                 <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/35 pointer-events-none" />
                 {dynamicLogo && (
                   <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
