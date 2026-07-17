@@ -50,6 +50,7 @@ type Trip = {
   badge: string | null;
   location: string | null;
   location_url: string | null;
+  accommodation_type: string | null;
   start_date: string | null;
   end_date: string | null;
   description: string | null;
@@ -96,7 +97,7 @@ function TripsPage() {
     const { data, error } = await supabase
       .from("trips")
       .select(
-        "id,title,badge,location,location_url,start_date,end_date,description,image_url,status",
+        "id,title,badge,location,location_url,accommodation_type,start_date,end_date,description,image_url,status",
       )
       .order("start_date", { ascending: true, nullsFirst: false });
     if (error) {
@@ -440,6 +441,7 @@ function TripDialog({ trip, onClose, onSaved }: any) {
     badge: trip?.badge ?? "",
     location: trip?.location ?? "",
     location_url: trip?.location_url ?? "",
+    accommodation_type: trip?.accommodation_type ?? "مخيم عائلي فاخر",
     start_date: trip?.start_date ?? "",
     end_date: trip?.end_date ?? "",
     description: trip?.description ?? "",
@@ -560,6 +562,25 @@ function TripDialog({ trip, onClose, onSaved }: any) {
                 onChange={(v: any) => update("location", v)}
                 placeholder="المدينة أو الدولة"
               />
+              <div className="space-y-2">
+                <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
+                  نوع الإقامة
+                </label>
+                <select
+                  value={form.accommodation_type}
+                  onChange={(e) => update("accommodation_type", e.target.value)}
+                  className="w-full h-12 md:h-14 px-5 rounded-2xl md:rounded-2xl bg-muted/40 border border-border/60 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all text-foreground"
+                >
+                  <option value="مخيم عائلي فاخر">مخيم عائلي فاخر</option>
+                  <option value="فندق">فندق</option>
+                  <option value="منتجع">منتجع</option>
+                  <option value="شاليه">شاليه</option>
+                  <option value="استراحة">استراحة</option>
+                  <option value="رحلة بحرية">رحلة بحرية</option>
+                  <option value="يوم ترفيهي">يوم ترفيهي</option>
+                  <option value="أخرى">أخرى</option>
+                </select>
+              </div>
               <div className="space-y-2">
                 <label className="text-[9px] md:text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1">
                   الحالة
