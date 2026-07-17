@@ -458,11 +458,37 @@ function TripDetail() {
                 "relative overflow-hidden rounded-[32px] md:rounded-[48px] shadow-2xl border border-white/10 group md:min-h-[500px] flex flex-col-reverse md:flex-row transition-all duration-700",
                 attendanceStatus === "going" ? "bg-emerald-950" : attendanceStatus === "not_going" ? "bg-rose-950" : "bg-[#0a1a16]"
               )}>
+                {/* Journey identity layer: trip image, family mark, and a quiet route motif */}
+                {trip.image_url && (
+                  <TripImage
+                    path={trip.image_url}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 size-full object-cover opacity-[0.07] mix-blend-screen pointer-events-none"
+                  />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/10 via-transparent to-black/35 pointer-events-none" />
+                {dynamicLogo && (
+                  <div className="absolute inset-0 flex items-center justify-center opacity-[0.07] pointer-events-none">
+                    <img
+                      src={dynamicLogo}
+                      alt=""
+                      className="size-[18rem] md:size-[28rem] object-contain grayscale mix-blend-screen rotate-[-8deg]"
+                    />
+                  </div>
+                )}
+                <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 text-gold-primary/40 pointer-events-none">
+                  <div className="w-16 md:w-24 border-t border-dashed border-gold-primary/30" />
+                  <Navigation className="size-4 md:size-5" />
+                  <span className="text-[9px] md:text-[10px] font-black tracking-[0.3em] whitespace-nowrap">رحلة تجمعنا</span>
+                  <div className="w-16 md:w-24 border-t border-dashed border-gold-primary/30" />
+                </div>
+
                 {/* Background Decoration - Desktop Only */}
-                <div className="absolute top-0 right-0 p-12 opacity-5 pointer-events-none hidden md:block">
+                <div className="absolute top-0 right-0 p-12 opacity-[0.08] pointer-events-none hidden md:block">
                   <Tent size={240} className="text-white" />
                 </div>
-                <div className="absolute bottom-0 left-0 p-12 opacity-5 pointer-events-none -rotate-12 hidden md:block">
+                <div className="absolute bottom-0 left-0 p-12 opacity-[0.08] pointer-events-none -rotate-12 hidden md:block">
                   <Compass size={180} className="text-white" />
                 </div>
 
