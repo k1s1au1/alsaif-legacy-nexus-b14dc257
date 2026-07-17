@@ -518,8 +518,8 @@ function AuthPage() {
               transition={{ duration: 0.8 }}
               className="flex items-center gap-4"
             >
-              <div className="h-0.5 w-16 bg-gold-primary shadow-[0_0_20px_rgba(212,175,55,0.6)]" />
-              <span className="text-xs font-black uppercase tracking-[0.5em] text-gold-primary">
+              <div className="h-px w-12 bg-gold-primary/70" />
+              <span className="text-[10px] font-black uppercase tracking-[0.35em] text-gold-primary">
                 إرث يمتد.. ومستقبل يُبنى
               </span>
             </motion.div>
@@ -588,15 +588,14 @@ function HeritageStat({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8, delay }}
-      className="space-y-2 group cursor-default"
+      className="space-y-3 group cursor-default border-t border-gold-primary/20 pt-4"
     >
       <div className="flex items-baseline gap-2">
-        <p className="text-6xl xl:text-8xl font-black text-white tabular-nums drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] group-hover:text-gold-primary transition-colors duration-700">
+        <p className="text-5xl xl:text-6xl font-black text-white tabular-nums drop-shadow-[0_6px_18px_rgba(0,0,0,0.35)] group-hover:text-gold-primary transition-colors duration-700">
           {value}
         </p>
-        <Sparkles className="size-6 text-gold-primary opacity-0 group-hover:opacity-100 transition-opacity animate-bounce" />
       </div>
-      <p className="text-xs font-black uppercase tracking-[0.4em] text-gold-primary/60 group-hover:text-white transition-colors duration-500">
+      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gold-primary/60 group-hover:text-white transition-colors duration-500">
         {label}
       </p>
     </motion.div>
