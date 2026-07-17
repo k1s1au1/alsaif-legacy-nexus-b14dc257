@@ -173,17 +173,17 @@ function AuthPage() {
       dir="rtl"
     >
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
-      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#0D574D] via-[#08483F] to-[#062F2B] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-[#D8C282]/25 shadow-[-40px_0_100px_rgba(4,43,38,0.38)] shrink-0 overflow-hidden">
+      <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#FCF8EF] via-[#F7F1E4] to-[#EEE4CF] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-[#D8C282]/45 shadow-[-40px_0_100px_rgba(4,43,38,0.22)] shrink-0 overflow-hidden">
 
         {/* Clean Luxury Charcoal Background */}
 
         {/* Immersive Mobile Background (Shows the custom image with charcoal overlay) */}
         <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
           <div
-            className="size-full bg-cover bg-left opacity-20 scale-110 blur-[2px]"
+            className="size-full bg-cover bg-left opacity-10 scale-110 blur-[2px]"
             style={{ backgroundImage: `url(${customBg || authBgAsset.url})` }}
           />
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0D574D]/90 via-[#08483F]/92 to-[#062F2B]/95" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#FCF8EF]/95 via-[#F7F1E4]/96 to-[#EEE4CF]/98" />
         </div>
 
         {/* Integrated Palm Watermark with Warm Golden Glow */}
@@ -229,12 +229,12 @@ function AuthPage() {
               </div>
             </div>
 
-            <h3 className="text-3xl lg:text-4xl font-black text-gold-primary tracking-tight">
+            <h3 className="text-3xl lg:text-4xl font-black text-[#0B5D4B] tracking-tight">
               مجلس السيف
             </h3>
             <div className="flex items-center justify-center gap-3 mt-4 opacity-30">
               <div className="h-px w-8 bg-gold-primary" />
-              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#0B3F3A]/60">
                 بوابة المجلس الرقمية
               </span>
               <div className="h-px w-8 bg-gold-primary" />
@@ -252,7 +252,7 @@ function AuthPage() {
                 className="w-full space-y-6"
               >
                 <div className="space-y-2">
-                  <label className="text-[11px] font-black text-white/40 mr-1 uppercase tracking-widest">
+                  <label className="text-[11px] font-black text-[#0B3F3A]/65 mr-1 uppercase tracking-widest">
                     البريد الإلكتروني
                   </label>
                   <div className="relative group">
@@ -262,7 +262,7 @@ function AuthPage() {
                       required
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-6 font-bold text-sm text-white focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
+                      className="w-full h-16 bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 rounded-2xl pr-14 pl-6 font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
                       placeholder="example@mail.com"
                     />
                   </div>
@@ -316,14 +316,14 @@ function AuthPage() {
                   )}
                 </button>
 
-                <div className="pt-12 text-center border-t border-white/5 mt-6">
-                  <p className="text-xs font-bold text-muted-foreground mb-6 uppercase tracking-widest opacity-60">
+                <div className="pt-12 text-center border-t border-[#0B3F3A]/10 mt-6">
+                  <p className="text-xs font-bold text-[#0B3F3A]/60 mb-6 uppercase tracking-widest">
                     ليس لديك حساب رسمي؟
                   </p>
                   <button
                     type="button"
                     onClick={() => setAuthMode("request")}
-                    className="w-full h-14 rounded-2xl bg-white/5 text-white font-black text-xs hover:bg-white/10 transition-all border border-white/10 shadow-sm"
+                    className="w-full h-14 rounded-2xl bg-[#0B5D4B]/5 text-[#0B3F3A] font-black text-xs hover:bg-[#0B5D4B]/10 transition-all border border-[#0B5D4B]/15 shadow-sm"
                   >
                     تقديم طلب انضمام للعائلة
                   </button>
@@ -345,12 +345,12 @@ function AuthPage() {
                   <button
                     type="button"
                     onClick={() => setAuthMode("login")}
-                    className="size-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all"
+                    className="size-10 rounded-full bg-[#0B5D4B]/5 flex items-center justify-center text-[#0B3F3A]/60 hover:bg-rose-500 hover:text-white transition-all"
                   >
                     <X size={22} />
                   </button>
                 </div>
-                <p className="text-sm text-white/50 leading-relaxed">
+                <p className="text-sm text-[#0B3F3A]/65 leading-relaxed">
                   أدخل بريدك المسجل وسنرسل لك رابط التحديث فوراً.
                 </p>
                 <AuthField
@@ -389,7 +389,7 @@ function AuthPage() {
                   dir="rtl"
                   id="auth-request-form"
                 >
-                  <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#08483F] z-10 py-2">
+                  <div className="flex justify-between items-center mb-6 sticky top-0 bg-[#F7F1E4] z-10 py-2">
                     <h3 className="text-2xl font-black text-gold-primary tracking-tight">
                       طلب عضوية
                     </h3>
@@ -472,8 +472,8 @@ function AuthPage() {
             )}
           </AnimatePresence>
 
-          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col items-center gap-2 opacity-20">
-            <p className="text-[9px] font-black tracking-[0.5em] text-white uppercase">
+          <div className="mt-12 pt-8 border-t border-[#0B3F3A]/10 flex flex-col items-center gap-2 opacity-35">
+            <p className="text-[9px] font-black tracking-[0.5em] text-[#0B3F3A] uppercase">
               Alsaif Family • 2026
             </p>
           </div>
@@ -609,7 +609,7 @@ function AuthField({ label, icon, value, onChange, placeholder, type = "text" }:
           required
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl font-bold text-sm text-white focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all pr-14 pl-6 shadow-sm"
+          className="w-full h-16 bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 rounded-2xl font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all pr-14 pl-6 shadow-sm"
           placeholder={placeholder}
         />
       </div>
