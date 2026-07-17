@@ -270,7 +270,7 @@ function AuthPage() {
 
                 <div className="space-y-2">
                   <div className="flex justify-between items-center px-1">
-                    <label className="text-[11px] font-black text-white/40 uppercase tracking-widest">
+                    <label className="text-[11px] font-black text-[#0B3F3A]/65 uppercase tracking-widest">
                       كلمة المرور
                     </label>
                     <button
@@ -288,7 +288,7 @@ function AuthPage() {
                       required
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="w-full h-16 bg-white/5 border border-white/10 rounded-2xl pr-14 pl-14 font-bold text-sm text-white focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
+                      className="w-full h-16 bg-[#0B5D4B]/5 border border-[#0B5D4B]/15 rounded-2xl pr-14 pl-14 font-bold text-sm text-[#0B3F3A] focus:outline-none focus:ring-4 focus:ring-gold-primary/5 focus:border-gold-primary transition-all shadow-inner"
                       placeholder="••••••••••••"
                     />
                     <button
@@ -396,7 +396,7 @@ function AuthPage() {
                     <button
                       type="button"
                       onClick={() => setAuthMode("login")}
-                      className="size-10 rounded-full bg-white/5 flex items-center justify-center text-muted-foreground hover:bg-rose-500 hover:text-white transition-all"
+                      className="size-10 rounded-full bg-[#0B5D4B]/5 flex items-center justify-center text-[#0B3F3A]/60 hover:bg-rose-500 hover:text-white transition-all"
                     >
                       <X size={22} />
                     </button>
