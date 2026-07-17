@@ -463,7 +463,6 @@ function TripDetail() {
                   <TripImage
                     path={trip.image_url}
                     alt=""
-                    aria-hidden="true"
                     className="absolute inset-0 size-full object-cover opacity-[0.07] mix-blend-screen pointer-events-none"
                   />
                 )}
