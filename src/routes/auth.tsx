@@ -175,14 +175,7 @@ function AuthPage() {
       {/* 1. Full-Height Login Pane (Main on Mobile) */}
       <div className="w-full lg:w-[500px] xl:w-[600px] min-h-screen bg-gradient-to-b from-[#1a1f16] to-[#0d0f17] relative z-20 flex flex-col items-center justify-center p-6 sm:p-20 border-l border-white/5 shadow-[-40px_0_100px_rgba(0,0,0,0.5)] shrink-0 overflow-hidden">
 
-        {/* Premium Background Effects */}
-        <div className="absolute inset-0 z-0 pointer-events-none opacity-40">
-           {/* Cinematic Grain Texture */}
-           <div className="absolute inset-0 mix-blend-overlay opacity-20" style={{ backgroundImage: 'url("https://www.transparenttextures.com/patterns/asfalt-dark.png")' }} />
-
-           {/* Central Golden Aura behind the logo area */}
-           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] bg-gold-primary/10 blur-[120px] rounded-full" />
-        </div>
+        {/* Clean Olive Gradient - Simple and Professional */}
 
         {/* Immersive Mobile Background (Shows the custom image with olive overlay) */}
         <div className="lg:hidden absolute inset-0 -z-10 overflow-hidden">
