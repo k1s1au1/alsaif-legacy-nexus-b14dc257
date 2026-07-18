@@ -47,6 +47,7 @@ import { useAppPermissions } from "@/hooks/use-app-permissions";
 import { DynamicIsland } from "@/components/dynamic-island";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { BiometricGate } from "@/components/biometric-gate";
+import { AiAssistant } from "@/components/ai-assistant";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -1006,6 +1007,7 @@ export function AppShell({
           )}
         </AnimatePresence>
       </main>
+      <AiAssistant user={safeUser} />
     </div>
     </BiometricGate>
   );
