@@ -54,12 +54,16 @@ export function AiAssistant({ user }: { user: any }) {
       let aiResponse = "";
 
       // 1. Check for specific family data patterns first (Faster and more reliable)
-      if (lowerText.includes("اجتماع") || lowerText.includes("محضر")) {
-        aiResponse = "أبشر، آخر اجتماع موثق في الأرشيف الشامل كان يركز على تطوير المجلس وزيادة الترابط العائلي. هل تريدني أن أفتح لك قائمة الحضور من الأرشيف؟";
+      if (lowerText.includes("اسمي") || lowerText.includes("انا مين")) {
+        aiResponse = `أنت ${user.name}، أحد أعمدة عائلة السيف الكرام.. حياك الله يا غالي.`;
+      } else if (lowerText.includes("رئيس المجلس") || lowerText.includes("مين الرئيس")) {
+        aiResponse = "رئيس مجلس عائلة السيف الحالي هو الأستاذ الوليد بن عبدالله السيف، وفقه الله وسدد خطاه.";
+      } else if (lowerText.includes("اجتماع") || lowerText.includes("محضر")) {
+        aiResponse = "أبشر، آخر اجتماع موثق كان يركز على تعزيز الروابط الأسرية ومناقشة مبادرات الصندوق. تفاصيل الحضور موجودة في 'الأرشيف الشامل' بقسم الإدارة.";
       } else if (lowerText.includes("جدي") || lowerText.includes("تاريخ") || lowerText.includes("نسب")) {
-        aiResponse = "تاريخ عائلة السيف غني بالمواقف المشرفة. الجد الأكبر كان رمزاً للحكمة، ومجلسه دائماً مفتوح للجميع. يمكنك مراجعة قسم 'الإرث' لمشاهدة الوثائق التاريخية للعائلة.";
+        aiResponse = "عائلة السيف تاريخها ممتد وراسخ. الجد الأكبر كان معروفاً بالحكمة والكرم في نجد، ومجلسه دائماً عامر بالخير. تقدر تشوف الوثائق في قسم 'الإرث'.";
       } else if (lowerText.includes("دعوة") || lowerText.includes("اكتب")) {
-        aiResponse = "سم.. هذه صيغة دعوة فخمة:\n\n'يتشرف مجلس عائلة السيف بدعوتكم الكريمة للاجتماع الدوري، حضوركم يضفي على لقائنا بهجةً وتقديراً. ننتظركم بكل حب.'";
+        aiResponse = "سم.. هذه مسودة دعوة:\n\n'يتشرف مجلس عائلة السيف بدعوتكم لحضور لقائنا القادم.. حضوركم يسعدنا ويجمع شملنا.'";
       }
 
       // 2. If no pattern matched, try the Live AI (Gemini)
@@ -68,29 +72,37 @@ export function AiAssistant({ user }: { user: any }) {
         const p2 = "JyjVbxrswbg92cCHEw";
         const apiKey = p1 + p2;
 
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{
-                role: "user",
-                parts: [{
-                  text: `أنت "مساعد المجلس" لعائلة السيف. تحدث بلهجة سعودية ودودة. المستخدم: ${user.name}. السؤال: ${text}`
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{
+                  role: "user",
+                  parts: [{
+                    text: `أنت "مساعد المجلس" لعائلة السيف. تحدث بلهجة سعودية ودودة. المستخدم: ${user.name}. السؤال: ${text}`
+                  }]
                 }]
-              }]
-            })
-          }
-        );
+              })
+            }
+          );
 
-        const data = await response.json();
-        aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const data = await response.json();
+          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+          if (data.error) {
+            console.error("Gemini API Error:", data.error);
+          }
+        } catch (e) {
+          console.error("Fetch Error:", e);
+        }
       }
 
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: aiResponse || "يا هلا بك، أبشر بسعدك.. أنا معك دائماً لخدمة المجلس. وش اللي في خاطرك تسأل عنه؟"
+        content: aiResponse || `حياك الله يا ${user.name.split(" ")[0]}، أنا معك لخدمة المجلس وتسهيل أمورك.. وش اللي حاب تستفسر عنه بخصوص العائلة أو الاجتماعات؟`
       }]);
     } catch (error) {
       console.error("AI Error:", error);
