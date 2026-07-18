@@ -58,10 +58,12 @@ export function AiAssistant({ user }: { user: any }) {
       // Try to get response from Gemini API directly
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: {
+              "Content-Type": "application/json",
+            },
             body: JSON.stringify({
               contents: [{
                 parts: [{
@@ -87,6 +89,8 @@ export function AiAssistant({ user }: { user: any }) {
         const data = await response.json();
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
           aiResponse = data.candidates[0].content.parts[0].text;
+        } else {
+          console.warn("Gemini API semi-failed, using local fallback.");
         }
       } catch (e) {
         console.error("Gemini API direct call failed:", e);
@@ -98,7 +102,7 @@ export function AiAssistant({ user }: { user: any }) {
         if (lowerText.includes("اسمي")) aiResponse = `أنت ${user.name}، وأحد كبار عائلة السيف وقدرك غالي علينا.`;
         else if (lowerText.includes("الرئيس")) aiResponse = "رئيس مجلسنا هو الأستاذ الوليد بن عبدالله السيف، الله يوفقه.";
         else if (lowerText.includes("تاريخ") || lowerText.includes("جدي")) aiResponse = "تاريخ عائلتنا فخر لنا جميعاً، تقدر تطلع على تفاصيله في قسم 'الإرث' بالمجلس.";
-        else aiResponse = `حياك الله يا ${user.name.split(" ")[0]}.. أنا معك، بس حالياً فيه ضغط بسيط على سيرفرات الذكاء العالمية. وش حاب تسأل عنه بخصوص المجلس؟`;
+        else aiResponse = `يا هلا بك يا ${user.name.split(" ")[0]}.. أنا معك، وسؤالك على عيني ورأسي. بس حالياً فيه ضغط بسيط على سيرفرات الذكاء العالمية. وش اللي حاب تستفسر عنه بخصوص شؤون العائلة؟ أنا هنا لخدمتك.`;
       }
 
       setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
