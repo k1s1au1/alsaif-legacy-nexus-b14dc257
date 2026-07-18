@@ -49,67 +49,60 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      // Logic for Alsaif Smart Assistant
-      const lowerText = text.toLowerCase();
+      const p1 = "AQ.Ab8RN6IPhEkXGrNzpcAONZ5ZffUi5K6b";
+      const p2 = "JyjVbxrswbg92cCHEw";
+      const apiKey = p1 + p2;
+
       let aiResponse = "";
 
-      // 1. Check for specific family data patterns first (Faster and more reliable)
-      if (lowerText.includes("اسمي") || lowerText.includes("انا مين")) {
-        aiResponse = `أنت ${user.name}، أحد أعمدة عائلة السيف الكرام.. حياك الله يا غالي.`;
-      } else if (lowerText.includes("رئيس المجلس") || lowerText.includes("مين الرئيس")) {
-        aiResponse = "رئيس مجلس عائلة السيف الحالي هو الأستاذ الوليد بن عبدالله السيف، وفقه الله وسدد خطاه.";
-      } else if (lowerText.includes("اجتماع") || lowerText.includes("محضر")) {
-        aiResponse = "أبشر، آخر اجتماع موثق كان يركز على تعزيز الروابط الأسرية ومناقشة مبادرات الصندوق. تفاصيل الحضور موجودة في 'الأرشيف الشامل' بقسم الإدارة.";
-      } else if (lowerText.includes("جدي") || lowerText.includes("تاريخ") || lowerText.includes("نسب")) {
-        aiResponse = "عائلة السيف تاريخها ممتد وراسخ. الجد الأكبر كان معروفاً بالحكمة والكرم في نجد، ومجلسه دائماً عامر بالخير. تقدر تشوف الوثائق في قسم 'الإرث'.";
-      } else if (lowerText.includes("دعوة") || lowerText.includes("اكتب")) {
-        aiResponse = "سم.. هذه مسودة دعوة:\n\n'يتشرف مجلس عائلة السيف بدعوتكم لحضور لقائنا القادم.. حضوركم يسعدنا ويجمع شملنا.'";
-      }
-
-      // 2. If no pattern matched, try the Live AI (Gemini)
-      if (!aiResponse) {
-        const p1 = "AQ.Ab8RN6IPhEkXGrNzpcAONZ5ZffUi5K6b";
-        const p2 = "JyjVbxrswbg92cCHEw";
-        const apiKey = p1 + p2;
-
-        try {
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{
-                  parts: [{
-                    text: `أنت "مساعد المجلس" لعائلة السيف. تحدث بلهجة سعودية ودودة. المستخدم: ${user.name}. السؤال: ${text}`
-                  }]
-                }],
-                generationConfig: {
-                  temperature: 0.8,
-                  topK: 40,
-                  topP: 0.95,
-                  maxOutputTokens: 1024,
-                }
-              })
-            }
-          );
-
-          const data = await response.json();
-
-          if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-            aiResponse = data.candidates[0].content.parts[0].text;
-          } else if (data.error) {
-            console.error("Gemini API Error:", data.error.message);
+      // Try to get response from Gemini API directly
+      try {
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{
+                parts: [{
+                  text: `أنت الآن "Gemini" الحقيقي بذكائك الكامل ولكنك مخصص لخدمة عائلة السيف.
+                  - اسمك: "مساعد المجلس".
+                  - المطلوب: ذكاء خارق، أسلوب راقي، ولهجة سعودية بيضاء ودودة جداً.
+                  - أنت تعرف أن المستخدم هو ${user.name}.
+                  - أجب على أي سؤال (تاريخ، ثقافة، معلومات عامة) بذكاء كامل وتفصيل مفيد.
+                  - معلومات خاصة: رئيس المجلس هو "الوليد بن عبدالله السيف".
+                  السؤال الحالي من ${user.name} هو: ${text}`
+                }]
+              }],
+              generationConfig: {
+                temperature: 0.9,
+                topK: 1,
+                topP: 1,
+                maxOutputTokens: 2048,
+              }
+            })
           }
-        } catch (e) {
-          console.error("Fetch API failed:", e);
+        );
+
+        const data = await response.json();
+        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+          aiResponse = data.candidates[0].content.parts[0].text;
         }
+      } catch (e) {
+        console.error("Gemini API direct call failed:", e);
       }
 
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: aiResponse || `حياك الله يا ${user.name.split(" ")[0]}، سمّ.. وش حاب تستفسر عنه بخصوص العائلة أو الاجتماعات؟ أنا بالخدمة.`
-      }]);
+      // If API fails, use the "Smart Local Cache"
+      if (!aiResponse) {
+        const lowerText = text.toLowerCase();
+        if (lowerText.includes("اسمي")) aiResponse = `أنت ${user.name}، وأحد كبار عائلة السيف وقدرك غالي علينا.`;
+        else if (lowerText.includes("الرئيس")) aiResponse = "رئيس مجلسنا هو الأستاذ الوليد بن عبدالله السيف، الله يوفقه.";
+        else if (lowerText.includes("تاريخ") || lowerText.includes("جدي")) aiResponse = "تاريخ عائلتنا فخر لنا جميعاً، تقدر تطلع على تفاصيله في قسم 'الإرث' بالمجلس.";
+        else aiResponse = `حياك الله يا ${user.name.split(" ")[0]}.. أنا معك، بس حالياً فيه ضغط بسيط على سيرفرات الذكاء العالمية. وش حاب تسأل عنه بخصوص المجلس؟`;
+      }
+
+      setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
+    } catch (error) {
     } catch (error) {
       console.error("AI Error:", error);
       setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من تفعيل الخدمة وحاول مجدداً." }]);
