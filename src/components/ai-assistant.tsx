@@ -58,7 +58,7 @@ export function AiAssistant({ user }: { user: any }) {
 
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`,
           {
             method: "POST",
             headers: {
@@ -66,8 +66,9 @@ export function AiAssistant({ user }: { user: any }) {
             },
             body: JSON.stringify({
               contents: [{
+                role: "user",
                 parts: [{
-                  text: `أنت مساعد ذكي لعائلة السيف. تحدث بلهجة سعودية نجدية ودودة. المستخدم: ${user.name}. السؤال: ${text}`
+                  text: `أنت مساعد ذكي لعائلة السيف. تحدث بلهجة سعودية نجدية ودودة جداً وفخمة. المستخدم الحالي هو ${user.name}. السؤال هو: ${text}`
                 }]
               }]
             })
