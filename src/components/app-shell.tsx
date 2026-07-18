@@ -43,6 +43,7 @@ import { usePresenceHeartbeat, useOnlineCount, useOnlineUsers, usePresenceFor, t
 import { toast } from "sonner";
 import { motion, AnimatePresence, useScroll, useMotionValueEvent } from "framer-motion";
 import { useFcm } from "@/hooks/use-fcm";
+import { useAppPermissions } from "@/hooks/use-app-permissions";
 import { DynamicIsland } from "@/components/dynamic-island";
 import { LiveClock } from "@/components/dashboard/live-clock";
 import { BiometricGate } from "@/components/biometric-gate";
@@ -267,6 +268,7 @@ export function AppShell({
   const onlineUserIds = useOnlineUsers();
   const [onlineProfiles, setOnlineUserProfiles] = useState<any[]>([]);
   useFcm();
+  useAppPermissions();
   usePresenceHeartbeat();
 
   useEffect(() => {
