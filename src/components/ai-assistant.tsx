@@ -16,6 +16,8 @@ import {
 import { cn } from "@/lib/utils";
 import { UserAvatar } from "./user-avatar";
 import { supabase } from "@/integrations/supabase/client";
+import { askGemini } from "@/lib/api/ai.functions";
+import { useServerFn } from "@tanstack/react-start";
 
 interface Message {
   role: "user" | "assistant";
@@ -24,6 +26,7 @@ interface Message {
 
 export function AiAssistant({ user }: { user: any }) {
   const [isOpen, setIsOpen] = useState(false);
+  const aiChatFn = useServerFn(askGemini);
   const [messages, setMessages] = useState<Message[]>([
     {
       role: "assistant",
@@ -49,56 +52,8 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      const apiKey = "AQ.Ab8RN6JaeHbix5QN7kv_LjOL0r0klPpnsWNaVs9HKgsgOlY5Yg";
-
-      let aiResponse = "";
-
-      try {
-        // Correcting endpoint to use v1beta and the precise model ID
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{
-                parts: [{
-                  text: `أنت الآن Gemini Pro، المساعد الذكي لعائلة السيف.
-                  - اللهجة: سعودية نجدية ودودة.
-                  - المهمة: الإجابة بذكاء خارق وتفصيل مفيد.
-                  المستخدم: ${user.name}. السؤال: ${text}`
-                }]
-              }]
-            })
-          }
-        );
-
-        const data = await response.json();
-        if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
-          aiResponse = data.candidates[0].content.parts[0].text;
-        } else if (data.error) {
-          console.warn("API Error, trying fallback model ID...");
-          const res2 = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: `أنت مساعد عائلة السيف. أجب بذكاء: ${text}` }] }]
-              })
-            }
-          );
-          const data2 = await res2.json();
-          aiResponse = data2.candidates?.[0]?.content?.parts?.[0]?.text;
-        }
-      } catch (e) {
-        console.error("Fetch failed", e);
-      }
-
-      setMessages((prev) => [...prev, {
-        role: "assistant",
-        content: aiResponse || `حياك الله يا ${user.name.split(" ")[0]}، سمّ.. وش حاب تسأل عنه بخصوص تاريخ عائلتنا أو فعاليات المجلس؟ أنا بالخدمة وأتطلع لسماع سؤالك.`
-      }]);
+      const { response } = await aiChatFn({ data: { prompt: text, userName: user.name } });
+      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
     } catch (error) {
       console.error("AI Error:", error);
       setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من تفعيل الخدمة وحاول مجدداً." }]);
