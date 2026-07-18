@@ -30,6 +30,10 @@ import {
   Pencil,
   Megaphone,
   BarChart3,
+  Archive,
+  ClipboardList,
+  History,
+  CheckCircle2,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -98,8 +102,14 @@ function AdminPage() {
   const [memberRequests, setMemberRequests] = useState<any[]>([]);
   const [bugReports, setBugReports] = useState<any[]>([]);
   const [polls, setPolls] = useState<any[]>([]);
+  const [archiveData, setArchiveData] = useState({
+    meetings: [] as any[],
+    trips: [] as any[],
+    tasks: [] as any[],
+    community: [] as any[],
+  });
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"requests" | "members" | "member_requests" | "polls" | "bugs">(
+  const [tab, setTab] = useState<"requests" | "members" | "member_requests" | "polls" | "bugs" | "master_archive">(
     "requests",
   );
   const [reqCounts, setReqCounts] = useState<Record<string, number>>({
@@ -243,6 +253,33 @@ function AdminPage() {
           // Fetch FCM Token Count via security-definer RPC (admin/chairman only)
           const { data: tcCount } = await supabase.rpc("count_fcm_tokens" as any);
           setFcmTokenCount((tcCount as number | null) ?? 0);
+
+          // 4. Fetch Master Archive Data (only if tab is master_archive or for initial load if needed)
+          const [
+            { data: archMeetings },
+            { data: archAttendees },
+            { data: archTrips },
+            { data: archTasks },
+          ] = await Promise.all([
+            supabase.from("meetings").select("*").order("scheduled_at", { ascending: false }),
+            supabase.from("meeting_attendees").select("*, profiles(id, arabic_name, full_name, avatar_url)"),
+            supabase.from("trips").select("*").order("start_date", { ascending: false }),
+            supabase.from("tasks").select("*, profiles:assignee_id(id, arabic_name, full_name, avatar_url)").order("created_at", { ascending: false }),
+          ]);
+
+          const attendeesByMeeting = new Map<string, any[]>();
+          (archAttendees || []).forEach((a: any) => {
+            const arr = attendeesByMeeting.get(a.meeting_id) || [];
+            arr.push(a);
+            attendeesByMeeting.set(a.meeting_id, arr);
+          });
+
+          setArchiveData({
+            meetings: (archMeetings || []).map(m => ({ ...m, attendees: attendeesByMeeting.get(m.id) || [] })),
+            trips: archTrips || [],
+            tasks: archTasks || [],
+            community: pollList || [], // Can be expanded later
+          });
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
           (reqs || []).forEach((r) => {
@@ -579,6 +616,19 @@ function AdminPage() {
               )}
               {(isSystemAdmin || isSiteChairman) && (
                 <button
+                  onClick={() => setTab("master_archive")}
+                  className={cn(
+                    "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
+                    tab === "master_archive"
+                      ? "bg-primary text-white shadow-xl"
+                      : "text-muted-foreground hover:bg-muted",
+                  )}
+                >
+                  <Archive size={18} /> الأرشيف الشامل
+                </button>
+              )}
+              {(isSystemAdmin || isSiteChairman) && (
+                <button
                   onClick={() => setTab("bugs")}
                   className={cn(
                     "px-8 py-3 rounded-[22px] text-sm font-black transition-all flex items-center gap-2 shrink-0",
@@ -685,6 +735,10 @@ function AdminPage() {
             )}
 
             {tab === "polls" && <PollsManager list={polls} meId={meId} onRefresh={loadData} />}
+
+            {tab === "master_archive" && (
+              <MasterArchive data={archiveData} onRefresh={loadData} />
+            )}
 
             {tab === "member_requests" && (
               <section className="animate-fade-up space-y-6">
@@ -895,6 +949,217 @@ function AdminPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+function MasterArchive({ data, onRefresh }: { data: any; onRefresh: () => void }) {
+  const [subTab, setSubTab] = useState<"meetings" | "trips" | "tasks" | "community">("meetings");
+
+  return (
+    <section className="animate-fade-up space-y-8">
+      <div className="space-y-1">
+        <h3 className="text-xl font-black text-primary tracking-tight">الأرشيف الشامل للنظام</h3>
+        <p className="text-sm font-bold text-muted-foreground opacity-60">
+          سجل كامل لجميع الأنشطة والبيانات التاريخية للمجلس.
+        </p>
+      </div>
+
+      <div className="flex items-center gap-2 p-1 bg-muted/20 rounded-2xl w-fit">
+        <button
+          onClick={() => setSubTab("meetings")}
+          className={cn(
+            "px-6 py-2 rounded-xl text-xs font-black transition-all",
+            subTab === "meetings" ? "bg-white text-primary shadow-sm" : "text-muted-foreground",
+          )}
+        >
+          الاجتماعات
+        </button>
+        <button
+          onClick={() => setSubTab("trips")}
+          className={cn(
+            "px-6 py-2 rounded-xl text-xs font-black transition-all",
+            subTab === "trips" ? "bg-white text-primary shadow-sm" : "text-muted-foreground",
+          )}
+        >
+          الترفيه
+        </button>
+        <button
+          onClick={() => setSubTab("tasks")}
+          className={cn(
+            "px-6 py-2 rounded-xl text-xs font-black transition-all",
+            subTab === "tasks" ? "bg-white text-primary shadow-sm" : "text-muted-foreground",
+          )}
+        >
+          المهام
+        </button>
+      </div>
+
+      <div className="grid gap-6">
+        {subTab === "meetings" && (
+          <div className="space-y-4">
+            {data.meetings.map((m: any) => (
+              <div key={m.id} className="card-surface p-6 md:p-8 space-y-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="space-y-1">
+                    <h4 className="text-xl font-black text-primary">{m.title}</h4>
+                    <p className="text-xs font-bold text-muted-foreground">
+                      {new Date(m.scheduled_at).toLocaleDateString("ar-SA", {
+                        weekday: "long",
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric",
+                      })}
+                    </p>
+                  </div>
+                  <div className="px-4 py-1.5 rounded-full bg-primary/5 border border-primary/10 text-[10px] font-black text-primary uppercase tracking-widest">
+                    {m.status === "completed" ? "مكتمل" : "مجدول"}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-gold-primary">
+                    <Users size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-widest">
+                      قائمة الحضور ({m.attendees.filter((a: any) => a.rsvp === "going").length})
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {m.attendees.length === 0 ? (
+                      <p className="text-xs text-muted-foreground italic">لا توجد ردود بعد.</p>
+                    ) : (
+                      m.attendees.map((a: any) => (
+                        <div
+                          key={a.user_id}
+                          className={cn(
+                            "flex items-center gap-2 px-3 py-1.5 rounded-full border text-[11px] font-bold transition-all",
+                            a.rsvp === "going"
+                              ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-600"
+                              : a.rsvp === "not_going"
+                                ? "bg-rose-500/10 border-rose-500/20 text-rose-600"
+                                : "bg-muted border-border text-muted-foreground",
+                          )}
+                        >
+                          <div className="size-5 rounded-full overflow-hidden shrink-0">
+                            <UserAvatar
+                              path={a.profiles?.avatar_url}
+                              name={a.profiles?.arabic_name || a.profiles?.full_name || "عضو"}
+                              className="size-full"
+                            />
+                          </div>
+                          <span>{a.profiles?.arabic_name || a.profiles?.full_name || "عضو"}</span>
+                          {a.companions_count > 0 && (
+                            <span className="ms-1 opacity-60">+{a.companions_count}</span>
+                          )}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {subTab === "trips" && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {data.trips.map((t: any) => (
+              <div key={t.id} className="card-surface overflow-hidden group">
+                <div className="h-40 bg-muted relative overflow-hidden">
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10" />
+                  <div className="absolute bottom-4 right-4 z-20 text-white">
+                    <h4 className="text-lg font-black">{t.title}</h4>
+                    <p className="text-[10px] opacity-80">
+                      {new Date(t.start_date).toLocaleDateString("ar-SA")}
+                    </p>
+                  </div>
+                </div>
+                <div className="p-6 space-y-4">
+                  <p className="text-sm font-bold text-muted-foreground line-clamp-2">
+                    {t.description}
+                  </p>
+                  <div className="flex items-center justify-between pt-4 border-t border-border/40">
+                    <div className="flex items-center gap-2 text-gold-primary">
+                      <MapPin size={14} />
+                      <span className="text-xs font-bold">{t.location || "غير محدد"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {subTab === "tasks" && (
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Completed Tasks */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-2">
+                  <CheckCircle2 className="text-emerald-500" size={20} />
+                  <h4 className="text-sm font-black text-emerald-600 uppercase tracking-widest">
+                    المهام المنجزة
+                  </h4>
+                </div>
+                {data.tasks.filter((t: any) => t.status === "done").map((t: any) => (
+                  <div key={t.id} className="card-surface p-4 opacity-70">
+                    <h5 className="font-black text-sm text-primary mb-2 line-clamp-1">{t.title}</h5>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="size-6 rounded-full overflow-hidden">
+                          <UserAvatar
+                            path={t.profiles?.avatar_url}
+                            name={t.profiles?.arabic_name || "عضو"}
+                            className="size-full"
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-muted-foreground">
+                          {t.profiles?.arabic_name || "غير معين"}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        مكتمل
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pending Tasks */}
+              <div className="space-y-4">
+                <div className="flex items-center gap-3 px-2">
+                  <Clock className="text-amber-500" size={20} />
+                  <h4 className="text-sm font-black text-amber-600 uppercase tracking-widest">
+                    مهام قيد التنفيذ
+                  </h4>
+                </div>
+                {data.tasks.filter((t: any) => t.status !== "done").map((t: any) => (
+                  <div key={t.id} className="card-surface p-4">
+                    <h5 className="font-black text-sm text-primary mb-2 line-clamp-1">{t.title}</h5>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="size-6 rounded-full overflow-hidden">
+                          <UserAvatar
+                            path={t.profiles?.avatar_url}
+                            name={t.profiles?.arabic_name || "عضو"}
+                            className="size-full"
+                          />
+                        </div>
+                        <span className="text-[10px] font-bold text-muted-foreground">
+                          {t.profiles?.arabic_name || "غير معين"}
+                        </span>
+                      </div>
+                      <span className="text-[9px] font-black text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
+                        {t.status === "todo" ? "قيد الانتظار" : "جاري العمل"}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
