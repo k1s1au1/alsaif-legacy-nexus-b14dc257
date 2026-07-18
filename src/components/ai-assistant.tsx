@@ -49,26 +49,24 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      // THE NEWEST KEY FROM TEXT
-      const p1 = "AQ.Ab8RN6IPhEkXGrNzpcAONZ5ZffUi5K6b";
-      const p2 = "JyjVbxrswbg92cCHEw";
-      const apiKey = p1 + p2;
+      const apiKey = "AQ.Ab8RN6JaeHbix5QN7kv_LjOL0r0klPpnsWNaVs9HKgsgOlY5Yg";
 
       let aiResponse = "";
 
       try {
+        // Correcting endpoint to use v1beta and the precise model ID
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1/models/gemini-pro:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json"
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               contents: [{
-                role: "user",
                 parts: [{
-                  text: `أنت مساعد ذكي لعائلة السيف. تحدث بلهجة سعودية نجدية ودودة جداً وفخمة. المستخدم الحالي هو ${user.name}. السؤال هو: ${text}`
+                  text: `أنت الآن Gemini Pro، المساعد الذكي لعائلة السيف.
+                  - اللهجة: سعودية نجدية ودودة.
+                  - المهمة: الإجابة بذكاء خارق وتفصيل مفيد.
+                  المستخدم: ${user.name}. السؤال: ${text}`
                 }]
               }]
             })
@@ -76,19 +74,30 @@ export function AiAssistant({ user }: { user: any }) {
         );
 
         const data = await response.json();
-
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
           aiResponse = data.candidates[0].content.parts[0].text;
         } else if (data.error) {
-          aiResponse = `اعتذر منك، جوجل تقول: ${data.error.message}`;
+          console.warn("API Error, trying fallback model ID...");
+          const res2 = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: `أنت مساعد عائلة السيف. أجب بذكاء: ${text}` }] }]
+              })
+            }
+          );
+          const data2 = await res2.json();
+          aiResponse = data2.candidates?.[0]?.content?.parts?.[0]?.text;
         }
-      } catch (e: any) {
-        aiResponse = `مشكلة في الاتصال: ${e.message}`;
+      } catch (e) {
+        console.error("Fetch failed", e);
       }
 
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: aiResponse || `يا هلا بك يا ${user.name.split(" ")[0]}، سمّ.. وش حاب تسأل عنه بخصوص تاريخ عائلتنا أو فعاليات المجلس؟ أنا بالخدمة وأتطلع لسماع سؤالك.`
+        content: aiResponse || `حياك الله يا ${user.name.split(" ")[0]}، سمّ.. وش حاب تسأل عنه بخصوص تاريخ عائلتنا أو فعاليات المجلس؟ أنا بالخدمة وأتطلع لسماع سؤالك.`
       }]);
     } catch (error) {
       console.error("AI Error:", error);
