@@ -34,6 +34,7 @@ import {
   ClipboardList,
   History,
   CheckCircle2,
+  MapPin,
 } from "lucide-react";
 
 import { toast } from "sonner";
@@ -254,31 +255,35 @@ function AdminPage() {
           const { data: tcCount } = await supabase.rpc("count_fcm_tokens" as any);
           setFcmTokenCount((tcCount as number | null) ?? 0);
 
-          // 4. Fetch Master Archive Data (only if tab is master_archive or for initial load if needed)
+          // 4. Fetch Master Archive Data
           const [
             { data: archMeetings },
             { data: archAttendees },
             { data: archTrips },
             { data: archTasks },
+            { data: archProfiles },
           ] = await Promise.all([
             supabase.from("meetings").select("*").order("scheduled_at", { ascending: false }),
-            supabase.from("meeting_attendees").select("*, profiles(id, arabic_name, full_name, avatar_url)"),
+            supabase.from("meeting_attendees").select("*"),
             supabase.from("trips").select("*").order("start_date", { ascending: false }),
-            supabase.from("tasks").select("*, profiles:assignee_id(id, arabic_name, full_name, avatar_url)").order("created_at", { ascending: false }),
+            supabase.from("tasks").select("*").order("created_at", { ascending: false }),
+            supabase.from("profiles").select("id, arabic_name, full_name, avatar_url"),
           ]);
+
+          const profMap = new Map<string, any>((archProfiles || []).map(p => [p.id, p]));
 
           const attendeesByMeeting = new Map<string, any[]>();
           (archAttendees || []).forEach((a: any) => {
             const arr = attendeesByMeeting.get(a.meeting_id) || [];
-            arr.push(a);
+            arr.push({ ...a, profiles: profMap.get(a.user_id) });
             attendeesByMeeting.set(a.meeting_id, arr);
           });
 
           setArchiveData({
             meetings: (archMeetings || []).map(m => ({ ...m, attendees: attendeesByMeeting.get(m.id) || [] })),
             trips: archTrips || [],
-            tasks: archTasks || [],
-            community: pollList || [], // Can be expanded later
+            tasks: (archTasks || []).map(t => ({ ...t, assignee: profMap.get(t.assignee_id) })),
+            community: pollList || [],
           });
 
           const counts = { pending: 0, approved: 0, rejected: 0 };
@@ -1069,7 +1074,7 @@ function MasterArchive({ data, onRefresh }: { data: any; onRefresh: () => void }
                   <div className="absolute bottom-4 right-4 z-20 text-white">
                     <h4 className="text-lg font-black">{t.title}</h4>
                     <p className="text-[10px] opacity-80">
-                      {new Date(t.start_date).toLocaleDateString("ar-SA")}
+                      {t.start_date ? new Date(t.start_date).toLocaleDateString("ar-SA") : "لم يحدد موعد"}
                     </p>
                   </div>
                 </div>
@@ -1107,13 +1112,13 @@ function MasterArchive({ data, onRefresh }: { data: any; onRefresh: () => void }
                       <div className="flex items-center gap-2">
                         <div className="size-6 rounded-full overflow-hidden">
                           <UserAvatar
-                            path={t.profiles?.avatar_url}
-                            name={t.profiles?.arabic_name || "عضو"}
+                            path={t.assignee?.avatar_url}
+                            name={t.assignee?.arabic_name || "عضو"}
                             className="size-full"
                           />
                         </div>
                         <span className="text-[10px] font-bold text-muted-foreground">
-                          {t.profiles?.arabic_name || "غير معين"}
+                          {t.assignee?.arabic_name || "غير معين"}
                         </span>
                       </div>
                       <span className="text-[9px] font-black text-emerald-600 bg-emerald-500/10 px-2 py-0.5 rounded-full">
@@ -1139,13 +1144,13 @@ function MasterArchive({ data, onRefresh }: { data: any; onRefresh: () => void }
                       <div className="flex items-center gap-2">
                         <div className="size-6 rounded-full overflow-hidden">
                           <UserAvatar
-                            path={t.profiles?.avatar_url}
-                            name={t.profiles?.arabic_name || "عضو"}
+                            path={t.assignee?.avatar_url}
+                            name={t.assignee?.arabic_name || "عضو"}
                             className="size-full"
                           />
                         </div>
                         <span className="text-[10px] font-bold text-muted-foreground">
-                          {t.profiles?.arabic_name || "غير معين"}
+                          {t.assignee?.arabic_name || "غير معين"}
                         </span>
                       </div>
                       <span className="text-[9px] font-black text-amber-600 bg-amber-500/10 px-2 py-0.5 rounded-full">
