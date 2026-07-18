@@ -8,6 +8,7 @@ import {
   Inbox,
   ListChecks,
   ChevronLeft,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -121,9 +122,17 @@ export function NotificationsBell() {
         .gte("scheduled_at", new Date().toISOString())
         .order("scheduled_at")
         .limit(5);
+
+      // Fetch user RSVPs to hide notifications for meetings they already responded to
+      const { data: userAttendances } = await supabase
+        .from("meeting_attendees")
+        .select("meeting_id")
+        .eq("user_id", uid);
+      const attendedMeetingIds = new Set((userAttendances ?? []).map((a: any) => a.meeting_id));
+
       (meetings ?? []).forEach((m) => {
         const notifId = `meet-${m.id}`;
-        if (!dismissed.includes(notifId)) {
+        if (!dismissed.includes(notifId) && !attendedMeetingIds.has(m.id)) {
           out.push({
             id: notifId,
             kind: "meeting",
@@ -193,8 +202,71 @@ export function NotificationsBell() {
           .eq("user_id", userId)
           .eq("conversation_id", notif.refId);
       }
-    } catch {}
+    } catch (notifUpdateError) {
+      console.error("Error marking notif as read", notifUpdateError);
+    }
   };
+
+  const handleDismiss = (e: React.MouseEvent, notifId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    setItems((prev) => prev.filter((item) => item.id !== notifId));
+
+    let dismissed: string[] = [];
+    try {
+      const raw = localStorage.getItem("dismissed_notifs");
+      dismissed = raw ? JSON.parse(raw) : [];
+      if (!Array.isArray(dismissed)) dismissed = [];
+    } catch {
+      dismissed = [];
+    }
+
+    if (!dismissed.includes(notifId)) {
+      dismissed.push(notifId);
+      localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50)));
+    }
+  };
+
+  useEffect(() => {
+    // Auto-dismiss meetings notifications if user is on meetings page
+    if (pathname === "/meetings") {
+      const meets = items.filter(i => i.kind === "meeting");
+      if (meets.length > 0) {
+        meets.forEach(m => {
+          let dismissed: string[] = [];
+          try {
+            const raw = localStorage.getItem("dismissed_notifs");
+            dismissed = raw ? JSON.parse(raw) : [];
+          } catch {}
+          if (!dismissed.includes(m.id)) {
+            dismissed.push(m.id);
+            localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50)));
+          }
+        });
+        setItems(prev => prev.filter(i => i.kind !== "meeting"));
+      }
+    }
+
+    // Auto-dismiss admin requests if user is on admin page
+    if (pathname === "/admin") {
+      const reqs = items.filter(i => i.kind === "account_request");
+      if (reqs.length > 0) {
+        reqs.forEach(r => {
+          let dismissed: string[] = [];
+          try {
+            const raw = localStorage.getItem("dismissed_notifs");
+            dismissed = raw ? JSON.parse(raw) : [];
+          } catch {}
+          if (!dismissed.includes(r.id)) {
+            dismissed.push(r.id);
+            localStorage.setItem("dismissed_notifs", JSON.stringify(dismissed.slice(-50)));
+          }
+        });
+        setItems(prev => prev.filter(i => i.kind !== "account_request"));
+      }
+    }
+  }, [pathname, items.length]);
 
   useEffect(() => {
     load();
@@ -294,9 +366,18 @@ export function NotificationsBell() {
                     <p className="text-[14px] font-black text-foreground truncate group-hover:text-primary transition-colors">
                       {n.title}
                     </p>
-                    <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap bg-muted/50 px-2 py-0.5 rounded-full">
-                      {timeAgo(n.at)}
-                    </span>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] font-bold text-muted-foreground whitespace-nowrap bg-muted/50 px-2 py-0.5 rounded-full">
+                        {timeAgo(n.at)}
+                      </span>
+                      <button
+                        onClick={(e) => handleDismiss(e, n.id)}
+                        className="size-5 rounded-full hover:bg-red-500/10 hover:text-red-600 flex items-center justify-center text-muted-foreground/40 transition-colors"
+                        title="تجاهل"
+                      >
+                        <X size={12} strokeWidth={3} />
+                      </button>
+                    </div>
                   </div>
                   <p className="text-[12px] font-medium text-muted-foreground line-clamp-2 leading-relaxed">
                     {n.description}
