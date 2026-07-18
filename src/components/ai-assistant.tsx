@@ -48,7 +48,8 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      const { data, error } = await (window as any).supabase.functions.invoke("gemini-chat", {
+      // Calling Supabase Edge Function instead of direct Fetch
+      const { data, error } = await supabase.functions.invoke("gemini-chat", {
         body: {
           prompt: text,
           userName: user.name
@@ -56,9 +57,15 @@ export function AiAssistant({ user }: { user: any }) {
       });
 
       if (error) throw error;
-      const aiResponse = data.response || "يا هلا بك، اعتذر منك حدث خطأ بسيط في الاتصال. حاول مرة أخرى.";
+      const aiResponse = data?.response || "يا هلا بك، اعتذر منك حدث خطأ بسيط في الاتصال. حاول مرة أخرى.";
       setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
     } catch (error) {
+      console.error("AI Error:", error);
+      setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك.. أنا حالياً في وضع الاستعداد. لكي أتمكن من إجابتك بذكاء كامل، يرجى تفعيل مفتاح الربط في لوحة التحكم." }]);
+    } finally {
+      setIsTyping(false);
+    }
+  };
       console.error("AI Error:", error);
       setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من تفعيل الخدمة وحاول مجدداً." }]);
     } finally {
