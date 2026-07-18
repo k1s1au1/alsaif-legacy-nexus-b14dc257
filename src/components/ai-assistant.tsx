@@ -103,7 +103,6 @@ export function AiAssistant({ user }: { user: any }) {
 
       setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
     } catch (error) {
-    } catch (error) {
       console.error("AI Error:", error);
       setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من تفعيل الخدمة وحاول مجدداً." }]);
     } finally {
