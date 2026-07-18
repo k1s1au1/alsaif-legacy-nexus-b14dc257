@@ -49,9 +49,7 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      const p1 = "AQ.Ab8RN6L4l6QePmmZHDqftmfUQkA1qv29H7dP1";
-      const p2 = "CviDVO3OF_jtw";
-      const apiKey = p1 + p2;
+      const apiKey = "AQ.Ab8RN6JaeHbix5QN7kv_LjOL0r0klPpnsWNaVs9HKgsgOlY5Yg";
 
       let aiResponse = "";
 
