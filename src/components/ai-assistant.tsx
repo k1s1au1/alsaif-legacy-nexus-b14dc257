@@ -64,8 +64,8 @@ export function AiAssistant({ user }: { user: any }) {
 
       // 2. If no pattern matched, try the Live AI (Gemini)
       if (!aiResponse) {
-        const p1 = "AQ.Ab8RN6JW3gu";
-        const p2 = "ACulrNX5a8Ui0ugXelXDGi_Z855SWRbaAUQa3Sw";
+        const p1 = "AQ.Ab8RN6IPhEkXGrNzpcAONZ5ZffUi5K6b";
+        const p2 = "JyjVbxrswbg92cCHEw";
         const apiKey = p1 + p2;
 
         const response = await fetch(
