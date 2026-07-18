@@ -80,29 +80,35 @@ export function AiAssistant({ user }: { user: any }) {
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
                 contents: [{
-                  role: "user",
                   parts: [{
                     text: `أنت "مساعد المجلس" لعائلة السيف. تحدث بلهجة سعودية ودودة. المستخدم: ${user.name}. السؤال: ${text}`
                   }]
-                }]
+                }],
+                generationConfig: {
+                  temperature: 0.8,
+                  topK: 40,
+                  topP: 0.95,
+                  maxOutputTokens: 1024,
+                }
               })
             }
           );
 
           const data = await response.json();
-          aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-          if (data.error) {
-            console.error("Gemini API Error:", data.error);
+          if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
+            aiResponse = data.candidates[0].content.parts[0].text;
+          } else if (data.error) {
+            console.error("Gemini API Error:", data.error.message);
           }
         } catch (e) {
-          console.error("Fetch Error:", e);
+          console.error("Fetch API failed:", e);
         }
       }
 
       setMessages((prev) => [...prev, {
         role: "assistant",
-        content: aiResponse || `حياك الله يا ${user.name.split(" ")[0]}، أنا معك لخدمة المجلس وتسهيل أمورك.. وش اللي حاب تستفسر عنه بخصوص العائلة أو الاجتماعات؟`
+        content: aiResponse || `حياك الله يا ${user.name.split(" ")[0]}، سمّ.. وش حاب تستفسر عنه بخصوص العائلة أو الاجتماعات؟ أنا بالخدمة.`
       }]);
     } catch (error) {
       console.error("AI Error:", error);
