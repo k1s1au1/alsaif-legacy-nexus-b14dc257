@@ -49,8 +49,8 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      const p1 = "AQ.Ab8RN6IPhEkXGrNzpcAONZ5ZffUi5K6b";
-      const p2 = "JyjVbxrswbg92cCHEw";
+      const p1 = "AQ.Ab8RN6L4l6QePmmZHDqftmfUQkA1qv29H7dP1";
+      const p2 = "CviDVO3OF_jtw";
       const apiKey = p1 + p2;
 
       let aiResponse = "";
@@ -90,7 +90,7 @@ export function AiAssistant({ user }: { user: any }) {
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
           aiResponse = data.candidates[0].content.parts[0].text;
         } else {
-          console.warn("Gemini API semi-failed, using local fallback.");
+          console.error("Gemini API Error details:", data);
         }
       } catch (e) {
         console.error("Gemini API direct call failed:", e);
