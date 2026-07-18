@@ -47,26 +47,48 @@ export function AiAssistant({ user }: { user: any }) {
     setInput("");
     setIsTyping(true);
 
-    // Simulated AI Response Logic (To be connected to Edge Function)
-    setTimeout(() => {
-      let response = "";
-      const lowerText = text.toLowerCase();
+    try {
+      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+      if (!apiKey) throw new Error("API Key missing");
 
-      if (lowerText.includes("اجتماع") || lowerText.includes("محضر")) {
-        response = "أبشر، قمت بمراجعة أرشيف الاجتماعات. آخر اجتماع كان بتاريخ 29 يونيو، وأبرز ما تم نقاشه هو تطوير مرافق المجلس وتحديث نظام العضوية. هل تريدني أن أصيغ لك دعوة للاجتماع القادم؟";
-      } else if (lowerText.includes("جدي") || lowerText.includes("نسب") || lowerText.includes("تاريخ")) {
-        response = "تاريخ عائلة السيف غني بالأمجاد. حسب سجلات الإرث، الجد الأكبر اشتهر بالحكمة والكرم، وكان مجلسه مقصداً للجميع. يمكنك مراجعة قسم 'إرث السيف' لمشاهدة المخطوطات القديمة.";
-      } else if (lowerText.includes("خطوات") || lowerText.includes("تحدي")) {
-        response = "أنت حالياً في المركز الخامس! باقي لك 1200 خطوة لتتجاوز المركز الرابع. شد حيلك يا بطل، المنافسة قوية اليوم!";
-      } else if (lowerText.includes("دعوة") || lowerText.includes("اكتب")) {
-        response = "سمّ.. هذه مسودة لدعوة رسمية:\n\n'يتشرف مجلس عائلة السيف بدعوتكم لحضور الاجتماع الدوري لمناقشة أمور العائلة، وذلك في يوم الجمعة القادم. حضوركم يشرفنا ويقوي روابطنا.'\n\nهل تود تعديل أي جزء؟";
-      } else {
-        response = "فهمت عليك. أنا هنا لمساعدتك في كل ما يخص شؤون المجلس، سواء كنت تبحث عن معلومة تاريخية، أو تريد تنظيم مهامك، أو حتى كتابة رسالة رسمية. وش اللي في بالك؟";
-      }
+      const response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [
+              {
+                role: "user",
+                parts: [
+                  {
+                    text: `أنت مساعد ذكي مخصص لعائلة السيف. اسمك "مساعد المجلس".
+                    يجب أن تتحدث بلهجة سعودية بيضاء، محترمة، وودودة جداً.
+                    أنت تعرف تاريخ العائلة وتساعد الأعضاء في الإرث، تنظيم الاجتماعات، كتابة الدعوات، وتحفيزهم في تحدي الخطوات.
+                    المستخدم الحالي هو: ${user.name}.
+                    أجب على هذا السؤال باختصار وذكاء: ${text}`
+                  }
+                ]
+              }
+            ],
+            generationConfig: {
+              temperature: 0.7,
+              maxOutputTokens: 500,
+            }
+          }),
+        }
+      );
 
-      setMessages((prev) => [...prev, { role: "assistant", content: response }]);
+      const data = await response.json();
+      const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "يا هلا بك، اعتذر منك حدث خطأ بسيط في الاتصال. حاول مرة أخرى.";
+
+      setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
+    } catch (error) {
+      console.error("AI Error:", error);
+      setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من إعدادات المفتاح وحاول مجدداً." }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   const QuickActions = [
