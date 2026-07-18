@@ -49,9 +49,9 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      // THE MASTER KEY - Verified and Updated from latest screenshot
-      const p1 = "AQ.Ab8RN6JaeHbix5QN7kv_";
-      const p2 = "LjOL0r0klPpnsWNaVs9HKgsgOlY5Yg";
+      // THE NEWEST KEY FROM TEXT
+      const p1 = "AQ.Ab8RN6IPhEkXGrNzpcAONZ5ZffUi5K6b";
+      const p2 = "JyjVbxrswbg92cCHEw";
       const apiKey = p1 + p2;
 
       let aiResponse = "";
@@ -67,31 +67,24 @@ export function AiAssistant({ user }: { user: any }) {
             body: JSON.stringify({
               contents: [{
                 parts: [{
-                  text: `أنت الآن Gemini Pro 1.5، المساعد الذكي لعائلة السيف.
-                  - اسمك: "مساعد المجلس".
-                  - المطلوب: ذكاء خارق، أسلوب راقي، ولهجة سعودية بيضاء ودودة جداً.
-                  - المستخدم هو: ${user.name}.
-                  - أجب بذكاء وتفصيل على أي سؤال عام أو عائلي.
-                  السؤال: ${text}`
+                  text: `أنت مساعد ذكي لعائلة السيف. تحدث بلهجة سعودية نجدية ودودة. المستخدم: ${user.name}. السؤال: ${text}`
                 }]
-              }],
-              generationConfig: {
-                temperature: 1.0,
-                maxOutputTokens: 2048,
-              }
+              }]
             })
           }
         );
 
         const data = await response.json();
+
         if (data.candidates && data.candidates[0]?.content?.parts?.[0]?.text) {
           aiResponse = data.candidates[0].content.parts[0].text;
+        } else if (data.error) {
+          aiResponse = `اعتذر منك، جوجل تقول: ${data.error.message}`;
         }
-      } catch (e) {
-        console.error("Fetch API failed:", e);
+      } catch (e: any) {
+        aiResponse = `مشكلة في الاتصال: ${e.message}`;
       }
 
-      // Final Smart Response Logic with dynamic fallback
       setMessages((prev) => [...prev, {
         role: "assistant",
         content: aiResponse || `يا هلا بك يا ${user.name.split(" ")[0]}، سمّ.. وش حاب تسأل عنه بخصوص تاريخ عائلتنا أو فعاليات المجلس؟ أنا بالخدمة وأتطلع لسماع سؤالك.`
