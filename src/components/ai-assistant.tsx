@@ -48,44 +48,19 @@ export function AiAssistant({ user }: { user: any }) {
     setIsTyping(true);
 
     try {
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-      if (!apiKey) throw new Error("API Key missing");
+      const { data, error } = await (window as any).supabase.functions.invoke("gemini-chat", {
+        body: {
+          prompt: text,
+          userName: user.name
+        },
+      });
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [
-                  {
-                    text: `أنت مساعد ذكي مخصص لعائلة السيف. اسمك "مساعد المجلس".
-                    يجب أن تتحدث بلهجة سعودية بيضاء، محترمة، وودودة جداً.
-                    أنت تعرف تاريخ العائلة وتساعد الأعضاء في الإرث، تنظيم الاجتماعات، كتابة الدعوات، وتحفيزهم في تحدي الخطوات.
-                    المستخدم الحالي هو: ${user.name}.
-                    أجب على هذا السؤال باختصار وذكاء: ${text}`
-                  }
-                ]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.7,
-              maxOutputTokens: 500,
-            }
-          }),
-        }
-      );
-
-      const data = await response.json();
-      const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "يا هلا بك، اعتذر منك حدث خطأ بسيط في الاتصال. حاول مرة أخرى.";
-
+      if (error) throw error;
+      const aiResponse = data.response || "يا هلا بك، اعتذر منك حدث خطأ بسيط في الاتصال. حاول مرة أخرى.";
       setMessages((prev) => [...prev, { role: "assistant", content: aiResponse }]);
     } catch (error) {
       console.error("AI Error:", error);
-      setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من إعدادات المفتاح وحاول مجدداً." }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: "يا هلا بك، يبدو أن هناك مشكلة فنية بسيطة في الاتصال. تأكد من تفعيل الخدمة وحاول مجدداً." }]);
     } finally {
       setIsTyping(false);
     }
