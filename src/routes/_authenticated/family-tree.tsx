@@ -440,7 +440,7 @@ function FamilyTreePage() {
               pathClassFunc={() => "tree-link-curved"}
               nodeSize={{ x: NODE_W + 100, y: NODE_H + 120 }}
               renderCustomNodeElement={renderNode}
-              collapsible={true}
+              collapsible={false}
               zoomable
               draggable
               transitionDuration={800}
