@@ -79,6 +79,17 @@ function FamilyTreePage() {
   const [addOpen, setAddOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  // Normalizing Arabic text for better search
+  const normalize = (text: string) => {
+    return text
+      ? text
+          .replace(/[أإآ]/g, "ا")
+          .replace(/ة/g, "ه")
+          .replace(/ى/g, "ي")
+          .trim()
+      : "";
+  };
+
   const setParentFn = useServerFn(setMemberParent);
   const addExtraFn = useServerFn(addExtraMember);
   const deleteExtraFn = useServerFn(deleteExtraMember);
@@ -236,10 +247,14 @@ function FamilyTreePage() {
     const m = memberId ? members.find((mem) => mem.id === memberId) : null;
     const isRoot = memberId === "__root__";
     const isMe = me?.id && m && m.id === me.id;
+
+    // Improved search matching with normalization
     const isSearchMatch =
       search &&
       m &&
-      ((m.first_name || "").includes(search) || (m.father_name || "").includes(search));
+      (normalize(m.first_name || "").includes(normalize(search)) ||
+       normalize(m.full_name || "").includes(normalize(search)));
+
     const isExtra = m?.kind === "extra";
 
     return (
