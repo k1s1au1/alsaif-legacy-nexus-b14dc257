@@ -54,8 +54,8 @@ type Member = {
   kind: "profile" | "extra";
 };
 
-const NODE_W = 160;
-const NODE_H = 80;
+const NODE_W = 180;
+const NODE_H = 88;
 
 function FamilyTreePage() {
   const router = useRouter();
@@ -246,33 +246,44 @@ function FamilyTreePage() {
         <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2}>
           <div
             onClick={toggleNode}
-
             style={{
               width: `${NODE_W}px`,
               height: `${NODE_H}px`,
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              padding: "8px",
-              borderRadius: "999px",
-              border: "3px solid #E5E4E0",
-              backgroundColor: "white",
+              padding: "10px",
+              borderRadius: "24px",
+              border: isMe || isRoot ? "2px solid #D4AF37" : "1px solid rgba(255, 255, 255, 0.2)",
+              backgroundColor: isMe || isRoot
+                ? "rgba(27, 67, 50, 0.95)"
+                : "rgba(255, 255, 255, 0.8)",
+              backdropFilter: "blur(12px)",
+              WebkitBackdropFilter: "blur(12px)",
+              boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
               boxSizing: "border-box",
               cursor: "pointer",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
             className={cn(
-              "tree-node-content",
+              "tree-node-content group",
               isRoot && "is-root",
               isMe && "is-me",
-              isSearchMatch && "is-match",
+              isSearchMatch && "ring-4 ring-gold-primary/30",
               isExtra && "is-extra",
             )}
           >
             {isRoot ? (
-              <div style={{ textAlign: "center" }}>
-                <Trees size={16} color="#D4AF37" />
-                <div style={{ fontSize: "11px", fontWeight: 900, color: "white" }}>
-                  {nodeDatum.name}
+              <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", justifyContent: "center" }}>
+                <div className="size-10 rounded-xl bg-gold-primary/20 flex items-center justify-center border border-gold-primary/30">
+                  <Trees size={20} className="text-gold-primary" />
+                </div>
+                <div style={{ textAlign: "right" }}>
+                   <div style={{ fontSize: "14px", fontWeight: 900, color: "white" }}>
+                    {nodeDatum.name}
+                  </div>
+                  <div style={{ fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.6)", uppercase: true, tracking: "0.1em" }}>
+                    أصل العائلة
+                  </div>
                 </div>
               </div>
             ) : m ? (
@@ -280,23 +291,25 @@ function FamilyTreePage() {
                 style={{
                   display: "flex",
                   alignItems: "center",
-                  gap: "8px",
                   width: "100%",
                   overflow: "hidden",
                 }}
               >
                 <div
                   style={{
-                    width: "40px",
-                    height: "40px",
-                    borderRadius: "50%",
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "14px",
                     overflow: "hidden",
-                    border: "1px solid #D4AF37",
+                    border: "1.5px solid rgba(212, 175, 55, 0.4)",
                     flexShrink: 0,
+                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
                   }}
                 >
                   {isExtra ? (
-                    <UserCircle2 size={40} color="#8E7745" />
+                    <div className="size-full bg-gold-primary/5 flex items-center justify-center">
+                      <UserCircle2 size={24} className="text-gold-primary" />
+                    </div>
                   ) : (
                     <UserAvatar
                       name={m.first_name || "ع"}
@@ -306,25 +319,26 @@ function FamilyTreePage() {
                     />
                   )}
                 </div>
-                <div style={{ flex: 1, textAlign: "right", overflow: "hidden" }}>
+                <div style={{ flex: 1, textAlign: "right", paddingRight: "12px", overflow: "hidden" }}>
                   <div
                     style={{
-                      fontSize: "13px",
-                      fontWeight: 900,
+                      fontSize: "14px",
+                      fontWeight: 800,
                       whiteSpace: "nowrap",
                       overflow: "hidden",
                       textOverflow: "ellipsis",
                       color: isMe || isRoot ? "white" : "#1B4332",
+                      letterSpacing: "-0.01em",
                     }}
                   >
                     {m.first_name}
                   </div>
                   <div
                     style={{
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      opacity: 0.7,
-                      color: isMe || isRoot ? "white" : "#8E7745",
+                      fontSize: "10px",
+                      fontWeight: 600,
+                      opacity: 0.6,
+                      color: isMe || isRoot ? "rgba(255,255,255,0.7)" : "#8E7745",
                     }}
                   >
                     {isExtra ? "بدون حساب" : m.father_name || "السيف"}
@@ -337,9 +351,9 @@ function FamilyTreePage() {
                       setEditing(m.id);
                       setDraftParent(m.parent_id);
                     }}
-                    style={{ padding: "4px", opacity: 0.5 }}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gold-primary"
                   >
-                    <Pencil size={12} />
+                    <Pencil size={14} />
                   </button>
                 )}
               </div>
@@ -567,33 +581,38 @@ function FamilyTreePage() {
       <style>{`
         .tree-link {
           fill: none;
-          stroke: #1B4332;
-          stroke-width: 2px;
-          stroke-dasharray: 6;
-          opacity: 0.15;
+          stroke: #D4AF37;
+          stroke-width: 1.5px;
+          opacity: 0.3;
+          transition: all 0.5s ease;
         }
-        .rd3t-tree-container { width: 100%; height: 100%; background: radial-gradient(#F2F2F7 1px, transparent 1px); background-size: 20px 20px; }
+        .rd3t-tree-container {
+          width: 100%;
+          height: 100%;
+          background: #F9F9F9;
+          background-image:
+            radial-gradient(circle at 2px 2px, rgba(0,0,0,0.03) 1px, transparent 0);
+          background-size: 24px 24px;
+        }
 
         /* iOS Safari Fixes */
         .tree-node-content {
-          border-color: #E5E4E0;
-          background-color: white;
+          border-color: rgba(0,0,0,0.05);
+          background-color: rgba(255, 255, 255, 0.8) !important;
         }
-        .tree-node-content.is-root {
+        .tree-node-content:hover {
+          transform: translateY(-4px) scale(1.02);
+          box-shadow: 0 12px 40px rgba(0,0,0,0.1) !important;
+          background-color: white !important;
+        }
+        .tree-node-content.is-root, .tree-node-content.is-me {
           background-color: #1B4332 !important;
-          border-color: #D4AF37 !important;
         }
-        .tree-node-content.is-me {
+        .tree-node-content.is-root:hover, .tree-node-content.is-me:hover {
           background-color: #1B4332 !important;
-          border-color: #D4AF37 !important;
-        }
-        .tree-node-content.is-match {
-          background-color: #D4AF37 !important;
-          border-color: white !important;
         }
         .tree-node-content.is-extra {
-          background-color: #FFF8E7 !important;
-          border-color: #D4AF37 !important;
+          background-color: rgba(255, 248, 231, 0.85) !important;
         }
 
         /* Force GPU rendering for SVG nodes on iOS */
