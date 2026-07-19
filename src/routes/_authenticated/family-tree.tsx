@@ -25,6 +25,7 @@ import {
   UserPlus,
   Trash2,
   UserCircle2,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -97,7 +98,7 @@ function FamilyTreePage() {
             )
             .eq("id", user.id)
             .maybeSingle(),
-          supabase.from("user_roles").select("role").eq("user_id", user.id),
+          supabase.from("user_roles").select("user_id, role"),
         ]);
         const rs = (roles ?? []).map((r) => r.role);
         const isAdmin = rs.includes("admin") || rs.includes("manager") || rs.includes("chairman");
@@ -196,7 +197,7 @@ function FamilyTreePage() {
     if (!roots.length) return [];
     return [
       {
-        name: "مجلس السيف",
+        name: "عائلة السيف",
         attributes: { memberId: "__root__" } as any,
         children: roots.map(build),
       },
@@ -247,7 +248,7 @@ function FamilyTreePage() {
           <div
             onClick={toggleNode}
             className={cn(
-              "relative flex flex-col items-center justify-center gap-3 transition-all duration-500 p-4 cursor-pointer",
+              "relative flex flex-col items-center justify-center gap-3 transition-all duration-500 p-4 cursor-pointer group",
               isSearchMatch && "scale-110",
             )}
           >
@@ -284,9 +285,6 @@ function FamilyTreePage() {
                   )}
                 </div>
               </div>
-
-              {/* Relationship Lines Visual (Optional) */}
-              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0.5 h-2 bg-gold-primary/20" />
             </div>
 
             {/* Content Card */}
@@ -312,12 +310,12 @@ function FamilyTreePage() {
             </div>
 
             {/* Admin Pencil - Floating */}
-            {isPriv && !isRoot && (
+            {isPriv && !isRoot && m && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  setEditing(m!.id);
-                  setDraftParent(m!.parent_id);
+                  setEditing(m.id);
+                  setDraftParent(m.parent_id);
                 }}
                 className="absolute top-2 right-2 size-8 rounded-full bg-white shadow-lg border border-border flex items-center justify-center text-primary hover:bg-gold-primary hover:text-white transition-all opacity-0 group-hover:opacity-100"
               >
@@ -325,10 +323,6 @@ function FamilyTreePage() {
               </button>
             )}
           </div>
-        </foreignObject>
-      </g>
-    );
-  };
         </foreignObject>
       </g>
     );
@@ -445,7 +439,7 @@ function FamilyTreePage() {
 
         {editingMember && (
           <div
-            className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+            className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
             onClick={() => setEditing(null)}
           >
             <div
@@ -522,7 +516,7 @@ function FamilyTreePage() {
                   disabled={saving}
                   className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2"
                 >
-                  {saving ? <Loader2 className="size-3 animate-spin" /> : <Check size={3} />} حفظ
+                  {saving ? <Loader2 className="size-3 animate-spin" /> : <Check size={16} />} حفظ
                 </button>
               </div>
             </div>
@@ -574,6 +568,12 @@ function FamilyTreePage() {
         .is-me {
           transform: scale(1.1);
         }
+
+        /* Force GPU rendering for SVG nodes on iOS */
+        foreignObject {
+          transform: translateZ(0);
+          -webkit-transform: translateZ(0);
+        }
       `}</style>
 
       {/* SVG Gradients for Links */}
@@ -586,16 +586,6 @@ function FamilyTreePage() {
           </linearGradient>
         </defs>
       </svg>
-    </AppShell>
-  );
-}
-
-        /* Force GPU rendering for SVG nodes on iOS */
-        foreignObject {
-          transform: translateZ(0);
-          -webkit-transform: translateZ(0);
-        }
-      `}</style>
     </AppShell>
   );
 }
@@ -660,7 +650,7 @@ function AddMemberDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
