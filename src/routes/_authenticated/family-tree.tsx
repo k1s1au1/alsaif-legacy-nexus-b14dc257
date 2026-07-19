@@ -54,8 +54,8 @@ type Member = {
   kind: "profile" | "extra";
 };
 
-const NODE_W = 180;
-const NODE_H = 88;
+const NODE_W = 140;
+const NODE_H = 160;
 
 function FamilyTreePage() {
   const router = useRouter();
@@ -246,119 +246,89 @@ function FamilyTreePage() {
         <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2}>
           <div
             onClick={toggleNode}
-            style={{
-              width: `${NODE_W}px`,
-              height: `${NODE_H}px`,
-              display: "flex",
-              alignItems: "center",
-              padding: "10px",
-              borderRadius: "24px",
-              border: isMe || isRoot ? "2px solid #D4AF37" : "1px solid rgba(255, 255, 255, 0.2)",
-              backgroundColor: isMe || isRoot
-                ? "rgba(27, 67, 50, 0.95)"
-                : "rgba(255, 255, 255, 0.8)",
-              backdropFilter: "blur(12px)",
-              WebkitBackdropFilter: "blur(12px)",
-              boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.07)",
-              boxSizing: "border-box",
-              cursor: "pointer",
-              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-            }}
             className={cn(
-              "tree-node-content group",
-              isRoot && "is-root",
-              isMe && "is-me",
-              isSearchMatch && "ring-4 ring-gold-primary/30",
-              isExtra && "is-extra",
+              "relative flex flex-col items-center justify-center gap-3 transition-all duration-500 p-4 cursor-pointer",
+              isSearchMatch && "scale-110",
             )}
           >
-            {isRoot ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "10px", width: "100%", justifyContent: "center" }}>
-                <div className="size-10 rounded-xl bg-gold-primary/20 flex items-center justify-center border border-gold-primary/30">
-                  <Trees size={20} className="text-gold-primary" />
-                </div>
-                <div style={{ textAlign: "right" }}>
-                   <div style={{ fontSize: "14px", fontWeight: 900, color: "white" }}>
-                    {nodeDatum.name}
-                  </div>
-                  <div style={{ fontSize: "9px", fontWeight: 700, color: "rgba(255,255,255,0.6)", uppercase: true, tracking: "0.1em" }}>
-                    أصل العائلة
-                  </div>
-                </div>
-              </div>
-            ) : m ? (
+            {/* Medallion Avatar Container */}
+            <div className="relative">
               <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  overflow: "hidden",
-                }}
+                className={cn(
+                  "size-20 md:size-24 rounded-full p-1 transition-all duration-500 shadow-xl",
+                  isRoot ? "bg-gradient-to-br from-gold-primary via-white to-gold-primary animate-pulse" :
+                  isMe ? "bg-gradient-to-br from-emerald-400 to-primary" :
+                  isExtra ? "bg-slate-200" : "bg-gradient-to-br from-primary/20 to-primary/5",
+                  isSearchMatch && "ring-4 ring-gold-primary ring-offset-4"
+                )}
               >
-                <div
-                  style={{
-                    width: "44px",
-                    height: "44px",
-                    borderRadius: "14px",
-                    overflow: "hidden",
-                    border: "1.5px solid rgba(212, 175, 55, 0.4)",
-                    flexShrink: 0,
-                    boxShadow: "0 4px 12px rgba(0,0,0,0.05)",
-                  }}
-                >
-                  {isExtra ? (
-                    <div className="size-full bg-gold-primary/5 flex items-center justify-center">
-                      <UserCircle2 size={24} className="text-gold-primary" />
+                <div className="size-full rounded-full bg-white overflow-hidden border-2 border-white shadow-inner flex items-center justify-center relative">
+                  {isRoot ? (
+                    <div className="size-full bg-primary flex items-center justify-center">
+                       <Trees size={32} className="text-gold-primary" />
                     </div>
+                  ) : isExtra ? (
+                    <UserCircle2 size={48} className="text-slate-400" />
                   ) : (
                     <UserAvatar
-                      name={m.first_name || "ع"}
-                      path={m.avatar_url}
+                      name={m?.first_name || "ع"}
+                      path={m?.avatar_url}
                       className="size-full"
-                      userId={m.id}
+                      userId={m?.id}
                     />
                   )}
+
+                  {/* Status Indicator */}
+                  {!isRoot && !isExtra && (
+                    <div className="absolute bottom-1 right-1 size-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
+                  )}
                 </div>
-                <div style={{ flex: 1, textAlign: "right", paddingRight: "12px", overflow: "hidden" }}>
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      fontWeight: 800,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                      color: isMe || isRoot ? "white" : "#1B4332",
-                      letterSpacing: "-0.01em",
-                    }}
-                  >
-                    {m.first_name}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "10px",
-                      fontWeight: 600,
-                      opacity: 0.6,
-                      color: isMe || isRoot ? "rgba(255,255,255,0.7)" : "#8E7745",
-                    }}
-                  >
-                    {isExtra ? "بدون حساب" : m.father_name || "السيف"}
-                  </div>
-                </div>
-                {isPriv && (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditing(m.id);
-                      setDraftParent(m.parent_id);
-                    }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-gold-primary"
-                  >
-                    <Pencil size={14} />
-                  </button>
-                )}
               </div>
-            ) : null}
+
+              {/* Relationship Lines Visual (Optional) */}
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0.5 h-2 bg-gold-primary/20" />
+            </div>
+
+            {/* Content Card */}
+            <div
+              className={cn(
+                "px-4 py-2 rounded-2xl border text-center min-w-[120px] shadow-sm backdrop-blur-md transition-all duration-300",
+                isRoot ? "bg-primary text-white border-gold-primary/50 shadow-gold-primary/20" :
+                isMe ? "bg-primary text-white border-primary" :
+                "bg-white/80 text-primary border-border"
+              )}
+            >
+              <p className="text-sm font-black tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
+                {isRoot ? nodeDatum.name : m?.first_name}
+              </p>
+              <p
+                className={cn(
+                  "text-[9px] font-bold uppercase tracking-widest mt-0.5 opacity-60",
+                  (isRoot || isMe) ? "text-white/70" : "text-gold-primary"
+                )}
+              >
+                {isRoot ? "الأصل" : isExtra ? "قيد التسجيل" : m?.father_name || "السيف"}
+              </p>
+            </div>
+
+            {/* Admin Pencil - Floating */}
+            {isPriv && !isRoot && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditing(m!.id);
+                  setDraftParent(m!.parent_id);
+                }}
+                className="absolute top-2 right-2 size-8 rounded-full bg-white shadow-lg border border-border flex items-center justify-center text-primary hover:bg-gold-primary hover:text-white transition-all opacity-0 group-hover:opacity-100"
+              >
+                <Pencil size={14} />
+              </button>
+            )}
           </div>
+        </foreignObject>
+      </g>
+    );
+  };
         </foreignObject>
       </g>
     );
@@ -457,11 +427,11 @@ function FamilyTreePage() {
                   setTranslate(state.translate);
                 }
               }}
-              pathFunc="step"
-              pathClassFunc={() => "tree-link"}
-              nodeSize={{ x: NODE_W + 40, y: NODE_H + 60 }}
+              pathFunc="diagonal"
+              pathClassFunc={() => "tree-link-curved"}
+              nodeSize={{ x: NODE_W + 60, y: NODE_H + 100 }}
               renderCustomNodeElement={renderNode}
-              collapsible={false}
+              collapsible={true}
               zoomable
               draggable
               transitionDuration={800}
@@ -579,41 +549,46 @@ function FamilyTreePage() {
       </div>
 
       <style>{`
-        .tree-link {
+        .tree-link-curved {
           fill: none;
-          stroke: #D4AF37;
-          stroke-width: 1.5px;
-          opacity: 0.3;
+          stroke: url(#link-gradient);
+          stroke-width: 2.5px;
+          opacity: 0.4;
           transition: all 0.5s ease;
         }
+
         .rd3t-tree-container {
           width: 100%;
           height: 100%;
-          background: #F9F9F9;
+          background: #051410;
           background-image:
-            radial-gradient(circle at 2px 2px, rgba(0,0,0,0.03) 1px, transparent 0);
-          background-size: 24px 24px;
+            radial-gradient(circle at 2px 2px, rgba(212,175,55,0.05) 1px, transparent 0);
+          background-size: 32px 32px;
         }
 
-        /* iOS Safari Fixes */
-        .tree-node-content {
-          border-color: rgba(0,0,0,0.05);
-          background-color: rgba(255, 255, 255, 0.8) !important;
+        /* Modern Organic Nodes */
+        .node-group {
+          filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
         }
-        .tree-node-content:hover {
-          transform: translateY(-4px) scale(1.02);
-          box-shadow: 0 12px 40px rgba(0,0,0,0.1) !important;
-          background-color: white !important;
+
+        .is-me {
+          transform: scale(1.1);
         }
-        .tree-node-content.is-root, .tree-node-content.is-me {
-          background-color: #1B4332 !important;
-        }
-        .tree-node-content.is-root:hover, .tree-node-content.is-me:hover {
-          background-color: #1B4332 !important;
-        }
-        .tree-node-content.is-extra {
-          background-color: rgba(255, 248, 231, 0.85) !important;
-        }
+      `}</style>
+
+      {/* SVG Gradients for Links */}
+      <svg style={{ width: 0, height: 0, position: 'absolute' }}>
+        <defs>
+          <linearGradient id="link-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.2" />
+            <stop offset="50%" stopColor="#D4AF37" stopOpacity="0.8" />
+            <stop offset="100%" stopColor="#D4AF37" stopOpacity="0.2" />
+          </linearGradient>
+        </defs>
+      </svg>
+    </AppShell>
+  );
+}
 
         /* Force GPU rendering for SVG nodes on iOS */
         foreignObject {
