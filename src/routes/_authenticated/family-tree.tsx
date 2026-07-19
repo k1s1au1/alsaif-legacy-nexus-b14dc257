@@ -423,7 +423,7 @@ function FamilyTreePage() {
               }}
               pathFunc="diagonal"
               pathClassFunc={() => "tree-link-curved"}
-              nodeSize={{ x: NODE_W + 60, y: NODE_H + 100 }}
+              nodeSize={{ x: NODE_W + 100, y: NODE_H + 120 }}
               renderCustomNodeElement={renderNode}
               collapsible={true}
               zoomable
@@ -545,9 +545,10 @@ function FamilyTreePage() {
       <style>{`
         .tree-link-curved {
           fill: none;
-          stroke: url(#link-gradient);
-          stroke-width: 2.5px;
-          opacity: 0.4;
+          stroke: #D4AF37;
+          stroke-width: 3.5px;
+          stroke-linecap: round;
+          opacity: 0.6;
           transition: all 0.5s ease;
         }
 
