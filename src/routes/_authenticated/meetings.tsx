@@ -380,17 +380,10 @@ function MeetingsPage() {
     );
   };
 
-  const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
-
   const carouselOpts = useMemo(
     () => ({ loop: upcoming.length > 1, direction: "rtl" as const }),
     [upcoming.length],
   );
-
-  const tabs: { key: typeof tab; label: string; count?: number; icon: any }[] = [
-    { key: "upcoming", label: "القادمة", count: upcoming.length, icon: Timer },
-    { key: "past", label: "الأرشيف", count: past.length, icon: Clock },
-  ];
 
   return (
     <AppShell title="الاجتماعات" user={profile}>
@@ -433,39 +426,7 @@ function MeetingsPage() {
           </div>
         </section>
 
-        {/* Tabs */}
-        <div className="grid grid-cols-2 gap-1.5 p-1.5 bg-muted/40 rounded-2xl border border-border/40">
-          {tabs.map((t) => {
-            const Icon = t.icon;
-            const active = tab === t.key;
-            return (
-              <button
-                key={t.key}
-                onClick={() => setTab(t.key)}
-                className={cn(
-                  "min-w-0 px-2 sm:px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 sm:gap-2 text-[11px] sm:text-sm font-black transition-all",
-                  active
-                    ? "bg-primary text-white shadow-lg"
-                    : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <Icon size={14} className="shrink-0" />
-                <span className="truncate">{t.label}</span>
-                {typeof t.count === "number" && t.count > 0 && (
-                  <span
-                    className={cn(
-                      "hidden sm:inline text-[10px] font-black px-1.5 py-0.5 rounded-full shrink-0",
-                      active ? "bg-white/20" : "bg-muted-foreground/10",
-                    )}
-                  >
-                    {t.count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
+        {/* Meeting List */}
         {loading ? (
           <div className="flex flex-col items-center justify-center py-32 space-y-4 opacity-40">
             <div className="size-12 rounded-full border-4 border-primary/20 border-t-gold-primary animate-spin" />
@@ -474,96 +435,49 @@ function MeetingsPage() {
             </p>
           </div>
         ) : (
-          <div key={tab} className="animate-fade-up">
-            {tab === "upcoming" &&
-              (upcoming.length === 0 ? (
-                <div className="card-surface p-16 flex flex-col items-center text-center gap-4 border-dashed border-2 opacity-60 rounded-[32px] bg-muted/20">
-                  <CalendarDays size={48} className="text-muted-foreground opacity-40" />
-                  <p className="text-lg font-black text-primary">لا توجد اجتماعات مجدولة</p>
-                </div>
-              ) : (
-                <Carousel
-                  plugins={carouselPlugins}
-                  className="w-full"
-                  opts={carouselOpts}
-                >
-                  <CarouselContent>
-                    {(upcoming || []).map((m) => (
-                      <CarouselItem key={m.id} className="pl-0">
-                        <MeetingInteractiveCard
-                          meeting={m}
-                          attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
-                          profiles={profiles}
-                          myRsvp={myRsvp(m.id)}
-                          myCompanions={myCompanions(m.id)}
-                          onRsvp={setRsvp}
-                          canManage={canManage}
-                          onEdit={openEdit}
-                          onDelete={deleteMeeting}
-                          onRemind={handleRemindAll}
-                          saving={savingRsvp === m.id}
-                          ready={!rolesLoading && !!userId}
-                          dynamicLogo={dynamicLogo}
-                          userId={userId}
-                        />
-                      </CarouselItem>
-                    ))}
-                  </CarouselContent>
-
-                  {upcoming.length > 1 && (
-                    <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 right-4 flex-col gap-3 z-30">
-                      <CarouselPrevious className="static translate-x-0 translate-y-0 bg-black/20 backdrop-blur-md border-white/10 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
-                      <CarouselNext className="static translate-x-0 translate-y-0 bg-black/20 backdrop-blur-md border-white/10 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
-                    </div>
-                  )}
-                </Carousel>
-              ))}
-
-            {tab === "past" &&
-              (past.length === 0 ? (
-                <div className="card-surface p-16 flex flex-col items-center text-center gap-4 border-dashed border-2 opacity-60 rounded-[32px] bg-muted/20">
-                  <Clock size={48} className="text-muted-foreground opacity-40" />
-                  <p className="text-lg font-black text-primary">لا توجد اجتماعات سابقة</p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {past.map((m) => (
-                    <div key={m.id} className="space-y-3">
-                      <div className="card-surface p-5 flex items-center justify-between hover:bg-muted/40 transition-all group rounded-[24px]">
-                        <div className="flex items-center gap-4">
-                          <div className="size-14 rounded-2xl bg-muted flex flex-col items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
-                            <span className="text-[10px] font-black uppercase tracking-tighter">
-                              {formatDate(m.scheduled_at).month}
-                            </span>
-                            <span className="text-2xl font-black tracking-tighter leading-none">
-                              {formatDate(m.scheduled_at).day}
-                            </span>
-                          </div>
-                          <div>
-                            <h4 className="font-black text-base text-foreground">{m.title}</h4>
-                            <p className="text-xs font-bold text-muted-foreground">
-                              {formatDate(m.scheduled_at).year}
-                            </p>
-                          </div>
-                        </div>
-                        <ChevronLeft className="opacity-20 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
-                      </div>
-
-                      {m.minutes && (
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowMinutes(m);
-                          }}
-                          className="w-full py-3 rounded-xl bg-primary/5 text-primary font-black text-xs border border-primary/10 hover:bg-primary hover:text-white transition-all flex items-center justify-center gap-2"
-                        >
-                          <FileText size={14} /> عرض محضر الاجتماع
-                        </button>
-                      )}
-                    </div>
+          <div className="animate-fade-up">
+            {upcoming.length === 0 ? (
+              <div className="card-surface p-16 flex flex-col items-center text-center gap-4 border-dashed border-2 opacity-60 rounded-[32px] bg-muted/20">
+                <CalendarDays size={48} className="text-muted-foreground opacity-40" />
+                <p className="text-lg font-black text-primary">لا توجد اجتماعات مجدولة</p>
+              </div>
+            ) : (
+              <Carousel
+                plugins={carouselPlugins}
+                className="w-full"
+                opts={carouselOpts}
+              >
+                <CarouselContent>
+                  {(upcoming || []).map((m) => (
+                    <CarouselItem key={m.id} className="pl-0">
+                      <MeetingInteractiveCard
+                        meeting={m}
+                        attendeesList={attendees.filter((a) => a.meeting_id === m.id)}
+                        profiles={profiles}
+                        myRsvp={myRsvp(m.id)}
+                        myCompanions={myCompanions(m.id)}
+                        onRsvp={setRsvp}
+                        canManage={canManage}
+                        onEdit={openEdit}
+                        onDelete={deleteMeeting}
+                        onRemind={handleRemindAll}
+                        saving={savingRsvp === m.id}
+                        ready={!rolesLoading && !!userId}
+                        dynamicLogo={dynamicLogo}
+                        userId={userId}
+                      />
+                    </CarouselItem>
                   ))}
-                </div>
-              ))}
+                </CarouselContent>
+
+                {upcoming.length > 1 && (
+                  <div className="hidden md:flex absolute top-1/2 -translate-y-1/2 right-4 flex-col gap-3 z-30">
+                    <CarouselPrevious className="static translate-x-0 translate-y-0 bg-black/20 backdrop-blur-md border-white/10 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
+                    <CarouselNext className="static translate-x-0 translate-y-0 bg-black/20 backdrop-blur-md border-white/10 text-white hover:bg-gold-primary hover:text-black transition-all size-12 shadow-2xl" />
+                  </div>
+                )}
+              </Carousel>
+            )}
           </div>
         )}
       </div>
