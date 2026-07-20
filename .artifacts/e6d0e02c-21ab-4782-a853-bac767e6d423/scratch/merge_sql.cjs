@@ -9,11 +9,11 @@ const files = fs.readdirSync(migrationsDir)
   .filter(f => f.endsWith('.sql'))
   .sort();
 
-let fullSql = `-- Consolidated Schema Script (V8 - FINAL SIMPLIFIED CLEANUP)\n`;
+let fullSql = `-- Consolidated Schema Script (V9 - FIX DOUBLE KEYWORD ERROR)\n`;
 fullSql += `SET client_encoding = 'UTF8';\n`;
 fullSql += `SET check_function_bodies = false;\n\n`;
 
-// 1. SIMPLEST CLEANUP (No complex logic, just direct drops)
+// 1. SIMPLEST CLEANUP
 fullSql += `
 DROP PUBLICATION IF EXISTS supabase_realtime;
 DROP SCHEMA IF EXISTS public CASCADE;
@@ -26,11 +26,10 @@ GRANT ALL ON SCHEMA public TO anon, authenticated, service_role;
 for (const file of files) {
   let content = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
 
-  // Strip ALL restricted commands across all files
+  // Strip ONLY the problematic commands
   content = content.replace(/ALTER PUBLICATION .*/gi, '-- Command skipped');
   content = content.replace(/ALTER TABLE .* OWNER TO .*/gi, '-- Ownership skipped');
   content = content.replace(/ALTER TABLE .* REPLICA IDENTITY .*/gi, '-- Identity skipped');
-  content = content.replace(/ALTER TABLE .* ENABLE ROW LEVEL SECURITY/gi, 'ALTER TABLE $&'); // keep RLS
 
   // Force correct project ID
   content = content.replace(/wzgzkyzpzniduwcgdozl/g, 'zqllblksdyutspauafgi');
@@ -44,4 +43,4 @@ for (const file of files) {
 }
 
 fs.writeFileSync(outputFile, fullSql, 'utf8');
-console.log(`Merged ${files.length} files into ${outputFile} (V8)`);
+console.log(`Merged ${files.length} files into ${outputFile} (V9)`);
