@@ -1,19 +1,9 @@
--- Consolidated Schema Script (V7 - THE NUCLEAR CLEANUP)
+-- Consolidated Schema Script (V8 - FINAL SIMPLIFIED CLEANUP)
 SET client_encoding = 'UTF8';
 SET check_function_bodies = false;
 
 
--- Nuclear cleanup to fix "must be owner" errors
-DO $$
-BEGIN
-    -- Remove the publication link first (common cause of ownership errors)
-    IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-        ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.messages;
-        ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.conversations;
-        ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.profiles;
-    END IF;
-END $$;
-
+DROP PUBLICATION IF EXISTS supabase_realtime;
 DROP SCHEMA IF EXISTS public CASCADE;
 CREATE SCHEMA public;
 GRANT ALL ON SCHEMA public TO postgres;
@@ -38,7 +28,7 @@ CREATE TABLE public.profiles (
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.profiles TO authenticated;
 GRANT ALL ON public.profiles TO service_role;
-ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 -- User roles
 CREATE TABLE public.user_roles (
@@ -50,7 +40,7 @@ CREATE TABLE public.user_roles (
 );
 GRANT SELECT ON public.user_roles TO authenticated;
 GRANT ALL ON public.user_roles TO service_role;
-ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
 
 -- Security definer role check (avoids RLS recursion)
 CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role public.app_role)
@@ -77,7 +67,7 @@ CREATE TABLE public.admin_activity_log (
 );
 GRANT SELECT ON public.admin_activity_log TO authenticated;
 GRANT ALL ON public.admin_activity_log TO service_role;
-ALTER TABLE public.admin_activity_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.admin_activity_log ENABLE ROW LEVEL SECURITY;
 
 -- Profiles policies
 CREATE POLICY "All members view profiles"
@@ -176,7 +166,7 @@ CREATE TABLE public.messages (
 GRANT SELECT, INSERT ON public.messages TO authenticated;
 GRANT ALL ON public.messages TO service_role;
 
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members read all messages" ON public.messages
   FOR SELECT TO authenticated USING (true);
@@ -189,8 +179,8 @@ CREATE POLICY "Admins delete messages" ON public.messages
 
 CREATE INDEX messages_created_at_idx ON public.messages (created_at DESC);
 
--- Realtime skipped
--- Identity skipped;
+-- Command skipped
+-- Identity skipped
 
 -- Migration: 20260613023855_3a5080d8-d394-4c53-b7b5-8e2557ff94f0.sql
 
@@ -216,7 +206,7 @@ CREATE TABLE public.chat_rooms (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_rooms TO authenticated;
 GRANT ALL ON public.chat_rooms TO service_role;
-ALTER TABLE public.chat_rooms ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.chat_rooms ENABLE ROW LEVEL SECURITY;
 
 -- 3) chat_room_members
 CREATE TABLE public.chat_room_members (
@@ -230,7 +220,7 @@ CREATE TABLE public.chat_room_members (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.chat_room_members TO authenticated;
 GRANT ALL ON public.chat_room_members TO service_role;
-ALTER TABLE public.chat_room_members ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.chat_room_members ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX idx_chat_room_members_user ON public.chat_room_members(user_id);
 CREATE INDEX idx_chat_room_members_room ON public.chat_room_members(room_id);
@@ -413,10 +403,10 @@ CREATE POLICY "Room admins delete messages"
   USING (public.is_room_admin(auth.uid(), room_id));
 
 -- 12) Realtime publication
--- Realtime skipped
--- Realtime skipped
--- Identity skipped;
--- Identity skipped;
+-- Command skipped
+-- Command skipped
+-- Identity skipped
+-- Identity skipped
 
 
 -- Migration: 20260613024625_12d2a558-2cba-4755-bfc8-88bd05a6f608.sql
@@ -457,7 +447,7 @@ CREATE TABLE public.conversations (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.conversations TO authenticated;
 GRANT ALL ON public.conversations TO service_role;
-ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.conversations ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX idx_conversations_last_msg ON public.conversations(last_message_at DESC);
 CREATE TRIGGER touch_conversations_updated_at
@@ -481,7 +471,7 @@ CREATE TABLE public.conversation_participants (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.conversation_participants TO authenticated;
 GRANT ALL ON public.conversation_participants TO service_role;
-ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.conversation_participants ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX idx_cp_user ON public.conversation_participants(user_id);
 CREATE INDEX idx_cp_conv ON public.conversation_participants(conversation_id);
@@ -531,7 +521,7 @@ CREATE TABLE public.messages (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.messages TO authenticated;
 GRANT ALL ON public.messages TO service_role;
-ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX idx_messages_conv ON public.messages(conversation_id, created_at DESC);
 CREATE INDEX idx_messages_sender ON public.messages(sender_id);
@@ -550,7 +540,7 @@ CREATE TABLE public.message_reactions (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.message_reactions TO authenticated;
 GRANT ALL ON public.message_reactions TO service_role;
-ALTER TABLE public.message_reactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.message_reactions ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX idx_mr_message ON public.message_reactions(message_id);
 
@@ -569,7 +559,7 @@ CREATE TABLE public.message_deliveries (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.message_deliveries TO authenticated;
 GRANT ALL ON public.message_deliveries TO service_role;
-ALTER TABLE public.message_deliveries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.message_deliveries ENABLE ROW LEVEL SECURITY;
 
 CREATE INDEX idx_md_user ON public.message_deliveries(user_id);
 CREATE INDEX idx_md_message ON public.message_deliveries(message_id);
@@ -586,7 +576,7 @@ CREATE TABLE public.user_presence (
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.user_presence TO authenticated;
 GRANT ALL ON public.user_presence TO service_role;
-ALTER TABLE public.user_presence ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.user_presence ENABLE ROW LEVEL SECURITY;
 
 CREATE TRIGGER touch_user_presence_updated_at
   BEFORE UPDATE ON public.user_presence
@@ -821,18 +811,18 @@ $$;
 -- =========================================================
 -- 13) Realtime
 -- =========================================================
--- Realtime skipped
--- Realtime skipped
--- Realtime skipped
--- Realtime skipped
--- Realtime skipped
--- Realtime skipped
--- Identity skipped;
--- Identity skipped;
--- Identity skipped;
--- Identity skipped;
--- Identity skipped;
--- Identity skipped;
+-- Command skipped
+-- Command skipped
+-- Command skipped
+-- Command skipped
+-- Command skipped
+-- Command skipped
+-- Identity skipped
+-- Identity skipped
+-- Identity skipped
+-- Identity skipped
+-- Identity skipped
+-- Identity skipped
 
 
 -- Migration: 20260613024656_eb4b2bfb-440e-4b7d-a2bc-e0776265a148.sql
@@ -992,8 +982,8 @@ REVOKE ALL ON FUNCTION public.mark_conversation_read(uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.mark_conversation_read(uuid) TO authenticated;
 
 -- Migration: 20260613042330_297a47f4-f57c-467e-b1d6-8ab7ff6be613.sql
--- Identity skipped;
--- Realtime skipped
+-- Identity skipped
+-- Command skipped
 
 -- Migration: 20260613043855_7d096d19-7219-48fd-bbf2-761b5c142f5e.sql
 CREATE TABLE public.trips (
@@ -1014,7 +1004,7 @@ CREATE TABLE public.trips (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.trips TO authenticated;
 GRANT ALL ON public.trips TO service_role;
 
-ALTER TABLE public.trips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.trips ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can view trips" ON public.trips
   FOR SELECT TO authenticated USING (true);
@@ -1096,7 +1086,7 @@ CREATE TABLE public.trip_attendees (
 GRANT SELECT, INSERT, DELETE ON public.trip_attendees TO authenticated;
 GRANT ALL ON public.trip_attendees TO service_role;
 
-ALTER TABLE public.trip_attendees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.trip_attendees ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can view attendees"
   ON public.trip_attendees FOR SELECT
@@ -1147,7 +1137,7 @@ CREATE TABLE public.fund_transactions (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.fund_transactions TO authenticated;
 GRANT ALL ON public.fund_transactions TO service_role;
 
-ALTER TABLE public.fund_transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.fund_transactions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can view transactions"
   ON public.fund_transactions FOR SELECT TO authenticated USING (true);
@@ -1173,8 +1163,8 @@ CREATE TRIGGER update_fund_transactions_updated_at
 -- Migration: 20260613060020_85b2b1e2-6127-40ce-a834-c113c0c72b2f.sql
 
 -- Enable realtime
--- Identity skipped;
--- Realtime skipped
+-- Identity skipped
+-- Command skipped
 
 -- Duplicate guard: reject identical tx from same user within 5 seconds
 CREATE OR REPLACE FUNCTION public.prevent_duplicate_fund_tx()
@@ -1241,7 +1231,7 @@ GRANT SELECT, INSERT, UPDATE ON public.bank_transfers TO authenticated;
 GRANT ALL ON public.bank_transfers TO service_role;
 
 -- RLS
-ALTER TABLE public.bank_transfers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.bank_transfers ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members view own transfers"
   ON public.bank_transfers FOR SELECT
@@ -1311,14 +1301,14 @@ CREATE TRIGGER bank_transfer_on_approve_trigger
   FOR EACH ROW EXECUTE FUNCTION public.bank_transfer_on_approve();
 
 -- Realtime
--- Identity skipped;
--- Realtime skipped
+-- Identity skipped
+-- Command skipped
 
 
 -- Migration: 20260614134430_69cddd8a-1b0d-4443-a5bb-645c941d83ff.sql
 
 -- 1) Restrict Realtime subscriptions to conversation members
-ALTER TABLE IF EXISTS realtime.messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE IF EXISTS realtime.messages ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Members can subscribe to their conversation topics" ON realtime.messages;
 CREATE POLICY "Members can subscribe to their conversation topics"
@@ -1390,7 +1380,7 @@ CREATE TABLE public.meetings (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.meetings TO authenticated;
 GRANT ALL ON public.meetings TO service_role;
 
-ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members can view meetings"
   ON public.meetings FOR SELECT TO authenticated USING (true);
@@ -1429,7 +1419,7 @@ CREATE TABLE public.meeting_attendees (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.meeting_attendees TO authenticated;
 GRANT ALL ON public.meeting_attendees TO service_role;
 
-ALTER TABLE public.meeting_attendees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.meeting_attendees ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members can view attendees"
   ON public.meeting_attendees FOR SELECT TO authenticated USING (true);
@@ -1456,8 +1446,8 @@ CREATE TRIGGER meeting_attendees_set_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Realtime
--- Realtime skipped
--- Realtime skipped
+-- Command skipped
+-- Command skipped
 
 
 -- Migration: 20260614143333_fa4e1002-5925-4499-b0f4-0e22c7af5bdf.sql
@@ -1479,7 +1469,7 @@ CREATE TABLE public.archive_items (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.archive_items TO authenticated;
 GRANT ALL ON public.archive_items TO service_role;
 
-ALTER TABLE public.archive_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.archive_items ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated members can view archive"
   ON public.archive_items FOR SELECT TO authenticated
@@ -1674,7 +1664,7 @@ GRANT SELECT, INSERT, UPDATE, DELETE ON public.account_requests TO authenticated
 GRANT INSERT ON public.account_requests TO anon;
 GRANT ALL ON public.account_requests TO service_role;
 
-ALTER TABLE public.account_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.account_requests ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can submit account requests"
 ON public.account_requests
@@ -1729,7 +1719,7 @@ CREATE TABLE public.majlis_posts (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.majlis_posts TO authenticated;
 GRANT ALL ON public.majlis_posts TO service_role;
 
-ALTER TABLE public.majlis_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.majlis_posts ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can read posts" ON public.majlis_posts
   FOR SELECT TO authenticated USING (true);
@@ -1774,7 +1764,7 @@ CREATE TABLE public.majlis_comments (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.majlis_comments TO authenticated;
 GRANT ALL ON public.majlis_comments TO service_role;
 
-ALTER TABLE public.majlis_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.majlis_comments ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can read comments" ON public.majlis_comments
   FOR SELECT TO authenticated USING (true);
@@ -1826,7 +1816,7 @@ CREATE TABLE public.tasks (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.tasks TO authenticated;
 GRANT ALL ON public.tasks TO service_role;
 
-ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.tasks ENABLE ROW LEVEL SECURITY;
 
 -- All authenticated members can view all tasks (family-wide visibility)
 CREATE POLICY "Members can view tasks" ON public.tasks
@@ -1890,7 +1880,7 @@ CREATE TABLE public.events (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.events TO authenticated;
 GRANT ALL ON public.events TO service_role;
 
-ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can view events" ON public.events
   FOR SELECT TO authenticated USING (true);
@@ -1922,7 +1912,7 @@ CREATE TABLE public.event_attendees (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.event_attendees TO authenticated;
 GRANT ALL ON public.event_attendees TO service_role;
 
-ALTER TABLE public.event_attendees ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.event_attendees ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated can view attendees" ON public.event_attendees
   FOR SELECT TO authenticated USING (true);
@@ -2083,7 +2073,7 @@ GRANT SELECT ON public.app_settings TO anon, authenticated;
 GRANT INSERT, UPDATE, DELETE ON public.app_settings TO authenticated;
 GRANT ALL ON public.app_settings TO service_role;
 
-ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.app_settings ENABLE ROW LEVEL SECURITY;
 
 -- Anyone (incl. login page) can read settings
 CREATE POLICY "anyone can read settings"
@@ -2212,7 +2202,7 @@ CREATE TABLE IF NOT EXISTS public.family_tree_extras (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.family_tree_extras TO authenticated;
 GRANT ALL ON public.family_tree_extras TO service_role;
 
-ALTER TABLE public.family_tree_extras ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.family_tree_extras ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "All members view extras" ON public.family_tree_extras
   FOR SELECT TO authenticated USING (true);
@@ -2397,7 +2387,7 @@ create table if not exists public.user_fcm_tokens (
   unique(user_id, token)
 );
 
-alter table public.user_fcm_tokens enable row level security;
+ALTER TABLE alter table public.user_fcm_tokens enable row level security;
 
 create policy "Users can manage their own tokens"
   on public.user_fcm_tokens
@@ -2702,7 +2692,7 @@ CREATE TABLE public.family_businesses (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.family_businesses TO authenticated;
 GRANT ALL ON public.family_businesses TO service_role;
 
-ALTER TABLE public.family_businesses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.family_businesses ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone can view businesses"
   ON public.family_businesses FOR SELECT
@@ -2912,7 +2902,7 @@ CREATE TABLE public.section_heads (
 GRANT SELECT ON public.section_heads TO authenticated;
 GRANT ALL ON public.section_heads TO service_role;
 
-ALTER TABLE public.section_heads ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.section_heads ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Anyone authenticated can view section heads"
   ON public.section_heads FOR SELECT TO authenticated USING (true);
@@ -3009,7 +2999,7 @@ CREATE TABLE IF NOT EXISTS public.family_projects (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.family_projects TO authenticated;
 GRANT ALL ON public.family_projects TO service_role;
 
-ALTER TABLE public.family_projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.family_projects ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members can view projects"
 ON public.family_projects FOR SELECT TO authenticated USING (true);
@@ -3058,7 +3048,7 @@ CREATE TABLE IF NOT EXISTS public.family_project_contributions (
 GRANT SELECT, INSERT, DELETE ON public.family_project_contributions TO authenticated;
 GRANT ALL ON public.family_project_contributions TO service_role;
 
-ALTER TABLE public.family_project_contributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.family_project_contributions ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members can view contributions"
 ON public.family_project_contributions FOR SELECT TO authenticated USING (true);
@@ -3112,7 +3102,7 @@ CREATE TABLE public.meeting_presentations (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.meeting_presentations TO authenticated;
 GRANT ALL ON public.meeting_presentations TO service_role;
 
-ALTER TABLE public.meeting_presentations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.meeting_presentations ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Members can view presentations"
   ON public.meeting_presentations FOR SELECT
@@ -3186,7 +3176,7 @@ CREATE TABLE public.member_posts (
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.member_posts TO authenticated;
 GRANT ALL ON public.member_posts TO service_role;
-ALTER TABLE public.member_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.member_posts ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Members read posts" ON public.member_posts FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Members create own posts" ON public.member_posts FOR INSERT TO authenticated WITH CHECK (auth.uid() = author_id);
 CREATE POLICY "Author or section head update" ON public.member_posts FOR UPDATE TO authenticated
@@ -3207,7 +3197,7 @@ CREATE TABLE public.member_post_comments (
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.member_post_comments TO authenticated;
 GRANT ALL ON public.member_post_comments TO service_role;
-ALTER TABLE public.member_post_comments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.member_post_comments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Members read comments" ON public.member_post_comments FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Members write own comments" ON public.member_post_comments FOR INSERT TO authenticated WITH CHECK (auth.uid() = author_id);
 CREATE POLICY "Author or section head delete comment" ON public.member_post_comments FOR DELETE TO authenticated
@@ -3224,7 +3214,7 @@ CREATE TABLE public.member_post_votes (
 );
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.member_post_votes TO authenticated;
 GRANT ALL ON public.member_post_votes TO service_role;
-ALTER TABLE public.member_post_votes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.member_post_votes ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Members read votes" ON public.member_post_votes FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Members cast own vote" ON public.member_post_votes FOR INSERT TO authenticated WITH CHECK (auth.uid() = voter_id);
 CREATE POLICY "Members change own vote" ON public.member_post_votes FOR UPDATE TO authenticated
@@ -3254,7 +3244,7 @@ CREATE TABLE public.trip_items (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.trip_items TO authenticated;
 GRANT ALL ON public.trip_items TO service_role;
 
-ALTER TABLE public.trip_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.trip_items ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Authenticated members can view trip items"
 ON public.trip_items FOR SELECT
@@ -3314,7 +3304,7 @@ CREATE TABLE public.bug_reports (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.bug_reports TO authenticated;
 GRANT ALL ON public.bug_reports TO service_role;
 
-ALTER TABLE public.bug_reports ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.bug_reports ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "members can create their own bug reports"
   ON public.bug_reports FOR INSERT TO authenticated
@@ -3437,7 +3427,7 @@ CREATE TABLE IF NOT EXISTS public.push_tokens (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.push_tokens TO authenticated;
 GRANT ALL ON public.push_tokens TO service_role;
 
-ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.push_tokens ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "users manage own tokens"
   ON public.push_tokens FOR ALL
@@ -3465,7 +3455,7 @@ CREATE TABLE IF NOT EXISTS public.notification_preferences (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.notification_preferences TO authenticated;
 GRANT ALL ON public.notification_preferences TO service_role;
 
-ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "users manage own prefs"
   ON public.notification_preferences FOR ALL
@@ -3494,7 +3484,7 @@ CREATE TABLE public.secure_vault (
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.secure_vault TO authenticated;
 GRANT ALL ON public.secure_vault TO service_role;
 
-ALTER TABLE public.secure_vault ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.secure_vault ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Owners can view their vault items"
   ON public.secure_vault FOR SELECT TO authenticated
@@ -4696,7 +4686,7 @@ CREATE TABLE public.steps_data (
   UNIQUE (user_id, date)
 );
 
-ALTER TABLE public.steps_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ALTER TABLE public.steps_data ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view all steps data" ON public.steps_data FOR SELECT TO authenticated USING (true);
 CREATE POLICY "Users can manage own steps data" ON public.steps_data FOR ALL TO authenticated USING (auth.uid() = user_id);
