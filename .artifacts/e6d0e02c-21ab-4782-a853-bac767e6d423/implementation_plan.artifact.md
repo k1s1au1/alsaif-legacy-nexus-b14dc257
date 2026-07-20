@@ -1,39 +1,36 @@
-# خطة تحسين الأداء وتوسيع نظام الإشعارات
+# إصلاح خطأ الـ Edge Function وتحسين نظام الإشعارات
 
-تهدف هذه الخطة إلى تحسين سرعة استجابة لوحة التحكم (Dashboard) وتوسيع نطاق الإشعارات التفاعلية لتشمل ألبوم الصور والاجتماعات المرتقبة.
+تم تشخيص المشكلة بوجود رابط مشروع قديم (Hardcoded Project ID) في دوال قاعدة البيانات، مما يتسبب في فشل إرسال الإشعارات التلقائية. كما سنقوم بتحسين استجابة الـ Edge Function لضمان وضوح الأخطاء.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - سأقوم بتحويل نظام جلب البيانات في لوحة التحكم من `useEffect` التقليدي إلى `TanStack Query` لضمان أفضل أداء وتخزين مؤقت (Caching).
-> - تفعيل الإشعارات لصور الألبوم يتطلب إضافة "Triggers" في قاعدة البيانات (Supabase).
-> - بالنسبة لتنبيهات "اقتراب موعد الاجتماع"، سنعتمد حالياً على إرسال إشعار فوري عند إنشاء الاجتماع، مع إمكانية إضافة نظام جدولة (Cron Job) إذا كانت بيئة Supabase تدعم ذلك.
+> - سأقوم بتحديث كود قاعدة البيانات ليستخدم رابط مشروعك الحالي (`wzgzkyzpzniduwcgdozl`).
+> - يرجى التأكد من إضافة مفتاح `FCM_SERVICE_ACCOUNT` (بصيغة JSON) في إعدادات Supabase (Secrets) ليعمل نظام الإشعارات بشكل صحيح.
 
 ## Proposed Changes
 
-### 1. تحسين الأداء (Dashboard Optimization)
+### 1. إصلاح دوال قاعدة البيانات (SQL Fix)
 
-#### [MODIFY] [dashboard.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/routes/_authenticated/dashboard.tsx)
-- استبدال `loadData` بسلسلة من خطافات `useQuery`.
-- تقسيم البيانات إلى استعلامات منفصلة (Profile, Stats, Meetings, Trips, Announcements) لضمان تحميل الأجزاء الجاهزة أولاً.
-- الاستفادة من `staleTime` لتقليل الطلبات المتكررة عند التنقل بين الصفحات.
+#### [NEW] [fix_notification_project_id.sql](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/supabase/migrations/20260720050000_fix_notification_project_id.sql)
+- تحديث دالة `call_send_push` لتشير إلى المشروع الصحيح.
+- تحديث مفتاح الـ API المستخدم في الطلبات الداخلية.
 
-### 2. توسيع نظام الإشعارات (Push Notifications Expansion)
+### 2. تحسين مرونة الـ Edge Function
 
-#### [NEW] [notifications_triggers.sql](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/supabase/migrations/20260720000000_expand_notifications.sql)
-- إضافة وظيفة `notify_archive_item_created` لإرسال إشعار عند إضافة صور أو فيديوهات جديدة للألبوم.
-- إضافة "Trigger" على جدول `archive_items`.
-- تحسين وظيفة `notify_meeting_created` لضمان وصولها لجميع أفراد العائلة بشكل صحيح.
+#### [MODIFY] [index.ts](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/supabase/functions/send-push/index.ts)
+- إضافة تحققات إضافية لضمان عدم انهيار الدالة قبل الـ `try-catch`.
+- تحسين رسائل الخطأ لتكون أكثر وضوحاً في حال نقص الإعدادات.
 
-#### [MODIFY] [meetings.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/routes/_authenticated/meetings.tsx)
-- (اختياري) إضافة زر للمسؤولين لإعادة إرسال تنبيه يدوي للاجتماع (Reminder) في حال اقتراب الموعد.
+### 3. تحسين واجهة الإعدادات
+
+#### [MODIFY] [settings.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/routes/_authenticated/settings.tsx)
+- تحسين التعامل مع أخطاء الـ Edge Function وعرض رسائل تنبيهية ترشد المستخدم لما يجب فعله (مثل التأكد من الـ Secrets).
 
 ## Verification Plan
 
 ### Automated Tests
-- التأكد من عدم وجود أخطاء في الـ Console عند تحميل لوحة التحكم.
-- التحقق من تخزين البيانات في `TanStack Query DevTools`.
+- التأكد من خلو ملفات الـ SQL من أي معرّفات مشاريع قديمة (`zqllblksdyutspauafgi`).
 
 ### Manual Verification
-- تجربة إضافة صورة للألبوم والتأكد من وصول الإشعار (في حال توفر بيئة اختبار).
-- مراقبة سرعة تحميل لوحة التحكم مقارنة بالوضع السابق.
+- تجربة الضغط على زر "إرسال تجربة" في صفحة الإعدادات بعد الرفع والتأكد من ظهور رسالة خطأ واضحة أو نجاح الإرسال.

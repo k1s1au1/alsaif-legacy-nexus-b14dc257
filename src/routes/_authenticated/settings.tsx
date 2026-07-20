@@ -586,11 +586,19 @@ function SettingsPage() {
                       }
                     });
                     toast.dismiss(tId);
-                    if (error) throw error;
-                    if (result?.sent > 0) {
-                      toast.success("تم إرسال الإشعار بنجاح! تفقد مركز التنبيهات.");
+
+                    if (error) {
+                      throw new Error(error.message || "فشل الاتصال بالخادم (Edge Function). تأكد من رفع الوظائف البرمجية للمشروع.");
+                    }
+
+                    if (result?.success) {
+                      if (result.sent > 0) {
+                        toast.success("تم إرسال الإشعار بنجاح! تفقد مركز التنبيهات.");
+                      } else {
+                        toast.error("فشل الإرسال: " + (result.msg || "لم يتم العثور على أجهزة مسجلة لهذا الحساب."));
+                      }
                     } else {
-                      toast.error("فشل الإرسال. تأكد من أن جهازك مسجل ومسموح له بالاستقبال.");
+                      toast.error("خطأ تقني: " + (result?.error || "فشل إرسال الإشعار. تأكد من إعداد FCM_SERVICE_ACCOUNT في Supabase Dashboard."));
                     }
                   } catch (e: any) {
                     toast.dismiss(tId);

@@ -1,6 +1,5 @@
 // Edge function: send-push
-// Final bulletproof version - Verified for Alsaif Family Hub.
-// This update triggers the Publish button in Lovable.
+// Robust version for Alsaif Family Hub.
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -19,6 +18,10 @@ function b64url(input: ArrayBuffer | string) {
 }
 
 async function getAccessToken(sa: any) {
+  if (!sa || !sa.client_email || !sa.private_key || !sa.project_id) {
+    throw new Error("بيانات FCM_SERVICE_ACCOUNT غير مكتملة أو خاطئة.");
+  }
+
   const iat = Math.floor(Date.now() / 1000);
   const header = { alg: "RS256", typ: "JWT" };
   const claim = {
@@ -58,15 +61,24 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS_HEADERS });
 
   try {
-    const { title, body, url, image, user_ids, exclude_user_id, data: customData } = await req.json();
+    const payload = await req.json().catch(() => ({}));
+    const { title, body, url, image, user_ids, exclude_user_id, data: customData } = payload;
 
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const SA_RAW = Deno.env.get("FCM_SERVICE_ACCOUNT");
 
-    if (!SA_RAW) throw new Error("FCM_SERVICE_ACCOUNT secret is missing in Supabase Settings.");
+    if (!SA_RAW) {
+      throw new Error("مفتاح FCM_SERVICE_ACCOUNT مفقود في إعدادات Supabase Dashboard.");
+    }
 
-    const sa = JSON.parse(SA_RAW.trim());
+    let sa;
+    try {
+      sa = JSON.parse(SA_RAW.trim());
+    } catch {
+      throw new Error("مفتاح FCM_SERVICE_ACCOUNT ليس بصيغة JSON صحيحة.");
+    }
+
     const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
 
     // Fetch tokens
@@ -75,7 +87,7 @@ Deno.serve(async (req) => {
       .select("token, user_id")
       .eq("is_active", true);
 
-    if (dbError) throw new Error(`Database Error: ${dbError.message}`);
+    if (dbError) throw new Error(`خطأ في قاعدة البيانات: ${dbError.message}`);
 
     const tokens = (rows || [])
       .filter((r: any) => {
@@ -85,10 +97,10 @@ Deno.serve(async (req) => {
       .map((r: any) => r.token);
 
     if (tokens.length === 0) {
-      return new Response(JSON.stringify({ success: true, sent: 0, msg: "No active devices found." }), { headers: CORS_HEADERS });
+      return new Response(JSON.stringify({ success: true, sent: 0, msg: "لا توجد أجهزة نشطة حالياً لإرسال الإشعار." }), { headers: CORS_HEADERS });
     }
 
-    const token = await getAccessToken(sa);
+    const accessToken = await getAccessToken(sa);
     const fcmUrl = `https://fcm.googleapis.com/v1/projects/${sa.project_id}/messages:send`;
 
     let sent = 0;
@@ -113,7 +125,7 @@ Deno.serve(async (req) => {
 
       const res = await fetch(fcmUrl, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
         body: JSON.stringify(message)
       });
 
@@ -126,7 +138,7 @@ Deno.serve(async (req) => {
   } catch (e: any) {
     console.error(e);
     return new Response(JSON.stringify({ success: false, error: e.message }), {
-      status: 200, // Return 200 to bypass generic browser alerts
+      status: 200,
       headers: CORS_HEADERS
     });
   }
