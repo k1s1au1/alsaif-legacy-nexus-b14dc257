@@ -1,6 +1,6 @@
 
--- تحديث دالة إرسال الإشعارات لتستخدم معرف المشروع الصحيح
--- Project: wzgzkyzpzniduwcgdozl
+-- تحديث دالة إرسال الإشعارات لتستخدم معرف المشروع الصحيح المحدد من قبل المستخدم
+-- Project: zqllblksdyutspauafgi
 
 CREATE OR REPLACE FUNCTION public.call_send_push(
   _title text,
@@ -17,10 +17,10 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  -- تم التحديث للمشروع الحالي
-  v_endpoint text := 'https://wzgzkyzpzniduwcgdozl.supabase.co/functions/v1/send-push';
-  -- مفتاح الـ Anon الخاص بمشروعك
-  v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z3preXpwem5pZHV3Y2dkb3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgzNDAsImV4cCI6MjA5Njg3NDM0MH0.5MP_Is4cPMaet0OlS0xO0bFDOvTU30lf1Wo06sqgZzY';
+  -- التوجيه للمشروع المطلوب
+  v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
+  -- مفتاح الـ Anon الخاص بالمشروع المطلوب
+  v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxbGxibGtzZHl1dHNwYXVhZmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMTc5MjUsImV4cCI6MjA5NzU5MzkyNX0.ZDD-xQ8RTprD-KSuePG4pGhhjh2kDp-YcGFr02cK3s4';
   v_payload jsonb;
 BEGIN
   -- تجهيز بيانات الإشعار
