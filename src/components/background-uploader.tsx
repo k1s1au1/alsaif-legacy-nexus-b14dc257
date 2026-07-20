@@ -25,6 +25,7 @@ export function BackgroundUploader({
 }) {
   const [canEdit, setCanEdit] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [currentPreview, setCurrentPreview] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -43,11 +44,23 @@ export function BackgroundUploader({
           .eq("user_id", user.id);
         const r = (roles ?? []).map((x) => x.role);
         setCanEdit(r.includes("admin") || r.includes("manager") || r.includes("chairman"));
+
+        // Fetch current setting value for preview
+        const { data: setting } = await supabase
+          .from("app_settings")
+          .select("value")
+          .eq("key", settingKey)
+          .maybeSingle();
+
+        if (setting?.value) {
+          const { data: { publicUrl } } = supabase.storage.from(BUCKET).getPublicUrl(setting.value);
+          setCurrentPreview(publicUrl);
+        }
       } catch (err) {
-        console.error("Error checking permissions:", err);
+        console.error("Error checking permissions or fetching preview:", err);
       }
     })();
-  }, []);
+  }, [settingKey]);
 
   if (!canEdit) return null;
 
@@ -107,15 +120,18 @@ export function BackgroundUploader({
       >
         <div
           className={cn(
-            "rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110",
+            "rounded-2xl flex items-center justify-center transition-transform duration-500 group-hover:scale-110 relative overflow-hidden",
             inline ? "size-12 bg-card shadow-sm" : "",
           )}
         >
+          {currentPreview && (
+            <img src={currentPreview} alt="Preview" className="absolute inset-0 size-full object-cover opacity-20" />
+          )}
           {uploading ? (
-            <Loader2 className="size-5 animate-spin text-primary" />
+            <Loader2 className="size-5 animate-spin text-primary relative z-10" />
           ) : (
             <ImagePlus
-              className={cn("size-6", inline ? "text-gold-primary" : "text-navy-base")}
+              className={cn("size-6 relative z-10", inline ? "text-gold-primary" : "text-navy-base")}
               strokeWidth={2}
             />
           )}

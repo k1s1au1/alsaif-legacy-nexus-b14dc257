@@ -52,10 +52,16 @@ function AuthPage() {
   const dynamicLogo = useSiteLogo();
   const { url: customBg } = useAppBackground("auth_bg");
 
-  // Fetch Public Stats with auto-refresh every 60 seconds
+  // Fetch Public Stats directly from the new project to ensure they are "honest"
   const { data: counts = { members: 0, completedTasks: 0 } } = useQuery({
     queryKey: ["public-stats"],
-    queryFn: () => getPublicStats(),
+    queryFn: async () => {
+      const [{ count: mCount }, { count: tCount }] = await Promise.all([
+        supabase.from("profiles").select("*", { count: "exact", head: true }),
+        supabase.from("tasks").select("*", { count: "exact", head: true }).eq("status", "done"),
+      ]);
+      return { members: mCount || 0, completedTasks: tCount || 0 };
+    },
     refetchInterval: 1000 * 60,
   });
 
