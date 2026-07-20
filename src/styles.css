@@ -106,6 +106,54 @@
     font-family: var(--font-royal) !important;
   }
 
+  /* Enhanced Royal Mode Shimmer */
+  html.font-royal-mode h1,
+  html.font-royal-mode h2,
+  html.font-royal-mode .royal-shimmer {
+    background: linear-gradient(
+      to right,
+      var(--gold-primary) 20%,
+      var(--gold-soft) 40%,
+      var(--gold-soft) 60%,
+      var(--gold-primary) 80%
+    );
+    background-size: 200% auto;
+    color: transparent !important;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: royal-shine 4s linear infinite;
+  }
+
+  @keyframes royal-shine {
+    to {
+      background-position: 200% center;
+    }
+  }
+
+  /* Global Royal Ornaments */
+  .royal-ornament {
+    position: fixed;
+    z-index: 150;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s ease;
+    width: 120px;
+    height: 120px;
+    background-size: contain;
+    background-repeat: no-repeat;
+  }
+
+  html.font-royal-mode .royal-ornament {
+    opacity: 0.15;
+  }
+
+  .dark html.font-royal-mode .royal-ornament {
+    opacity: 0.25;
+  }
+
+  .ornament-tr { top: 0; right: 0; }
+  .ornament-bl { bottom: 0; left: 0; transform: rotate(180deg); }
+
   /* Dark mode legibility: ensure text remains crisp over images/glass backgrounds */
   .dark body {
     text-rendering: optimizeLegibility;

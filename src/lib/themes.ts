@@ -84,6 +84,18 @@ export const THEME_COLORS = [
     darkNavBg: "#1c1505",
     mesh: ["rgba(183, 153, 106, 0.12)", "rgba(49, 92, 80, 0.08)"],
   },
+  {
+    id: "royal-oud",
+    name: "العود الملكي",
+    primary: "#3D2B1F",
+    secondary: "#C5A87C",
+    darkPrimary: "#5D4037",
+    darkSecondary: "#D7B98E",
+    foreground: "#FFFFFF",
+    navBg: "#2A1D15",
+    darkNavBg: "#120A06",
+    mesh: ["rgba(197, 168, 124, 0.15)", "rgba(61, 43, 31, 0.1)"],
+  },
 ];
 
 export function applyThemeColors(colors: (typeof THEME_COLORS)[0]) {

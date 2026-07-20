@@ -1,14 +1,6 @@
-- `[x]` التحقق من حالة نظام الإشعارات الحالي
-    - `[x]` التأكد من وجود `push_tokens` في قاعدة البيانات (عن طريق الكود)
-    - `[x]` مراجعة سجلات الـ Edge Function
-- `[x]` تحسين أداء لوحة التحكم (Dashboard)
-    - `[x]` تحويل `Profile` إلى `useQuery`
-    - `[x]` تحويل `Stats/Counts` إلى `useQuery`
-    - `[x]` تحويل `Meetings/Trips` إلى `useQuery`
-    - `[x]` تحويل `Announcements/Heritage` إلى `useQuery`
-    - `[x]` تنظيف الكود القديم و `useEffect`
-- `[x]` توسيع نظام الإشعارات
-    - `[x]` إنشاء Migration لـ Trigger الألبوم (Archive)
-    - `[x]` تحسين Trigger الاجتماعات
-    - `[x]` إضافة زر "تذكير" يدوي في صفحة الاجتماعات للمسؤولين
-- `[x]` التحقق النهائي والاختبار
+- `[x]` إضافة ثيم العود الملكي (Royal Oud)
+    - `[x]` تحديث `themes.ts` بالألوان الجديدة
+- `[x]` تطوير النمط الملكي (Enhanced Royal Mode)
+    - `[x]` إضافة تحريك Shimmer والزخارف في `styles.css`
+    - `[x]` حقن الزخارف في `app-shell.tsx`
+- `[x]` التحقق والاختبار
