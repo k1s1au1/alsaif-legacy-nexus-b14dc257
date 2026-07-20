@@ -1,6 +1,6 @@
 
--- تهيئة محرك الإشعارات ليعمل على مشروع منفصل (zqllblksdyutspauafgi)
--- هذا يسمح ببقاء البيانات على المشروع الأول والإشعارات على الثاني
+-- تهيئة محرك الإشعارات ليعمل على المشروع الحالي (zqllblksdyutspauafgi)
+-- تم توحيد هذا الملف ليكون المرجع الأساسي لإرسال التنبيهات
 
 CREATE OR REPLACE FUNCTION public.call_send_push(
   _title text,
@@ -17,9 +17,9 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  -- توجيه الطلب حصراً لمحرك الإشعارات في المشروع الثاني
+  -- الرابط الخاص بالمشروع الجديد
   v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
-  -- مفتاح الـ Anon الخاص بمشروع الإشعارات
+  -- مفتاح الـ Anon الخاص بالمشروع الجديد
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxbGxibGtzZHl1dHNwYXVhZmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMTc5MjUsImV4cCI6MjA5NzU5MzkyNX0.ZDD-xQ8RTprD-KSuePG4pGhhjh2kDp-YcGFr02cK3s4';
   v_payload jsonb;
 BEGIN
@@ -46,7 +46,7 @@ BEGIN
     COALESCE(_data, '{}'::jsonb) || jsonb_build_object('url', _url)
   );
 
-  -- إرسال الطلب للمشروع الثاني
+  -- إرسال الطلب عبر محرك Supabase HTTP
   PERFORM net.http_post(
     url := v_endpoint,
     headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||v_key,'apikey',v_key),
