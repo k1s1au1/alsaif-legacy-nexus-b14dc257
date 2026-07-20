@@ -487,105 +487,6 @@ function Dashboard() {
     );
   }
 
-  useEffect(() => {
-    if (announcements.length < 2) return;
-    const t = setInterval(() => setAnnIndex((p) => (p + 1) % announcements.length), 7000);
-    return () => clearInterval(t);
-  }, [announcements.length]);
-
-  const statusMessages = useMemo(() => {
-    const msgs = ["نصل العائلة، نحفظ الإرث، ونبني المستقبل."];
-    if (counts.myTasks > 0) msgs.push(`لديك ${counts.myTasks} مسؤوليات بانتظار إنجازك.`);
-    if (counts.newNews > 0) msgs.push(`هناك ${counts.newNews} أخبار جديدة في مركز المجلس.`);
-    msgs.push("المجلس يرحب بكم دائماً يا أهل الوفاء.");
-    msgs.push("كل خطوة تخطونها تبني مجداً لعائلة السيف.");
-    return msgs;
-  }, [counts]);
-
-  useEffect(() => {
-    const t = setInterval(() => setStatusIndex((p) => (p + 1) % statusMessages.length), 6000);
-    return () => clearInterval(t);
-  }, [statusMessages.length]);
-
-  const stats: Array<{
-    label: string;
-    value: number;
-    suffix: string;
-    color: string;
-    icon: React.ElementType<{ className?: string }>;
-    link: "/finance" | "/members" | "/trips" | "/tasks";
-  }> = [
-    {
-      label: "رصيد الصندوق",
-      value: fundBalance,
-      suffix: "ر.س",
-      color: "bg-gradient-to-br from-emerald-600 to-teal-900",
-      icon: Wallet,
-      link: "/finance",
-    },
-    {
-      label: "أفراد العائلة",
-      value: counts.members,
-      suffix: "عضو",
-      color: "bg-gradient-to-br from-primary to-emerald-950",
-      icon: Users,
-      link: "/members",
-    },
-    {
-      label: "ترفيه عائلي",
-      value: counts.trips,
-      suffix: "وجهة",
-      color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]",
-      icon: Plane,
-      link: "/trips",
-    },
-    {
-      label: "مهام قيد التنفيذ",
-      value: counts.tasks,
-      suffix: "مهمة",
-      color: "bg-gradient-to-br from-rose-700 to-rose-950",
-      icon: ListChecks,
-      link: "/tasks",
-    },
-  ];
-
-  const getGreeting = () => {
-    const hr = new Date().getHours();
-    if (hr >= 5 && hr < 12) return "صباح الخير";
-    if (hr >= 12 && hr < 17) return "مساء النور";
-    if (hr >= 17 && hr < 21) return "مساء الخير";
-    return "طاب مساؤك";
-  };
-
-  const sendBugReport = async () => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    if (!bugBody.trim()) return;
-    setBugSending(true);
-    showIsland("جاري إرسال البلاغ...", "loading");
-    try {
-      let url = null;
-      if (bugImage) {
-        const path = `bugs/${profile.userId}/${crypto.randomUUID()}.${bugImage.name.split(".").pop()}`;
-        await supabase.storage.from("trip-images").upload(path, bugImage);
-        url = (await supabase.storage.from("trip-images").createSignedUrl(path, 31536000)).data
-          ?.signedUrl;
-      }
-      await supabase
-        .from("bug_reports" as any)
-        .insert({ reporter_id: profile.userId, body: bugBody.trim(), image_url: url });
-      showIsland("تم إرسال البلاغ بنجاح", "success");
-      setShowBugReport(false);
-      setBugBody("");
-      setBugImage(null);
-      setBugImagePreview(null);
-    } catch {
-      showIsland("فشل الإرسال", "error");
-    } finally {
-      setBugSending(false);
-    }
-  };
-
   return (
     <AppShell title="لوحة العائلة" user={safeProfile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
@@ -782,15 +683,6 @@ function Dashboard() {
           </section>
         )}
 
-              {/* Desktop Arrows */}
-              <div className="hidden md:block">
-                <CarouselPrevious className="right-4 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all" />
-                <CarouselNext className="left-4 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all" />
-              </div>
-            </Carousel>
-          </section>
-        )}
-
         {/* 7. STATS GRID */}
         <section className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 px-2 md:px-0">
           {stats.map((s, i) => (
@@ -851,7 +743,7 @@ function Dashboard() {
                 <p className="text-xs md:text-sm font-bold text-muted-foreground opacity-60 leading-relaxed mt-1">شاركنا أفكارك لتطوير المجلس بسرية تامة وهويتك لن تظهر لأحد.</p>
               </div>
               <div className="absolute -bottom-6 -left-6 size-24 bg-indigo-500/5 rounded-full blur-2xl group-hover:bg-indigo-500/10 transition-colors" />
-            </Link>
+            </div>
           </div>
         </section>
       </div>
