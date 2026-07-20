@@ -53,6 +53,7 @@ function AuthPage() {
   const { url: customBg } = useAppBackground("auth_bg");
 
   // Fetch Public Stats directly from the new project to ensure they are "honest"
+  // Refresh every 10 seconds for a "live" feel
   const { data: counts = { members: 0, completedTasks: 0 } } = useQuery({
     queryKey: ["public-stats"],
     queryFn: async () => {
@@ -62,7 +63,7 @@ function AuthPage() {
       ]);
       return { members: mCount || 0, completedTasks: tCount || 0 };
     },
-    refetchInterval: 1000 * 60,
+    refetchInterval: 1000 * 10,
   });
 
   const [reqForm, setReqForm] = useState({
