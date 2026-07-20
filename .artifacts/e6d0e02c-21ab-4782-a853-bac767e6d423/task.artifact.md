@@ -2,9 +2,9 @@
     - `[x]` إنشاء ملف `shortcuts.xml` لتعريف الأوامر الصوتية
     - `[x]` تحديث `AndroidManifest.xml` لربط ملف الاختصارات وتفعيل الروابط العميقة
     - `[x]` تحديث معالجة الروابط العميقة in `capacitor-client.tsx`
-- `[/]` تنفيذ تكامل الحساسات الحقيقية (Real Sensors)
+- `[x]` تنفيذ تكامل الحساسات الحقيقية (Real Sensors)
     - `[x]` إنشاء `StepsPlugin.java` للوصول لـ SensorManager
     - `[x]` تسجيل الإضافة في `MainActivity.java`
     - `[x]` ربط `steps-challenge.tsx` بالحساس الحقيقي
-    - `[ ]` الرفع لـ GitHub (PUSH)
-- `[ ]` التحقق النهائي
+    - `[x]` الرفع لـ GitHub (PUSH)
+- `[x]` التحقق النهائي
