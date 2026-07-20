@@ -130,30 +130,6 @@
     }
   }
 
-  /* Global Royal Ornaments */
-  .royal-ornament {
-    position: fixed;
-    z-index: 150;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 1s ease;
-    width: 120px;
-    height: 120px;
-    background-size: contain;
-    background-repeat: no-repeat;
-  }
-
-  html.font-royal-mode .royal-ornament {
-    opacity: 0.15;
-  }
-
-  .dark html.font-royal-mode .royal-ornament {
-    opacity: 0.25;
-  }
-
-  .ornament-tr { top: 0; right: 0; }
-  .ornament-bl { bottom: 0; left: 0; transform: rotate(180deg); }
-
   /* Dark mode legibility: ensure text remains crisp over images/glass backgrounds */
   .dark body {
     text-rendering: optimizeLegibility;

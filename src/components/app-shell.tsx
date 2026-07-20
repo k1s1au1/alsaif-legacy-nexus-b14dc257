@@ -393,10 +393,6 @@ export function AppShell({
 
       <DynamicIsland />
 
-      {/* Royal Mode Decorative Ornaments */}
-      <div className="royal-ornament ornament-tr" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100 0 L100 100 Q80 100 80 80 Q60 80 60 60 Q40 60 40 40 Q20 40 20 20 Q0 20 0 0 Z' fill='%23d4af37'/%3E%3C/svg%3E")` }} />
-      <div className="royal-ornament ornament-bl" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M100 0 L100 100 Q80 100 80 80 Q60 80 60 60 Q40 60 40 40 Q20 40 20 20 Q0 20 0 0 Z' fill='%23d4af37'/%3E%3C/svg%3E")` }} />
-
       <AnimatePresence>
         {sidebarOpen && (
           <motion.div
