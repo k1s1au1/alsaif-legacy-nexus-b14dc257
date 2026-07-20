@@ -1,29 +1,35 @@
--- Consolidated Schema Script (V10 - THE DEFINITIVE OWNER FIX)
+-- Consolidated Schema Script (V11 - SURGICAL CLEANUP & NO OWNER LOOP)
 SET client_encoding = 'UTF8';
 SET check_function_bodies = false;
-SET search_path = public, extensions;
 
 
--- Force break all links to publication
+-- Surgical cleanup to avoid "must be owner" errors
 DO $$
+DECLARE
+    r RECORD;
 BEGIN
-    IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
-        DROP PUBLICATION supabase_realtime;
-    END IF;
-EXCEPTION WHEN OTHERS THEN NULL;
+    -- Drop publication if possible
+    BEGIN
+        DROP PUBLICATION IF EXISTS supabase_realtime;
+    EXCEPTION WHEN OTHERS THEN NULL;
+    END;
+
+    -- Drop all tables in public schema individually
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        BEGIN
+            EXECUTE 'DROP TABLE public.' || quote_ident(r.tablename) || ' CASCADE';
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END LOOP;
+
+    -- Drop all types in public
+    FOR r IN (SELECT typname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND typtype = 'e') LOOP
+        BEGIN
+            EXECUTE 'DROP TYPE public.' || quote_ident(r.typname) || ' CASCADE';
+        EXCEPTION WHEN OTHERS THEN NULL;
+        END;
+    END LOOP;
 END $$;
-
--- Wipe public schema completely
-DROP SCHEMA IF EXISTS public CASCADE;
-CREATE SCHEMA public;
-
--- Standard Supabase permissions
-GRANT ALL ON SCHEMA public TO postgres;
-GRANT ALL ON SCHEMA public TO public;
-GRANT ALL ON SCHEMA public TO anon, authenticated, service_role;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
 
 -- Migration: 20260613015316_d4fe85fd-a915-474f-94ce-4421733be622.sql
 
@@ -4847,16 +4853,3 @@ END;
 $$;
 
 
-
--- Final Ownership Correction
-DO $$
-DECLARE
-    r RECORD;
-BEGIN
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-        EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres';
-    END LOOP;
-END $$;
-
--- Re-create publication if needed (Optional, user can do in UI)
--- CREATE PUBLICATION supabase_realtime;
