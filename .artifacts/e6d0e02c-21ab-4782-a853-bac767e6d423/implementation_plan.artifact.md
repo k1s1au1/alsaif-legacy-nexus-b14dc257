@@ -1,43 +1,48 @@
-# خطة تطوير ميزات الأندرويد: Health Connect و Google Assistant
+# خطة استعادة مميزات المجلس الكاملة (المرحلة الأولى)
 
-تهدف هذه الخطة إلى تعزيز قدرات تطبيق الأندرويد من خلال التكامل مع نظام الصحة من جوجل ودعم الأوامر الصوتية.
+تهدف هذه الخطة إلى إعادة بناء المميزات المتقدمة التي كانت موجودة في المشروع القديم بشكل تدريجي ومنظم، لضمان استقرار المشروع الجديد.
 
-## التغييرات المقترحة
+## المميزات المفقودة حالياً (المستهدفة للإعادة)
 
-### 1. التكامل مع Health Connect (مزامنة الخطوات)
-بدلاً من توليد أرقام عشوائية، سنقوم بربط التطبيق بمحرك الصحة من جوجل لسحب الخطوات الحقيقية من الساعات الذكية والتطبيقات الرياضية الأخرى.
+تم تقسيم عملية الاستعادة إلى 4 مراحل (ميلستونز):
 
-#### [MODIFY] [package.json](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/package.json)
-- إضافة مكتبة `@awesome-cordova-plugins/health` أو `capacitor-health-connect` (سأعتمد على مكتبة مستقرة تدعم أندرويد 14+).
+1.  **المرحلة الأولى: نظام الشورى والتفاعل المطور**
+    - إعادة بناء نظام التصويت (Polls) داخل المجلس.
+    - تفعيل إحصائيات التصويت في الوقت الفعلي.
+    - إضافة نظام "ركن الأعضاء" للمنشورات الجانبية.
 
-#### [MODIFY] [AndroidManifest.xml](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/android/app/src/main/AndroidManifest.xml)
-- إضافة تصريح الوصول للخطوات: `androidx.health.permission.read.STEPS`.
-- إضافة `intent-filter` للتعامل مع طلبات فتح Health Connect.
+2.  **المرحلة الثانية: شجرة العائلة والخزنة الرقمية**
+    - بناء جداول شجرة العائلة (العلاقات الأبوية).
+    - تفعيل "الخزنة المؤمنة" لرفع الوثائق الحساسة.
+    - إضافة ميزة "سوق السيف" لدعم مشاريع أفراد العائلة.
 
-#### [MODIFY] [steps-challenge.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/routes/_authenticated/steps-challenge.tsx)
-- استبدال منطق المزامنة العشوائي بطلب البيانات الفعلي من الحساسات عبر المكتبة الجديدة.
+3.  **المرحلة الثالثة: الإدارة المالية المتطورة**
+    - إضافة نظام "التحويلات البنكية" (Bank Transfers) لتوثيق المساهمات.
+    - تفعيل التقارير المالية المفصلة.
+
+4.  **المرحلة الرابعة: تنظيم الفعاليات المتكامل**
+    - إضافة نظام "المناسبات العامة" (Events) المنفصل عن الاجتماعات.
+    - تفعيل "قائمة الاحتياجات" (Trip Items) لتوزيع مهام الرحلات.
 
 ---
 
-### 2. الأوامر الصوتية (Google Assistant App Actions)
-تمكين المستخدم من قول "Hey Google, open Al-Saif meeting" لفتح قسم الاجتماعات مباشرة.
+## المقترح الحالي (نبدأ بالمرحلة الأولى)
 
-#### [NEW] [shortcuts.xml](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/android/app/src/main/res/xml/shortcuts.xml)
-- تعريف الـ `capability` الخاصة بالفتح السريع للأقسام.
-- ربط الأوامر الصوتية بروابط عميقة (Deep Links).
+### [NEW] [shura_system.sql](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/supabase/migrations/20260720070000_restore_shura_system.sql)
+- إضافة جداول `member_posts`, `member_post_comments`, `member_post_votes`.
+- تحسين جدول `majlis_comments` ليدعم نظام التصويت البرمجي.
+- تحديث الصلاحيات (RLS) لضمان خصوصية الأعضاء.
 
-#### [MODIFY] [AndroidManifest.xml](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/android/app/src/main/AndroidManifest.xml)
-- تعريف ملف `shortcuts.xml` في الـ `meta-data`.
-- إضافة `intent-filter` للرابط العميق `alsaif://`.
-
-#### [MODIFY] [capacitor-client.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/capacitor-client.tsx)
-- إضافة مستمع (Listener) للروابط العميقة وتوجيه المستخدم للصفحة المطلوبة عند تفعيل الأمر الصوتي.
+### [MODIFY] [app_roles.sql](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/supabase/migrations/20260720071000_expand_roles.sql)
+- توسيع رتب المستخدمين لتشمل (رئيس المجلس، مسؤول المالية، مسؤول الإرث، إلخ) لضمان عمل نظام الإدارة بكفاءة.
 
 ## Verification Plan
 
 ### Manual Verification
-- **Health Connect:** الضغط على زر "مزامنة" والتأكد من ظهور واجهة طلب الإذن من جوجل، ثم التأكد من سحب رقم الخطوات الصحيح.
-- **App Actions:** محاكاة أمر صوتي (عبر Android Studio Assistant Tool) للتأكد من فتح صفحة الاجتماعات أو تحدي الخطوات مباشرة.
+- تجربة إضافة "اقتراح للشورى" والتأكد من قدرة الأعضاء على التصويت.
+- التأكد من ظهور المنشورات في "ركن الأعضاء".
+- التحقق من عمل نظام الصلاحيات الجديد (المدير يرى كل شيء، العضو يرى المسموح له).
 
-> [!IMPORTANT]
-> ميزة Health Connect تتطلب وجود تطبيق Health Connect مثبت على الجوال (مدمج في أندرويد 14، ومنفصل في الإصدارات الأقدم).
+---
+
+**هل نبدأ بتنفيذ "المرحلة الأولى: نظام الشورى والتفاعل"؟** (سأقوم بتزويدك بكود الـ SQL لتشغيله فور موافقتك).
