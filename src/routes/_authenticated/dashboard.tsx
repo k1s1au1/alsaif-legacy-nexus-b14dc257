@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { getSupabase } from "@/integrations/supabase/client";
 import { AppShell } from "@/components/app-shell";
-import { UserAvatar } from "@/components/user-avatar";
 import {
   Megaphone,
   Clock,
@@ -13,26 +12,18 @@ import {
   CalendarDays,
   ListChecks,
   Plane,
-  Timer,
-  Compass,
-  ShieldAlert,
-  Send,
   X,
   Inbox,
   Image as ImageIcon,
   Loader2,
-  Calendar,
   Newspaper,
   Scroll,
-  Lightbulb,
-  ArrowRight,
+  ShieldAlert,
+  Send,
   Sparkles,
 } from "lucide-react";
-import { toast } from "sonner";
-import palmWatermark from "@/assets/palm-watermark.png";
 import { useSiteLogo } from "@/hooks/use-site-logo";
 import { AnimatedCounter } from "@/components/dashboard/animated-counter";
-import { LiveClock } from "@/components/dashboard/live-clock";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { QuickActionsBanner } from "@/components/quick-actions-banner";
@@ -44,12 +35,19 @@ import {
   CarouselNext,
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
-import { useUserRole, roleLabel } from "@/hooks/use-user-role";
 import { TripImage } from "@/components/trip-image";
 import { IntegratedHub } from "@/components/dashboard/integrated-hub";
 import { PollsPopup } from "@/components/dashboard/polls-popup";
-import { showIsland, hideIsland } from "@/components/dynamic-island";
+import { showIsland } from "@/components/dynamic-island";
 import { useWidgetUpdater } from "@/hooks/use-widget-updater";
+import {
+  useProfile,
+  useDashboardCounts,
+  useUpcomingEvents,
+  useDashboardAnnouncements,
+  useFundBalance,
+  useHeritageSnippet,
+} from "@/hooks/use-dashboard-data";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   ssr: false,
@@ -292,51 +290,42 @@ const SPIRITUAL_QUOTES = [
 ];
 
 function Dashboard() {
-  // Logic to select the quote based on date
+  // 1. DATA FETCHING (TanStack Query)
+  const { data: profileData, isLoading: profileLoading } = useProfile();
+  const { data: countsData } = useDashboardCounts();
+  const { data: eventsData } = useUpcomingEvents();
+  const { data: announcementsData } = useDashboardAnnouncements();
+  const { data: fundBalance } = useFundBalance();
+  const { data: heritageSnippet } = useHeritageSnippet();
+
+  // Selected Quote based on date
   const spiritualQuote = useMemo(() => {
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0=Sun, 1=Mon, ..., 4=Thu, 5=Fri, 6=Sat
+    const dayOfWeek = now.getDay();
 
-    // Detect Hijri Day (Roughly for 13, 14, 15)
     let hijriDay = 1;
     try {
       hijriDay = parseInt(
         new Intl.DateTimeFormat("en-u-ca-islamic-uma-nu-latn", { day: "numeric" }).format(now),
       );
-    } catch (e) {
-      /* fallback */
-    }
+    } catch (e) {}
 
-    // 1. Check for White Days
     if ([13, 14, 15].includes(hijriDay)) {
       return SPIRITUAL_QUOTES.find((q) => q.category === "white_days") || SPIRITUAL_QUOTES[0];
     }
-
-    // 2. Check for Friday
     if (dayOfWeek === 5) {
       const fridayQuotes = SPIRITUAL_QUOTES.filter((q) => q.category === "friday");
       return fridayQuotes[now.getDate() % fridayQuotes.length];
     }
-
-    // 3. Check for Monday or Thursday
     if (dayOfWeek === 1 || dayOfWeek === 4) {
       return SPIRITUAL_QUOTES.find((q) => q.category === "mon_thu") || SPIRITUAL_QUOTES[0];
     }
-
-    // 4. Default to general quotes
     const generalQuotes = SPIRITUAL_QUOTES.filter((q) => q.category === "general");
     return generalQuotes[now.getDate() % generalQuotes.length];
   }, []);
-  const [profile, setProfile] = useState<any>({ name: "تحميل...", role: "عضو", initial: "س" });
-  const [fundBalance, setFundBalance] = useState<number>(0);
-  const [upcomingMeetings, setUpcomingMeetings] = useState<any[]>([]);
-  const [upcomingTrips, setUpcomingTrips] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+
   const [annIndex, setAnnIndex] = useState(0);
   const [statusIndex, setStatusIndex] = useState(0);
-  const [counts, setCounts] = useState({ trips: 0, members: 0, tasks: 0, myTasks: 0, newNews: 0 });
-  const [heritageSnippet, setHeritageSnippet] = useState<any>(null);
-  const [activeProjects, setActiveProjects] = useState<any[]>([]);
   const [showBugReport, setShowBugReport] = useState(false);
   const [immersiveItem, setImmersiveItem] = useState<{
     type: "trip" | "meeting" | "news";
@@ -350,207 +339,153 @@ function Dashboard() {
   const dynamicLogo = useSiteLogo();
 
   // Register widget updater
-  useWidgetUpdater(upcomingMeetings, upcomingTrips);
+  useWidgetUpdater(eventsData?.meetings || [], eventsData?.trips || []);
 
-  // Memoize carousel plugins to prevent recreation on every render (causes Embla crash)
+  // Embla plugins
   const announcementsAutoplay = useRef(Autoplay({ delay: 7000, stopOnInteraction: true }));
   const announcementsPlugins = useMemo(() => [announcementsAutoplay.current], []);
   const announcementsOpts = useMemo(() => ({ loop: true, direction: "rtl" as const }), []);
 
-  const loadData = useCallback(async () => {
-    const supabase = getSupabase();
-    if (!supabase) return;
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (!authData?.user) return;
-      const u = authData.user;
-
-      const now = new Date().toISOString();
-      const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-      const [
-        { data: p },
-        { data: r },
-        { count: mCount },
-        { count: tCount },
-        { count: myTCount },
-        { count: newsCount },
-        { data: meetings },
-        { data: trips },
-        { data: posts },
-        { data: tx },
-      ] = await Promise.all([
-        supabase
-          .from("profiles")
-          .select("arabic_name, full_name, avatar_url")
-          .eq("id", u.id)
-          .maybeSingle(),
-        supabase.from("user_roles").select("role").eq("user_id", u.id),
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-        supabase.from("tasks").select("id", { count: "exact", head: true }).neq("status", "done"),
-        supabase
-          .from("tasks")
-          .select("id", { count: "exact", head: true })
-          .eq("assignee_id", u.id)
-          .neq("status", "done"),
-        supabase
-          .from("majlis_posts")
-          .select("id", { count: "exact", head: true })
-          .gt("created_at", yesterday),
-        supabase
-          .from("meetings")
-          .select("*")
-          .gte("scheduled_at", now)
-          .order("scheduled_at")
-          .limit(5),
-        supabase.from("trips").select("*").gte("start_date", now).order("start_date").limit(5),
-        supabase
-          .from("majlis_posts")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(30),
-        supabase.from("fund_transactions").select("amount, type"),
-      ]);
-
-      const name = p?.arabic_name || p?.full_name || u.email?.split("@")[0] || "عضو العائلة";
-      const rs = (r ?? []).map((x) => x.role);
-      setProfile({
-        name,
-        role: rs.includes("admin")
-          ? "مسؤول تقني"
-          : rs.includes("chairman")
-            ? "رئيس المجلس"
-            : "عضو المجلس",
-        initial: (name[0] || "ع").toUpperCase(),
-        avatarPath: p?.avatar_url ?? null,
-        userId: u.id,
-      });
-      setCounts({
-        trips: trips?.length || 0,
-        members: mCount || 0,
-        tasks: tCount || 0,
-        myTasks: myTCount || 0,
-        newNews: newsCount || 0,
-      });
-      setUpcomingMeetings(meetings || []);
-      setUpcomingTrips(trips || []);
-
-      if (tx)
-        setFundBalance(
-          tx.reduce(
-            (acc, t) =>
-              t.type === "contribution" ? acc + Number(t.amount) : acc - Number(t.amount),
-            0,
-          ),
-        );
-
-      // Shura Integration
-      const pollPosts = (posts ?? []).filter((p) => p.body?.includes("---poll:"));
-      if (pollPosts.length && !hasGreeted.current) {
-        const { data: myVotes } = await supabase
-          .from("majlis_comments")
-          .select("post_id")
-          .eq("author_id", u.id)
-          .in(
-            "post_id",
-            pollPosts.map((p) => p.id),
-          )
-          .like("body", "[VOTE]:%");
-        const pendingCount = pollPosts.filter(
-          (p) => !(myVotes || []).some((v) => v.post_id === p.id),
-        ).length;
-        if (pendingCount > 0)
-          showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () =>
-            window.dispatchEvent(new CustomEvent("polls:open")),
-          );
-        hasGreeted.current = true;
-      } else if (!hasGreeted.current) {
-        hasGreeted.current = true;
-      }
-
-      if (posts) {
-        const annList = (posts ?? [])
-          .filter(
-            (p) =>
-              (p.kind === "announcement" || p.body?.includes("---kind:announcement")) &&
-              !p.body?.includes("---poll:"),
-          )
-          .slice(0, 5);
-        const processedAnns = await Promise.all(
-          annList.map(async (a) => {
-            const imgMatch = (a.body || "").match(/^---image:(.*)\n/);
-            let url = null;
-            if (imgMatch) {
-              const { data } = await supabase.storage
-                .from("trip-images")
-                .createSignedUrl(imgMatch[1].trim(), 3600);
-              url = data?.signedUrl;
-            }
-            return {
-              ...a,
-              imageUrl: url,
-              cleanBody: (a.body || "")
-                .replace(/^---image:.*\n/, "")
-                .replace(/^---kind:.*\n/, "")
-                .trim(),
-              _label: a.kind === "announcement" ? "إعلان المجلس" : "أخبار السيف",
-            };
-          }),
-        );
-        setAnnouncements(processedAnns);
-
-        const heritage = (posts ?? []).find((p) => p.title?.includes("[إرث]"));
-        if (heritage)
-          setHeritageSnippet({
-            ...heritage,
-            title: heritage.title.replace("[إرث]", "").trim(),
-            cleanBody: (heritage.body || "")
-              .replace(/---kind:.*\n/, "")
-              .replace(/---image:.*\n/, "")
-              .trim(),
-          });
-      }
-
+  // Polls Check
+  useEffect(() => {
+    if (announcementsData && !hasGreeted.current && profileData?.id) {
+      const supabase = getSupabase();
       supabase
-        .from("family_projects")
+        .from("majlis_posts")
         .select("*")
-        .eq("status", "approved")
-        .order("created_at", { ascending: false })
-        .limit(5)
-        .then(async (r) => {
-          const pj = r.data || [];
-          if (!pj.length) return setActiveProjects([]);
-          const { data: cs } = await supabase
-            .from("family_project_contributions")
-            .select("project_id, amount")
-            .in(
-              "project_id",
-              pj.map((p) => p.id),
-            );
-          const sums: Record<string, number> = {};
-          (cs || []).forEach(
-            (c) => (sums[c.project_id] = (sums[c.project_id] || 0) + Number(c.amount)),
-          );
-          setActiveProjects(
-            pj.map((p) => {
-              const raised = Number(p.fund_allocation) + (sums[p.id] || 0);
-              return {
-                ...p,
-                raised,
-                remaining: Math.max(0, Number(p.goal_amount) - raised),
-                pct: Math.min(100, Math.round((raised / Number(p.goal_amount)) * 100)),
-              };
-            }),
-          );
+        .ilike("body", "%---poll:%")
+        .limit(10)
+        .then(async ({ data: pollPosts }) => {
+          if (pollPosts?.length) {
+            const { data: myVotes } = await supabase
+              .from("majlis_comments")
+              .select("post_id")
+              .eq("author_id", profileData.id)
+              .in("post_id", pollPosts.map((p) => p.id))
+              .like("body", "[VOTE]:%");
+
+            const pendingCount = pollPosts.filter(
+              (p) => !(myVotes || []).some((v) => v.post_id === p.id),
+            ).length;
+
+            if (pendingCount > 0)
+              showIsland(`لديك ${pendingCount} اقتراح بانتظار تصويتك`, "info", 8000, () =>
+                window.dispatchEvent(new CustomEvent("polls:open")),
+              );
+          }
+          hasGreeted.current = true;
         });
-    } catch (err) {
-      console.error(err);
     }
-  }, []);
+  }, [announcementsData, profileData?.id]);
 
   useEffect(() => {
-    loadData();
-  }, [loadData]);
+    if ((announcementsData?.length || 0) < 2) return;
+    const t = setInterval(() => setAnnIndex((p) => (p + 1) % announcementsData!.length), 7000);
+    return () => clearInterval(t);
+  }, [announcementsData?.length]);
+
+  const statusMessages = useMemo(() => {
+    const msgs = ["نصل العائلة، نحفظ الإرث، ونبني المستقبل."];
+    if ((countsData?.myTasks || 0) > 0) msgs.push(`لديك ${countsData?.myTasks} مسؤوليات بانتظار إنجازك.`);
+    if ((countsData?.newNews || 0) > 0) msgs.push(`هناك ${countsData?.newNews} أخبار جديدة في مركز المجلس.`);
+    msgs.push("المجلس يرحب بكم دائماً يا أهل الوفاء.");
+    msgs.push("كل خطوة تخطونها تبني مجداً لعائلة السيف.");
+    return msgs;
+  }, [countsData]);
+
+  useEffect(() => {
+    const t = setInterval(() => setStatusIndex((p) => (p + 1) % statusMessages.length), 6000);
+    return () => clearInterval(t);
+  }, [statusMessages.length]);
+
+  const stats: Array<{
+    label: string;
+    value: number;
+    suffix: string;
+    color: string;
+    icon: React.ElementType<{ className?: string }>;
+    link: "/finance" | "/members" | "/trips" | "/tasks";
+  }> = [
+    {
+      label: "رصيد الصندوق",
+      value: fundBalance || 0,
+      suffix: "ر.س",
+      color: "bg-gradient-to-br from-emerald-600 to-teal-900",
+      icon: Wallet,
+      link: "/finance",
+    },
+    {
+      label: "أفراد العائلة",
+      value: countsData?.members || 0,
+      suffix: "عضو",
+      color: "bg-gradient-to-br from-primary to-emerald-950",
+      icon: Users,
+      link: "/members",
+    },
+    {
+      label: "ترفيه عائلي",
+      value: eventsData?.trips.length || 0,
+      suffix: "وجهة",
+      color: "bg-gradient-to-br from-[#8E7745] to-[#453a22]",
+      icon: Plane,
+      link: "/trips",
+    },
+    {
+      label: "مهام قيد التنفيذ",
+      value: countsData?.tasks || 0,
+      suffix: "مهمة",
+      color: "bg-gradient-to-br from-rose-700 to-rose-950",
+      icon: ListChecks,
+      link: "/tasks",
+    },
+  ];
+
+  const getGreeting = () => {
+    const hr = new Date().getHours();
+    if (hr >= 5 && hr < 12) return "صباح الخير";
+    if (hr >= 12 && hr < 17) return "مساء النور";
+    if (hr >= 17 && hr < 21) return "مساء الخير";
+    return "طاب مساؤك";
+  };
+
+  const sendBugReport = async () => {
+    const supabase = getSupabase();
+    if (!supabase || !profileData?.id) return;
+    if (!bugBody.trim()) return;
+    setBugSending(true);
+    showIsland("جاري إرسال البلاغ...", "loading");
+    try {
+      let url = null;
+      if (bugImage) {
+        const path = `bugs/${profileData.id}/${crypto.randomUUID()}.${bugImage.name.split(".").pop()}`;
+        await supabase.storage.from("trip-images").upload(path, bugImage);
+        url = (await supabase.storage.from("trip-images").createSignedUrl(path, 31536000)).data
+          ?.signedUrl;
+      }
+      await supabase
+        .from("bug_reports" as any)
+        .insert({ reporter_id: profileData.id, body: bugBody.trim(), image_url: url });
+      showIsland("تم إرسال البلاغ بنجاح", "success");
+      setShowBugReport(false);
+      setBugBody("");
+      setBugImage(null);
+      setBugImagePreview(null);
+    } catch {
+      showIsland("فشل الإرسال", "error");
+    } finally {
+      setBugSending(false);
+    }
+  };
+
+  const safeProfile = profileData || { name: "تحميل...", role: "عضو", initial: "س" };
+
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="size-12 text-gold-primary animate-spin" />
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (announcements.length < 2) return;
@@ -652,7 +587,7 @@ function Dashboard() {
   };
 
   return (
-    <AppShell title="لوحة العائلة" user={profile}>
+    <AppShell title="لوحة العائلة" user={safeProfile}>
       <div className="max-w-6xl mx-auto space-y-12 pb-20 px-4 md:px-0">
         {/* 1. SPIRITUAL REMINDER - Linked to Theme Colors */}
         <section className="animate-fade-up px-2 md:px-0">
@@ -714,7 +649,7 @@ function Dashboard() {
                   </div>
 
                   <h2 className="text-4xl sm:text-5xl md:text-7xl font-black tracking-tighter text-white drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-                    {profile.name}
+                    {safeProfile.name}
                   </h2>
 
                   <div className="flex items-center justify-center md:justify-start gap-4 mt-6 md:mt-8">
@@ -750,11 +685,11 @@ function Dashboard() {
         <QuickActionsBanner />
 
         {/* 4. CONTENT HUB & POLLS */}
-        <PollsPopup userId={profile.userId ?? null} />
+        <PollsPopup userId={safeProfile.id ?? null} />
         <IntegratedHub
-          upcomingMeetings={upcomingMeetings}
-          upcomingTrips={upcomingTrips}
-          tasksCount={counts.tasks}
+          upcomingMeetings={eventsData?.meetings || []}
+          upcomingTrips={eventsData?.trips || []}
+          tasksCount={countsData?.tasks || 0}
           onViewTrip={(t) => setImmersiveItem({ type: "trip", data: t })}
           onViewMeeting={(m) => setImmersiveItem({ type: "meeting", data: m })}
         />
@@ -788,7 +723,7 @@ function Dashboard() {
         )}
 
         {/* 6. ANNOUNCEMENTS - Refined with stable plugin */}
-        {announcements.length > 0 && (
+        {announcementsData && announcementsData.length > 0 && (
           <section className="animate-fade-up px-2 md:px-0">
             <Carousel
               opts={announcementsOpts}
@@ -796,7 +731,7 @@ function Dashboard() {
               className="w-full group"
             >
               <CarouselContent>
-                {announcements.map((a, i) => (
+                {announcementsData.map((a, i) => (
                   <CarouselItem key={i}>
                     <Link
                       to="/majlis"
@@ -837,6 +772,15 @@ function Dashboard() {
                   </CarouselItem>
                 ))}
               </CarouselContent>
+
+              {/* Desktop Arrows */}
+              <div className="hidden md:block">
+                <CarouselPrevious className="right-4 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all" />
+                <CarouselNext className="left-4 bg-white/10 border-white/20 text-white hover:bg-gold-primary hover:text-black transition-all" />
+              </div>
+            </Carousel>
+          </section>
+        )}
 
               {/* Desktop Arrows */}
               <div className="hidden md:block">

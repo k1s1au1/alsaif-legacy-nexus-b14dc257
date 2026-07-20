@@ -818,9 +818,18 @@ function MeetingInteractiveCard({
                     <CalendarDays size={18} /> التقويم
                   </button>
                   {canManage && (
-                    <button onClick={() => onEdit(meeting)} className="size-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
-                      <Pencil size={20} />
-                    </button>
+                    <>
+                      <button
+                        onClick={() => onRemind(meeting)}
+                        title="إرسال تذكير للجميع"
+                        className="size-14 rounded-2xl bg-amber-500/10 text-amber-500 flex items-center justify-center hover:bg-amber-500/20 transition-all border border-amber-500/20"
+                      >
+                        <Bell size={20} />
+                      </button>
+                      <button onClick={() => onEdit(meeting)} className="size-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
+                        <Pencil size={20} />
+                      </button>
+                    </>
                   )}
                   <button
                     onClick={() => FamilySharing.shareInvitation({ title: meeting.title, date: `${date.weekday} ${date.day} ${date.month}`, location: meeting.location || "المجلس" })}
