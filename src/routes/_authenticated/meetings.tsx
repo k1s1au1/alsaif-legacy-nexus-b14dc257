@@ -540,27 +540,27 @@ function MeetingsPage() {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative bg-card border border-border rounded-[48px] w-full max-w-2xl overflow-hidden shadow-2xl p-8 md:p-12 space-y-8"
+              className="relative bg-card border border-border rounded-[40px] w-full max-w-xl overflow-hidden shadow-2xl p-6 md:p-8 space-y-6"
               dir="rtl"
             >
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
-                  <h3 className="text-3xl font-black tracking-tight text-primary">
+                  <h3 className="text-2xl font-black tracking-tight text-primary">
                     {editing ? "تعديل اللقاء" : "جدولة لقاء عائلي"}
                   </h3>
                 </div>
                 <button
                   onClick={() => setShowForm(false)}
-                  className="size-12 rounded-full bg-muted/50 flex items-center justify-center hover:bg-primary hover:text-white transition-all"
+                  className="size-10 rounded-full bg-muted/50 flex items-center justify-center hover:bg-primary hover:text-white transition-all"
                 >
-                  <X size={24} />
+                  <X size={20} />
                 </button>
               </div>
 
-              <form onSubmit={submitForm} className="space-y-6">
-                <div className="grid gap-6">
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
+              <form onSubmit={submitForm} className="space-y-4">
+                <div className="grid gap-4">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest mr-2 block">
                       عنوان الاجتماع
                     </label>
                     <input
@@ -568,24 +568,24 @@ function MeetingsPage() {
                       onChange={(e) => setFTitle(e.target.value)}
                       required
                       placeholder="مثال: اجتماع العائلة السنوي"
-                      className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                      className="w-full h-12 bg-muted/30 border border-border rounded-xl px-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                     />
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest mr-2 block">
                       وصف موجز
                     </label>
                     <textarea
                       value={fDesc}
                       onChange={(e) => setFDesc(e.target.value)}
-                      rows={3}
+                      rows={2}
                       placeholder="ماذا سنناقش في هذا اللقاء؟"
-                      className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none"
+                      className="w-full bg-muted/30 border border-border rounded-xl px-5 py-3 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none"
                     />
                   </div>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-primary uppercase tracking-widest mr-2 block">
                         موعد اللقاء
                       </label>
                       <input
@@ -593,12 +593,12 @@ function MeetingsPage() {
                         value={fWhen}
                         onChange={(e) => setFWhen(e.target.value)}
                         required
-                        className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        className="w-full h-12 bg-muted/30 border border-border rounded-xl px-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                       />
                     </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
-                        المدة التقريبية (دقيقة)
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-primary uppercase tracking-widest mr-2 block">
+                        المدة (دقيقة)
                       </label>
                       <input
                         type="number"
@@ -606,50 +606,50 @@ function MeetingsPage() {
                         value={fDuration}
                         onChange={(e) => setFDuration(e.target.value)}
                         placeholder="60"
-                        className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                        className="w-full h-12 bg-muted/30 border border-border rounded-xl px-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                       />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
+                  <div className="space-y-1.5">
+                    <label className="text-[10px] font-black text-primary uppercase tracking-widest mr-2 block">
                       مكان الاجتماع / الرابط
                     </label>
                     <input
                       value={fLocation}
                       onChange={(e) => setFLocation(e.target.value)}
                       placeholder="مثال: مجلس العائلة"
-                      className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm mb-3"
+                      className="w-full h-12 bg-muted/30 border border-border rounded-xl px-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm mb-2"
                     />
                     <input
                       type="url"
                       value={fLocationUrl}
                       onChange={(e) => setFLocationUrl(e.target.value)}
                       placeholder="رابط الموقع على الخريطة"
-                      className="w-full bg-muted/30 border border-border rounded-2xl px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
+                      className="w-full h-12 bg-muted/30 border border-border rounded-xl px-5 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm"
                     />
                   </div>
 
                   {editing && (
-                    <div className="space-y-2">
-                      <label className="text-xs font-black text-primary uppercase tracking-widest mr-2 block">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black text-primary uppercase tracking-widest mr-2 block">
                         محضر الاجتماع (القرارات والنتائج)
                       </label>
                       <textarea
                         value={fMinutes}
                         onChange={(e) => setFMinutes(e.target.value)}
-                        rows={6}
+                        rows={4}
                         placeholder="اكتب هنا ما تم الاتفاق عليه والقرارات التي اتخذت..."
-                        className="w-full bg-muted/30 border border-border rounded-[24px] px-6 py-4 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none custom-scrollbar"
+                        className="w-full bg-muted/30 border border-border rounded-xl px-5 py-3 font-bold text-sm focus:outline-none focus:ring-4 focus:ring-primary/5 focus:border-primary transition-all shadow-sm resize-none custom-scrollbar"
                       />
                     </div>
                   )}
                 </div>
 
-                <div className="flex gap-4 pt-4">
+                <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="flex-1 btn-gold py-5 rounded-[28px] text-lg font-black shadow-2xl shadow-gold-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
+                    className="flex-1 btn-gold py-4 rounded-2xl text-base font-black shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
                   >
                     {submitting ? (
                       <div className="size-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
@@ -660,7 +660,7 @@ function MeetingsPage() {
                   <button
                     type="button"
                     onClick={() => setShowForm(false)}
-                    className="px-10 py-5 rounded-[28px] bg-muted/50 font-black text-muted-foreground hover:bg-muted transition-all"
+                    className="px-8 py-4 rounded-2xl bg-muted/50 font-black text-sm text-muted-foreground hover:bg-muted transition-all"
                   >
                     إلغاء
                   </button>
@@ -828,6 +828,13 @@ function MeetingInteractiveCard({
                       </button>
                       <button onClick={() => onEdit(meeting)} className="size-14 rounded-2xl bg-white/10 text-white flex items-center justify-center hover:bg-white/20 transition-all border border-white/10">
                         <Pencil size={20} />
+                      </button>
+                      <button
+                        onClick={() => onDelete(meeting.id)}
+                        title="حذف الاجتماع"
+                        className="size-14 rounded-2xl bg-rose-500/10 text-rose-500 flex items-center justify-center hover:bg-rose-500/20 transition-all border border-rose-500/20"
+                      >
+                        <Trash2 size={20} />
                       </button>
                     </>
                   )}
