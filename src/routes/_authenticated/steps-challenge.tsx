@@ -105,12 +105,14 @@ function StepsChallengePage() {
     loadData();
   }, []);
 
-  const handleSync = async () => {
-    const tId = toast.loading("جاري قراءة الخطوات...");
+  const handleSync = async (silent = false) => {
+    let tId = null;
+    if (!silent) tId = toast.loading("جاري قراءة الخطوات...");
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        toast.error("يجب تسجيل الدخول أولاً", { id: tId });
+        if (!silent) toast.error("يجب تسجيل الدخول أولاً", { id: tId! });
         return;
       }
 
@@ -118,6 +120,7 @@ function StepsChallengePage() {
 
       if (Capacitor.isNativePlatform()) {
         // محاكاة ذكية للخطوات بناءً على الوقت الحالي لضمان عمل الواجهة
+        // في المستقبل، سنقوم بربطها بـ Health Connect Plugin
         const hr = new Date().getHours();
         finalSteps = 3000 + (hr * 400) + Math.floor(Math.random() * 500);
       } else {
@@ -135,23 +138,52 @@ function StepsChallengePage() {
 
       if (dbError) {
         console.error("Database Error:", dbError);
-        toast.error("خطأ في قاعدة البيانات", {
-          id: tId,
-          description: "تأكد من تفعيل جدول steps_data في مشروع Supabase الأساسي."
-        });
+        if (!silent) {
+          toast.error("خطأ في قاعدة البيانات", {
+            id: tId!,
+            description: "تأكد من تفعيل جدول steps_data في مشروع Supabase الأساسي."
+          });
+        }
         return;
       }
 
-      toast.success(`تمت المزامنة: ${finalSteps.toLocaleString()} خطوة ✨`, { id: tId });
+      if (!silent) toast.success(`تمت المزامنة: ${finalSteps.toLocaleString()} خطوة ✨`, { id: tId! });
       loadData();
     } catch (e: any) {
       console.error("Steps sync error:", e);
-      toast.error("عطل فني في المزامنة", {
-        id: tId,
-        description: e.message || "حدث خطأ غير متوقع"
-      });
+      if (!silent) {
+        toast.error("عطل فني في المزامنة", {
+          id: tId!,
+          description: e.message || "حدث خطأ غير متوقع"
+        });
+      }
     }
   };
+
+  useEffect(() => {
+    // Auto-sync when entering the page if permission is granted
+    const savedPerm = localStorage.getItem("steps_permission_granted");
+    if (savedPerm === "true" || !Capacitor.isNativePlatform()) {
+      handleSync(true);
+    }
+
+    // Listener for app resume (auto-sync when coming back to the app)
+    let resumeListener: any = null;
+    if (Capacitor.isNativePlatform()) {
+      import("@capacitor/app").then(({ App }) => {
+        App.addListener("appStateChange", ({ isActive }) => {
+          if (isActive && (localStorage.getItem("steps_permission_granted") === "true")) {
+            console.log("[Steps] App resumed, auto-syncing...");
+            handleSync(true);
+          }
+        });
+      });
+    }
+
+    return () => {
+      if (resumeListener) resumeListener.remove();
+    };
+  }, []);
 
   return (
     <AppShell title="تحدي الخطوات" user={{ name: "تحدي العائلة", role: "رياضة", initial: "ت" }}>
