@@ -168,7 +168,7 @@ function StepsChallengePage() {
     }
 
     // Listener for app resume (auto-sync when coming back to the app)
-    let resumeListener: any = null;
+    let listenerHandle: any = null;
     if (Capacitor.isNativePlatform()) {
       import("@capacitor/app").then(({ App }) => {
         App.addListener("appStateChange", ({ isActive }) => {
@@ -176,12 +176,14 @@ function StepsChallengePage() {
             console.log("[Steps] App resumed, auto-syncing...");
             handleSync(true);
           }
+        }).then(h => {
+          listenerHandle = h;
         });
       });
     }
 
     return () => {
-      if (resumeListener) resumeListener.remove();
+      if (listenerHandle) listenerHandle.remove();
     };
   }, []);
 
@@ -241,7 +243,7 @@ function StepsChallengePage() {
             </button>
           ) : (
             <button
-              onClick={handleSync}
+              onClick={() => handleSync(false)}
               className="btn-gold px-12 py-5 rounded-full flex items-center gap-4 shadow-2xl hover:scale-105 active:scale-95 transition-all text-lg font-black"
             >
               <RotateCw className="size-6" /> مزامنة خطوات اليوم
