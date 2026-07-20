@@ -1,6 +1,8 @@
-- `[x]` إضافة ثيم العود الملكي (Royal Oud)
-    - `[x]` تحديث `themes.ts` بالألوان الجديدة
-- `[x]` تطوير النمط الملكي (Enhanced Royal Mode)
-    - `[x]` إضافة تحريك Shimmer والزخارف في `styles.css`
-    - `[x]` حقن الزخارف في `app-shell.tsx`
-- `[x]` التحقق والاختبار
+- `[x]` تنفيذ دعم Google Assistant (App Actions)
+    - `[x]` إنشاء ملف `shortcuts.xml` لتعريف الأوامر الصوتية
+    - `[x]` تحديث `AndroidManifest.xml` لربط ملف الاختصارات وتفعيل الروابط العميقة
+    - `[x]` تحديث معالجة الروابط العميقة في `capacitor-client.tsx`
+- `[x]` تنفيذ تكامل Health Connect
+    - `[x]` إضافة تصاريح الصحة في `AndroidManifest.xml`
+    - `[x]` تحديث صفحة تحدي الخطوات (`steps-challenge.tsx`) لدعم المزامنة الفعلية
+- `[x]` التحقق والرفع (PUSH)

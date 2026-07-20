@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Capability to open meetings -->
+    <capability android:name="actions.intent.OPEN_APP_FEATURE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.alsaif.familyhub"
+            android:targetClass="com.alsaif.familyhub.MainActivity"
+            android:data="alsaif://meetings">
+            <parameter
+                android:name="feature"
+                android:key="feature" />
+        </intent>
+    </capability>
+
+    <!-- Capability for steps challenge -->
+    <capability android:name="actions.intent.RECORD_EXERCISE">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.alsaif.familyhub"
+            android:targetClass="com.alsaif.familyhub.MainActivity"
+            android:data="alsaif://steps-challenge" />
+    </capability>
+
+    <!-- Custom shortcuts for common Arabic commands -->
+    <shortcut
+        android:shortcutId="open_meetings"
+        android:enabled="true"
+        android:icon="@mipmap/ic_launcher"
+        android:shortcutShortLabel="@string/shortcut_meetings_label">
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE">
+            <parameter-binding
+                android:key="feature"
+                android:value="الاجتماعات" />
+        </capability-binding>
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:data="alsaif://meetings" />
+    </shortcut>
+</shortcuts>
