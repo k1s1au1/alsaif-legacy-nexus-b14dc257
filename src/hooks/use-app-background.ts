@@ -26,10 +26,13 @@ export function useAppBackground(settingKey: string) {
         if (!cancelled) setUrl(null);
         return;
       }
-      const { data: signed } = await supabase.storage
+
+      // Use Public URL instead of Signed URL so it works on login page
+      const { data: { publicUrl } } = supabase.storage
         .from(BUCKET)
-        .createSignedUrl(path, SIGN_SECONDS);
-      if (!cancelled) setUrl(signed?.signedUrl ?? null);
+        .getPublicUrl(path);
+
+      if (!cancelled) setUrl(publicUrl);
     })();
 
     const channelId = `app-settings-${settingKey}-${crypto.randomUUID?.() ?? Math.random().toString(36).slice(2)}`;

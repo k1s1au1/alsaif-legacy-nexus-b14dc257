@@ -36,20 +36,12 @@ export function useSiteLogo() {
           return;
         }
 
-        const { data: signed } = await supabase.storage
+        // Use Public URL instead of Signed URL so it works on login page
+        const { data: { publicUrl } } = supabase.storage
           .from(BUCKET)
-          .createSignedUrl(path, SIGN_SECONDS);
+          .getPublicUrl(path);
 
-        const finalUrl = signed?.signedUrl ?? null;
-
-        // Prevent showing the old logo if it's somehow still the one in storage
-        if (finalUrl?.includes("alsaif-mark.png")) {
-          if (!cancelled) {
-            globalLogoUrl = null;
-            setLogoUrl(null);
-          }
-          return;
-        }
+        const finalUrl = publicUrl;
 
         if (!cancelled) {
           globalLogoUrl = finalUrl;
