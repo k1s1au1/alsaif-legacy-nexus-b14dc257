@@ -507,21 +507,21 @@ function AuthPage() {
         <div className="absolute inset-0 z-0 overflow-hidden">
           <motion.div
             key={customBg}
-            initial={{ scale: 1.15, opacity: 0 }}
+            initial={{ scale: 1.1, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 3, ease: "easeOut" }}
+            transition={{ duration: 2, ease: "easeOut" }}
             className="size-full bg-cover bg-center bg-no-repeat transition-all duration-1000"
             style={{
               backgroundImage: customBg ? `url(${customBg})` : "none",
-              backgroundColor: "#0A3732" // Fallback color
+              backgroundColor: "#062F2B"
             }}
           />
         </div>
 
-        {/* Refined Seamless Blend - Luxury Charcoal Edition */}
-        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#0A3732]/90 via-[#0A3732]/40 to-transparent" />
-        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#0A3732]/60 via-transparent to-transparent opacity-60" />
-        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-[#064A43]/45 to-transparent" />
+        {/* Refined Seamless Blend - Softened for better image visibility */}
+        <div className="absolute inset-0 z-1 bg-gradient-to-l from-[#062F2B]/70 via-[#062F2B]/20 to-transparent" />
+        <div className="absolute inset-0 z-1 bg-gradient-to-t from-[#062F2B]/40 via-transparent to-transparent" />
+        <div className="absolute inset-y-0 left-0 w-48 z-1 bg-gradient-to-r from-[#062F2B]/30 to-transparent" />
 
         <div className="relative z-10 space-y-10 w-full max-w-4xl pr-4">
           <div className="space-y-6 text-right">
