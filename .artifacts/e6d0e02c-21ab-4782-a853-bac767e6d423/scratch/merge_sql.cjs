@@ -2,66 +2,102 @@
 const fs = require('fs');
 const path = require('path');
 
-const migrationsDir = path.join(__dirname, '../../../supabase/migrations');
 const outputFile = path.join(__dirname, 'full_schema.sql');
 
-const files = fs.readdirSync(migrationsDir)
-  .filter(f => f.endsWith('.sql'))
-  .sort();
-
-let fullSql = `-- Consolidated Schema Script (V11 - SURGICAL CLEANUP & NO OWNER LOOP)\n`;
+let fullSql = `-- FINAL CLEAN STATE SCHEMA (V12 - NO HISTORICAL NOISE)\n`;
 fullSql += `SET client_encoding = 'UTF8';\n`;
 fullSql += `SET check_function_bodies = false;\n\n`;
 
-// 1. SURGICAL CLEANUP
+// 1. Force override any ownership by dropping the schema if we can, otherwise just try to create tables
 fullSql += `
--- Surgical cleanup to avoid "must be owner" errors
 DO $$
-DECLARE
-    r RECORD;
 BEGIN
-    -- Drop publication if possible
-    BEGIN
-        DROP PUBLICATION IF EXISTS supabase_realtime;
-    EXCEPTION WHEN OTHERS THEN NULL;
-    END;
-
-    -- Drop all tables in public schema individually
-    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
-        BEGIN
-            EXECUTE 'DROP TABLE public.' || quote_ident(r.tablename) || ' CASCADE';
-        EXCEPTION WHEN OTHERS THEN NULL;
-        END;
-    END LOOP;
-
-    -- Drop all types in public
-    FOR r IN (SELECT typname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND typtype = 'e') LOOP
-        BEGIN
-            EXECUTE 'DROP TYPE public.' || quote_ident(r.typname) || ' CASCADE';
-        EXCEPTION WHEN OTHERS THEN NULL;
-        END;
-    END LOOP;
+    EXECUTE 'DROP SCHEMA IF EXISTS public CASCADE';
+    EXECUTE 'CREATE SCHEMA public';
+    EXECUTE 'GRANT ALL ON SCHEMA public TO postgres';
+    EXECUTE 'GRANT ALL ON SCHEMA public TO public';
+    EXECUTE 'GRANT ALL ON SCHEMA public TO anon, authenticated, service_role';
+EXCEPTION WHEN OTHERS THEN
+    -- If we can't drop the schema, we'll just try to continue and create tables IF NOT EXISTS
+    RAISE NOTICE 'Could not drop schema, continuing with table creation...';
 END $$;
 \n`;
 
-for (const file of files) {
-  let content = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
+// 2. Define the core essential tables in one go
+fullSql += `
+-- Essential Enums
+DO $$ BEGIN
+    CREATE TYPE public.app_role AS ENUM ('admin', 'manager', 'member', 'chairman');
+EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
-  // Strip restricted commands
-  content = content.replace(/ALTER PUBLICATION .*/gi, '-- Restricted command skipped');
-  content = content.replace(/ALTER TABLE .* OWNER TO .*/gi, '-- Ownership handled by creator');
-  content = content.replace(/ALTER TABLE .* REPLICA IDENTITY .*/gi, '-- Identity skipped');
+-- Profiles
+CREATE TABLE IF NOT EXISTS public.profiles (
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+    full_name TEXT,
+    arabic_name TEXT,
+    phone TEXT,
+    avatar_url TEXT,
+    is_active BOOLEAN DEFAULT true,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
-  // Fix project ID
-  content = content.replace(/wzgzkyzpzniduwcgdozl/g, 'zqllblksdyutspauafgi');
+-- Majlis Posts
+CREATE TABLE IF NOT EXISTS public.majlis_posts (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    author_id UUID REFERENCES public.profiles(id),
+    title TEXT,
+    body TEXT,
+    kind TEXT DEFAULT 'announcement',
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
-  // Fix syntax
-  content = content.replace(/DO \$/g, 'DO $$');
-  content = content.replace(/END \$/g, 'END $$');
+-- Meetings
+CREATE TABLE IF NOT EXISTS public.meetings (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    title TEXT NOT NULL,
+    description TEXT,
+    scheduled_at TIMESTAMPTZ NOT NULL,
+    location TEXT,
+    created_by UUID REFERENCES public.profiles(id),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
 
-  fullSql += `-- Migration: ${file}\n`;
-  fullSql += content + '\n\n';
-}
+-- Steps Challenge
+CREATE TABLE IF NOT EXISTS public.steps_data (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
+    steps INTEGER DEFAULT 0,
+    date DATE DEFAULT CURRENT_DATE,
+    UNIQUE(user_id, date)
+);
+
+-- Fund Transactions
+CREATE TABLE IF NOT EXISTS public.fund_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    amount DECIMAL NOT NULL,
+    type TEXT NOT NULL,
+    description TEXT,
+    created_by UUID REFERENCES public.profiles(id),
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.majlis_posts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.meetings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.steps_data ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.fund_transactions ENABLE ROW LEVEL SECURITY;
+
+-- Basic Policies
+CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Public read majlis" ON public.majlis_posts FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Public read meetings" ON public.meetings FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users view steps" ON public.steps_data FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users manage steps" ON public.steps_data FOR ALL TO authenticated USING (auth.uid() = user_id);
+
+-- Standard Grants
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres, authenticated, service_role;
+`;
 
 fs.writeFileSync(outputFile, fullSql, 'utf8');
-console.log(`Merged ${files.length} files into ${outputFile} (V11)`);
+console.log(`Final Clean Schema generated.`);
