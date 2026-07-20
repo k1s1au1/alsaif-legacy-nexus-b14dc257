@@ -514,7 +514,7 @@ function AuthPage() {
             style={{
               backgroundImage: customBg ? `url(${customBg})` : "none",
               backgroundSize: "cover",
-              backgroundPosition: "left center",
+              backgroundPosition: "left", // Strictly focus on the left side
               filter: "brightness(0.9)"
             }}
           />
