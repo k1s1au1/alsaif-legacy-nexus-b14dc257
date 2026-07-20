@@ -1,55 +1,35 @@
-# خطة إصلاح الهوية البصرية والإحصائيات الحية
+# خطة تفعيل "حساسات الخطوات الحقيقية" في الأندرويد
 
-تهدف هذه الخطة إلى جعل شعار الموقع وخلفية صفحة الدخول قابلة للتغيير بالكامل من الإعدادات، مع ضمان ظهورها للزوار، وإصلاح مشكلة تصفير الإحصائيات.
+تهدف هذه الخطة إلى استبدال الأرقام العشوائية في تحدي الخطوات ببيانات حقيقية مستمدة من حساسات الجوال (Pedometer) مباشرة، مع تفعيل المزامنة التلقائية.
 
 ## التغييرات المقترحة
 
-### 1. إصلاح ظهور الشعار والخلفية للزوار (Public Access)
-- **المشكلة:** الزوار لا يملكون صلاحية قراءة جدول الإعدادات أو رؤية الصور المرفوعة، لذا تظهر الصور الافتراضية أو تختفي.
-- **الحل:** تفعيل سياسات الوصول العام (Public RLS) لجدول الإعدادات وحاوية الصور.
+### 1. إنشاء "جسر برمجي" للخطوات (Android Native Bridge)
+بما أن الكود الحالي يستخدم محاكاة، سنقوم ببناء إضافة (Plugin) خاصة للأندرويد بلغة Java للتحدث مع حساسات الجوال.
 
-### 2. ربط صفحة الدخول بالإعدادات الديناميكية
-#### [MODIFY] [auth.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/routes/auth.tsx)
-- تعديل كود الخلفية (الجهة الخضراء) لتستخدم `customBg` المرفوع من الإعدادات بدلاً من اللون الثابت.
-- التأكد من أن المربع (Logo Box) يعرض الشعار المرفوع ديناميكياً.
+#### [NEW] [StepsPlugin.java](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/android/app/src/main/java/com/alsaif/familyhub/StepsPlugin.java)
+- بناء كود برمي للوصول إلى `SensorManager` في الأندرويد.
+- استخدام `Sensor.TYPE_STEP_COUNTER` لجلب إجمالي الخطوات التي قطعها المستخدم اليوم.
+- إضافة دالة `getTodaySteps()` لتعيد الرقم الحقيقي للتطبيق.
 
-### 3. إصلاح الإحصائيات الصفرية
-- **المشكلة:** الإحصائيات تظهر 0 لأن الزوار (Anon) لا يملكون صلاحية قراءة عدد الأعضاء أو المهام.
-- **الحل:** منح صلاحية `SELECT` للزوار على جداول `profiles` و `tasks`.
+#### [MODIFY] [MainActivity.java](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/android/app/src/main/java/com/alsaif/familyhub/MainActivity.java)
+- تسجيل الإضافة الجديدة `StepsPlugin` لكي يتمكن كود React من مناداتها.
 
----
+### 2. ربط الواجهة بالحساسات الحقيقية
+#### [MODIFY] [steps-challenge.tsx](file:///C:/Projects/alsaif-legacy-nexus-b14dc257/src/routes/_authenticated/steps-challenge.tsx)
+- استبدال دالة الحساب العشوائي بطلب برمجي من الإضافة الجديدة: `registerPlugin('StepsPlugin').getTodaySteps()`.
+- تحديث منطق "المزامنة التلقائية" ليعمل كلما تم فتح الصفحة أو العودة للتطبيق.
 
-## الخطوات التنفيذية
+### 3. تحسين نظام الصلاحيات
+- التأكد من طلب إذن "النشاط البدني" (Physical Activity) بشكل صحيح في الأندرويد قبل محاولة قراءة الحساسات.
 
-### الخطوة الأولى: تفعيل الصلاحيات في قاعدة البيانات (SQL)
-يرجى تشغيل هذا الكود لفتح "الأبواب" للزوار ليروا الهوية الجديدة:
+## Verification Plan
 
-```sql
--- 1. السماح للجميع برؤية الإعدادات (الشعار والخلفية)
-DROP POLICY IF EXISTS "anyone can read settings" ON public.app_settings;
-CREATE POLICY "anyone can read settings" ON public.app_settings
-FOR SELECT TO anon, authenticated USING (true);
-
--- 2. السماح للجميع برؤية ملفات الهوية في التخزين
-DROP POLICY IF EXISTS "Public Access" ON storage.objects;
-CREATE POLICY "Public Access" ON storage.objects
-FOR SELECT USING (bucket_id = 'app-backgrounds');
-
--- 3. تفعيل إحصائيات الزوار (إصلاح مشكلة الصفر)
-GRANT SELECT ON public.profiles TO anon;
-GRANT SELECT ON public.tasks TO anon;
-
--- منح الوصول العام لجدول المهام والأعضاء لغرض العد فقط
-DROP POLICY IF EXISTS "Public read profiles" ON public.profiles;
-CREATE POLICY "Public read profiles" ON public.profiles FOR SELECT TO anon, authenticated USING (true);
-
-DROP POLICY IF EXISTS "Public read tasks" ON public.tasks;
-CREATE POLICY "Public read tasks" ON public.tasks FOR SELECT TO anon, authenticated USING (true);
-```
-
-### الخطوة الثانية: تحديث كود صفحة الدخول (PUSH)
-سأقوم بتعديل ملف `auth.tsx` لربط الجهة الخضراء بالصورة المرفوعة.
+### Manual Verification
+1. **اختبار الحساس:** المشي بضع خطوات والجوال في اليد، ثم الضغط على مزامنة والتأكد من زيادة الرقم بدقة (وليس عشوائياً).
+2. **المزامنة التلقائية:** إغلاق التطبيق وفتحه، والتأكد من تحديث الخطوات في الخلفية وبدء الـ Loader تلقائياً.
+3. **التأكد من الأرقام:** مقارنة الرقم في التطبيق مع عداد الخطوات في نظام الأندرويد (مثل Google Fit أو Samsung Health).
 
 ---
 
-**هل نبدأ بتطبيق هذه الإصلاحات؟** سأقوم برفع الكود فوراً لتعمل الصور الديناميكية.
+**هل أنت موافق على البدء في كتابة كود الـ Java لربط الحساسات الحقيقية؟** سأقوم بعدها برفع التحديثات (PUSH).
