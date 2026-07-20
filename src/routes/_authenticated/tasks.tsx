@@ -664,13 +664,11 @@ function TaskDialog({ task, members, userId, onClose, onSaved }: any) {
       const assigneeChanged = task ? task.assignee_id !== assigneeId : true;
       if (assigneeId && assigneeId !== userId && (isCreate || assigneeChanged)) {
         sendPush({
-          data: {
-            title: "مهمة جديدة",
-            body: "تم تكليفك بمهمة جديدة.",
-            type: "tasks",
-            target_user_ids: [assigneeId],
-            route: "/tasks",
-          },
+          title: "مهمة جديدة",
+          body: "تم تكليفك بمهمة جديدة.",
+          type: "tasks",
+          target_user_ids: [assigneeId],
+          route: "/tasks",
         }).catch(() => {});
       }
       onSaved();

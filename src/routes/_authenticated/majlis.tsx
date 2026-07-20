@@ -696,12 +696,10 @@ function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any)
         if (!error) {
           toast.success(isAnn ? "تم نشر الإعلان" : "تم النشر بنجاح");
           sendPush({
-            data: {
-              title: "خبر جديد",
-              body: "تم نشر خبر جديد في مجلس العائلة.",
-              type: "news",
-              route: "/majlis",
-            },
+            title: "خبر جديد",
+            body: "تم نشر خبر جديد في مجلس العائلة.",
+            type: "news",
+            route: "/majlis",
           }).catch(() => {});
           onSaved();
           onClose();

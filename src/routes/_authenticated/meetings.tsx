@@ -346,21 +346,24 @@ function MeetingsPage() {
     try {
       toast.loading("جاري إرسال التذكيرات...");
       const { sendPushNotification } = await import("@/lib/api/push.functions");
-      await sendPushNotification({
-        data: {
-          title: `تذكير: ${m.title}`,
-          body: `نذكركم بموعدنا القريب في: ${formatDate(m.scheduled_at).weekday} الساعة ${formatDate(m.scheduled_at).time}`,
-          type: "meetings",
-          route: "/meetings",
-          category: "MEETING_INVITE",
-          data: { meeting_id: m.id }
-        },
+      const result = await sendPushNotification({
+        title: `تذكير: ${m.title}`,
+        body: `نذكركم بموعدنا القريب في: ${formatDate(m.scheduled_at).weekday} الساعة ${formatDate(m.scheduled_at).time}`,
+        type: "meetings",
+        route: "/meetings",
+        category: "MEETING_INVITE",
+        data: { meeting_id: m.id }
       });
+
       toast.dismiss();
-      toast.success("تم إرسال التذكير لجميع أفراد العائلة بنجاح ✨");
-    } catch (err) {
+      if (result.success) {
+        toast.success(`تم إرسال التذكير لعدد ${result.count} جهاز بنجاح ✨`);
+      } else {
+        toast.error(result.error || "فشل إرسال التذكير");
+      }
+    } catch (err: any) {
       toast.dismiss();
-      toast.error("فشل إرسال التذكير");
+      toast.error("فشل إرسال التذكير", { description: err.message });
     }
   };
 

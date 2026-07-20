@@ -510,12 +510,10 @@ function TripDialog({ trip, onClose, onSaved }: any) {
         // Trigger FCM for new trip
         try {
           await sendPush({
-            data: {
-              title: "فعالية جديدة",
-              body: "تمت إضافة فعالية جديدة في قسم الترفيه.",
-              type: "entertainment",
-              route: "/trips",
-            },
+            title: "فعالية جديدة",
+            body: "تمت إضافة فعالية جديدة في قسم الترفيه.",
+            type: "entertainment",
+            route: "/trips",
           });
         } catch (fcmErr) {
           console.warn("Push broadcast failed:", fcmErr);
