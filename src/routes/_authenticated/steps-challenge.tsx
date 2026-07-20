@@ -137,7 +137,7 @@ function StepsChallengePage() {
         console.error("Database Error:", dbError);
         toast.error("خطأ في قاعدة البيانات", {
           id: tId,
-          description: "تأكد من تفعيل جدول steps_challenge في مشروع Supabase الجديد."
+          description: "تأكد من تفعيل جدول steps_data في مشروع Supabase الأساسي."
         });
         return;
       }
