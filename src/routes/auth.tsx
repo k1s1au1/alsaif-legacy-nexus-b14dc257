@@ -26,6 +26,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { getPublicStats } from "@/lib/api/stats.functions";
 import { notifyAdminsOfNewRequest } from "@/lib/api/admin-notifications.functions";
+import { useQuery } from "@tanstack/react-query";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -47,10 +48,16 @@ function AuthPage() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [counts, setCounts] = useState({ members: 0, completedTasks: 0 });
   const [isAdmin, setIsAdmin] = useState(false);
   const dynamicLogo = useSiteLogo();
   const { url: customBg } = useAppBackground("auth_bg");
+
+  // Fetch Public Stats with auto-refresh every 60 seconds
+  const { data: counts = { members: 0, completedTasks: 0 } } = useQuery({
+    queryKey: ["public-stats"],
+    queryFn: () => getPublicStats(),
+    refetchInterval: 1000 * 60,
+  });
 
   const [reqForm, setReqForm] = useState({
     firstName: "",
@@ -98,10 +105,6 @@ function AuthPage() {
             setIsAdmin(r.includes("admin") || r.includes("chairman"));
           });
       }
-    });
-
-    getPublicStats().then((data) => {
-      if (data) setCounts(data);
     });
   }, [navigate]);
 
