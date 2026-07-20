@@ -1,14 +1,29 @@
--- Consolidated Schema Script (V9 - FIX DOUBLE KEYWORD ERROR)
+-- Consolidated Schema Script (V10 - THE DEFINITIVE OWNER FIX)
 SET client_encoding = 'UTF8';
 SET check_function_bodies = false;
+SET search_path = public, extensions;
 
 
-DROP PUBLICATION IF EXISTS supabase_realtime;
+-- Force break all links to publication
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+        DROP PUBLICATION supabase_realtime;
+    END IF;
+EXCEPTION WHEN OTHERS THEN NULL;
+END $$;
+
+-- Wipe public schema completely
 DROP SCHEMA IF EXISTS public CASCADE;
 CREATE SCHEMA public;
+
+-- Standard Supabase permissions
 GRANT ALL ON SCHEMA public TO postgres;
 GRANT ALL ON SCHEMA public TO public;
 GRANT ALL ON SCHEMA public TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON FUNCTIONS TO postgres;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO postgres;
 
 -- Migration: 20260613015316_d4fe85fd-a915-474f-94ce-4421733be622.sql
 
@@ -179,7 +194,7 @@ CREATE POLICY "Admins delete messages" ON public.messages
 
 CREATE INDEX messages_created_at_idx ON public.messages (created_at DESC);
 
--- Command skipped
+-- Restricted command skipped
 -- Identity skipped
 
 -- Migration: 20260613023855_3a5080d8-d394-4c53-b7b5-8e2557ff94f0.sql
@@ -403,8 +418,8 @@ CREATE POLICY "Room admins delete messages"
   USING (public.is_room_admin(auth.uid(), room_id));
 
 -- 12) Realtime publication
--- Command skipped
--- Command skipped
+-- Restricted command skipped
+-- Restricted command skipped
 -- Identity skipped
 -- Identity skipped
 
@@ -811,12 +826,12 @@ $$;
 -- =========================================================
 -- 13) Realtime
 -- =========================================================
--- Command skipped
--- Command skipped
--- Command skipped
--- Command skipped
--- Command skipped
--- Command skipped
+-- Restricted command skipped
+-- Restricted command skipped
+-- Restricted command skipped
+-- Restricted command skipped
+-- Restricted command skipped
+-- Restricted command skipped
 -- Identity skipped
 -- Identity skipped
 -- Identity skipped
@@ -983,7 +998,7 @@ GRANT EXECUTE ON FUNCTION public.mark_conversation_read(uuid) TO authenticated;
 
 -- Migration: 20260613042330_297a47f4-f57c-467e-b1d6-8ab7ff6be613.sql
 -- Identity skipped
--- Command skipped
+-- Restricted command skipped
 
 -- Migration: 20260613043855_7d096d19-7219-48fd-bbf2-761b5c142f5e.sql
 CREATE TABLE public.trips (
@@ -1164,7 +1179,7 @@ CREATE TRIGGER update_fund_transactions_updated_at
 
 -- Enable realtime
 -- Identity skipped
--- Command skipped
+-- Restricted command skipped
 
 -- Duplicate guard: reject identical tx from same user within 5 seconds
 CREATE OR REPLACE FUNCTION public.prevent_duplicate_fund_tx()
@@ -1302,7 +1317,7 @@ CREATE TRIGGER bank_transfer_on_approve_trigger
 
 -- Realtime
 -- Identity skipped
--- Command skipped
+-- Restricted command skipped
 
 
 -- Migration: 20260614134430_69cddd8a-1b0d-4443-a5bb-645c941d83ff.sql
@@ -1446,8 +1461,8 @@ CREATE TRIGGER meeting_attendees_set_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Realtime
--- Command skipped
--- Command skipped
+-- Restricted command skipped
+-- Restricted command skipped
 
 
 -- Migration: 20260614143333_fa4e1002-5925-4499-b0f4-0e22c7af5bdf.sql
@@ -4832,3 +4847,16 @@ END;
 $$;
 
 
+
+-- Final Ownership Correction
+DO $$
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'ALTER TABLE public.' || quote_ident(r.tablename) || ' OWNER TO postgres';
+    END LOOP;
+END $$;
+
+-- Re-create publication if needed (Optional, user can do in UI)
+-- CREATE PUBLICATION supabase_realtime;
