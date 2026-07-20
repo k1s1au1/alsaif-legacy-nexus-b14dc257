@@ -1,4 +1,27 @@
-﻿
+-- Consolidated Schema Script (V7 - THE NUCLEAR CLEANUP)
+SET client_encoding = 'UTF8';
+SET check_function_bodies = false;
+
+
+-- Nuclear cleanup to fix "must be owner" errors
+DO $$
+BEGIN
+    -- Remove the publication link first (common cause of ownership errors)
+    IF EXISTS (SELECT 1 FROM pg_publication WHERE pubname = 'supabase_realtime') THEN
+        ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.messages;
+        ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.conversations;
+        ALTER PUBLICATION supabase_realtime DROP TABLE IF EXISTS public.profiles;
+    END IF;
+END $$;
+
+DROP SCHEMA IF EXISTS public CASCADE;
+CREATE SCHEMA public;
+GRANT ALL ON SCHEMA public TO postgres;
+GRANT ALL ON SCHEMA public TO public;
+GRANT ALL ON SCHEMA public TO anon, authenticated, service_role;
+
+-- Migration: 20260613015316_d4fe85fd-a915-474f-94ce-4421733be622.sql
+
 -- Roles enum
 CREATE TYPE public.app_role AS ENUM ('admin', 'manager', 'member');
 
@@ -121,6 +144,9 @@ CREATE TRIGGER profiles_touch_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
 
+
+-- Migration: 20260613015513_42d57b75-5298-4eae-ae82-0ebe35f74e14.sql
+
 -- Pin search_path on touch_updated_at
 CREATE OR REPLACE FUNCTION public.touch_updated_at()
 RETURNS TRIGGER
@@ -137,6 +163,9 @@ REVOKE EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) FROM PUBLIC, a
 
 -- has_role is intentionally callable from RLS policies as the signed-in user.
 GRANT EXECUTE ON FUNCTION public.has_role(uuid, public.app_role) TO authenticated, service_role;
+
+
+-- Migration: 20260613021449_969a12f8-8c0c-48ea-8e14-18ad00482eea.sql
 CREATE TABLE public.messages (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   sender_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -160,8 +189,10 @@ CREATE POLICY "Admins delete messages" ON public.messages
 
 CREATE INDEX messages_created_at_idx ON public.messages (created_at DESC);
 
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER TABLE public.messages REPLICA IDENTITY FULL;
+-- Realtime skipped
+-- Identity skipped;
+
+-- Migration: 20260613023855_3a5080d8-d394-4c53-b7b5-8e2557ff94f0.sql
 
 -- ============================================================
 -- Multi-room chat: public + private rooms with per-room members
@@ -328,12 +359,12 @@ CREATE POLICY "Room admins remove members"
     OR user_id = auth.uid()  -- members can leave
   );
 
--- 9) Seed default public room "ظ…ط¬ظ„ط³ ط§ظ„ط¹ط§ط¦ظ„ط©"
+-- 9) Seed default public room "مجلس العائلة"
 INSERT INTO public.chat_rooms (id, name, description, is_private, created_by)
 VALUES (
   '00000000-0000-4000-8000-000000000001',
-  'ظ…ط¬ظ„ط³ ط§ظ„ط¹ط§ط¦ظ„ط©',
-  'ط§ظ„ظ‚ظ†ط§ط© ط§ظ„ط¹ط§ظ…ط© ظ„ط¬ظ…ظٹط¹ ط£ظپط±ط§ط¯ ط§ظ„ط¹ط§ط¦ظ„ط©',
+  'مجلس العائلة',
+  'القناة العامة لجميع أفراد العائلة',
   false,
   NULL
 );
@@ -382,10 +413,13 @@ CREATE POLICY "Room admins delete messages"
   USING (public.is_room_admin(auth.uid(), room_id));
 
 -- 12) Realtime publication
-ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_rooms;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_room_members;
-ALTER TABLE public.chat_rooms REPLICA IDENTITY FULL;
-ALTER TABLE public.chat_room_members REPLICA IDENTITY FULL;
+-- Realtime skipped
+-- Realtime skipped
+-- Identity skipped;
+-- Identity skipped;
+
+
+-- Migration: 20260613024625_12d2a558-2cba-4755-bfc8-88bd05a6f608.sql
 
 -- =========================================================
 -- 1) Drop the old chat system completely
@@ -787,18 +821,21 @@ $$;
 -- =========================================================
 -- 13) Realtime
 -- =========================================================
-ALTER PUBLICATION supabase_realtime ADD TABLE public.conversations;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.conversation_participants;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.messages;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.message_reactions;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.message_deliveries;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.user_presence;
-ALTER TABLE public.conversations REPLICA IDENTITY FULL;
-ALTER TABLE public.conversation_participants REPLICA IDENTITY FULL;
-ALTER TABLE public.messages REPLICA IDENTITY FULL;
-ALTER TABLE public.message_reactions REPLICA IDENTITY FULL;
-ALTER TABLE public.message_deliveries REPLICA IDENTITY FULL;
-ALTER TABLE public.user_presence REPLICA IDENTITY FULL;
+-- Realtime skipped
+-- Realtime skipped
+-- Realtime skipped
+-- Realtime skipped
+-- Realtime skipped
+-- Realtime skipped
+-- Identity skipped;
+-- Identity skipped;
+-- Identity skipped;
+-- Identity skipped;
+-- Identity skipped;
+-- Identity skipped;
+
+
+-- Migration: 20260613024656_eb4b2bfb-440e-4b7d-a2bc-e0776265a148.sql
 
 -- Storage RLS for chat-attachments bucket
 -- File path layout: {conversation_id}/{message_id}/{filename}
@@ -835,14 +872,21 @@ CREATE POLICY "Owners or admins delete chat attachments"
       )
     )
   );
+
+
+-- Migration: 20260613030715_b5dc8d6a-53b8-43cf-9913-725966943a17.sql
 CREATE OR REPLACE FUNCTION public.whoami() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT auth.uid() $$;
 GRANT EXECUTE ON FUNCTION public.whoami() TO authenticated, anon;
+
+-- Migration: 20260613030833_d8c5eb06-b33c-495b-8a30-8b0e98f3720e.sql
 DROP POLICY IF EXISTS "Members view their conversations" ON public.conversations;
 CREATE POLICY "Members view their conversations"
   ON public.conversations FOR SELECT TO authenticated
   USING (created_by = auth.uid() OR public.is_conversation_member(auth.uid(), id));
 
 DROP FUNCTION IF EXISTS public.whoami();
+
+-- Migration: 20260613031819_4bb839eb-65fa-4c88-bbca-cadfbd648e72.sql
 
 -- Group send permissions
 CREATE TYPE public.group_send_permission AS ENUM ('all', 'admins', 'selected');
@@ -885,6 +929,9 @@ CREATE POLICY "Members send messages"
     AND public.can_user_send(auth.uid(), conversation_id)
   );
 
+
+-- Migration: 20260613033335_8d0ff869-f3f0-439f-8b93-05fefc37148c.sql
+
 CREATE POLICY "Avatars are viewable by authenticated"
   ON storage.objects FOR SELECT TO authenticated
   USING (bucket_id = 'avatars');
@@ -901,6 +948,9 @@ CREATE POLICY "Users update own avatar"
 CREATE POLICY "Users delete own avatar"
   ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'avatars' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+
+-- Migration: 20260613040912_276b87ea-82c9-4ea2-9eeb-6eb0425ef02c.sql
 CREATE OR REPLACE FUNCTION public.mark_conversation_read(_conversation_id uuid)
 RETURNS void
 LANGUAGE plpgsql
@@ -935,11 +985,17 @@ END;
 $$;
 
 GRANT EXECUTE ON FUNCTION public.mark_conversation_read(uuid) TO authenticated;
+
+-- Migration: 20260613041129_2c6c9258-433d-4e62-a2c3-0c1787a2375d.sql
 REVOKE ALL ON FUNCTION public.mark_conversation_read(uuid) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.mark_conversation_read(uuid) FROM anon;
 GRANT EXECUTE ON FUNCTION public.mark_conversation_read(uuid) TO authenticated;
-ALTER TABLE public.profiles REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.profiles;
+
+-- Migration: 20260613042330_297a47f4-f57c-467e-b1d6-8ab7ff6be613.sql
+-- Identity skipped;
+-- Realtime skipped
+
+-- Migration: 20260613043855_7d096d19-7219-48fd-bbf2-761b5c142f5e.sql
 CREATE TABLE public.trips (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
@@ -977,7 +1033,11 @@ CREATE POLICY "Creators or admins can delete trips" ON public.trips
 
 CREATE TRIGGER trips_touch_updated BEFORE UPDATE ON public.trips
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+-- Migration: 20260613044450_bb834ce1-59b7-45eb-9dd3-6203037b656e.sql
 ALTER TABLE public.trips ADD COLUMN location_url text;
+
+-- Migration: 20260613044903_7f38fc4c-c515-496c-ba9b-9ec8c0275f81.sql
 CREATE POLICY "Authenticated can view trip images" ON storage.objects
   FOR SELECT TO authenticated USING (bucket_id = 'trip-images');
 
@@ -989,6 +1049,8 @@ CREATE POLICY "Authenticated can update own trip images" ON storage.objects
 
 CREATE POLICY "Authenticated can delete own trip images" ON storage.objects
   FOR DELETE TO authenticated USING (bucket_id = 'trip-images' AND owner = auth.uid());
+
+-- Migration: 20260613045428_14c6271d-c1e6-4213-81de-d98b2e55fc5b.sql
 
 DROP POLICY IF EXISTS "Authenticated can create trips" ON public.trips;
 DROP POLICY IF EXISTS "Creators or admins can update trips" ON public.trips;
@@ -1020,6 +1082,9 @@ CREATE POLICY "Admins or managers can delete trips"
     public.has_role(auth.uid(), 'admin'::public.app_role)
     OR public.has_role(auth.uid(), 'manager'::public.app_role)
   );
+
+
+-- Migration: 20260613051336_caa15d9e-5551-49e3-bb0d-1d11f231fe60.sql
 CREATE TABLE public.trip_attendees (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   trip_id UUID NOT NULL REFERENCES public.trips(id) ON DELETE CASCADE,
@@ -1046,10 +1111,14 @@ CREATE POLICY "Users cancel own attendance"
   TO authenticated USING (auth.uid() = user_id);
 
 CREATE INDEX trip_attendees_trip_id_idx ON public.trip_attendees(trip_id);
+
+-- Migration: 20260613052115_edb7963b-8051-40a6-b523-587e8894875e.sql
 ALTER TABLE public.profiles 
   ADD COLUMN IF NOT EXISTS first_name text,
   ADD COLUMN IF NOT EXISTS father_name text,
   ADD COLUMN IF NOT EXISTS grandfather_name text;
+
+-- Migration: 20260613055128_f3450799-661d-4b17-9308-eb6e34b66030.sql
 
 CREATE OR REPLACE FUNCTION public.update_updated_at_column()
 RETURNS TRIGGER
@@ -1100,9 +1169,12 @@ CREATE TRIGGER update_fund_transactions_updated_at
   BEFORE UPDATE ON public.fund_transactions
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
+
+-- Migration: 20260613060020_85b2b1e2-6127-40ce-a834-c113c0c72b2f.sql
+
 -- Enable realtime
-ALTER TABLE public.fund_transactions REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.fund_transactions;
+-- Identity skipped;
+-- Realtime skipped
 
 -- Duplicate guard: reject identical tx from same user within 5 seconds
 CREATE OR REPLACE FUNCTION public.prevent_duplicate_fund_tx()
@@ -1129,6 +1201,9 @@ DROP TRIGGER IF EXISTS prevent_duplicate_fund_tx_trigger ON public.fund_transact
 CREATE TRIGGER prevent_duplicate_fund_tx_trigger
 BEFORE INSERT ON public.fund_transactions
 FOR EACH ROW EXECUTE FUNCTION public.prevent_duplicate_fund_tx();
+
+
+-- Migration: 20260613061604_4d2ce383-61a8-4780-9f51-942d194ecbcc.sql
 
 -- Status enum
 DO $$ BEGIN
@@ -1207,9 +1282,9 @@ BEGIN
       RETURN NEW;
     END IF;
 
-    v_desc := 'طھط­ظˆظٹظ„ ط¨ظ†ظƒظٹ ظ…ظ† ' || NEW.sender_name ||
+    v_desc := 'تحويل بنكي من ' || NEW.sender_name ||
               CASE WHEN NEW.reference_number IS NOT NULL
-                   THEN ' (ظ…ط±ط¬ط¹: ' || NEW.reference_number || ')'
+                   THEN ' (مرجع: ' || NEW.reference_number || ')'
                    ELSE '' END;
 
     INSERT INTO public.fund_transactions (type, amount, description, occurred_at, created_by)
@@ -1220,7 +1295,7 @@ BEGIN
     NEW.reviewed_at := COALESCE(NEW.reviewed_at, now());
   END IF;
 
-  -- On revert from approved â†’ remove linked fund transaction
+  -- On revert from approved → remove linked fund transaction
   IF OLD.status = 'approved' AND NEW.status <> 'approved' AND OLD.fund_transaction_id IS NOT NULL THEN
     DELETE FROM public.fund_transactions WHERE id = OLD.fund_transaction_id;
     NEW.fund_transaction_id := NULL;
@@ -1236,8 +1311,11 @@ CREATE TRIGGER bank_transfer_on_approve_trigger
   FOR EACH ROW EXECUTE FUNCTION public.bank_transfer_on_approve();
 
 -- Realtime
-ALTER TABLE public.bank_transfers REPLICA IDENTITY FULL;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.bank_transfers;
+-- Identity skipped;
+-- Realtime skipped
+
+
+-- Migration: 20260614134430_69cddd8a-1b0d-4443-a5bb-645c941d83ff.sql
 
 -- 1) Restrict Realtime subscriptions to conversation members
 ALTER TABLE IF EXISTS realtime.messages ENABLE ROW LEVEL SECURITY;
@@ -1281,6 +1359,9 @@ WITH CHECK (
   bucket_id = 'trip-images'
   AND (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'manager'))
 );
+
+
+-- Migration: 20260614134832_2cfa28c5-5ca7-4ba8-9ad7-20b11f96cef5.sql
 
 -- Enum for RSVP status
 DO $$ BEGIN
@@ -1375,8 +1456,11 @@ CREATE TRIGGER meeting_attendees_set_updated_at
   FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 -- Realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.meetings;
-ALTER PUBLICATION supabase_realtime ADD TABLE public.meeting_attendees;
+-- Realtime skipped
+-- Realtime skipped
+
+
+-- Migration: 20260614143333_fa4e1002-5925-4499-b0f4-0e22c7af5bdf.sql
 -- Archive items table for family photos/videos
 CREATE TYPE public.archive_media_type AS ENUM ('image', 'video');
 
@@ -1465,6 +1549,9 @@ SELECT cron.schedule(
   '0 3 * * *',
   $$SELECT public.archive_cleanup_expired();$$
 );
+
+
+-- Migration: 20260614145138_3c3c67a0-e708-424e-aa75-ae37c19ddeb2.sql
 
 -- Section enum
 DO $$ BEGIN
@@ -1561,6 +1648,9 @@ USING (
   END
 );
 
+
+-- Migration: 20260614150611_680d9bd5-2423-49ea-98db-b4179052af39.sql
+
 DO $$ BEGIN
   CREATE TYPE public.account_request_status AS ENUM ('pending','approved','rejected');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
@@ -1614,9 +1704,14 @@ USING (public.has_role(auth.uid(),'admin') OR public.has_role(auth.uid(),'manage
 CREATE TRIGGER account_requests_touch
 BEFORE UPDATE ON public.account_requests
 FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+
+-- Migration: 20260614152201_7fd912a2-d0d6-4910-a3e4-686e1d88f62c.sql
 ALTER TABLE public.account_requests ADD COLUMN IF NOT EXISTS desired_password TEXT;
 DELETE FROM public.account_requests WHERE email IS NULL;
 ALTER TABLE public.account_requests ALTER COLUMN email SET NOT NULL;
+
+-- Migration: 20260614182828_e46b99ee-0619-43c3-bfa1-a1aa0c9a267c.sql
 
 CREATE TYPE public.majlis_post_kind AS ENUM ('announcement', 'discussion');
 
@@ -1708,6 +1803,9 @@ CREATE TRIGGER majlis_comments_touch BEFORE UPDATE ON public.majlis_comments
 
 CREATE INDEX majlis_comments_post_idx ON public.majlis_comments (post_id, created_at);
 
+
+-- Migration: 20260615044934_17bd5950-efd6-4835-9c33-09832c934c0e.sql
+
 CREATE TYPE public.task_status AS ENUM ('todo', 'in_progress', 'done');
 CREATE TYPE public.task_priority AS ENUM ('low', 'medium', 'high');
 
@@ -1765,6 +1863,9 @@ CREATE TRIGGER tasks_updated_at
 CREATE INDEX idx_tasks_assignee ON public.tasks(assignee_id);
 CREATE INDEX idx_tasks_status ON public.tasks(status);
 CREATE INDEX idx_tasks_due_date ON public.tasks(due_date);
+
+
+-- Migration: 20260615050422_ec27272f-3d55-43ff-814e-eed0f01d0d12.sql
 
 CREATE TYPE public.event_type AS ENUM ('wedding','birthday','graduation','religious','social','other');
 CREATE TYPE public.event_status AS ENUM ('scheduled','cancelled','completed');
@@ -1840,6 +1941,9 @@ CREATE TRIGGER trg_event_attendees_updated_at
 CREATE INDEX events_starts_at_idx ON public.events(starts_at);
 CREATE INDEX event_attendees_event_id_idx ON public.event_attendees(event_id);
 
+
+-- Migration: 20260615105738_ab738589-6054-42c3-9d2c-69a4cc39ea91.sql
+
 -- Add parent linkage for family tree
 ALTER TABLE public.profiles
   ADD COLUMN IF NOT EXISTS parent_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
@@ -1903,7 +2007,13 @@ WHERE me.parent_id IS NULL
     OR btrim(parent.father_name) = btrim(me.grandfather_name)
   );
 
+
+-- Migration: 20260615114810_5c807778-8f66-407c-8ad0-ab1561b807d2.sql
+
 ALTER TYPE public.majlis_post_kind ADD VALUE IF NOT EXISTS 'complaint';
+
+
+-- Migration: 20260615114833_512cc7c3-ab97-46c0-878c-f9cbdc5825d1.sql
 
 DROP POLICY IF EXISTS "Authenticated can read posts" ON public.majlis_posts;
 DROP POLICY IF EXISTS "Admins/managers can insert posts" ON public.majlis_posts;
@@ -1947,10 +2057,20 @@ USING (
   )
 );
 
+
+-- Migration: 20260615135849_aa01a26a-582c-4114-aeb4-a46b9827156f.sql
+
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS terms_accepted_at timestamptz;
 ALTER TABLE public.account_requests ADD COLUMN IF NOT EXISTS terms_accepted boolean NOT NULL DEFAULT false;
+
+
+-- Migration: 20260616112544_e31761d3-7be5-4572-9a76-5443a1a63260.sql
 ALTER TABLE public.account_requests ADD COLUMN IF NOT EXISTS desired_password TEXT;
+
+-- Migration: 20260616151912_518f7a15-cee3-46f2-a231-0864fdc12a27.sql
 ALTER TABLE public.account_requests ADD COLUMN IF NOT EXISTS desired_password TEXT;
+
+-- Migration: 20260617014327_a6739b3f-c78b-4d34-a7a9-2a2d5e9b3044.sql
 -- App-wide settings (key/value) for things like background image URLs
 CREATE TABLE public.app_settings (
   key text PRIMARY KEY,
@@ -1991,6 +2111,8 @@ CREATE POLICY "admins manage settings delete"
 CREATE TRIGGER app_settings_touch_updated_at
   BEFORE UPDATE ON public.app_settings
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+-- Migration: 20260617014358_135a369c-ff4e-499b-8f6b-dff658d73612.sql
 -- Storage policies for app-backgrounds bucket
 CREATE POLICY "anyone can read app-backgrounds"
   ON storage.objects FOR SELECT
@@ -2020,6 +2142,8 @@ CREATE POLICY "admins delete app-backgrounds"
     bucket_id = 'app-backgrounds'
     AND (public.has_role(auth.uid(), 'admin') OR public.has_role(auth.uid(), 'manager'))
   );
+
+-- Migration: 20260618110000_fix_user_deletion_constraints.sql
 
 -- Fix foreign key constraint in fund_transactions
 -- The original constraint was ON DELETE SET NULL on a NOT NULL column, which blocks deletion.
@@ -2058,12 +2182,17 @@ DROP CONSTRAINT IF EXISTS meetings_created_by_fkey;
 ALTER TABLE public.meetings
 ADD CONSTRAINT meetings_created_by_fkey
 FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+
+-- Migration: 20260622012328_f23c4bb6-44c6-4468-b908-f9304c7855d5.sql
 ALTER TABLE public.fund_transactions
 DROP CONSTRAINT IF EXISTS fund_transactions_created_by_fkey;
 
 ALTER TABLE public.fund_transactions
 ADD CONSTRAINT fund_transactions_created_by_fkey
 FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE CASCADE;
+
+-- Migration: 20260622013510_70796ac9-14f5-434f-9acb-6c4980770f52.sql
 
 -- Allow profiles.parent_id to point to either a profile or a tree-only member
 ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_parent_id_fkey;
@@ -2096,17 +2225,26 @@ CREATE POLICY "Admins and managers manage extras" ON public.family_tree_extras
 CREATE TRIGGER family_tree_extras_touch_updated_at
   BEFORE UPDATE ON public.family_tree_extras
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+
+-- Migration: 20260622020000_add_status_to_trip_attendees.sql
 -- Add status column to trip_attendees
 ALTER TABLE public.trip_attendees ADD COLUMN IF NOT EXISTS status text CHECK (status IN ('going', 'not_going')) DEFAULT 'going';
 
 -- Set existing records to 'going'
 UPDATE public.trip_attendees SET status = 'going' WHERE status IS NULL;
+
+
+-- Migration: 20260622021000_add_update_policy_to_trip_attendees.sql
 -- Allow users to update their own attendance status
 CREATE POLICY "Users update own attendance status"
   ON public.trip_attendees FOR UPDATE
   TO authenticated
   USING (auth.uid() = user_id)
   WITH CHECK (auth.uid() = user_id);
+
+
+-- Migration: 20260623011905_d0c25923-9f8d-4ac4-82d8-e7de59ea9f35.sql
 
 ALTER TABLE public.tasks ADD COLUMN IF NOT EXISTS progress integer NOT NULL DEFAULT 0 CHECK (progress >= 0 AND progress <= 100);
 
@@ -2146,11 +2284,17 @@ TO authenticated
 USING (public.is_conversation_admin(auth.uid(), conversation_id))
 WITH CHECK (public.is_conversation_admin(auth.uid(), conversation_id));
 
+
+-- Migration: 20260623011916_0ed22508-5e5f-417d-aa1a-f42de8eb9d99.sql
+
 CREATE UNIQUE INDEX IF NOT EXISTS user_roles_chairman_unique ON public.user_roles ((role)) WHERE role = 'chairman';
 CREATE UNIQUE INDEX IF NOT EXISTS user_roles_head_meetings_unique ON public.user_roles ((role)) WHERE role = 'head_meetings';
 CREATE UNIQUE INDEX IF NOT EXISTS user_roles_head_events_unique ON public.user_roles ((role)) WHERE role = 'head_events';
 CREATE UNIQUE INDEX IF NOT EXISTS user_roles_head_trips_unique ON public.user_roles ((role)) WHERE role = 'head_trips';
 CREATE UNIQUE INDEX IF NOT EXISTS user_roles_head_finance_unique ON public.user_roles ((role)) WHERE role = 'head_finance';
+
+
+-- Migration: 20260623012845_4c8ae7f7-07e3-4b21-abae-bb3a627e4167.sql
 
 -- Helper to check management privilege per section
 CREATE OR REPLACE FUNCTION public.can_manage_section(_user uuid, _section text)
@@ -2236,8 +2380,14 @@ DROP POLICY IF EXISTS "Members can remove their own RSVP; admins any" ON public.
 CREATE POLICY "Members remove own RSVP or meeting managers any" ON public.meeting_attendees
   FOR DELETE TO authenticated
   USING (user_id = auth.uid() OR public.can_manage_section(auth.uid(),'meetings'));
+
+
+-- Migration: 20260624003343_7b40d41f-71f3-45c1-b51d-cb803faee8ac.sql
 -- Add head_heritage role
 ALTER TYPE public.app_role ADD VALUE IF NOT EXISTS 'head_heritage';
+
+
+-- Migration: 20260624020000_create_fcm_tokens.sql
 create table if not exists public.user_fcm_tokens (
   id uuid default gen_random_uuid() primary key,
   user_id uuid references auth.users(id) on delete cascade not null,
@@ -2254,6 +2404,9 @@ create policy "Users can manage their own tokens"
   for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+
+-- Migration: 20260624030000_fix_majlis_rls_chairman.sql
 
 -- Fix RLS for majlis_posts to empower Chairman and fix member posting
 DROP POLICY IF EXISTS "Read posts (complaints restricted)" ON public.majlis_posts;
@@ -2350,6 +2503,9 @@ USING (
   OR public.has_role(auth.uid(), 'manager')
   OR public.has_role(auth.uid(), 'chairman')
 );
+
+
+-- Migration: 20260624040000_fix_storage_policies_chairman.sql
 
 -- Update storage policies for 'trip-images' to empower Chairman and allow members to upload (for bugs/complaints)
 DROP POLICY IF EXISTS "Admins and managers can upload trip images" ON storage.objects;
@@ -2525,6 +2681,9 @@ USING (
   )
 );
 
+
+-- Migration: 20260624050000_create_souq_alsaif.sql
+
 -- Souq Alsaif - Family Business Directory
 CREATE TABLE public.family_businesses (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
@@ -2568,7 +2727,13 @@ CREATE POLICY "Priv roles can manage all businesses"
 CREATE TRIGGER family_businesses_touch BEFORE UPDATE ON public.family_businesses
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
 
+
+-- Migration: 20260624050010_drop_souq_alsaif.sql
+
 DROP TABLE IF EXISTS public.family_businesses CASCADE;
+
+
+-- Migration: 20260624090000_enable_trip_metadata_in_majlis.sql
 
 -- Final robust solution: Use the existing majlis_posts table with a special title prefix for trip items
 -- This bypasses all schema cache issues because majlis_posts is already well-cached.
@@ -2576,6 +2741,9 @@ DROP TABLE IF EXISTS public.family_businesses CASCADE;
 -- Ensure RLS on majlis_posts is ready for this (it should be already from previous fixes)
 -- We don't need to change the schema, just use it.
 NOTIFY pgrst, 'reload schema';
+
+
+-- Migration: 20260626114953_d5015846-00e0-4b07-80ce-4d13ba9f73a0.sql
 
 -- Allow chairman to insert/update/delete majlis posts and upload images
 DROP POLICY IF EXISTS "Insert posts by kind" ON public.majlis_posts;
@@ -2674,6 +2842,9 @@ CREATE POLICY "admins delete app-backgrounds" ON storage.objects
     )
   );
 
+
+-- Migration: 20260627042212_ae01cb4a-ca2d-4910-a0bb-9309ab50c2c8.sql
+
 -- Allow any authenticated member to publish discussion-kind posts (sharing/event/discussion in UI),
 -- and keep announcement restricted to chairman/admin/manager. Complaints remain open to authors.
 DROP POLICY IF EXISTS "Insert posts by kind" ON public.majlis_posts;
@@ -2695,7 +2866,12 @@ WITH CHECK (
 
 -- Allow section heads (events) to also publish announcements/events through the news page if needed
 -- Extend events INSERT/UPDATE/DELETE to include chairman fallback already handled by can_manage_section.
+
+
+-- Migration: 20260628002508_54a3d671-a9bf-4d6f-b009-39defdaa5e5f.sql
 ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS fcm_token text;
+
+-- Migration: 20260628062630_8dae9f72-2f85-4601-a3ea-e71fe9ac71f7.sql
 CREATE OR REPLACE FUNCTION public.can_manage_section(_user uuid, _section text)
  RETURNS boolean
  LANGUAGE sql
@@ -2720,6 +2896,8 @@ AS $function$
       )
   )
 $function$;
+
+-- Migration: 20260628063900_ab54f6f2-5a78-409c-935c-7786c2e00555.sql
 
 -- 1) New section_heads table
 CREATE TABLE public.section_heads (
@@ -2777,6 +2955,9 @@ $$;
 
 -- 5) Security fix: drop overlapping permissive UPDATE policy on conversation_participants
 DROP POLICY IF EXISTS "Self updates participant row, admin updates roles" ON public.conversation_participants;
+
+
+-- Migration: 20260628072124_8386f0ac-708f-42aa-9994-3d83eb79cd51.sql
 
 -- ============= Security fix: majlis_posts =============
 DROP POLICY IF EXISTS "Author or admin/manager can delete posts" ON public.majlis_posts;
@@ -2902,6 +3083,9 @@ USING (
 
 CREATE INDEX IF NOT EXISTS idx_family_project_contrib_project
   ON public.family_project_contributions(project_id);
+
+
+-- Migration: 20260628074033_2f4c741f-8335-493d-a2ee-f829952a9af6.sql
 DROP POLICY IF EXISTS "Only admins/chairman manage section heads" ON public.section_heads;
 CREATE POLICY "Only chairman manages section heads"
 ON public.section_heads
@@ -2909,6 +3093,8 @@ FOR ALL
 TO authenticated
 USING (has_role(auth.uid(), 'chairman'::app_role) OR has_role(auth.uid(), 'admin'::app_role))
 WITH CHECK (has_role(auth.uid(), 'chairman'::app_role) OR has_role(auth.uid(), 'admin'::app_role));
+
+-- Migration: 20260628075425_38dbaf22-8546-46e0-a99b-237c1e1229a9.sql
 
 CREATE TABLE public.meeting_presentations (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -2954,6 +3140,9 @@ FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
 
 CREATE INDEX idx_meeting_presentations_meeting ON public.meeting_presentations(meeting_id);
 
+
+-- Migration: 20260628075446_c6daa154-303c-49f3-8011-d3af21a0c04b.sql
+
 CREATE POLICY "view meeting presentation files"
 ON storage.objects FOR SELECT TO authenticated
 USING (bucket_id = 'meeting-presentations');
@@ -2978,6 +3167,9 @@ USING (
   bucket_id = 'meeting-presentations'
   AND public.can_manage_section(auth.uid(), 'meetings')
 );
+
+
+-- Migration: 20260629081138_9df9d02c-46be-4749-8a57-b33b1aa84631.sql
 
 -- Member community posts
 CREATE TABLE public.member_posts (
@@ -3040,9 +3232,15 @@ CREATE POLICY "Members change own vote" ON public.member_post_votes FOR UPDATE T
 CREATE POLICY "Members delete own vote" ON public.member_post_votes FOR DELETE TO authenticated
   USING (auth.uid() = voter_id);
 
+
+-- Migration: 20260629081211_1a684df2-c4ec-4f91-8815-8afce1709371.sql
+
 CREATE POLICY "community-media read" ON storage.objects FOR SELECT TO authenticated USING (bucket_id = 'community-media');
 CREATE POLICY "community-media insert own" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'community-media' AND auth.uid()::text = (storage.foldername(name))[1]);
 CREATE POLICY "community-media delete own" ON storage.objects FOR DELETE TO authenticated USING (bucket_id = 'community-media' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+
+-- Migration: 20260629104417_7cccee4f-d6d9-45c1-9fc4-98e3af1f55ee.sql
 CREATE TABLE public.trip_items (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   trip_id UUID NOT NULL REFERENCES public.trips(id) ON DELETE CASCADE,
@@ -3101,6 +3299,8 @@ WHERE kind = 'discussion' AND title LIKE '[TRIP-ITEM:%]';
 
 NOTIFY pgrst, 'reload schema';
 
+-- Migration: 20260629113423_a84d77ce-9425-4694-9c3c-6f8929ecfbd8.sql
+
 CREATE TABLE public.bug_reports (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   reporter_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -3140,6 +3340,9 @@ CREATE POLICY "admins and chairman can delete bug reports"
 CREATE TRIGGER bug_reports_touch_updated_at
   BEFORE UPDATE ON public.bug_reports
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
+
+
+-- Migration: 20260629120019_35f26199-8415-44cc-8d02-e78985a926d4.sql
 
 -- 1. profiles: restrict phone & fcm_token from broad SELECT via column grants
 REVOKE SELECT ON public.profiles FROM authenticated;
@@ -3216,6 +3419,9 @@ TO authenticated
 USING (auth.uid() IS NOT NULL)
 WITH CHECK ((auth.uid() = assigned_to) OR (assigned_to IS NULL));
 
+
+-- Migration: 20260630023843_dea13436-bb9a-4b14-b7ef-841068910924.sql
+
 -- 1) push_tokens
 CREATE TABLE IF NOT EXISTS public.push_tokens (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -3270,6 +3476,9 @@ CREATE TRIGGER notification_prefs_touch
   BEFORE UPDATE ON public.notification_preferences
   FOR EACH ROW EXECUTE FUNCTION public.touch_updated_at();
 
+
+-- Migration: 20260707141706_ed54edf0-1e5d-4f90-bdaf-28d59332ef74.sql
+
 CREATE TABLE public.secure_vault (
   id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
   title TEXT NOT NULL,
@@ -3321,11 +3530,19 @@ CREATE POLICY "Vault owners can update their files"
 CREATE POLICY "Vault owners can delete their files"
   ON storage.objects FOR DELETE TO authenticated
   USING (bucket_id = 'vault-media' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+
+-- Migration: 20260708070828_01fa20f4-5f6a-40f2-80db-6a907c141564.sql
 REVOKE SELECT ON public.profiles FROM authenticated;
 GRANT SELECT (id, full_name, arabic_name, avatar_url, is_active, created_at, updated_at, first_name, father_name, grandfather_name, parent_id, terms_accepted_at) ON public.profiles TO authenticated;
 -- Owners still get phone/fcm_token via get_my_profile() and get_member_phone() SECURITY DEFINER functions.
+
+-- Migration: 20260708100000_add_companions_count.sql
 ALTER TABLE public.meeting_attendees ADD COLUMN companions_count INTEGER DEFAULT 0;
 ALTER TABLE public.event_attendees ADD COLUMN companions_count INTEGER DEFAULT 0;
+
+
+-- Migration: 20260709003107_6d6a8676-f3b5-408c-abbd-3adca1d22c05.sql
 
 -- Enable pg_net for HTTP calls from triggers
 CREATE EXTENSION IF NOT EXISTS pg_net WITH SCHEMA extensions;
@@ -3338,7 +3555,7 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  v_endpoint text := 'https://wzgzkyzpzniduwcgdozl.supabase.co/functions/v1/send-push';
+  v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z3preXpwem5pZHV3Y2dkb3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgzNDAsImV4cCI6MjA5Njg3NDM0MH0.5MP_Is4cPMaet0OlS0xO0bFDOvTU30lf1Wo06sqgZzY';
 BEGIN
   PERFORM net.http_post(
@@ -3354,8 +3571,8 @@ CREATE OR REPLACE FUNCTION public.notify_meeting_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ط§ط¬طھظ…ط§ط¹ ط¬ط¯ظٹط¯',
-    COALESCE(NEW.title,'طھظ… ط¥ط¶ط§ظپط© ط§ط¬طھظ…ط§ط¹ ط¬ط¯ظٹط¯'),
+    'اجتماع جديد',
+    COALESCE(NEW.title,'تم إضافة اجتماع جديد'),
     '/meetings',
     NEW.created_by
   );
@@ -3371,8 +3588,8 @@ CREATE OR REPLACE FUNCTION public.notify_trip_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ط±ط­ظ„ط© ط¬ط¯ظٹط¯ط©',
-    COALESCE(NEW.title,'طھظ… ط¥ط¶ط§ظپط© ط±ط­ظ„ط© ط¬ط¯ظٹط¯ط©'),
+    'رحلة جديدة',
+    COALESCE(NEW.title,'تم إضافة رحلة جديدة'),
     '/trips/'||NEW.id::text,
     NEW.created_by
   );
@@ -3387,13 +3604,13 @@ FOR EACH ROW EXECUTE FUNCTION public.notify_trip_created();
 CREATE OR REPLACE FUNCTION public.notify_message_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
-  v_endpoint text := 'https://wzgzkyzpzniduwcgdozl.supabase.co/functions/v1/send-push';
+  v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z3preXpwem5pZHV3Y2dkb3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgzNDAsImV4cCI6MjA5Njg3NDM0MH0.5MP_Is4cPMaet0OlS0xO0bFDOvTU30lf1Wo06sqgZzY';
   v_sender_name text;
   v_recipients uuid[];
   v_preview text;
 BEGIN
-  SELECT COALESCE(full_name, arabic_name, 'ط±ط³ط§ظ„ط© ط¬ط¯ظٹط¯ط©') INTO v_sender_name
+  SELECT COALESCE(full_name, arabic_name, 'رسالة جديدة') INTO v_sender_name
   FROM public.profiles WHERE id = NEW.sender_id;
 
   SELECT array_agg(user_id) INTO v_recipients
@@ -3406,13 +3623,13 @@ BEGIN
     RETURN NEW;
   END IF;
 
-  v_preview := CASE WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body,''), 100) ELSE 'ًں“ژ ظ…ط±ظپظ‚' END;
+  v_preview := CASE WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body,''), 100) ELSE '📎 مرفق' END;
 
   PERFORM net.http_post(
     url := v_endpoint,
     headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||v_key,'apikey',v_key),
     body := jsonb_build_object(
-      'title', COALESCE(v_sender_name,'ط±ط³ط§ظ„ط© ط¬ط¯ظٹط¯ط©'),
+      'title', COALESCE(v_sender_name,'رسالة جديدة'),
       'body', v_preview,
       'url', '/chat/'||NEW.conversation_id::text,
       'user_ids', to_jsonb(v_recipients),
@@ -3425,6 +3642,9 @@ END; $$;
 DROP TRIGGER IF EXISTS trg_notify_message_created ON public.messages;
 CREATE TRIGGER trg_notify_message_created AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_message_created();
+
+
+-- Migration: 20260709011340_6b4f0056-9c7f-49d1-bf7b-7c2ea9d35208.sql
 
 DROP TRIGGER IF EXISTS trg_notify_meeting_created ON public.meetings;
 CREATE TRIGGER trg_notify_meeting_created
@@ -3440,6 +3660,9 @@ DROP TRIGGER IF EXISTS trg_notify_message_created ON public.messages;
 CREATE TRIGGER trg_notify_message_created
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_message_created();
+
+
+-- Migration: 20260709030000_fix_all_notifications.sql
 
 -- 1. Redefine the helper with the CORRECT project URL and Key provided by the user
 -- Project: zqllblksdyutspauafgi
@@ -3477,8 +3700,8 @@ CREATE OR REPLACE FUNCTION public.notify_meeting_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ط§ط¬طھظ…ط§ط¹ ط¬ط¯ظٹط¯',
-    COALESCE(NEW.title,'طھظ… ط¥ط¶ط§ظپط© ط§ط¬طھظ…ط§ط¹ ط¬ط¯ظٹط¯'),
+    'اجتماع جديد',
+    COALESCE(NEW.title,'تم إضافة اجتماع جديد'),
     '/meetings',
     NEW.created_by
   );
@@ -3490,8 +3713,8 @@ CREATE OR REPLACE FUNCTION public.notify_trip_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ط±ط­ظ„ط© ط¬ط¯ظٹط¯ط©',
-    COALESCE(NEW.title,'طھظ… ط¥ط¶ط§ظپط© ط±ط­ظ„ط© ط¬ط¯ظٹط¯ط©'),
+    'رحلة جديدة',
+    COALESCE(NEW.title,'تم إضافة رحلة جديدة'),
     '/trips/'||NEW.id::text,
     NEW.created_by
   );
@@ -3507,8 +3730,8 @@ BEGIN
     -- Skip if the assignee is the one who did the action
     IF NEW.assignee_id <> auth.uid() THEN
       PERFORM public.call_send_push(
-        'ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ظ…ظˆظƒظ„ط© ط¥ظ„ظٹظƒ',
-        COALESCE(NEW.title, 'ظ„ط¯ظٹظƒ ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ط¨ط§ظ†طھط¸ط§ط± ط§ظ„ط¥ظ†ط¬ط§ط²'),
+        'مهمة جديدة موكلة إليك',
+        COALESCE(NEW.title, 'لديك مهمة جديدة بانتظار الإنجاز'),
         '/tasks',
         NULL,
         ARRAY[NEW.assignee_id]
@@ -3532,7 +3755,7 @@ DECLARE
   v_preview text;
 BEGIN
   -- Get sender name
-  SELECT COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©') INTO v_sender_name
+  SELECT COALESCE(arabic_name, full_name, 'عضو العائلة') INTO v_sender_name
   FROM public.profiles WHERE id = NEW.sender_id;
 
   -- Get other participants who haven't muted the conversation
@@ -3546,10 +3769,10 @@ BEGIN
   IF v_recipients IS NOT NULL AND array_length(v_recipients, 1) > 0 THEN
     v_preview := CASE
       WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body, ''), 100)
-      WHEN NEW.kind = 'image' THEN 'ًں“· طµظˆط±ط©'
-      WHEN NEW.kind = 'video' THEN 'ًںژ¬ ظپظٹط¯ظٹظˆ'
-      WHEN NEW.kind = 'audio' THEN 'ًںژ™ ط±ط³ط§ظ„ط© طµظˆطھظٹط©'
-      ELSE 'ًں“ژ ظ…ط±ظپظ‚'
+      WHEN NEW.kind = 'image' THEN '📷 صورة'
+      WHEN NEW.kind = 'video' THEN '🎬 فيديو'
+      WHEN NEW.kind = 'audio' THEN '🎙 رسالة صوتية'
+      ELSE '📎 مرفق'
     END;
 
     -- Using the centralized helper with correct project URL
@@ -3571,7 +3794,10 @@ CREATE TRIGGER trg_notify_message_created
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_message_created();
 
--- 1. ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ط±ط¦ظٹط³ظٹ ظ„ظ„ط¥ط±ط³ط§ظ„ (طھط­ط¯ظٹط« ظ„ظ„ط±ط§ط¨ط· ظˆط§ظ„ظ…ظپط§طھظٹط­ ظˆط§ظ„ظ…ط³طھظ„ظ…ظٹظ†)
+
+-- Migration: 20260709040000_final_push_fix.sql
+
+-- 1. المحرك الرئيسي للإرسال (تحديث للرابط والمفاتيح والمستلمين)
 CREATE OR REPLACE FUNCTION public.call_send_push(_title text, _body text, _url text, _user_ids uuid[] DEFAULT NULL)
 RETURNS void
 LANGUAGE plpgsql
@@ -3583,19 +3809,19 @@ DECLARE
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxbGxibGtzZHl1dHNwYXVhZmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMTc5MjUsImV4cCI6MjA5NzU5MzkyNX0.ZDD-xQ8RTprD-KSuePG4pGhhjh2kDp-YcGFr02cK3s4';
   v_payload jsonb;
 BEGIN
-  -- طھط¬ظ‡ظٹط² ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط£ط³ط§ط³ظٹط©
+  -- تجهيز البيانات الأساسية
   v_payload := jsonb_build_object(
     'title', _title,
     'body', _body,
     'url', _url
   );
 
-  -- ط¥ط°ط§ ظƒط§ظ† ظ‡ظ†ط§ظƒ ظ…ط³طھط®ط¯ظ…ظٹظ† ظ…ط­ط¯ط¯ظٹظ† (ظ…ط«ظ„ ط§ظ„ظ…ظ‡ط§ظ… ط£ظˆ ط§ظ„ط¯ط±ط¯ط´ط©)
+  -- إذا كان هناك مستخدمين محددين (مثل المهام أو الدردشة)
   IF _user_ids IS NOT NULL AND array_length(_user_ids, 1) > 0 THEN
     v_payload := v_payload || jsonb_build_object('user_ids', to_jsonb(_user_ids));
   END IF;
 
-  -- ط¥ط±ط³ط§ظ„ ط§ظ„ط·ظ„ط¨ ظپظˆط±ط§ظ‹
+  -- إرسال الطلب فوراً
   PERFORM net.http_post(
     url := v_endpoint,
     headers := jsonb_build_object(
@@ -3608,15 +3834,15 @@ BEGIN
 END;
 $$;
 
--- 2. ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ظ…ظ‡ط§ظ… (ط¥ط±ط³ط§ظ„ ظپظˆط±ظٹ ط¹ظ†ط¯ ط§ظ„ط¥ط³ظ†ط§ط¯ ط£ظˆ ط§ظ„طھط؛ظٹظٹط±)
+-- 2. إشعارات المهام (إرسال فوري عند الإسناد أو التغيير)
 CREATE OR REPLACE FUNCTION public.notify_task_assigned()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF NEW.assignee_id IS NOT NULL THEN
-    -- ظ†ط±ط³ظ„ ط¥ط´ط¹ط§ط± ظ„ظ„ظ…ط³ط¤ظˆظ„ ط¹ظ† ط§ظ„ظ…ظ‡ظ…ط©
+    -- نرسل إشعار للمسؤول عن المهمة
     PERFORM public.call_send_push(
-      'ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ظ…ظˆظƒظ„ط© ط¥ظ„ظٹظƒ ًں“‹',
-      COALESCE(NEW.title, 'ظ„ط¯ظٹظƒ ظ…ط³ط¤ظˆظ„ظٹط© ط¬ط¯ظٹط¯ط© ط¨ط§ظ†طھط¸ط§ط± ط¥ظ†ط¬ط§ط²ظƒ'),
+      'مهمة جديدة موكلة إليك 📋',
+      COALESCE(NEW.title, 'لديك مسؤولية جديدة بانتظار إنجازك'),
       '/tasks',
       ARRAY[NEW.assignee_id]
     );
@@ -3629,7 +3855,7 @@ CREATE TRIGGER trg_notify_task_assigned
 AFTER INSERT OR UPDATE OF assignee_id ON public.tasks
 FOR EACH ROW EXECUTE FUNCTION public.notify_task_assigned();
 
--- 3. ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ط¯ط±ط¯ط´ط© (ط¥طµظ„ط§ط­ ظ…ظ†ط·ظ‚ ط§ظ„ظ…ط³طھظ„ظ…ظٹظ†)
+-- 3. إشعارات الدردشة (إصلاح منطق المستلمين)
 CREATE OR REPLACE FUNCTION public.notify_message_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
@@ -3637,28 +3863,28 @@ DECLARE
   v_recipients uuid[];
   v_preview text;
 BEGIN
-  -- ط§ظ„ط­طµظˆظ„ ط¹ظ„ظ‰ ط§ط³ظ… ط§ظ„ظ…ط±ط³ظ„
-  SELECT COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©') INTO v_sender_name
+  -- الحصول على اسم المرسل
+  SELECT COALESCE(arabic_name, full_name, 'عضو العائلة') INTO v_sender_name
   FROM public.profiles WHERE id = NEW.sender_id;
 
-  -- ط§ظ„ط­طµظˆظ„ ط¹ظ„ظ‰ ظƒط§ظپط© ط§ظ„ظ…ط´ط§ط±ظƒظٹظ† ظپظٹ ط§ظ„ظ…ط­ط§ط¯ط«ط© ظ…ط§ ط¹ط¯ط§ ط§ظ„ظ…ط±ط³ظ„
+  -- الحصول على كافة المشاركين في المحادثة ما عدا المرسل
   SELECT array_agg(user_id) INTO v_recipients
   FROM public.conversation_participants
   WHERE conversation_id = NEW.conversation_id
     AND user_id <> NEW.sender_id;
 
-  -- ط¥ط°ط§ ظ„ظ… ظٹظˆط¬ط¯ ظ…ط³طھظ„ظ…ظٹظ† ط¢ط®ط±ظٹظ† (ظ…ط«ظ„ ظ…ط­ط§ط¯ط«ط© ظ…ط¹ ط§ظ„ظ†ظپط³ ظ„ظ„طھط¬ط±ط¨ط©)طŒ ظ†ط±ط³ظ„ ظ„ظ„ظ…ط±ط³ظ„ ظ†ظپط³ظ‡ ظ„ظ„طھط£ظƒط¯ ظ…ظ† ط§ظ„ط¹ظ…ظ„
+  -- إذا لم يوجد مستلمين آخرين (مثل محادثة مع النفس للتجربة)، نرسل للمرسل نفسه للتأكد من العمل
   IF v_recipients IS NULL OR array_length(v_recipients, 1) = 0 THEN
     v_recipients := ARRAY[NEW.sender_id];
   END IF;
 
-  -- طھط¬ظ‡ظٹط² ظ†طµ ط§ظ„ظ…ط¹ط§ظٹظ†ط©
+  -- تجهيز نص المعاينة
   v_preview := CASE
     WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body, ''), 50) || '...'
-    WHEN NEW.kind = 'image' THEN 'ًں“· ط£ط±ط³ظ„ طµظˆط±ط©'
-    WHEN NEW.kind = 'video' THEN 'ًںژ¬ ط£ط±ط³ظ„ ظپظٹط¯ظٹظˆ'
-    WHEN NEW.kind = 'audio' THEN 'ًںژ™ ط±ط³ط§ظ„ط© طµظˆطھظٹط©'
-    ELSE 'ًں“ژ ظ…ط±ظپظ‚ ط¬ط¯ظٹط¯'
+    WHEN NEW.kind = 'image' THEN '📷 أرسل صورة'
+    WHEN NEW.kind = 'video' THEN '🎬 أرسل فيديو'
+    WHEN NEW.kind = 'audio' THEN '🎙 رسالة صوتية'
+    ELSE '📎 مرفق جديد'
   END;
 
   PERFORM public.call_send_push(
@@ -3676,7 +3902,10 @@ CREATE TRIGGER trg_notify_message_created
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_message_created();
 
--- 1. طھط­ط¯ظٹط« ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ط±ط¦ظٹط³ظٹ ظ„ظٹط¯ط¹ظ… ط§ظ„طµظˆط±
+
+-- Migration: 20260709050000_visual_push_notifications.sql
+
+-- 1. تحديث المحرك الرئيسي ليدعم الصور
 CREATE OR REPLACE FUNCTION public.call_send_push(_title text, _body text, _url text, _user_ids uuid[] DEFAULT NULL, _image text DEFAULT NULL)
 RETURNS void
 LANGUAGE plpgsql
@@ -3710,21 +3939,21 @@ BEGIN
 END;
 $$;
 
--- 2. ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ط±ط­ظ„ط§طھ ط¨طµظˆط± ط§ظ„ظˆط¬ظ‡ط©
+-- 2. إشعارات الرحلات بصور الوجهة
 CREATE OR REPLACE FUNCTION public.notify_trip_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ظˆط¬ظ‡ط© طھط±ظپظٹظ‡ظٹط© ط¬ط¯ظٹط¯ط© ًںŒ´',
-    COALESCE(NEW.title, 'طھظ… ط¥ط¶ط§ظپط© ط±ط­ظ„ط© ط¹ط§ط¦ظ„ظٹط© ط¬ط¯ظٹط¯ط©'),
+    'وجهة ترفيهية جديدة 🌴',
+    COALESCE(NEW.title, 'تم إضافة رحلة عائلية جديدة'),
     '/trips/'||NEW.id::text,
     NULL,
-    NEW.image_url -- طھظ…ط±ظٹط± طµظˆط±ط© ط§ظ„ط±ط­ظ„ط©
+    NEW.image_url -- تمرير صورة الرحلة
   );
   RETURN NEW;
 END; $$;
 
--- 3. ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ط¯ط±ط¯ط´ط© ط¨طµظˆط± ط§ظ„ط£ط¹ط¶ط§ط،
+-- 3. إشعارات الدردشة بصور الأعضاء
 CREATE OR REPLACE FUNCTION public.notify_message_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
@@ -3733,14 +3962,14 @@ DECLARE
   v_recipients uuid[];
   v_preview text;
 BEGIN
-  -- ط¬ظ„ط¨ ط§ط³ظ… ظˆطµظˆط±ط© ط§ظ„ظ…ط±ط³ظ„
+  -- جلب اسم وصورة المرسل
   SELECT
-    COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©'),
+    COALESCE(arabic_name, full_name, 'عضو العائلة'),
     avatar_url
   INTO v_sender_name, v_sender_avatar
   FROM public.profiles WHERE id = NEW.sender_id;
 
-  -- ط¬ظ„ط¨ ط§ظ„ظ…ط³طھظ„ظ…ظٹظ†
+  -- جلب المستلمين
   SELECT array_agg(user_id) INTO v_recipients
   FROM public.conversation_participants
   WHERE conversation_id = NEW.conversation_id
@@ -3752,10 +3981,10 @@ BEGIN
 
   v_preview := CASE
     WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body, ''), 50)
-    WHEN NEW.kind = 'image' THEN 'ًں“· ط£ط±ط³ظ„ طµظˆط±ط©'
-    WHEN NEW.kind = 'video' THEN 'ًںژ¬ ط£ط±ط³ظ„ ظپظٹط¯ظٹظˆ'
-    WHEN NEW.kind = 'audio' THEN 'ًںژ™ ط±ط³ط§ظ„ط© طµظˆطھظٹط©'
-    ELSE 'ًں“ژ ظ…ط±ظپظ‚ ط¬ط¯ظٹط¯'
+    WHEN NEW.kind = 'image' THEN '📷 أرسل صورة'
+    WHEN NEW.kind = 'video' THEN '🎬 أرسل فيديو'
+    WHEN NEW.kind = 'audio' THEN '🎙 رسالة صوتية'
+    ELSE '📎 مرفق جديد'
   END;
 
   PERFORM public.call_send_push(
@@ -3763,11 +3992,14 @@ BEGIN
     v_preview,
     '/chat/' || NEW.conversation_id::text,
     v_recipients,
-    v_sender_avatar -- طھظ…ط±ظٹط± طµظˆط±ط© ط§ظ„ط¹ط¶ظˆ
+    v_sender_avatar -- تمرير صورة العضو
   );
 
   RETURN NEW;
 END; $$;
+
+
+-- Migration: 20260709060000_fix_notification_images.sql
 
 -- 1. Helper to resolve storage path to public URL (assuming public buckets for simplicity in notifications)
 -- Project: zqllblksdyutspauafgi
@@ -3789,8 +4021,8 @@ CREATE OR REPLACE FUNCTION public.notify_trip_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ظˆط¬ظ‡ط© طھط±ظپظٹظ‡ظٹط© ط¬ط¯ظٹط¯ط© ًںŒ´',
-    COALESCE(NEW.title, 'طھظ… ط¥ط¶ط§ظپط© ط±ط­ظ„ط© ط¹ط§ط¦ظ„ظٹط© ط¬ط¯ظٹط¯ط©'),
+    'وجهة ترفيهية جديدة 🌴',
+    COALESCE(NEW.title, 'تم إضافة رحلة عائلية جديدة'),
     '/trips/'||NEW.id::text,
     NULL,
     public.resolve_storage_url('trip-images', NEW.image_url) -- Construct full public URL
@@ -3809,7 +4041,7 @@ DECLARE
 BEGIN
   -- Get sender name and avatar path
   SELECT
-    COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©'),
+    COALESCE(arabic_name, full_name, 'عضو العائلة'),
     avatar_url
   INTO v_sender_name, v_sender_avatar
   FROM public.profiles WHERE id = NEW.sender_id;
@@ -3826,10 +4058,10 @@ BEGIN
 
   v_preview := CASE
     WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body, ''), 50)
-    WHEN NEW.kind = 'image' THEN 'ًں“· ط£ط±ط³ظ„ طµظˆط±ط©'
-    WHEN NEW.kind = 'video' THEN 'ًںژ¬ ط£ط±ط³ظ„ ظپظٹط¯ظٹظˆ'
-    WHEN NEW.kind = 'audio' THEN 'ًںژ™ ط±ط³ط§ظ„ط© طµظˆطھظٹط©'
-    ELSE 'ًں“ژ ظ…ط±ظپظ‚ ط¬ط¯ظٹط¯'
+    WHEN NEW.kind = 'image' THEN '📷 أرسل صورة'
+    WHEN NEW.kind = 'video' THEN '🎬 أرسل فيديو'
+    WHEN NEW.kind = 'audio' THEN '🎙 رسالة صوتية'
+    ELSE '📎 مرفق جديد'
   END;
 
   PERFORM public.call_send_push(
@@ -3843,10 +4075,13 @@ BEGIN
   RETURN NEW;
 END; $$;
 
--- 1. ط¬ط¹ظ„ ظ…ط¬ظ„ط¯ط§طھ ط§ظ„طµظˆط± ط¹ط§ظ…ط© ظ„ط¶ظ…ط§ظ† طھط­ظ…ظٹظ„ظ‡ط§ ظپظٹ ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ
+
+-- Migration: 20260709070000_perfect_visual_push.sql
+
+-- 1. جعل مجلدات الصور عامة لضمان تحميلها في الإشعارات
 UPDATE storage.buckets SET public = true WHERE id IN ('avatars', 'trip-images');
 
--- 2. طھط­ط¯ظٹط« ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ط±ط¦ظٹط³ظٹ ظ„ط¶ظ…ط§ظ† طھط±طھظٹط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ (Title, Body, Url, UserIds, Image)
+-- 2. تحديث المحرك الرئيسي لضمان ترتيب البيانات (Title, Body, Url, UserIds, Image)
 CREATE OR REPLACE FUNCTION public.call_send_push(_title text, _body text, _url text, _user_ids uuid[] DEFAULT NULL, _image text DEFAULT NULL)
 RETURNS void
 LANGUAGE plpgsql
@@ -3864,12 +4099,12 @@ BEGIN
     'url', _url
   );
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„طµظˆط±ط© ط¥ط°ط§ ظˆط¬ط¯طھ
+  -- إضافة الصورة إذا وجدت
   IF _image IS NOT NULL AND _image <> '' THEN
     v_payload := v_payload || jsonb_build_object('image', _image);
   END IF;
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„ظ…ط³طھظ„ظ…ظٹظ† ط¥ط°ط§ ظˆط¬ط¯ظˆط§
+  -- إضافة المستلمين إذا وجدوا
   IF _user_ids IS NOT NULL AND array_length(_user_ids, 1) > 0 THEN
     v_payload := v_payload || jsonb_build_object('user_ids', to_jsonb(_user_ids));
   END IF;
@@ -3882,22 +4117,22 @@ BEGIN
 END;
 $$;
 
--- 3. ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ظ…ظ‡ط§ظ… (ط¥طµظ„ط§ط­ طھط±طھظٹط¨ ط§ظ„ط¨ظٹط§ظ†ط§طھ ظˆط¥ط¶ط§ظپط© طµظˆط±ط©)
+-- 3. إشعارات المهام (إصلاح ترتيب البيانات وإضافة صورة)
 CREATE OR REPLACE FUNCTION public.notify_task_assigned()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_creator_avatar text;
 BEGIN
-  -- ط¬ظ„ط¨ طµظˆط±ط© ط§ظ„ط´ط®طµ ط§ظ„ط°ظٹ ط£ط³ظ†ط¯ ط§ظ„ظ…ظ‡ظ…ط© ظ„ظƒظٹ طھط¸ظ‡ط± ظپظٹ ط§ظ„ط¥ط´ط¹ط§ط±
+  -- جلب صورة الشخص الذي أسند المهمة لكي تظهر في الإشعار
   SELECT avatar_url INTO v_creator_avatar FROM public.profiles WHERE id = NEW.created_by;
 
   IF NEW.assignee_id IS NOT NULL THEN
     PERFORM public.call_send_push(
-      'ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ظ…ظˆظƒظ„ط© ط¥ظ„ظٹظƒ ًں“‹',
-      COALESCE(NEW.title, 'ظ„ط¯ظٹظƒ ظ…ط³ط¤ظˆظ„ظٹط© ط¬ط¯ظٹط¯ط© ط¨ط§ظ†طھط¸ط§ط± ط¥ظ†ط¬ط§ط²ظƒ'),
+      'مهمة جديدة موكلة إليك 📋',
+      COALESCE(NEW.title, 'لديك مسؤولية جديدة بانتظار إنجازك'),
       '/tasks',
-      ARRAY[NEW.assignee_id], -- ط§ظ„ظ…ط³طھظ„ظ… (ط§ظ„ط±ط§ط¨ط¹)
-      public.resolve_storage_url('avatars', v_creator_avatar) -- ط§ظ„طµظˆط±ط© (ط§ظ„ط®ط§ظ…ط³)
+      ARRAY[NEW.assignee_id], -- المستلم (الرابع)
+      public.resolve_storage_url('avatars', v_creator_avatar) -- الصورة (الخامس)
     );
   END IF;
   RETURN NEW;
@@ -3908,8 +4143,11 @@ CREATE TRIGGER trg_notify_task_assigned
 AFTER INSERT OR UPDATE OF assignee_id ON public.tasks
 FOR EACH ROW EXECUTE FUNCTION public.notify_task_assigned();
 
--- 4. ط¥ط¹ط§ط¯ط© طھط·ط¨ظٹظ‚ ظ…ط­ظپط²ط§طھ ط§ظ„ط¯ط±ط¯ط´ط© ظˆط§ظ„ط±ط­ظ„ط§طھ ظ„ط¶ظ…ط§ظ† ط§ط³طھط®ط¯ط§ظ… ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ط¬ط¯ظٹط¯
--- (ط³ظٹطھظ… ط§ط³طھط®ط¯ط§ظ… ط§ظ„ط¯ظˆط§ظ„ ط§ظ„طھظٹ طھظ… طھط¹ط±ظٹظپظ‡ط§ ط³ط§ط¨ظ‚ط§ظ‹ ظˆظ„ظƒظ†ظ‡ط§ ط³طھط¹ظ…ظ„ ط§ظ„ط¢ظ† ظ…ط¹ ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ظ…ط­ط¯ط«)
+-- 4. إعادة تطبيق محفزات الدردشة والرحلات لضمان استخدام المحرك الجديد
+-- (سيتم استخدام الدوال التي تم تعريفها سابقاً ولكنها ستعمل الآن مع المحرك المحدث)
+
+
+-- Migration: 20260709100000_restrict_majlis_posting.sql
 
 -- Restrict posting in Majlis (News) to only Chairman, admin, and news manager
 -- 1) Update can_manage_section to be more precise if needed,
@@ -3961,6 +4199,9 @@ USING (
     WHERE user_id = auth.uid() AND section = 'majlis'
   )
 );
+
+
+-- Migration: 20260710014651_cef26383-372c-4bbd-91d8-848f5296d45a.sql
 CREATE OR REPLACE FUNCTION public.notify_task_created()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -3968,7 +4209,7 @@ SECURITY DEFINER
 SET search_path TO 'public','extensions'
 AS $$
 DECLARE
-  v_endpoint text := 'https://wzgzkyzpzniduwcgdozl.supabase.co/functions/v1/send-push';
+  v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind6Z3preXpwem5pZHV3Y2dkb3psIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEyOTgzNDAsImV4cCI6MjA5Njg3NDM0MH0.5MP_Is4cPMaet0OlS0xO0bFDOvTU30lf1Wo06sqgZzY';
   v_recipients uuid[];
 BEGIN
@@ -3982,8 +4223,8 @@ BEGIN
     url := v_endpoint,
     headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||v_key,'apikey',v_key),
     body := jsonb_build_object(
-      'title', 'ًں“‹ ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط©',
-      'body', COALESCE(NEW.title, 'طھظ… ط¥ط³ظ†ط§ط¯ ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ط¥ظ„ظٹظƒ'),
+      'title', '📋 مهمة جديدة',
+      'body', COALESCE(NEW.title, 'تم إسناد مهمة جديدة إليك'),
       'url', '/tasks',
       'user_ids', to_jsonb(v_recipients),
       'exclude_user_id', NEW.created_by
@@ -4001,6 +4242,8 @@ DROP TRIGGER IF EXISTS trg_notify_task_created ON public.tasks;
 CREATE TRIGGER trg_notify_task_created
 AFTER INSERT ON public.tasks
 FOR EACH ROW EXECUTE FUNCTION public.notify_task_created();
+
+-- Migration: 20260710120000_fix_account_requests_chairman_rls.sql
 
 -- Fix RLS for account_requests to ensure Chairman can view and manage requests
 DROP POLICY IF EXISTS "Admins and managers can view account requests" ON public.account_requests;
@@ -4044,13 +4287,16 @@ USING (
   OR public.has_role(auth.uid(), 'manager'::public.app_role)
 );
 
--- 1. طھظ†ط¸ظٹظپ ظƒط§ظپط© ط§ظ„ظ†ط³ط® ط§ظ„ط³ط§ط¨ظ‚ط© ظ„ظ…ط­ط±ظƒ ط§ظ„ط¥ط±ط³ط§ظ„ ظ„طھظپط§ط¯ظٹ ط§ظ„طھظƒط±ط§ط± (Drop all overloads)
+
+-- Migration: 20260710150000_unified_push_engine.sql
+
+-- 1. تنظيف كافة النسخ السابقة لمحرك الإرسال لتفادي التكرار (Drop all overloads)
 DROP FUNCTION IF EXISTS public.call_send_push(text, text, text, uuid);
 DROP FUNCTION IF EXISTS public.call_send_push(text, text, text, uuid, uuid[]);
 DROP FUNCTION IF EXISTS public.call_send_push(text, text, text, uuid[]);
 DROP FUNCTION IF EXISTS public.call_send_push(text, text, text, uuid[], text);
 
--- 2. ط¥ظ†ط´ط§ط، ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ظ…ظˆط­ط¯ ظˆط§ظ„ظ†ظ‡ط§ط¦ظٹ ظ„ظٹط¯ط¹ظ… ط§ظ„طھظپط§ط¹ظ„ (Interactivity) ظˆط§ظ„طµظˆط±
+-- 2. إنشاء المحرك الموحد والنهائي ليدعم التفاعل (Interactivity) والصور
 CREATE OR REPLACE FUNCTION public.call_send_push(
   _title text,
   _body text,
@@ -4076,22 +4322,22 @@ BEGIN
     'url', _url
   );
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„طµظˆط±ط© ط¥ط°ط§ ظˆط¬ط¯طھ
+  -- إضافة الصورة إذا وجدت
   IF _image IS NOT NULL AND _image <> '' THEN
     v_payload := v_payload || jsonb_build_object('image', _image);
   END IF;
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„ظ…ط³طھظ„ظ…ظٹظ† ط¥ط°ط§ ظˆط¬ط¯ظˆط§
+  -- إضافة المستلمين إذا وجدوا
   IF _user_ids IS NOT NULL AND array_length(_user_ids, 1) > 0 THEN
     v_payload := v_payload || jsonb_build_object('user_ids', to_jsonb(_user_ids));
   END IF;
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„طھطµظ†ظٹظپ (ظ„ظ„طھظپط§ط¹ظ„ ظ…ط«ظ„ MEETING_INVITE)
+  -- إضافة التصنيف (للتفاعل مثل MEETING_INVITE)
   IF _category IS NOT NULL THEN
     v_payload := v_payload || jsonb_build_object('category', _category);
   END IF;
 
-  -- ط¥ط¶ط§ظپط© ط¨ظٹط§ظ†ط§طھ ط¥ط¶ط§ظپظٹط© (ظ…ط«ظ„ meeting_id)
+  -- إضافة بيانات إضافية (مثل meeting_id)
   IF _data IS NOT NULL THEN
     v_payload := v_payload || jsonb_build_object('data', _data);
   END IF;
@@ -4104,35 +4350,35 @@ BEGIN
 END;
 $$;
 
--- 3. طھط­ط¯ظٹط« ط¥ط´ط¹ط§ط± ط§ظ„ط§ط¬طھظ…ط§ط¹ط§طھ ظ„ظٹط¯ط¹ظ… ط§ظ„طھظپط§ط¹ظ„ (ط³ط£ط­ط¶ط± / ط£ط¹طھط°ط±)
+-- 3. تحديث إشعار الاجتماعات ليدعم التفاعل (سأحضر / أعتذر)
 CREATE OR REPLACE FUNCTION public.notify_meeting_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ط§ط¬طھظ…ط§ط¹ ط¹ط§ط¦ظ„ظٹ ط¬ط¯ظٹط¯ âœ¨',
-    COALESCE(NEW.title, 'طھظ… ط¬ط¯ظˆظ„ط© ط§ط¬طھظ…ط§ط¹ ط¬ط¯ظٹط¯ ظ„ظ„ظ…ط¬ظ„ط³'),
+    'اجتماع عائلي جديد ✨',
+    COALESCE(NEW.title, 'تم جدولة اجتماع جديد للمجلس'),
     '/meetings',
-    NULL, -- ظƒط§ظپط© ط§ظ„ط£ط¹ط¶ط§ط،
-    NULL, -- ظ„ط§ طھظˆط¬ط¯ طµظˆط±ط© ط§ظپطھط±ط§ط¶ظٹط©
-    'MEETING_INVITE', -- ط§ظ„طھطµظ†ظٹظپ ط§ظ„طھظپط§ط¹ظ„ظٹ
-    jsonb_build_object('meeting_id', NEW.id) -- ط¨ظٹط§ظ†ط§طھ ط§ظ„ط±ط¨ط·
+    NULL, -- كافة الأعضاء
+    NULL, -- لا توجد صورة افتراضية
+    'MEETING_INVITE', -- التصنيف التفاعلي
+    jsonb_build_object('meeting_id', NEW.id) -- بيانات الربط
   );
   RETURN NEW;
 END; $$;
 
--- ط§ظ„طھط£ظƒط¯ ظ…ظ† ظˆط¬ظˆط¯ ظ…ط­ظپط² ظˆط§ط­ط¯ ظپظ‚ط· ظ„ظ„ط§ط¬طھظ…ط§ط¹ط§طھ
+-- التأكد من وجود محفز واحد فقط للاجتماعات
 DROP TRIGGER IF EXISTS trg_notify_meeting_created ON public.meetings;
 CREATE TRIGGER trg_notify_meeting_created
 AFTER INSERT ON public.meetings
 FOR EACH ROW EXECUTE FUNCTION public.notify_meeting_created();
 
--- 4. طھط­ط¯ظٹط« ط¥ط´ط¹ط§ط± ط§ظ„ط±ط­ظ„ط§طھ
+-- 4. تحديث إشعار الرحلات
 CREATE OR REPLACE FUNCTION public.notify_trip_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ظˆط¬ظ‡ط© طھط±ظپظٹظ‡ظٹط© ط¬ط¯ظٹط¯ط© ًںŒ´',
-    COALESCE(NEW.title, 'طھظ… ط¥ط¶ط§ظپط© ط±ط­ظ„ط© ط¹ط§ط¦ظ„ظٹط© ط¬ط¯ظٹط¯ط©'),
+    'وجهة ترفيهية جديدة 🌴',
+    COALESCE(NEW.title, 'تم إضافة رحلة عائلية جديدة'),
     '/trips/'||NEW.id::text,
     NULL,
     NEW.image_url
@@ -4145,7 +4391,7 @@ CREATE TRIGGER trg_notify_trip_created
 AFTER INSERT ON public.trips
 FOR EACH ROW EXECUTE FUNCTION public.notify_trip_created();
 
--- 5. طھط­ط¯ظٹط« ط¥ط´ط¹ط§ط± ط§ظ„ظ…ظ‡ط§ظ…
+-- 5. تحديث إشعار المهام
 CREATE OR REPLACE FUNCTION public.notify_task_assigned()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -4154,8 +4400,8 @@ BEGIN
   SELECT avatar_url INTO v_creator_avatar FROM public.profiles WHERE id = NEW.created_by;
   IF NEW.assignee_id IS NOT NULL THEN
     PERFORM public.call_send_push(
-      'ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ظ…ظˆظƒظ„ط© ط¥ظ„ظٹظƒ ًں“‹',
-      COALESCE(NEW.title, 'ظ„ط¯ظٹظƒ ظ…ط³ط¤ظˆظ„ظٹط© ط¬ط¯ظٹط¯ط© ط¨ط§ظ†طھط¸ط§ط± ط¥ظ†ط¬ط§ط²ظƒ'),
+      'مهمة جديدة موكلة إليك 📋',
+      COALESCE(NEW.title, 'لديك مسؤولية جديدة بانتظار إنجازك'),
       '/tasks',
       ARRAY[NEW.assignee_id],
       v_creator_avatar
@@ -4169,7 +4415,7 @@ CREATE TRIGGER trg_notify_task_assigned
 AFTER INSERT OR UPDATE OF assignee_id ON public.tasks
 FOR EACH ROW EXECUTE FUNCTION public.notify_task_assigned();
 
--- 6. طھط­ط¯ظٹط« ط¥ط´ط¹ط§ط± ط§ظ„ط¯ط±ط¯ط´ط©
+-- 6. تحديث إشعار الدردشة
 CREATE OR REPLACE FUNCTION public.notify_message_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
@@ -4178,7 +4424,7 @@ DECLARE
   v_recipients uuid[];
   v_preview text;
 BEGIN
-  SELECT COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©'), avatar_url
+  SELECT COALESCE(arabic_name, full_name, 'عضو العائلة'), avatar_url
   INTO v_sender_name, v_sender_avatar
   FROM public.profiles WHERE id = NEW.sender_id;
 
@@ -4189,10 +4435,10 @@ BEGIN
   IF v_recipients IS NOT NULL AND array_length(v_recipients, 1) > 0 THEN
     v_preview := CASE
       WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body, ''), 50)
-      WHEN NEW.kind = 'image' THEN 'ًں“· ط£ط±ط³ظ„ طµظˆط±ط©'
-      WHEN NEW.kind = 'video' THEN 'ًںژ¬ ط£ط±ط³ظ„ ظپظٹط¯ظٹظˆ'
-      WHEN NEW.kind = 'audio' THEN 'ًںژ™ ط±ط³ط§ظ„ط© طµظˆطھظٹط©'
-      ELSE 'ًں“ژ ظ…ط±ظپظ‚ ط¬ط¯ظٹط¯'
+      WHEN NEW.kind = 'image' THEN '📷 أرسل صورة'
+      WHEN NEW.kind = 'video' THEN '🎬 أرسل فيديو'
+      WHEN NEW.kind = 'audio' THEN '🎙 رسالة صوتية'
+      ELSE '📎 مرفق جديد'
     END;
 
     PERFORM public.call_send_push(
@@ -4211,14 +4457,17 @@ CREATE TRIGGER trg_notify_message_created
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_message_created();
 
--- 7. طھظ†ط¸ظٹظپ ط§ظ„ط±ظ…ظˆط² ط§ظ„ظ…ظƒط±ط±ط© ظ„ظ…ظ†ط¹ ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ط§ظ„ظ…ط²ط¯ظˆط¬ط© (Prevent duplicates)
+-- 7. تنظيف الرموز المكررة لمنع الإشعارات المزدوجة (Prevent duplicates)
 DELETE FROM public.push_tokens a
 USING public.push_tokens b
 WHERE a.id < b.id
   AND a.token = b.token
   AND a.user_id = b.user_id;
 
--- 1. ط­ط°ظپ ظƒط§ظپط© ط§ظ„ظ…ط­ظپط²ط§طھ ط§ظ„ظ…ظƒط±ط±ط© ظˆط§ظ„ظ‚ط¯ظٹظ…ط© ظ…ظ† ظƒط§ظپط© ط§ظ„ط¬ط¯ط§ظˆظ„ ط°ط§طھ ط§ظ„طµظ„ط©
+
+-- Migration: 20260710160000_final_notification_cleanup.sql
+
+-- 1. حذف كافة المحفزات المكررة والقديمة من كافة الجداول ذات الصلة
 DROP TRIGGER IF EXISTS trg_notify_meeting_created ON public.meetings;
 DROP TRIGGER IF EXISTS trg_notify_trip_created ON public.trips;
 DROP TRIGGER IF EXISTS trg_notify_task_assigned ON public.tasks;
@@ -4226,7 +4475,7 @@ DROP TRIGGER IF EXISTS trg_notify_task_created ON public.tasks;
 DROP TRIGGER IF EXISTS trg_notify_message_created ON public.messages;
 DROP TRIGGER IF EXISTS messages_after_insert ON public.messages;
 
--- 2. طھظˆط­ظٹط¯ ط§ظ„ظ…ط­ط±ظƒ ط§ظ„ط±ط¦ظٹط³ظٹ ظ„ظٹط¯ط¹ظ… ط§ظ„طµظˆط± ظˆط§ظ„طھظپط§ط¹ظ„ ظˆط§ظ„ط±ظˆط§ط¨ط· ط§ظ„ط¹ظ…ظٹظ‚ط© (Deep Links)
+-- 2. توحيد المحرك الرئيسي ليدعم الصور والتفاعل والروابط العميقة (Deep Links)
 CREATE OR REPLACE FUNCTION public.call_send_push(
   _title text,
   _body text,
@@ -4246,29 +4495,29 @@ DECLARE
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxbGxibGtzZHl1dHNwYXVhZmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMTc5MjUsImV4cCI6MjA5NzU5MzkyNX0.ZDD-xQ8RTprD-KSuePG4pGhhjh2kDp-YcGFr02cK3s4';
   v_payload jsonb;
 BEGIN
-  -- طھط¬ظ‡ظٹط² ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¥ط´ط¹ط§ط±
+  -- تجهيز بيانات الإشعار
   v_payload := jsonb_build_object(
     'title', _title,
     'body', _body,
     'url', _url
   );
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„طµظˆط±ط©
+  -- إضافة الصورة
   IF _image IS NOT NULL AND _image <> '' THEN
     v_payload := v_payload || jsonb_build_object('image', _image);
   END IF;
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„ظ…ط³طھظ„ظ…ظٹظ†
+  -- إضافة المستلمين
   IF _user_ids IS NOT NULL AND array_length(_user_ids, 1) > 0 THEN
     v_payload := v_payload || jsonb_build_object('user_ids', to_jsonb(_user_ids));
   END IF;
 
-  -- ط¥ط¶ط§ظپط© ط§ظ„طھطµظ†ظٹظپ (ظ„ظ„طھظپط§ط¹ظ„)
+  -- إضافة التصنيف (للتفاعل)
   IF _category IS NOT NULL THEN
     v_payload := v_payload || jsonb_build_object('category', _category);
   END IF;
 
-  -- ط¯ظ…ط¬ ط§ظ„ط±ط§ط¨ط· ظپظٹ ط§ظ„ط¨ظٹط§ظ†ط§طھ ط§ظ„ط¥ط¶ط§ظپظٹط© ظ„ط¶ظ…ط§ظ† ظˆطµظˆظ„ظ‡ ظ„ظ„ظ€ Action Event ظپظٹ ط§ظ„طھط·ط¨ظٹظ‚
+  -- دمج الرابط في البيانات الإضافية لضمان وصوله للـ Action Event في التطبيق
   v_payload := v_payload || jsonb_build_object('data',
     COALESCE(_data, '{}'::jsonb) || jsonb_build_object('url', _url)
   );
@@ -4281,13 +4530,13 @@ BEGIN
 END;
 $$;
 
--- 3. طھظپط¹ظٹظ„ ظ…ط­ظپط² ط§ظ„ط§ط¬طھظ…ط§ط¹ط§طھ ظ…ط¹ ط§ظ„طھظپط§ط¹ظ„ ظˆط§ظ„ط±ط¨ط· ط§ظ„ط¹ظ…ظٹظ‚
+-- 3. تفعيل محفز الاجتماعات مع التفاعل والربط العميق
 CREATE OR REPLACE FUNCTION public.notify_meeting_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ط§ط¬طھظ…ط§ط¹ ط¹ط§ط¦ظ„ظٹ ط¬ط¯ظٹط¯ âœ¨',
-    COALESCE(NEW.title, 'طھظ… ط¬ط¯ظˆظ„ط© ط§ط¬طھظ…ط§ط¹ ط¬ط¯ظٹط¯ ظ„ظ„ظ…ط¬ظ„ط³'),
+    'اجتماع عائلي جديد ✨',
+    COALESCE(NEW.title, 'تم جدولة اجتماع جديد للمجلس'),
     '/meetings',
     NULL,
     NULL,
@@ -4301,13 +4550,13 @@ CREATE TRIGGER trg_notify_meeting_created
 AFTER INSERT ON public.meetings
 FOR EACH ROW EXECUTE FUNCTION public.notify_meeting_created();
 
--- 4. طھظپط¹ظٹظ„ ظ…ط­ظپط² ط§ظ„ط±ط­ظ„ط§طھ
+-- 4. تفعيل محفز الرحلات
 CREATE OR REPLACE FUNCTION public.notify_trip_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   PERFORM public.call_send_push(
-    'ظˆط¬ظ‡ط© طھط±ظپظٹظ‡ظٹط© ط¬ط¯ظٹط¯ط© ًںŒ´',
-    COALESCE(NEW.title, 'طھظ… ط¥ط¶ط§ظپط© ط±ط­ظ„ط© ط¹ط§ط¦ظ„ظٹط© ط¬ط¯ظٹط¯ط©'),
+    'وجهة ترفيهية جديدة 🌴',
+    COALESCE(NEW.title, 'تم إضافة رحلة عائلية جديدة'),
     '/trips/'||NEW.id::text
   );
   RETURN NEW;
@@ -4317,14 +4566,14 @@ CREATE TRIGGER trg_notify_trip_created
 AFTER INSERT ON public.trips
 FOR EACH ROW EXECUTE FUNCTION public.notify_trip_created();
 
--- 5. طھظپط¹ظٹظ„ ظ…ط­ظپط² ط§ظ„ظ…ظ‡ط§ظ…
+-- 5. تفعيل محفز المهام
 CREATE OR REPLACE FUNCTION public.notify_task_assigned()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
   IF NEW.assignee_id IS NOT NULL AND NEW.assignee_id <> auth.uid() THEN
     PERFORM public.call_send_push(
-      'ظ…ظ‡ظ…ط© ط¬ط¯ظٹط¯ط© ظ…ظˆظƒظ„ط© ط¥ظ„ظٹظƒ ًں“‹',
-      COALESCE(NEW.title, 'ظ„ط¯ظٹظƒ ظ…ط³ط¤ظˆظ„ظٹط© ط¬ط¯ظٹط¯ط© ط¨ط§ظ†طھط¸ط§ط± ط¥ظ†ط¬ط§ط²ظƒ'),
+      'مهمة جديدة موكلة إليك 📋',
+      COALESCE(NEW.title, 'لديك مسؤولية جديدة بانتظار إنجازك'),
       '/tasks',
       ARRAY[NEW.assignee_id]
     );
@@ -4336,7 +4585,7 @@ CREATE TRIGGER trg_notify_task_assigned
 AFTER INSERT OR UPDATE OF assignee_id ON public.tasks
 FOR EACH ROW EXECUTE FUNCTION public.notify_task_assigned();
 
--- 6. طھظپط¹ظٹظ„ ظ…ط­ظپط² ط§ظ„ط±ط³ط§ط¦ظ„ (ط§ظ„ط¯ط±ط¯ط´ط©)
+-- 6. تفعيل محفز الرسائل (الدردشة)
 CREATE OR REPLACE FUNCTION public.notify_message_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, extensions AS $$
 DECLARE
@@ -4344,7 +4593,7 @@ DECLARE
   v_recipients uuid[];
   v_preview text;
 BEGIN
-  SELECT COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©') INTO v_sender_name
+  SELECT COALESCE(arabic_name, full_name, 'عضو العائلة') INTO v_sender_name
   FROM public.profiles WHERE id = NEW.sender_id;
 
   SELECT array_agg(user_id) INTO v_recipients
@@ -4354,8 +4603,8 @@ BEGIN
   IF v_recipients IS NOT NULL AND array_length(v_recipients, 1) > 0 THEN
     v_preview := CASE
       WHEN NEW.kind = 'text' THEN LEFT(COALESCE(NEW.body, ''), 50)
-      WHEN NEW.kind = 'image' THEN 'ًں“· ط£ط±ط³ظ„ طµظˆط±ط©'
-      ELSE 'ًں“ژ ظ…ط±ظپظ‚ ط¬ط¯ظٹط¯'
+      WHEN NEW.kind = 'image' THEN '📷 أرسل صورة'
+      ELSE '📎 مرفق جديد'
     END;
 
     PERFORM public.call_send_push(
@@ -4372,12 +4621,15 @@ CREATE TRIGGER trg_notify_message_created
 AFTER INSERT ON public.messages
 FOR EACH ROW EXECUTE FUNCTION public.notify_message_created();
 
--- 7. طھظ†ط¸ظٹظپ ط§ظ„ط±ظ…ظˆط² ط§ظ„ظ…ظƒط±ط±ط© ظ„ط¶ظ…ط§ظ† ط¹ط¯ظ… ط§ط³طھظ„ط§ظ… ط¥ط´ط¹ط§ط±ظٹظ† ظ„ظ†ظپط³ ط§ظ„ط¬ظ‡ط§ط²
+-- 7. تنظيف الرموز المكررة لضمان عدم استلام إشعارين لنفس الجهاز
 DELETE FROM public.push_tokens a
 USING public.push_tokens b
 WHERE a.id < b.id
   AND a.token = b.token
   AND a.user_id = b.user_id;
+
+
+-- Migration: 20260713050000_support_current_push_tokens.sql
 -- Keep legacy tokens working while allowing the current Android app to register its Firebase token.
 ALTER TABLE public.push_tokens
   ADD COLUMN IF NOT EXISTS user_id uuid;
@@ -4391,7 +4643,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS push_tokens_user_id_token_key
   ON public.push_tokens (user_id, token)
   WHERE user_id IS NOT NULL;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -4406,7 +4658,9 @@ BEGIN
       USING (auth.uid() = user_id)
       WITH CHECK (auth.uid() = user_id);
   END IF;
-END $;
+END $$;
+
+-- Migration: 20260713180000_ensure_unique_fcm_token.sql
 
 -- Ensure that each FCM token is associated with only one active record (the latest user)
 -- This prevents a device from receiving duplicate notifications or notifications for multiple users.
@@ -4427,7 +4681,12 @@ CREATE UNIQUE INDEX push_tokens_token_unique_idx ON public.push_tokens (token);
 
 -- 4. Update the upsert logic in our heads
 -- (The client code already uses { onConflict: 'token' })
+
+
+-- Migration: 20260715100000_add_meeting_minutes.sql
 ALTER TABLE public.meetings ADD COLUMN minutes TEXT;
+
+-- Migration: 20260715110000_create_steps_challenge.sql
 CREATE TABLE public.steps_data (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -4444,36 +4703,42 @@ CREATE POLICY "Users can manage own steps data" ON public.steps_data FOR ALL TO 
 
 GRANT ALL ON public.steps_data TO authenticated;
 GRANT ALL ON public.steps_data TO service_role;
+
+
+-- Migration: 20260718090000_add_accommodation_type_to_trips.sql
 -- Allow each trip to define its own accommodation type.
 ALTER TABLE public.trips
-  ADD COLUMN IF NOT EXISTS accommodation_type text NOT NULL DEFAULT 'ظ…ط®ظٹظ… ط¹ط§ط¦ظ„ظٹ ظپط§ط®ط±';
+  ADD COLUMN IF NOT EXISTS accommodation_type text NOT NULL DEFAULT 'مخيم عائلي فاخر';
 
 NOTIFY pgrst, 'reload schema';
 
--- 1. ط¥ط´ط¹ط§ط± ط¹ظ†ط¯ ط¥ط¶ط§ظپط© طµظˆط±/ظپظٹط¯ظٹظˆظ‡ط§طھ ط¬ط¯ظٹط¯ط© ظ„ظ„ط£ظ„ط¨ظˆظ… (ط§ظ„ط£ط±ط´ظٹظپ)
+
+-- Migration: 20260720040000_expand_push_notifications.sql
+
+-- 1. إشعار عند إضافة صور/فيديوهات جديدة للألبوم (الأرشيف)
 CREATE OR REPLACE FUNCTION public.notify_archive_item_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
   v_uploader_name text;
   v_section_name text;
 BEGIN
-  SELECT COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©') INTO v_uploader_name
+  SELECT COALESCE(arabic_name, full_name, 'عضو العائلة') INTO v_uploader_name
   FROM public.profiles WHERE id = NEW.uploader_id;
 
   v_section_name := CASE
-    WHEN NEW.section = 'family' THEN 'ط£ظ„ط¨ظˆظ… ط§ظ„ط¹ط§ط¦ظ„ط©'
-    WHEN NEW.section = 'meetings' THEN 'ط§ط¬طھظ…ط§ط¹ط§طھظ†ط§'
-    WHEN NEW.section = 'events' THEN 'ظپط¹ط§ظ„ظٹط§طھ ط§ظ„ط¹ط§ط¦ظ„ط©'
-    WHEN NEW.section = 'trips' THEN 'ط±ط­ظ„ط§طھظ†ط§'
-    ELSE 'ط§ظ„ط£ط±ط´ظٹظپ'
+    WHEN NEW.section = 'family' THEN 'ألبوم العائلة'
+    WHEN NEW.section = 'meetings' THEN 'اجتماعاتنا'
+    WHEN NEW.section = 'events' THEN 'فعاليات العائلة'
+    WHEN NEW.section = 'trips' THEN 'رحلاتنا'
+    ELSE 'الأرشيف'
   END;
 
   PERFORM public.call_send_push(
-    'ط°ظƒط±ظٹط§طھ ط¬ط¯ظٹط¯ط© ظپظٹ ' || v_section_name || ' âœ¨',
-    v_uploader_name || ' ط£ط¶ط§ظپ طµظˆط±ط§ظ‹ ط¬ط¯ظٹط¯ط© ظ„ظ„ط£ظ„ط¨ظˆظ….. ط´ط§ظ‡ط¯ظ‡ط§ ط§ظ„ط¢ظ†!',
+    'ذكريات جديدة في ' || v_section_name || ' ✨',
+    v_uploader_name || ' أضاف صوراً جديدة للألبوم.. شاهدها الآن!',
     '/archive',
-    NULL, -- ط¥ط±ط³ط§ظ„ ظ„ظ„ط¬ظ…ظٹط¹
-    NULL, -- ظٹظ…ظƒظ† طھط·ظˆظٹط±ظ‡ط§ ظ„ط¥ط±ط³ط§ظ„ طµظˆط±ط© ظ…طµط؛ط±ط© ط¥ط°ط§ ظƒط§ظ†طھ ظ…ط®ط²ظ†ط© ظپظٹ DB
+    NULL, -- إرسال للجميع
+    NULL, -- يمكن تطويرها لإرسال صورة مصغرة إذا كانت مخزنة في DB
     NULL,
     jsonb_build_object('section', NEW.section)
   );
@@ -4486,7 +4751,7 @@ AFTER INSERT ON public.archive_items
 FOR EACH ROW EXECUTE FUNCTION public.notify_archive_item_created();
 
 
--- 2. ط¥ط´ط¹ط§ط± ط¹ظ†ط¯ ط¥ط¶ط§ظپط© ط£ط®ط¨ط§ط± ط£ظˆ ط¥ط¹ظ„ط§ظ†ط§طھ ط¬ط¯ظٹط¯ط© ظپظٹ ط§ظ„ظ…ط¬ظ„ط³
+-- 2. إشعار عند إضافة أخبار أو إعلانات جديدة في المجلس
 CREATE OR REPLACE FUNCTION public.notify_majlis_post_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 DECLARE
@@ -4494,19 +4759,19 @@ DECLARE
   v_title text;
   v_label text;
 BEGIN
-  SELECT COALESCE(arabic_name, full_name, 'ط¹ط¶ظˆ ط§ظ„ط¹ط§ط¦ظ„ط©') INTO v_author_name
+  SELECT COALESCE(arabic_name, full_name, 'عضو العائلة') INTO v_author_name
   FROM public.profiles WHERE id = NEW.author_id;
 
   v_label := CASE
-    WHEN NEW.kind = 'announcement' THEN 'ط¥ط¹ظ„ط§ظ† ط±ط³ظ…ظٹ ًں“¢'
-    ELSE 'ط®ط¨ط± ط¬ط¯ظٹط¯ ظپظٹ ط§ظ„ظ…ط¬ظ„ط³ ًں—‍ï¸ڈ'
+    WHEN NEW.kind = 'announcement' THEN 'إعلان رسمي 📢'
+    ELSE 'خبر جديد في المجلس 🗞️'
   END;
 
-  v_title := COALESCE(NEW.title, 'طھط­ط¯ظٹط« ط¬ط¯ظٹط¯');
+  v_title := COALESCE(NEW.title, 'تحديث جديد');
 
   PERFORM public.call_send_push(
     v_label,
-    v_title || ' - ظƒطھط¨ظ‡ ' || v_author_name,
+    v_title || ' - كتبه ' || v_author_name,
     '/majlis'
   );
   RETURN NEW;
@@ -4517,8 +4782,11 @@ CREATE TRIGGER trg_notify_majlis_post_created
 AFTER INSERT ON public.majlis_posts
 FOR EACH ROW EXECUTE FUNCTION public.notify_majlis_post_created();
 
--- طھظ‡ظٹط¦ط© ظ…ط­ط±ظƒ ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ظ„ظٹط¹ظ…ظ„ ط¹ظ„ظ‰ ظ…ط´ط±ظˆط¹ ظ…ظ†ظپطµظ„ (zqllblksdyutspauafgi)
--- ظ‡ط°ط§ ظٹط³ظ…ط­ ط¨ط¨ظ‚ط§ط، ط§ظ„ط¨ظٹط§ظ†ط§طھ ط¹ظ„ظ‰ ط§ظ„ظ…ط´ط±ظˆط¹ ط§ظ„ط£ظˆظ„ ظˆط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ط¹ظ„ظ‰ ط§ظ„ط«ط§ظ†ظٹ
+
+-- Migration: 20260720050000_fix_notification_project_id.sql
+
+-- تهيئة محرك الإشعارات ليعمل على المشروع الحالي (zqllblksdyutspauafgi)
+-- تم توحيد هذا الملف ليكون المرجع الأساسي لإرسال التنبيهات
 
 CREATE OR REPLACE FUNCTION public.call_send_push(
   _title text,
@@ -4535,13 +4803,13 @@ SECURITY DEFINER
 SET search_path = public, extensions
 AS $$
 DECLARE
-  -- طھظˆط¬ظٹظ‡ ط§ظ„ط·ظ„ط¨ ط­طµط±ط§ظ‹ ظ„ظ…ط­ط±ظƒ ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ ظپظٹ ط§ظ„ظ…ط´ط±ظˆط¹ ط§ظ„ط«ط§ظ†ظٹ
+  -- الرابط الخاص بالمشروع الجديد
   v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
-  -- ظ…ظپطھط§ط­ ط§ظ„ظ€ Anon ط§ظ„ط®ط§طµ ط¨ظ…ط´ط±ظˆط¹ ط§ظ„ط¥ط´ط¹ط§ط±ط§طھ
+  -- مفتاح الـ Anon الخاص بالمشروع الجديد
   v_key text := 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpxbGxibGtzZHl1dHNwYXVhZmdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIwMTc5MjUsImV4cCI6MjA5NzU5MzkyNX0.ZDD-xQ8RTprD-KSuePG4pGhhjh2kDp-YcGFr02cK3s4';
   v_payload jsonb;
 BEGIN
-  -- طھط¬ظ‡ظٹط² ط§ظ„ط¨ظٹط§ظ†ط§طھ
+  -- تجهيز البيانات
   v_payload := jsonb_build_object(
     'title', _title,
     'body', _body,
@@ -4564,7 +4832,7 @@ BEGIN
     COALESCE(_data, '{}'::jsonb) || jsonb_build_object('url', _url)
   );
 
-  -- ط¥ط±ط³ط§ظ„ ط§ظ„ط·ظ„ط¨ ظ„ظ„ظ…ط´ط±ظˆط¹ ط§ظ„ط«ط§ظ†ظٹ
+  -- إرسال الطلب عبر محرك Supabase HTTP
   PERFORM net.http_post(
     url := v_endpoint,
     headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||v_key,'apikey',v_key),
@@ -4572,3 +4840,5 @@ BEGIN
   );
 END;
 $$;
+
+

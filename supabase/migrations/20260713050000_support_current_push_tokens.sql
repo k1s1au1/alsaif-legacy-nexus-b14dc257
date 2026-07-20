@@ -11,7 +11,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS push_tokens_user_id_token_key
   ON public.push_tokens (user_id, token)
   WHERE user_id IS NOT NULL;
 
-DO $
+DO $$
 BEGIN
   IF NOT EXISTS (
     SELECT 1 FROM pg_policies
@@ -26,4 +26,4 @@ BEGIN
       USING (auth.uid() = user_id)
       WITH CHECK (auth.uid() = user_id);
   END IF;
-END $;
+END $$;
