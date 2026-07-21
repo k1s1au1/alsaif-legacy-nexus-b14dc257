@@ -1,4 +1,4 @@
-project_id = "wzgzkyzpzniduwcgdozl"
+project_id = "zqllblksdyutspauafgi"
 
 [functions.send-push]
 verify_jwt = false
