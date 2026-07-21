@@ -12,7 +12,7 @@ CREATE OR REPLACE FUNCTION public.call_send_push(
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
-SET search_path = public, extensions
+SET search_path = public
 AS $$
 DECLARE
   v_endpoint text := 'https://zqllblksdyutspauafgi.supabase.co/functions/v1/send-push';
@@ -41,11 +41,13 @@ BEGIN
     COALESCE(_data, '{}'::jsonb) || jsonb_build_object('url', _url)
   );
 
-  PERFORM net.http_post(
-    url := v_endpoint,
-    headers := jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||v_key,'apikey',v_key),
-    body := v_payload
-  );
+  -- Safe call: only try if net schema exists
+  IF EXISTS (SELECT 1 FROM information_schema.schemata WHERE schema_name = 'net') THEN
+    EXECUTE 'SELECT net.http_post(url := $1, headers := $2, body := $3)'
+    USING v_endpoint,
+          jsonb_build_object('Content-Type','application/json','Authorization','Bearer '||v_key,'apikey',v_key),
+          v_payload;
+  END IF;
 END;
 $$;
 
