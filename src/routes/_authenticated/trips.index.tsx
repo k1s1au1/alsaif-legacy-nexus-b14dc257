@@ -502,8 +502,12 @@ function TripDialog({ trip, onClose, onSaved }: any) {
     }
 
     setSaving(false);
-    if (error) toast.error("حدث خطأ");
-    else {
+    if (error) {
+      console.error("Trip save error:", error);
+      toast.error("حدث خطأ أثناء الحفظ", {
+        description: error.message || "تأكد من تعبئة الحقول المطلوبة وصلاحياتك."
+      });
+    } else {
       toast.success("تم الحفظ");
 
       if (!isEdit) {

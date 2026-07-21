@@ -685,7 +685,10 @@ function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any)
           toast.success("تم تحديث الإعلان");
           onSaved();
           onClose();
-        } else toast.error("تعذر التحديث: " + error.message);
+        } else {
+          console.error("Majlis update error:", error);
+          toast.error("تعذر التحديث", { description: error.message });
+        }
       } else {
         const { error } = await supabase.from("majlis_posts").insert({
           title,
@@ -703,7 +706,10 @@ function AddPostDialog({ meId, canManageNews, editPost, onClose, onSaved }: any)
           }).catch(() => {});
           onSaved();
           onClose();
-        } else toast.error("تعذر النشر: " + error.message);
+        } else {
+          console.error("Majlis insert error:", error);
+          toast.error("تعذر النشر", { description: error.message });
+        }
       }
     } finally {
       setSaving(false);
