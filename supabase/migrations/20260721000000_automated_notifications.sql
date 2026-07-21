@@ -53,15 +53,20 @@ $$;
 CREATE OR REPLACE FUNCTION public.notify_meeting_created()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path = public AS $$
 BEGIN
-  PERFORM public.call_send_push(
-    'اجتماع عائلي جديد ✨',
-    COALESCE(NEW.title, 'تم جدولة اجتماع جديد للمجلس'),
-    '/meetings',
-    NULL,
-    NULL,
-    'MEETING_INVITE',
-    jsonb_build_object('meeting_id', NEW.id)
-  );
+  BEGIN
+    PERFORM public.call_send_push(
+      'اجتماع عائلي جديد ✨',
+      COALESCE(NEW.title, 'تم جدولة اجتماع جديد للمجلس'),
+      '/meetings',
+      NULL,
+      NULL,
+      'MEETING_INVITE',
+      jsonb_build_object('meeting_id', NEW.id)
+    );
+  EXCEPTION WHEN OTHERS THEN
+    -- لا تعطل عملية الحفظ إذا فشل الإشعار
+    RAISE WARNING 'Failed to send push notification: %', SQLERRM;
+  END;
   RETURN NEW;
 END; $$;
 

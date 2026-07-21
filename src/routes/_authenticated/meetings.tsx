@@ -269,8 +269,16 @@ function MeetingsPage() {
       loadAll();
     } catch (err: any) {
       console.error("Meeting save error:", err);
+      let errorMsg = "تأكد من صلاحياتك ومن تعبئة كافة الحقول المطلوبة.";
+
+      if (err.message?.includes("row-level security")) {
+        errorMsg = "عذراً، ليس لديك صلاحية لإضافة أو تعديل الاجتماعات.";
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+
       toast.error("حدث خطأ أثناء الحفظ", {
-        description: err.message || "تأكد من صلاحياتك ومن تعبئة كافة الحقول المطلوبة."
+        description: errorMsg
       });
     } finally {
       setSubmitting(false);
@@ -654,13 +662,19 @@ function MeetingsPage() {
                 <div className="flex gap-3 pt-2">
                   <button
                     type="submit"
-                    disabled={submitting}
-                    className="flex-1 btn-gold py-4 rounded-2xl text-base font-black shadow-xl flex items-center justify-center gap-3 disabled:opacity-50"
+                    disabled={submitting || !canManage}
+                    className={cn(
+                      "flex-1 py-4 rounded-2xl text-base font-black shadow-xl flex items-center justify-center gap-3 disabled:opacity-50",
+                      canManage ? "btn-gold" : "bg-muted text-muted-foreground cursor-not-allowed"
+                    )}
                   >
                     {submitting ? (
                       <div className="size-5 rounded-full border-2 border-white/20 border-t-white animate-spin" />
                     ) : (
-                      <span>{editing ? "حفظ التعديلات" : "تأكيد الجدولة"}</span>
+                      <div className="flex flex-col items-center">
+                        <span>{editing ? "حفظ التعديلات" : "تأكيد الجدولة"}</span>
+                        {!canManage && <span className="text-[9px] opacity-70">غير مصرح لك بالإدارة</span>}
+                      </div>
                     )}
                   </button>
                   <button
