@@ -268,7 +268,10 @@ function MeetingsPage() {
       resetForm();
       loadAll();
     } catch (err: any) {
-      toast.error("حدث خطأ أثناء الحفظ");
+      console.error("Meeting save error:", err);
+      toast.error("حدث خطأ أثناء الحفظ", {
+        description: err.message || "تأكد من صلاحياتك ومن تعبئة كافة الحقول المطلوبة."
+      });
     } finally {
       setSubmitting(false);
     }
