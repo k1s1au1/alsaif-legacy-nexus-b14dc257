@@ -250,13 +250,41 @@ function SettingsPage() {
   const currentFontObj = FONTS.find((f) => f.id === font) || FONTS[0];
 
   const handleDeviceLinking = async () => {
-    console.log("[Push] Linking button clicked v2");
+    console.log("[Push] Linking button clicked");
     const tId = toast.loading("جاري ربط جهازك بالنظام...");
     try {
       if (Capacitor.isNativePlatform()) {
+        // نطلب إعادة التسجيل من الصفر لضمان الحصول على توكن صالح
         await setupPushNotifications();
-        // ننتظر 6 ثواني لنعطي فرصة للتسجيل
-        await new Promise((r) => setTimeout(r, 6000));
+
+        // ننتظر قليلاً للتأكد من اكتمال عملية التسجيل والمزامنة
+        let attempts = 0;
+        let success = false;
+
+        while (attempts < 5) {
+          await new Promise((r) => setTimeout(r, 1500));
+          const { data: auth } = await supabase.auth.getUser();
+          if (auth.user) {
+            const { data: tokens } = await supabase
+              .from("push_tokens")
+              .select("id")
+              .eq("user_id", auth.user.id)
+              .eq("is_active", true);
+
+            if (tokens && tokens.length > 0) {
+              success = true;
+              break;
+            }
+          }
+          attempts++;
+        }
+
+        toast.dismiss(tId);
+        if (success) {
+          toast.success("تم ربط تطبيق الأندرويد بنجاح! ستصلك التنبيهات الآن ✨");
+        } else {
+          toast.error("فشل الربط. تأكد من تفعيل الإنترنت ومنح إذن التنبيهات للتطبيق.");
+        }
       } else {
         const { isSupported, getMessaging, getToken } = await import("firebase/messaging");
         const { initializeApp, getApps } = await import("firebase/app");
@@ -264,7 +292,11 @@ function SettingsPage() {
 
         if (!(await isSupported())) throw new Error("المتصفح لا يدعم الإشعارات");
         const permission = await Notification.requestPermission();
-        if (permission !== "granted") throw new Error("لم يتم منح إذن الإشعارات");
+        if (permission !== "granted") {
+          toast.dismiss(tId);
+          toast.error("يرجى منح إذن التنبيهات من إعدادات المتصفح");
+          return;
+        }
 
         const app = getApps().length ? getApps()[0] : initializeApp(FIREBASE_CONFIG);
         const messaging = getMessaging(app);
@@ -273,30 +305,22 @@ function SettingsPage() {
         if (token) {
           const { data: auth } = await supabase.auth.getUser();
           if (auth.user) {
-            await supabase.from("push_tokens").upsert(
-              { user_id: auth.user.id, token, platform: "web", is_active: true },
+            const { error } = await supabase.from("push_tokens").upsert(
+              { user_id: auth.user.id, token, platform: "web", is_active: true, updated_at: new Date().toISOString() },
               { onConflict: "token" }
             );
+
+            toast.dismiss(tId);
+            if (!error) {
+              toast.success("تم ربط المتصفح بنجاح! ✨");
+            } else {
+              toast.error("حدث خطأ أثناء حفظ البيانات.");
+            }
           }
-        }
-      }
-
-      const { data: auth } = await supabase.auth.getUser();
-      if (auth.user) {
-        const { data: tokens } = await supabase
-          .from("push_tokens")
-          .select("id")
-          .eq("user_id", auth.user.id)
-          .eq("is_active", true);
-
-        toast.dismiss(tId);
-        if (tokens && tokens.length > 0) {
-          toast.success("تم الربط بنجاح! ستصلك التنبيهات الآن ✨");
         } else {
-          toast.error("فشل تسجيل الجهاز. يرجى التأكد من السماح بالإشعارات.");
+          toast.dismiss(tId);
+          toast.error("لم يتم الحصول على رمز الجهاز.");
         }
-      } else {
-        toast.dismiss(tId);
       }
     } catch (e: any) {
       toast.dismiss(tId);

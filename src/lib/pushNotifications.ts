@@ -3,6 +3,41 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 /**
+ * Syncs a token with Supabase if a user is logged in.
+ */
+export async function syncTokenWithSupabase(token: string) {
+  try {
+    const { data: auth } = await supabase.auth.getUser();
+    if (!auth?.user) {
+      console.log("[Push] No user logged in, token stored locally for later sync.");
+      return false;
+    }
+
+    const { error } = await supabase.from("push_tokens").upsert(
+      {
+        user_id: auth.user.id,
+        token: token,
+        platform: Capacitor.getPlatform() === 'web' ? 'web' : Capacitor.getPlatform(),
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "token" },
+    );
+
+    if (error) {
+      console.error("[Push] Error syncing token to Supabase:", error);
+      return false;
+    }
+
+    console.log("[Push] Token synced successfully to Supabase.");
+    return true;
+  } catch (e) {
+    console.error("[Push] Sync failed:", e);
+    return false;
+  }
+}
+
+/**
  * Sets up native push notifications (Android via Capacitor).
  */
 export async function setupPushNotifications(navigate?: (options: { to: string }) => void) {
@@ -47,32 +82,12 @@ export async function setupPushNotifications(navigate?: (options: { to: string }
       console.log("[Push] Registration successful, token:", token.value);
       localStorage.setItem("fcm_token", token.value);
 
-      const { data: auth } = await supabase.auth.getUser();
-      if (!auth?.user) {
-        console.log("[Push] No user logged in, token stored locally for later.");
-        return;
-      }
-
-      const { error } = await supabase.from("push_tokens").upsert(
-        {
-          user_id: auth.user.id,
-          token: token.value,
-          platform: Capacitor.getPlatform(),
-          is_active: true,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "token" },
-      );
-
-      if (!error) {
-        console.log("[Push] Token saved successfully to Supabase.");
-      } else {
-        console.error("[Push] Error saving token to Supabase:", error);
-      }
+      await syncTokenWithSupabase(token.value);
     });
 
     await PushNotifications.addListener("registrationError", (err) => {
       console.error("[Push] FCM Registration error:", err);
+      toast.error("فشل تسجيل الجهاز للإشعارات. تأكد من إعدادات جوجل بلاي.");
     });
 
     await PushNotifications.addListener("pushNotificationReceived", (notification) => {

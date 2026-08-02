@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { setupPushNotifications } from "@/lib/pushNotifications";
+import { setupPushNotifications, syncTokenWithSupabase } from "@/lib/pushNotifications";
 import { Capacitor } from "@capacitor/core";
 import { supabase } from "@/integrations/supabase/client";
 import { FCM_VAPID_KEY, FIREBASE_CONFIG } from "@/lib/fcm-config";
@@ -14,17 +14,15 @@ export function useFcm() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 1. Initial Setup
     const initPush = async () => {
-      // 1. Native Platform (Mobile App)
       if (Capacitor.isNativePlatform()) {
         try {
           await setupPushNotifications(navigate);
         } catch (err) {
           console.error("[Push] Native setup failed:", err);
         }
-      }
-      // 2. Web Platform (Browser)
-      else if (typeof window !== "undefined" && "serviceWorker" in navigator) {
+      } else if (typeof window !== "undefined" && "serviceWorker" in navigator) {
         try {
           if (!(await isSupported())) return;
 
@@ -45,18 +43,8 @@ export function useFcm() {
           });
 
           if (token) {
-            const { data: auth } = await supabase.auth.getUser();
-            if (auth.user) {
-              await supabase.from("push_tokens").upsert(
-                {
-                  user_id: auth.user.id,
-                  token,
-                  platform: "web",
-                  is_active: true,
-                },
-                { onConflict: "token" }
-              );
-            }
+            localStorage.setItem("fcm_token", token);
+            await syncTokenWithSupabase(token);
           }
         } catch (err) {
           console.warn("[Push] Web initialization failed:", err);
@@ -65,5 +53,20 @@ export function useFcm() {
     };
 
     void initPush();
+
+    // 2. Auth State Listener for Token Sync
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session?.user) {
+        const storedToken = localStorage.getItem("fcm_token");
+        if (storedToken) {
+          console.log("[Push] User logged in, syncing stored token...");
+          await syncTokenWithSupabase(storedToken);
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 }
