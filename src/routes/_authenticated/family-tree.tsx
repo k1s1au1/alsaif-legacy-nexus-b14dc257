@@ -26,6 +26,10 @@ import {
   Trash2,
   UserCircle2,
   MapPin,
+  Link2,
+  X,
+  ArrowLeft,
+  GitBranch,
 } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
@@ -55,6 +59,13 @@ type Member = {
   kind: "profile" | "extra";
 };
 
+type RelationshipResult = {
+  label: string;
+  path: Member[];
+  upGenerations: number;
+  downGenerations: number;
+};
+
 const NODE_W = 140;
 const NODE_H = 160;
 
@@ -77,15 +88,19 @@ function FamilyTreePage() {
   const [zoom, setZoom] = useState(0.6);
   const [translate, setTranslate] = useState({ x: 200, y: 100 });
   const [addOpen, setAddOpen] = useState(false);
+  const [relationOpen, setRelationOpen] = useState(false);
+  const [relationQuery, setRelationQuery] = useState("");
+  const [relationTargetId, setRelationTargetId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  // Normalizing Arabic text for better search
   const normalize = (text: string) => {
     return text
       ? text
           .replace(/[أإآ]/g, "ا")
           .replace(/ة/g, "ه")
           .replace(/ى/g, "ي")
+          .replace(/ؤ/g, "و")
+          .replace(/ئ/g, "ي")
           .trim()
       : "";
   };
@@ -215,6 +230,99 @@ function FamilyTreePage() {
     ];
   }, [members]);
 
+  const membersById = useMemo(() => new Map(members.map((m) => [m.id, m])), [members]);
+
+  const relationship = useMemo<RelationshipResult | null>(() => {
+    if (!me?.id || !relationTargetId || relationTargetId === "__root__") return null;
+    const current = membersById.get(me.id);
+    const target = membersById.get(relationTargetId);
+    if (!current || !target) return null;
+    if (current.id === target.id) {
+      return { label: "أنت", path: [current], upGenerations: 0, downGenerations: 0 };
+    }
+
+    const ancestors = new Map<string, { member: Member; distance: number }>();
+    let cursor: Member | undefined = current;
+    let distance = 0;
+    const visitedA = new Set<string>();
+    while (cursor && !visitedA.has(cursor.id)) {
+      visitedA.add(cursor.id);
+      ancestors.set(cursor.id, { member: cursor, distance });
+      cursor = cursor.parent_id ? membersById.get(cursor.parent_id) : undefined;
+      distance += 1;
+    }
+
+    const targetChain: { member: Member; distance: number }[] = [];
+    cursor = target;
+    distance = 0;
+    const visitedB = new Set<string>();
+    while (cursor && !visitedB.has(cursor.id)) {
+      visitedB.add(cursor.id);
+      targetChain.push({ member: cursor, distance });
+      cursor = cursor.parent_id ? membersById.get(cursor.parent_id) : undefined;
+      distance += 1;
+    }
+
+    const common = targetChain.find((item) => ancestors.has(item.member.id));
+    if (!common) return null;
+
+    const upGenerations = ancestors.get(common.member.id)?.distance ?? 0;
+    const downGenerations = common.distance;
+    const upPath: Member[] = [];
+    cursor = current;
+    let guard = 0;
+    while (cursor && guard < members.length + 2) {
+      upPath.push(cursor);
+      if (cursor.id === common.member.id) break;
+      cursor = cursor.parent_id ? membersById.get(cursor.parent_id) : undefined;
+      guard += 1;
+    }
+
+    const downPath = targetChain
+      .slice(0, downGenerations + 1)
+      .map((item) => item.member)
+      .reverse();
+    const path = [...upPath, ...downPath.slice(1)];
+
+    let label = "صلة قرابة";
+    if (upGenerations === 0 && downGenerations === 1) label = "والدك / والدتك";
+    else if (upGenerations === 0 && downGenerations === 2) label = "جدك / جدتك";
+    else if (upGenerations === 0 && downGenerations > 2)
+      label = `من أجدادك (${downGenerations} أجيال)`;
+    else if (upGenerations === 1 && downGenerations === 0) label = "ابنك / ابنتك";
+    else if (upGenerations === 2 && downGenerations === 0) label = "حفيدك / حفيدتك";
+    else if (upGenerations > 2 && downGenerations === 0)
+      label = `من ذريتك (${upGenerations} أجيال)`;
+    else if (upGenerations === 1 && downGenerations === 1) label = "أخ / أخت";
+    else if (upGenerations === 1 && downGenerations === 2) label = "عم / خال / خالة (بحسب الفرع)";
+    else if (upGenerations === 2 && downGenerations === 1) label = "ابن أخ / ابن أخت";
+    else if (upGenerations >= 2 && downGenerations >= 2) {
+      const degree = Math.min(upGenerations, downGenerations) - 1;
+      label = `ابن عم/خالة من الدرجة ${degree}`;
+    } else if (upGenerations > 0 && downGenerations > 0) {
+      label = `قريب من فرع مشترك — ${upGenerations + downGenerations - 2} مسافة قرابة`;
+    }
+
+    return { label, path, upGenerations, downGenerations };
+  }, [me?.id, relationTargetId, membersById, members.length]);
+
+  const relationshipPathIds = useMemo(
+    () => new Set((relationship?.path ?? []).map((member) => member.id)),
+    [relationship],
+  );
+
+  const relationMatches = useMemo(() => {
+    const query = normalize(relationQuery);
+    if (!query) return members.filter((m) => m.id !== me?.id).slice(0, 10);
+    return members
+      .filter((m) => {
+        const name = normalize(m.full_name || "");
+        const first = normalize(m.first_name || "");
+        return m.id !== me?.id && (name.includes(query) || first.includes(query));
+      })
+      .slice(0, 10);
+  }, [relationQuery, members, me?.id]);
+
   async function saveParent(member: Member) {
     setSaving(true);
     try {
@@ -247,41 +355,47 @@ function FamilyTreePage() {
     const m = memberId ? members.find((mem) => mem.id === memberId) : null;
     const isRoot = memberId === "__root__";
     const isMe = me?.id && m && m.id === me.id;
+    const isInRelationPath = !!m && relationshipPathIds.has(m.id);
+    const relationMode = relationOpen && !!relationTargetId;
 
-    // Improved search matching with normalization
     const isSearchMatch =
       search &&
       m &&
       (normalize(m.first_name || "").includes(normalize(search)) ||
-       normalize(m.full_name || "").includes(normalize(search)));
+        normalize(m.full_name || "").includes(normalize(search)));
 
     const isExtra = m?.kind === "extra";
 
     return (
-      <g className="node-group">
+      <g className={cn("node-group", relationMode && !isRoot && !isInRelationPath && "relation-dim")}>
         <foreignObject width={NODE_W} height={NODE_H} x={-NODE_W / 2} y={-NODE_H / 2}>
           <div
             onClick={toggleNode}
             className={cn(
               "relative flex flex-col items-center justify-center gap-3 transition-all duration-500 p-4 cursor-pointer group",
               isSearchMatch && "scale-110",
+              relationMode && isInRelationPath && "scale-110",
             )}
           >
-            {/* Medallion Avatar Container */}
             <div className="relative">
               <div
                 className={cn(
                   "size-20 md:size-24 rounded-full p-1 transition-all duration-500 shadow-xl",
-                  isRoot ? "bg-gradient-to-br from-gold-primary via-white to-gold-primary animate-pulse" :
-                  isMe ? "bg-gradient-to-br from-emerald-400 to-primary" :
-                  isExtra ? "bg-slate-200" : "bg-gradient-to-br from-primary/20 to-primary/5",
-                  isSearchMatch && "ring-4 ring-gold-primary ring-offset-4"
+                  isRoot
+                    ? "bg-gradient-to-br from-gold-primary via-white to-gold-primary animate-pulse"
+                    : isMe
+                      ? "bg-gradient-to-br from-emerald-400 to-primary"
+                      : isExtra
+                        ? "bg-slate-200"
+                        : "bg-gradient-to-br from-primary/20 to-primary/5",
+                  isSearchMatch && "ring-4 ring-gold-primary ring-offset-4",
+                  relationMode && isInRelationPath && "ring-4 ring-primary ring-offset-4 ring-offset-white",
                 )}
               >
                 <div className="size-full rounded-full bg-white overflow-hidden border-2 border-white shadow-inner flex items-center justify-center relative">
                   {isRoot ? (
                     <div className="size-full bg-primary flex items-center justify-center">
-                       <Trees size={32} className="text-gold-primary" />
+                      <Trees size={32} className="text-gold-primary" />
                     </div>
                   ) : isExtra ? (
                     <UserCircle2 size={48} className="text-slate-400" />
@@ -293,8 +407,6 @@ function FamilyTreePage() {
                       userId={m?.id}
                     />
                   )}
-
-                  {/* Status Indicator */}
                   {!isRoot && !isExtra && (
                     <div className="absolute bottom-1 right-1 size-4 bg-emerald-500 rounded-full border-2 border-white shadow-sm" />
                   )}
@@ -302,13 +414,15 @@ function FamilyTreePage() {
               </div>
             </div>
 
-            {/* Content Card */}
             <div
               className={cn(
                 "px-4 py-2 rounded-2xl border text-center min-w-[120px] shadow-sm backdrop-blur-md transition-all duration-300",
-                isRoot ? "bg-primary text-white border-gold-primary/50 shadow-gold-primary/20" :
-                isMe ? "bg-primary text-white border-primary" :
-                "bg-white/80 text-primary border-border"
+                isRoot
+                  ? "bg-primary text-white border-gold-primary/50 shadow-gold-primary/20"
+                  : isMe
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white/80 text-primary border-border",
+                relationMode && isInRelationPath && "border-primary shadow-lg shadow-primary/20",
               )}
             >
               <p className="text-sm font-black tracking-tight whitespace-nowrap overflow-hidden text-ellipsis">
@@ -317,14 +431,13 @@ function FamilyTreePage() {
               <p
                 className={cn(
                   "text-[9px] font-bold uppercase tracking-widest mt-0.5 opacity-60",
-                  (isRoot || isMe) ? "text-white/70" : "text-gold-primary"
+                  isRoot || isMe ? "text-white/70" : "text-gold-primary",
                 )}
               >
                 {isRoot ? "الأصل" : isExtra ? "قيد التسجيل" : m?.father_name || "السيف"}
               </p>
             </div>
 
-            {/* Admin Pencil - Floating */}
             {isPriv && !isRoot && m && (
               <button
                 onClick={(e) => {
@@ -352,31 +465,50 @@ function FamilyTreePage() {
   }
 
   const editingMember = editing ? members.find((m) => m.id === editing) : null;
+  const selectedRelationMember = relationTargetId ? membersById.get(relationTargetId) : null;
 
   return (
     <AppShell title="شجرة عائلة السيف" user={me}>
       <div className="space-y-4 px-1 md:px-0">
         <QuickActionsBanner />
         <header className="flex flex-col gap-4 bg-white p-4 md:p-6 rounded-[24px] md:rounded-[32px] shadow-sm border border-border">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-wrap">
             <div className="size-10 md:size-14 rounded-2xl bg-primary flex items-center justify-center shadow-lg shadow-primary/20 shrink-0">
               <Trees className="size-6 md:size-8 text-white" />
             </div>
-            <div className="flex-1">
+            <div className="flex-1 min-w-[200px]">
               <h1 className="text-lg md:text-2xl font-black text-[#1B4332]">شجرة عائلة السيف</h1>
               <p className="text-[10px] md:text-sm font-bold text-[#8E8E93]">
                 استكشف تفرعات وجذور عائلة السيف العريقة
               </p>
             </div>
-            {isPriv && (
+            <div className="flex items-center gap-2 w-full md:w-auto justify-end">
               <button
-                onClick={() => setAddOpen(true)}
-                className="btn-gold flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl text-xs md:text-sm font-bold shadow-md"
+                onClick={() => {
+                  setRelationOpen(true);
+                  setRelationQuery("");
+                  setRelationTargetId(null);
+                }}
+                className={cn(
+                  "flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl text-xs md:text-sm font-bold shadow-md border transition-all",
+                  relationOpen
+                    ? "bg-primary text-white border-primary"
+                    : "bg-white text-primary border-[#D4AF37]/40 hover:bg-primary hover:text-white",
+                )}
               >
-                <UserPlus className="size-4" />
-                <span className="hidden md:inline">إضافة فرد</span>
+                <GitBranch className="size-4" />
+                <span>صلة القرابة</span>
               </button>
-            )}
+              {isPriv && (
+                <button
+                  onClick={() => setAddOpen(true)}
+                  className="btn-gold flex items-center gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl text-xs md:text-sm font-bold shadow-md"
+                >
+                  <UserPlus className="size-4" />
+                  <span className="hidden md:inline">إضافة فرد</span>
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col md:flex-row items-center gap-3 w-full">
@@ -391,14 +523,8 @@ function FamilyTreePage() {
               />
             </div>
             <div className="flex gap-2 w-full md:w-auto justify-center">
-              <ControlBtn
-                onClick={() => setZoom((z) => Math.min(2, z + 0.15))}
-                icon={<ZoomIn size={18} />}
-              />
-              <ControlBtn
-                onClick={() => setZoom((z) => Math.max(0.1, z - 0.15))}
-                icon={<ZoomOut size={18} />}
-              />
+              <ControlBtn onClick={() => setZoom((z) => Math.min(2, z + 0.15))} icon={<ZoomIn size={18} />} />
+              <ControlBtn onClick={() => setZoom((z) => Math.max(0.1, z - 0.15))} icon={<ZoomOut size={18} />} />
               <ControlBtn
                 onClick={() => {
                   setZoom(0.6);
@@ -450,7 +576,148 @@ function FamilyTreePage() {
               لا توجد بيانات لعرضها في الشجرة
             </div>
           )}
+
+          {relationOpen && relationship && (
+            <div className="absolute left-4 bottom-4 z-40 rounded-2xl bg-white/95 backdrop-blur-md border border-primary/15 shadow-xl px-4 py-3 min-w-[220px]">
+              <div className="flex items-center gap-2 text-primary text-xs font-black">
+                <Link2 className="size-4 text-gold-primary" />
+                <span>المسار مفعّل</span>
+              </div>
+              <p className="mt-1 text-sm font-black text-[#1B4332]">{relationship.label}</p>
+              <p className="mt-1 text-[10px] text-muted-foreground font-bold">عدد الأفراد في المسار: {relationship.path.length}</p>
+            </div>
+          )}
         </div>
+
+        {relationOpen && (
+          <div
+            className="fixed inset-0 z-[180] bg-black/55 backdrop-blur-sm flex items-center justify-center p-4"
+            onClick={() => setRelationOpen(false)}
+          >
+            <div
+              dir="rtl"
+              className="w-full max-w-xl rounded-[30px] border border-[#D4AF37]/30 bg-white shadow-2xl overflow-hidden animate-fade-up"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-start gap-3 p-5 border-b border-border bg-gradient-to-b from-white to-[#FCFBF6]">
+                <div className="size-12 rounded-2xl bg-primary flex items-center justify-center shrink-0 shadow-lg shadow-primary/15">
+                  <GitBranch className="size-6 text-gold-primary" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <h2 className="text-xl font-black text-[#1B4332]">وش علاقتي بفلان؟</h2>
+                      <p className="text-xs font-bold text-[#8E8E93] mt-1">اختر أي فرد من الشجرة ليظهر لك مسار القرابة بينكما.</p>
+                    </div>
+                    <button
+                      onClick={() => setRelationOpen(false)}
+                      className="size-9 rounded-xl hover:bg-[#F2F2F7] flex items-center justify-center text-muted-foreground"
+                    >
+                      <X className="size-5" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-5 space-y-4">
+                <div className="relative">
+                  <Search className="absolute right-4 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+                  <input
+                    autoFocus
+                    value={relationQuery}
+                    onChange={(e) => {
+                      setRelationQuery(e.target.value);
+                      if (relationTargetId) setRelationTargetId(null);
+                    }}
+                    placeholder="ابحث باسم الفرد..."
+                    className="w-full pr-11 pl-4 py-3 rounded-2xl bg-[#F2F2F7] border border-transparent focus:border-primary/15 focus:ring-2 focus:ring-primary/10 text-sm font-bold"
+                  />
+                </div>
+
+                {!selectedRelationMember && (
+                  <div className="rounded-2xl border border-border overflow-hidden">
+                    {relationMatches.length > 0 ? (
+                      relationMatches.map((member) => (
+                        <button
+                          key={member.id}
+                          onClick={() => {
+                            setRelationTargetId(member.id);
+                            setRelationQuery(member.full_name || member.first_name || "");
+                          }}
+                          className="w-full flex items-center gap-3 px-4 py-3 text-right hover:bg-[#FBFAF5] border-b last:border-b-0 border-border transition-all"
+                        >
+                          <div className="size-10 rounded-full overflow-hidden bg-[#F2F2F7] flex items-center justify-center shrink-0 ring-1 ring-border">
+                            {member.kind === "extra" ? (
+                              <UserCircle2 className="size-6 text-[#8E7745]" />
+                            ) : (
+                              <UserAvatar name={member.first_name || "ع"} path={member.avatar_url} className="size-full" userId={member.id} />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-[#1B4332] truncate">{member.full_name || member.first_name}</p>
+                            <p className="text-[10px] font-bold text-muted-foreground mt-0.5">{member.father_name ? `والده: ${member.father_name}` : "عضو في الشجرة"}</p>
+                          </div>
+                          <ArrowLeft className="size-4 text-gold-primary" />
+                        </button>
+                      ))
+                    ) : (
+                      <div className="p-6 text-center text-sm font-bold text-muted-foreground">لا يوجد فرد مطابق للبحث.</div>
+                    )}
+                  </div>
+                )}
+
+                {selectedRelationMember && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                      <RelationPersonCard member={membersById.get(me.id) ?? null} label="أنت" highlight />
+                      <div className="size-10 rounded-full bg-[#FFF8E7] border border-[#D4AF37]/30 flex items-center justify-center">
+                        <Link2 className="size-4 text-[#8E7745]" />
+                      </div>
+                      <RelationPersonCard member={selectedRelationMember} label="الفرد المختار" />
+                    </div>
+
+                    {relationship ? (
+                      <div className="rounded-[24px] border border-primary/15 bg-[#F7FBF8] p-4 space-y-3">
+                        <div className="text-center">
+                          <p className="text-[10px] font-black text-[#8E7745] uppercase tracking-widest">صلة القرابة</p>
+                          <p className="text-xl font-black text-[#1B4332] mt-1">{relationship.label}</p>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          {relationship.path.map((member, index) => (
+                            <div key={`${member.id}-${index}`} className="flex items-center gap-2">
+                              <div className="px-3 py-2 rounded-xl bg-white border border-border text-xs font-black text-primary shadow-sm">
+                                {member.id === me.id ? "أنت" : member.first_name || member.full_name || "فرد"}
+                              </div>
+                              {index < relationship.path.length - 1 && <ArrowLeft className="size-3 text-[#C6A53D]" />}
+                            </div>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-center text-muted-foreground font-bold leading-relaxed">
+                          تم إبراز أفراد المسار على الشجرة خلف النافذة، مع إظهار كامل التسلسل المشترك.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl bg-[#FFF8E7] border border-[#D4AF37]/20 p-4 text-center">
+                        <p className="text-sm font-black text-[#6E5A21]">لم نتمكن من إيجاد مسار قرابة متصل بين الحسابين.</p>
+                        <p className="text-[10px] font-bold text-[#8E7745] mt-1">تأكد من أن الشخصين مرتبطان داخل الشجرة بنفس الجذور.</p>
+                      </div>
+                    )}
+
+                    <button
+                      onClick={() => {
+                        setRelationTargetId(null);
+                        setRelationQuery("");
+                      }}
+                      className="w-full py-2.5 rounded-xl bg-[#F2F2F7] text-primary text-xs font-black hover:bg-primary hover:text-white transition-all"
+                    >
+                      اختيار شخص آخر
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         {editingMember && (
           <div
@@ -467,70 +734,39 @@ function FamilyTreePage() {
                   {editingMember.kind === "extra" ? (
                     <UserCircle2 className="size-7 text-[#8E7745]" />
                   ) : (
-                    <UserAvatar
-                      name={editingMember.first_name || "ع"}
-                      path={editingMember.avatar_url}
-                      className="size-full"
-                    />
+                    <UserAvatar name={editingMember.first_name || "ع"} path={editingMember.avatar_url} className="size-full" />
                   )}
                 </div>
                 <div>
-                  <h3 className="text-lg font-black text-[#1B4332]">
-                    تعديل ارتباط {editingMember.first_name}
-                  </h3>
+                  <h3 className="text-lg font-black text-[#1B4332]">تعديل ارتباط {editingMember.first_name}</h3>
                   <p className="text-[10px] font-bold text-emerald-600 flex items-center gap-1 mt-1">
-                    {editingMember.kind === "extra" ? (
-                      "فرد مضاف بدون حساب"
-                    ) : (
-                      <>
-                        <ShieldCheck size={12} /> حساب معتمد ومرتبط بالنظام
-                      </>
-                    )}
+                    {editingMember.kind === "extra" ? "فرد مضاف بدون حساب" : <><ShieldCheck size={12} /> حساب معتمد ومرتبط بالنظام</>}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">
-                  والد العضو
-                </label>
+                <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">والد العضو</label>
                 <select
                   value={draftParent ?? ""}
                   onChange={(e) => setDraftParent(e.target.value || null)}
                   className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary focus:ring-2 focus:ring-primary/10 transition-all"
                 >
                   <option value="">— لا أب (رأس شجرة) —</option>
-                  {members
-                    .filter((x) => x.id !== editingMember.id)
-                    .map((x) => (
-                      <option key={x.id} value={x.id}>
-                        {(x.full_name || x.first_name) + (x.kind === "extra" ? " (بدون حساب)" : "")}
-                      </option>
-                    ))}
+                  {members.filter((x) => x.id !== editingMember.id).map((x) => (
+                    <option key={x.id} value={x.id}>{(x.full_name || x.first_name) + (x.kind === "extra" ? " (بدون حساب)" : "")}</option>
+                  ))}
                 </select>
               </div>
 
               <div className="flex items-center justify-end gap-2 pt-1">
                 {editingMember.kind === "extra" && (
-                  <button
-                    onClick={() => handleDelete(editingMember)}
-                    className="p-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all"
-                    title="حذف"
-                  >
+                  <button onClick={() => handleDelete(editingMember)} className="p-2.5 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-all" title="حذف">
                     <Trash2 className="size-4" />
                   </button>
                 )}
-                <button
-                  onClick={() => setEditing(null)}
-                  className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all"
-                >
-                  إلغاء
-                </button>
-                <button
-                  onClick={() => saveParent(editingMember)}
-                  disabled={saving}
-                  className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2"
-                >
+                <button onClick={() => setEditing(null)} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all">إلغاء</button>
+                <button onClick={() => saveParent(editingMember)} disabled={saving} className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2">
                   {saving ? <Loader2 className="size-3 animate-spin" /> : <Check size={16} />} حفظ
                 </button>
               </div>
@@ -576,24 +812,22 @@ function FamilyTreePage() {
           background-size: 32px 32px;
         }
 
-        /* Modern Organic Nodes */
         .node-group {
           filter: drop-shadow(0 10px 20px rgba(0,0,0,0.2));
         }
 
-        .is-me {
-          transform: scale(1.1);
+        .relation-dim {
+          opacity: 0.28;
+          transition: opacity 0.35s ease;
         }
 
-        /* Force GPU rendering for SVG nodes on iOS */
         foreignObject {
           transform: translateZ(0);
           -webkit-transform: translateZ(0);
         }
       `}</style>
 
-      {/* SVG Gradients for Links */}
-      <svg style={{ width: 0, height: 0, position: 'absolute' }}>
+      <svg style={{ width: 0, height: 0, position: "absolute" }}>
         <defs>
           <linearGradient id="link-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.2" />
@@ -606,12 +840,27 @@ function FamilyTreePage() {
   );
 }
 
+function RelationPersonCard({ member, label, highlight = false }: { member: Member | null; label: string; highlight?: boolean }) {
+  return (
+    <div className={cn("rounded-2xl border p-3 text-center min-w-0", highlight ? "bg-primary text-white border-primary" : "bg-white border-border")}>
+      <div className={cn("size-12 mx-auto rounded-full overflow-hidden flex items-center justify-center mb-2", highlight ? "bg-white/10" : "bg-[#F2F2F7]")}>
+        {member?.kind === "extra" ? (
+          <UserCircle2 className={cn("size-7", highlight ? "text-white/75" : "text-[#8E7745]")} />
+        ) : member ? (
+          <UserAvatar name={member.first_name || "ع"} path={member.avatar_url} className="size-full" userId={member.id} />
+        ) : (
+          <UserCircle2 className="size-7 text-muted-foreground" />
+        )}
+      </div>
+      <p className={cn("text-[9px] font-black mb-0.5", highlight ? "text-white/70" : "text-muted-foreground")}>{label}</p>
+      <p className="text-xs font-black truncate">{member?.full_name || member?.first_name || "غير معروف"}</p>
+    </div>
+  );
+}
+
 function ControlBtn({ onClick, icon }: { onClick: () => void; icon: React.ReactNode }) {
   return (
-    <button
-      onClick={onClick}
-      className="size-10 md:size-12 rounded-xl bg-[#F2F2F7] text-[#1B4332] flex items-center justify-center hover:bg-[#1B4332] hover:text-white transition-all shadow-sm shrink-0"
-    >
+    <button onClick={onClick} className="size-10 md:size-12 rounded-xl bg-[#F2F2F7] text-[#1B4332] flex items-center justify-center hover:bg-[#1B4332] hover:text-white transition-all shadow-sm shrink-0">
       {icon}
     </button>
   );
@@ -626,15 +875,7 @@ type AddPayload = {
   targetKind?: "profile" | "extra" | null;
 };
 
-function AddMemberDialog({
-  members,
-  onClose,
-  onSubmit,
-}: {
-  members: Member[];
-  onClose: () => void;
-  onSubmit: (payload: AddPayload) => Promise<void>;
-}) {
+function AddMemberDialog({ members, onClose, onSubmit }: { members: Member[]; onClose: () => void; onSubmit: (payload: AddPayload) => Promise<void> }) {
   const [firstName, setFirstName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [grandfatherName, setGrandfatherName] = useState("");
@@ -649,14 +890,7 @@ function AddMemberDialog({
     if (relation !== "root" && !target) return toast.error("اختر العضو المرجعي");
     setSaving(true);
     try {
-      await onSubmit({
-        firstName: firstName.trim(),
-        fatherName: fatherName.trim() || null,
-        grandfatherName: grandfatherName.trim() || null,
-        relation,
-        targetId: target?.id ?? null,
-        targetKind: target?.kind ?? null,
-      });
+      await onSubmit({ firstName: firstName.trim(), fatherName: fatherName.trim() || null, grandfatherName: grandfatherName.trim() || null, relation, targetId: target?.id ?? null, targetKind: target?.kind ?? null });
     } catch {
       // toast already shown
     } finally {
@@ -665,104 +899,47 @@ function AddMemberDialog({
   }
 
   return (
-    <div
-      className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
-      onClick={onClose}
-    >
-      <div
-        dir="rtl"
-        className="w-full max-w-md rounded-[28px] border border-[#D4AF37]/30 bg-white p-6 space-y-4 shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4" onClick={onClose}>
+      <div dir="rtl" className="w-full max-w-md rounded-[28px] border border-[#D4AF37]/30 bg-white p-6 space-y-4 shadow-2xl animate-fade-up max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-center gap-3">
-          <div className="size-12 rounded-2xl bg-primary flex items-center justify-center">
-            <UserPlus className="size-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-black text-[#1B4332]">إضافة فرد إلى الشجرة</h3>
-            <p className="text-[10px] font-bold text-[#8E7745]">بدون الحاجة لإنشاء حساب</p>
-          </div>
+          <div className="size-12 rounded-2xl bg-primary flex items-center justify-center"><UserPlus className="size-6 text-white" /></div>
+          <div><h3 className="text-lg font-black text-[#1B4332]">إضافة فرد إلى الشجرة</h3><p className="text-[10px] font-bold text-[#8E7745]">بدون الحاجة لإنشاء حساب</p></div>
         </div>
 
         <div className="grid grid-cols-1 gap-3">
-          <Field label="الاسم الأول *">
-            <input
-              value={firstName}
-              onChange={(e) => setFirstName(e.target.value)}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
-            />
-          </Field>
+          <Field label="الاسم الأول *"><input value={firstName} onChange={(e) => setFirstName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary" /></Field>
           <div className="grid grid-cols-2 gap-3">
-            <Field label="اسم الأب">
-              <input
-                value={fatherName}
-                onChange={(e) => setFatherName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
-              />
-            </Field>
-            <Field label="اسم الجد">
-              <input
-                value={grandfatherName}
-                onChange={(e) => setGrandfatherName(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
-              />
-            </Field>
+            <Field label="اسم الأب"><input value={fatherName} onChange={(e) => setFatherName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary" /></Field>
+            <Field label="اسم الجد"><input value={grandfatherName} onChange={(e) => setGrandfatherName(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary" /></Field>
           </div>
-
           <Field label="صلة القرابة">
-            <select
-              value={relation}
-              onChange={(e) => setRelation(e.target.value as AddPayload["relation"])}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
-            >
+            <select value={relation} onChange={(e) => setRelation(e.target.value as AddPayload["relation"])} className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary">
               <option value="child">ابن لـ ...</option>
               <option value="father">أب لـ ...</option>
               <option value="grandfather">جد لـ ...</option>
               <option value="root">رأس شجرة (بدون أب)</option>
             </select>
           </Field>
-
           {relation !== "root" && (
             <Field label="العضو المرجعي">
-              <select
-                value={targetId}
-                onChange={(e) => setTargetId(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary"
-              >
+              <select value={targetId} onChange={(e) => setTargetId(e.target.value)} className="w-full px-4 py-2.5 rounded-xl bg-[#F2F2F7] border-none text-xs font-bold text-primary">
                 <option value="">— اختر —</option>
-                {members.map((x) => (
-                  <option key={x.id} value={x.id}>
-                    {(x.full_name || x.first_name) + (x.kind === "extra" ? " (بدون حساب)" : "")}
-                  </option>
-                ))}
+                {members.map((x) => <option key={x.id} value={x.id}>{(x.full_name || x.first_name) + (x.kind === "extra" ? " (بدون حساب)" : "")}</option>)}
               </select>
             </Field>
           )}
-
           <p className="text-[10px] font-bold text-[#8E7745] leading-relaxed bg-[#FFF8E7] rounded-xl p-3">
             {relation === "child" && "سيتم إضافة الفرد الجديد كابن مباشر للعضو المختار."}
-            {relation === "father" &&
-              "سيتم إضافة الفرد كأب للعضو المختار، وسيرث ارتباط جدّه إن وجد."}
-            {relation === "grandfather" &&
-              "سيتم إضافة الفرد كجد، أي والداً لأب العضو المختار. يجب أن يكون للعضو أب مسجّل."}
+            {relation === "father" && "سيتم إضافة الفرد كأب للعضو المختار، وسيرث ارتباط جدّه إن وجد."}
+            {relation === "grandfather" && "سيتم إضافة الفرد كجد، أي والداً لأب العضو المختار. يجب أن يكون للعضو أب مسجّل."}
             {relation === "root" && "سيظهر الفرد كرأس شجرة مستقل."}
           </p>
         </div>
 
         <div className="flex items-center justify-end gap-2 pt-1">
-          <button
-            onClick={onClose}
-            className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all"
-          >
-            إلغاء
-          </button>
-          <button
-            onClick={handleSubmit}
-            disabled={saving}
-            className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2"
-          >
-            {saving ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />}{" "}
-            إضافة
+          <button onClick={onClose} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-muted-foreground hover:bg-[#F2F2F7] transition-all">إلغاء</button>
+          <button onClick={handleSubmit} disabled={saving} className="flex-[2] btn-gold py-2.5 text-xs font-bold flex items-center justify-center gap-2">
+            {saving ? <Loader2 className="size-3 animate-spin" /> : <UserPlus className="size-3" />} إضافة
           </button>
         </div>
       </div>
@@ -771,12 +948,5 @@ function AddMemberDialog({
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-1.5">
-      <label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">
-        {label}
-      </label>
-      {children}
-    </div>
-  );
+  return <div className="space-y-1.5"><label className="text-[10px] font-black text-primary uppercase tracking-widest px-1">{label}</label>{children}</div>;
 }
